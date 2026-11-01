@@ -33,7 +33,7 @@ void main() {
     await tester.tap(find.byTooltip('Clip'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Create Clip'), findsOneWidget);
+    expect(find.text('Create clip'), findsOneWidget);
     expect(find.text('Log in to create clips.'), findsOneWidget);
   });
 }

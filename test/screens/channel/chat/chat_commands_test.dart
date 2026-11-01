@@ -54,7 +54,7 @@ void main() {
     expect(parseChatCommand('/whisper friend yo'), isA<WhisperCommand>());
     expect(
       (parseChatCommand('/w friend') as UnsupportedCommand).text(L10n.english),
-      'Usage: /w <user> <message>',
+      'Usage: /\u2060w <user> <message>',
     );
     expect(parseChatCommand('/w'), isA<UnsupportedCommand>());
     expect(
@@ -77,7 +77,7 @@ void main() {
       expect((parseChatCommand('/ban troll') as BanCommand).reason, '');
       expect(
         (parseChatCommand('/ban') as UnsupportedCommand).text(L10n.english),
-        'Usage: /ban <user> [reason]',
+        'Usage: /\u2060ban <user> [reason]',
       );
       expect(parseChatCommand('/ban a-b'), isA<UnsupportedCommand>());
     });
@@ -140,7 +140,7 @@ void main() {
         (parseChatCommand('/warn troll') as UnsupportedCommand).text(
           L10n.english,
         ),
-        'Usage: /warn <user> <reason>',
+        'Usage: /\u2060warn <user> <reason>',
       );
     });
 

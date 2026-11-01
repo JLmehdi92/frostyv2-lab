@@ -34,11 +34,11 @@ void main() {
     );
 
     expect(find.text('xQc'), findsOneWidget);
-    expect(find.text('Chat Rules'), findsOneWidget);
+    expect(find.text('Chat rules'), findsOneWidget);
     expect(find.text('English please'), findsOneWidget);
     expect(find.text('Fresh memes'), findsOneWidget);
 
-    await tester.tap(find.text('OK, Got it!'));
+    await tester.tap(find.text('Got it'));
     expect(accepted, 1);
   });
 
@@ -85,16 +85,16 @@ void main() {
       await tester.tap(find.byType(TextField));
       await tester.pumpAndSettle();
 
-      expect(find.text('Chat Rules'), findsOneWidget);
+      expect(find.text('Chat rules'), findsOneWidget);
       expect(focus.hasFocus, isFalse);
 
-      await tester.tap(find.text('OK, Got it!'));
+      await tester.tap(find.text('Got it'));
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 10)),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Chat Rules'), findsNothing);
+      expect(find.text('Chat rules'), findsNothing);
       expect(store.mustShowBeforeChatting, isFalse);
       expect(focus.hasFocus, isTrue);
     });
@@ -109,13 +109,13 @@ void main() {
       await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
 
-      expect(find.text('Chat Rules'), findsNothing);
+      expect(find.text('Chat rules'), findsNothing);
       expect(focus.hasFocus, isFalse);
       expect(store.mustShowBeforeChatting, isTrue);
 
       await tester.tap(find.byType(TextField));
       await tester.pumpAndSettle();
-      expect(find.text('Chat Rules'), findsOneWidget);
+      expect(find.text('Chat rules'), findsOneWidget);
     });
   });
 
@@ -137,7 +137,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('English please'), findsOneWidget);
 
-      await tester.tap(find.text('OK, Got it!'));
+      await tester.tap(find.text('Got it'));
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 10)),
       );

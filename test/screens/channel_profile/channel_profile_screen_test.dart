@@ -321,9 +321,9 @@ void main() {
 
       expect(find.text('Soirée GTA RP'), findsOneWidget);
       expect(find.textContaining('Next stream · '), findsOneWidget);
-      await tester.tap(find.text('Remind Me'));
+      await tester.tap(find.text('Remind me'));
       await settle(tester);
-      expect(find.text('Reminder Set'), findsOneWidget);
+      expect(find.text('Reminder set'), findsOneWidget);
       expect(platform.scheduled, {reminderNoticeId('next')});
     });
 
@@ -663,7 +663,7 @@ void main() {
     ).thenAnswer((_) async => const UserTwitch('71092938', 'xqc', 'xQc', ''));
     await pump(tester);
 
-    expect(find.text("Couldn't load this channel's profile"), findsOneWidget);
+    expect(find.text('Couldn’t load this channel’s profile.'), findsOneWidget);
     expect(find.text('Try again'), findsOneWidget);
     expect(find.text('Chat'), findsOneWidget);
     expect(find.byTooltip('More'), findsOneWidget);
@@ -672,7 +672,7 @@ void main() {
   testWidgets('an unknown channel says so, with a way back', (tester) async {
     when(() => profiles.getProfile(any())).thenAnswer((_) async => null);
     await pump(tester);
-    expect(find.text('Channel not found'), findsOneWidget);
+    expect(find.text('Channel not found.'), findsOneWidget);
     expect(find.text('Try again'), findsOneWidget);
     await tester.tap(find.byTooltip('Back'));
     await settle(tester);
@@ -761,7 +761,7 @@ void main() {
       await tester.tap(find.text('Chat'));
       await tester.pump();
       expect(
-        find.text("Couldn't open this channel, check your connection"),
+        find.text('Couldn’t open this channel. Check your connection.'),
         findsOneWidget,
       );
     });
@@ -794,7 +794,7 @@ void main() {
           .widget<RefreshIndicator>(find.byType(RefreshIndicator).first)
           .onRefresh();
       await tester.pump();
-      expect(find.text("Couldn't refresh this channel"), findsOneWidget);
+      expect(find.text('Couldn’t refresh this channel.'), findsOneWidget);
       expect(find.byType(ProfileHeader), findsOneWidget);
     });
 

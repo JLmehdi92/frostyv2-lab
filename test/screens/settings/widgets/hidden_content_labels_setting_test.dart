@@ -21,7 +21,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Gambling'));
     await tester.pump();
-    await tester.tap(find.text('Sexual Themes'));
+    await tester.tap(find.text('Sexual themes'));
     await tester.pump();
 
     expect(settings.hiddenContentLabels, ['Gambling', 'SexualThemes']);
@@ -32,7 +32,7 @@ void main() {
 
     await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
-    expect(find.text('Sexual Themes'), findsOneWidget, reason: 'subtitle');
+    expect(find.text('Sexual themes'), findsOneWidget, reason: 'subtitle');
   });
 
   testWidgets('several labels are counted', (tester) async {

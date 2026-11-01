@@ -106,30 +106,30 @@ void main() {
     test('a resub counts the months', () {
       expect(
         _text(_word(_sub(cumulative: '14'))),
-        "X subscribed at Tier 1. They've subscribed for 14 months!",
+        'X subscribed at Tier 1. They’ve subscribed for 14 months!',
       );
       expect(
         _text(_word(_sub(plan: 'Prime', cumulative: '14'))),
-        "X subscribed with Prime. They've subscribed for 14 months!",
+        'X subscribed with Prime. They’ve subscribed for 14 months!',
       );
       expect(
         _text(_word(_sub(plan: 'Custom', cumulative: '14'))),
-        "X subscribed. They've subscribed for 14 months!",
+        'X subscribed. They’ve subscribed for 14 months!',
       );
     });
 
     test('a shared streak adds the streak', () {
       expect(
         _text(_wordRaw(resubStreak)),
-        "ReSubber subscribed at Tier 1. They've subscribed for 14 months, "
-        'currently on a 5 month streak!',
+        'ReSubber subscribed at Tier 1. They’ve subscribed for 14 months, '
+        'currently on a 5-month streak!',
       );
       expect(
         _text(
           _word(_sub(plan: 'Prime', cumulative: '3', streak: '2', share: true)),
         ),
-        "X subscribed with Prime. They've subscribed for 3 months, "
-        'currently on a 2 month streak!',
+        'X subscribed with Prime. They’ve subscribed for 3 months, '
+        'currently on a 2-month streak!',
       );
       expect(
         _text(
@@ -137,30 +137,30 @@ void main() {
             _sub(plan: 'Custom', cumulative: '3', streak: '2', share: true),
           ),
         ),
-        "X subscribed. They've subscribed for 3 months, "
-        'currently on a 2 month streak!',
+        'X subscribed. They’ve subscribed for 3 months, '
+        'currently on a 2-month streak!',
       );
     });
 
     test('a streak of one month still reads "month"', () {
       expect(
         _text(_word(_sub(cumulative: '1', streak: '1', share: true))),
-        "X subscribed at Tier 1. They've subscribed for 1 month, "
-        'currently on a 1 month streak!',
+        'X subscribed at Tier 1. They’ve subscribed for 1 month, '
+        'currently on a 1-month streak!',
       );
     });
 
     test('a hidden streak is not shown', () {
       expect(
         _text(_wordRaw(resubHiddenStreak)),
-        "ReSubber subscribed at Tier 1. They've subscribed for 14 months!",
+        'ReSubber subscribed at Tier 1. They’ve subscribed for 14 months!',
       );
     });
 
     test('a zero streak is not shown', () {
       expect(
         _text(_word(_sub(cumulative: '14', streak: '0', share: true))),
-        "X subscribed at Tier 1. They've subscribed for 14 months!",
+        'X subscribed at Tier 1. They’ve subscribed for 14 months!',
       );
     });
 
@@ -197,7 +197,7 @@ void main() {
 
       expect(
         _text(words),
-        "G gifted a Tier 1 Sub to R! It's their first Gift Sub in the channel!",
+        'G gifted a Tier 1 sub to R! It’s their first gift sub in the channel!',
       );
       expect(_bold(words), ['G', 'R']);
     });
@@ -205,25 +205,25 @@ void main() {
     test('a later gift counts the gifts', () {
       expect(
         _text(_wordRaw(subGift)),
-        "Gifter gifted a Tier 1 Sub to Lucky! They've given 3 Gift Subs in "
+        'Gifter gifted a Tier 1 sub to Lucky! They’ve given 3 gift subs in '
         'the channel!',
       );
     });
 
     test('a gift with no count, as inside a gift bomb, says nothing more', () {
-      expect(_text(_word(_gift())), 'G gifted a Tier 1 Sub to R!');
+      expect(_text(_word(_gift())), 'G gifted a Tier 1 sub to R!');
       expect(
         _text(_word(_gift(senderCount: '0'))),
-        'G gifted a Tier 1 Sub to R!',
+        'G gifted a Tier 1 sub to R!',
       );
       expect(
         _text(_wordRaw(massGiftRecipients.first)),
-        'BigGifter gifted a Tier 1 Sub to Viewer1!',
+        'BigGifter gifted a Tier 1 sub to Viewer1!',
       );
     });
 
     test('a gift of an unknown plan leaves the tier out', () {
-      expect(_text(_word(_gift(plan: 'Custom'))), 'G gifted a Sub to R!');
+      expect(_text(_word(_gift(plan: 'Custom'))), 'G gifted a sub to R!');
     });
 
     test('a multi-month gift names the months and the tier in bold', () {
@@ -231,7 +231,7 @@ void main() {
 
       expect(
         _text(words),
-        "Gifter gifted 3 months of Tier 1 to Lucky! It's their first Gift Sub "
+        'Gifter gifted 3 months of Tier 1 to Lucky! It’s their first gift sub '
         'in the channel!',
       );
       expect(_bold(words), ['Gifter', '3 months', 'Tier 1', 'Lucky']);
@@ -240,7 +240,7 @@ void main() {
     test('a multi-month gift counts the gifts after a space', () {
       expect(
         _text(_word(_gift(months: '6', senderCount: '2'))),
-        "G gifted 6 months of Tier 1 to R! They've given 2 Gift Subs in the "
+        'G gifted 6 months of Tier 1 to R! They’ve given 2 gift subs in the '
         'channel!',
       );
       expect(
@@ -252,18 +252,19 @@ void main() {
     test('a multi-month gift of an unknown plan reads as a Sub', () {
       final words = _word(_gift(plan: 'Custom', months: '3'));
 
-      expect(_text(words), 'G gifted a 3 month Sub to R!');
-      expect(_bold(words), ['G', '3 month', 'R']);
+      expect(_text(words), 'G gifted a 3-month sub to R!');
+      expect(_bold(words), ['G', '3-month', 'R']);
     });
 
     test('a single-month gift is not called multi-month', () {
-      expect(_text(_word(_gift(months: '1'))), 'G gifted a Tier 1 Sub to R!');
+      expect(_text(_word(_gift(months: '1'))), 'G gifted a Tier 1 sub to R!');
     });
 
-    test('an anonymous gift names the anonymous gifter account', () {
+    test('an anonymous gift comes from "An anonymous gifter", not Twitch\'s '
+        'account name', () {
       expect(
         _text(_wordRaw(anonymousSubGift)),
-        'AnAnonymousGifter gifted a Tier 1 Sub to Lucky!',
+        'An anonymous gifter gifted a Tier 1 sub to Lucky!',
       );
     });
 
@@ -310,8 +311,8 @@ void main() {
 
       expect(
         _text(words),
-        "G is gifting 5 Tier 1 Subs to Channel's community. It's their first "
-        'Gift Sub in the channel!',
+        'G is gifting 5 Tier 1 subs to Channel’s community. It’s their first '
+        'gift sub in the channel!',
       );
       expect(_bold(words), ['G']);
     });
@@ -319,33 +320,33 @@ void main() {
     test('a later gift bomb gives the total', () {
       expect(
         _text(_wordRaw(massGiftHeader, channelName: 'Streamer')),
-        "BigGifter is gifting 5 Tier 1 Subs to Streamer's community. They've "
-        'gifted a total of 50 in the channel!',
+        'BigGifter is gifting 5 Tier 1 subs to Streamer’s community. They’ve '
+        'gifted a total of 50 subs in the channel!',
       );
     });
 
     test('a gift bomb with no count ends on an exclamation mark', () {
       expect(
         _text(_word(_bomb())),
-        "G is gifting 5 Tier 1 Subs to Channel's community!",
+        'G is gifting 5 Tier 1 subs to Channel’s community!',
       );
       expect(
         _text(_word(_bomb(senderCount: '0'))),
-        "G is gifting 5 Tier 1 Subs to Channel's community!",
+        'G is gifting 5 Tier 1 subs to Channel’s community!',
       );
     });
 
     test('a gift bomb of one is a single Sub', () {
       expect(
         _text(_word(_bomb(count: '1'))),
-        "G is gifting 1 Tier 1 Sub to Channel's community!",
+        'G is gifting 1 Tier 1 sub to Channel’s community!',
       );
     });
 
     test('a gift bomb of an unknown plan leaves the tier out', () {
       expect(
         _text(_word(_bomb(plan: 'Custom'))),
-        "G is gifting 5 Subs to Channel's community!",
+        'G is gifting 5 subs to Channel’s community!',
       );
     });
 
@@ -354,7 +355,7 @@ void main() {
 
       expect(
         _text(words),
-        "An anonymous gifter is gifting 5 Tier 1 Subs to Channel's community!",
+        'An anonymous gifter is gifting 5 Tier 1 subs to Channel’s community!',
       );
       expect(_bold(words), ['An anonymous gifter']);
     });

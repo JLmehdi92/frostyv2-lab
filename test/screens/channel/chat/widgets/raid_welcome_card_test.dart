@@ -63,14 +63,14 @@ void main() {
   testWidgets('who the viewer followed, and where they are', (tester) async {
     await pump(tester);
     expect(
-      find.text("You followed Nisqyy's raid", findRichText: true),
+      find.text('You followed Nisqyy’s raid', findRichText: true),
       findsOneWidget,
     );
-    expect(find.text("Welcome to Splinter's chat"), findsOneWidget);
+    expect(find.text('Welcome to Splinter’s chat'), findsOneWidget);
     expect(find.byType(OnsetRocket), findsOneWidget);
     expect(
       find.bySemanticsLabel(
-        "You followed Nisqyy's raid. Welcome to Splinter's chat",
+        'You followed Nisqyy’s raid. Welcome to Splinter’s chat',
       ),
       findsOneWidget,
     );
@@ -107,7 +107,7 @@ void main() {
 
   testWidgets('light theme: the light text', (tester) async {
     await pump(tester, brightness: Brightness.light);
-    final detail = tester.widget<Text>(find.text("Welcome to Splinter's chat"));
+    final detail = tester.widget<Text>(find.text('Welcome to Splinter’s chat'));
     expect(detail.style!.color, SheetColors.light.secondary);
     await tester.pumpAndSettle();
   });

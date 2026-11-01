@@ -98,7 +98,7 @@ void main() {
       await tester.pumpAndSettle();
       verify(() => auth.logout()).called(1);
       // Logged out, Profile becomes the logged-out page.
-      expect(find.text('Connect with Twitch'), findsOneWidget);
+      expect(find.text('Log in with Twitch'), findsOneWidget);
       expect(find.text('Log out'), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -111,7 +111,7 @@ void main() {
 
       expect(find.text('Anonymous'), findsOneWidget);
       expect(find.text('Watching without an account'), findsOneWidget);
-      expect(find.text('Connect with Twitch'), findsOneWidget);
+      expect(find.text('Log in with Twitch'), findsOneWidget);
       expect(
         find.text(
           'Have a token copied? Long-press this card to log in with it.',
@@ -157,7 +157,7 @@ void main() {
       final auth = FakeAuthStore(loggedIn: true, error: 'offline');
       await pumpProfile(tester, auth);
 
-      expect(find.text('Unable to connect to Twitch'), findsOneWidget);
+      expect(find.text('Couldn’t connect to Twitch.'), findsOneWidget);
       expect(find.text('Log out'), findsNothing);
       await tester.tap(find.text('Reconnect'));
       await tester.pump();
@@ -240,7 +240,7 @@ void main() {
       // General opens first, with its groups in the pane.
       expect(find.byType(GeneralSettings), findsOneWidget);
       expect(find.text('THEME'), findsOneWidget);
-      expect(find.text('Theme, stream cards, browsing and links'), findsOne);
+      expect(find.text('Theme, stream cards, browsing, and links'), findsOne);
 
       await tester.tap(find.text('Chat'));
       await tester.pumpAndSettle();
@@ -282,7 +282,7 @@ void main() {
 
       await tester.tap(find.text('Chat'));
       await tester.pumpAndSettle();
-      await tapVisible(tester, find.text('Edit Chat Filters'));
+      await tapVisible(tester, find.text('Edit chat filters'));
       expect(find.byType(ChatFiltersSetting), findsOneWidget);
       expect(find.text('Enable filtering in chat'), findsOneWidget);
       // No new route: it is in the pane.
@@ -346,7 +346,7 @@ void main() {
 
       await tester.tap(find.text('Unblock'));
       await tester.pumpAndSettle();
-      expect(find.text('Are you sure you want to unblock "Spam"?'), findsOne);
+      expect(find.text('Are you sure you want to unblock Spam?'), findsOne);
       await tester.tap(find.text('Yes'));
       await tester.pumpAndSettle();
       verify(() => auth.user.unblock(targetId: '9')).called(1);
@@ -364,7 +364,7 @@ void main() {
       auth.setLoggedIn(false);
       await tester.pumpAndSettle();
       expect(find.byType(GeneralSettings), findsOneWidget);
-      expect(find.text('Connect with Twitch'), findsOneWidget);
+      expect(find.text('Log in with Twitch'), findsOneWidget);
       expect(find.text('Blocked users'), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -379,7 +379,7 @@ void main() {
 
       auth.setError('offline');
       await tester.pumpAndSettle();
-      expect(find.text('Unable to connect to Twitch'), findsOneWidget);
+      expect(find.text('Couldn’t connect to Twitch.'), findsOneWidget);
       expect(find.text('Blocked users'), findsNothing);
       expect(find.text('Log out'), findsNothing);
       expect(find.byType(GeneralSettings), findsOneWidget);

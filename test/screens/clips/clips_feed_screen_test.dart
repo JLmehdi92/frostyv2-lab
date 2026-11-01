@@ -238,7 +238,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text("This clip can't be played here"), findsOneWidget);
+    expect(find.text('This clip can’t be played here.'), findsOneWidget);
     await close(tester);
   });
 
@@ -273,7 +273,7 @@ void main() {
 
     expect(
       find.text(
-        'That’s all for now! Check out more clips from previous streams',
+        'That’s all for now! Check out more clips from previous streams.',
       ),
       findsOneWidget,
     );
@@ -325,7 +325,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Unable to load clips'), findsOneWidget);
+    expect(find.text('Couldn’t load clips.'), findsOneWidget);
     await tester.tap(find.text('Try again'));
     await tester.pump();
     await tester.pump();
@@ -543,7 +543,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('NEXT'), findsOneWidget);
       expect(find.text('Streamer · Clip b'), findsOneWidget);
-      expect(find.text('You can swipe to the next clip'), findsOneWidget);
+      expect(find.text('Swipe for the next clip'), findsOneWidget);
       expect(find.text('Open clip'), findsOneWidget);
 
       await tester.tap(find.text('Streamer · Clip b'));
@@ -575,7 +575,7 @@ void main() {
       );
       await pump(tester, first: ClipFeedPage(items: [clip('a'), clip('b')]));
 
-      expect(find.text('You can swipe to the next clip'), findsOneWidget);
+      expect(find.text('Swipe for the next clip'), findsOneWidget);
       // Nothing left animating: the page settles.
       await tester.pumpAndSettle();
       await close(tester);

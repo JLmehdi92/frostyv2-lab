@@ -163,7 +163,7 @@ void main() {
     expect(store.error, StreamListProblem.sort);
     expect(
       streamListErrorText(L10n.english, store.error!, store.sort),
-      'Twitch could not sort by Viewers (low to high). '
+      'Twitch couldn’t sort by Viewers (low to high). '
       'Viewers (high to low) still works.',
     );
 

@@ -68,7 +68,7 @@ void main() {
       expect(find.text('ONSET build 72 is ready.'), findsOneWidget);
       expect(
         find.text(
-          'Installed: build 68 · 38.0 MB · SHA-256 checked before install',
+          'Installed: build 68 · 38.0 MB · Verified with SHA-256 before installing',
         ),
         findsOneWidget,
       );
@@ -115,7 +115,7 @@ January 9, 2026
     );
     await tester.pumpAndSettle();
     expect(find.text('Release notes'), findsOneWidget);
-    expect(find.text("WHAT'S NEW"), findsOneWidget);
+    expect(find.text('WHAT’S NEW'), findsOneWidget);
     expect(find.text('v5.0.5'), findsOneWidget);
     expect(find.text('ONSET 5.0.5'), findsOneWidget);
     expect(find.text('2 fixes'), findsOneWidget);

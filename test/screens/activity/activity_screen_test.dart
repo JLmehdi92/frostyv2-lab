@@ -123,7 +123,7 @@ void main() {
 
   testWidgets("empty: Twitch's up-to-date message", (tester) async {
     await pump(tester);
-    expect(find.text("Hooray! You're up to date"), findsOneWidget);
+    expect(find.text('Hooray! You’re up to date'), findsOneWidget);
     expect(
       find.text(
         'Check back soon for alerts about you and the broadcasters you '
@@ -175,19 +175,19 @@ void main() {
       ),
     ]);
     await pump(tester);
-    expect(find.text('Most Recent'), findsOneWidget);
+    expect(find.text('Most recent'), findsOneWidget);
     expect(find.text('Earlier'), findsOneWidget);
     expect(find.text('Title a'), findsOneWidget);
     expect(find.text('Body a'), findsOneWidget);
     expect(find.text('1 hour ago • Live'), findsOneWidget);
-    expect(find.text('3 days ago • Chat Mentions'), findsOneWidget);
+    expect(find.text('3 days ago • Chat mentions'), findsOneWidget);
     expect(find.textContaining('on this device'), findsOneWidget);
   });
 
   testWidgets('only older ones: they are the most recent', (tester) async {
     await store.addAll([_entry('a', ago: const Duration(days: 2))]);
     await pump(tester);
-    expect(find.text('Most Recent'), findsOneWidget);
+    expect(find.text('Most recent'), findsOneWidget);
     expect(find.text('Earlier'), findsNothing);
   });
 
@@ -416,7 +416,7 @@ void main() {
         size: _tablet,
       );
       expect(find.text('Activity'), findsOneWidget);
-      expect(find.text('Most Recent'), findsOneWidget);
+      expect(find.text('Most recent'), findsOneWidget);
       expect(find.text('Earlier'), findsOneWidget);
       expect(find.text('Title a'), findsOneWidget);
       expect(find.text('Whispers'), findsOneWidget);
@@ -467,7 +467,7 @@ void main() {
 
     testWidgets("empty: Twitch's up-to-date message", (tester) async {
       await pump(tester, size: _tabletPortrait);
-      expect(find.text("Hooray! You're up to date"), findsOneWidget);
+      expect(find.text('Hooray! You’re up to date'), findsOneWidget);
     });
   });
 

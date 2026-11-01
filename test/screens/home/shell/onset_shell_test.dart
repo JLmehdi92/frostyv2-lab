@@ -326,10 +326,10 @@ void main() {
       // Browse's header: its title, its search field, no Home tabs.
       expect(find.text('Following'), findsNothing);
       expect(
-        find.text('Search channels, categories or videos'),
+        find.text('Search channels, categories, or videos'),
         findsOneWidget,
       );
-      await tester.tap(find.text('Search channels, categories or videos'));
+      await tester.tap(find.text('Search channels, categories, or videos'));
       expect(h.searches, 1);
 
       await tester.tap(_nav(ShellSection.activity));

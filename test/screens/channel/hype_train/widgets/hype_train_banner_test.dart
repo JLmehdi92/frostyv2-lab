@@ -112,7 +112,7 @@ void main() {
 
     await tester.pump(const Duration(milliseconds: 800));
     expect(stepKey('levelComplete'), findsOneWidget);
-    expect(find.text('Level 2 Complete!'), findsOneWidget);
+    expect(find.text('Level 2 complete!'), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 600));
@@ -171,7 +171,7 @@ void main() {
     // Past the first frame of the cross-fade (opacity 0 hides semantics).
     await tester.pump(const Duration(milliseconds: 200));
     expect(
-      tester.getSemantics(find.text('Level 2 Complete!')),
+      tester.getSemantics(find.text('Level 2 complete!')),
       containsSemantics(isLiveRegion: true),
     );
 
@@ -550,7 +550,7 @@ void main() {
       await h.close(tester);
     });
 
-    testWidgets('"Level 2 Complete!" is centred at 24 sp', (tester) async {
+    testWidgets('"Level 2 complete!" is centred at 24 sp', (tester) async {
       final h = running(tester, level: 2);
       await pumpSlot(tester, h.store);
 
@@ -558,7 +558,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 3300));
       await tester.pump(const Duration(milliseconds: 200));
-      final complete = find.text('Level 2 Complete!');
+      final complete = find.text('Level 2 complete!');
 
       expect(tester.widget<Text>(complete).style?.fontSize, 24);
       expect(
@@ -594,13 +594,13 @@ void main() {
       expect(
         find.descendant(
           of: small,
-          matching: find.text('Viewer_1 just gifted 50 Tier 1 Subs!'),
+          matching: find.text('Viewer_1 just gifted 50 Tier 1 subs!'),
         ),
         findsOneWidget,
       );
       expect(
         tester
-            .widget<Text>(find.text('Viewer_1 just gifted 50 Tier 1 Subs!'))
+            .widget<Text>(find.text('Viewer_1 just gifted 50 Tier 1 subs!'))
             .style
             ?.fontSize,
         13,
@@ -617,7 +617,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
 
       expect(
-        tester.widget<Text>(find.text('Level 2 Complete!')).style?.fontSize,
+        tester.widget<Text>(find.text('Level 2 complete!')).style?.fontSize,
         18,
       );
       expect(tester.takeException(), isNull);
@@ -717,7 +717,7 @@ void main() {
     });
 
     testWidgets('level up: 100 % in 200 ms, a flash with "Level n '
-        'Complete!", the colour morphs in 600 ms, the bar restarts', (
+        'complete!", the colour morphs in 600 ms, the bar restarts', (
       tester,
     ) async {
       final h = running(tester, level: 2);
@@ -730,10 +730,10 @@ void main() {
       expect(bar(tester).value, closeTo(1, 0.001));
       expect(find.byKey(const ValueKey('ht-flash')), findsNothing);
 
-      // Flash 500 ms, then the marquee 2.5 s: "Level 2 Complete!".
+      // Flash 500 ms, then the marquee 2.5 s: "Level 2 complete!".
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pump(const Duration(milliseconds: 2500));
-      expect(find.text('Level 2 Complete!'), findsOneWidget);
+      expect(find.text('Level 2 complete!'), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 1));
       final flash = tester.widget<ColoredBox>(
         find.byKey(const ValueKey('ht-flash')),
@@ -785,9 +785,9 @@ void main() {
       for (var t = 0; t < 40; t++) {
         await tester.pump(const Duration(milliseconds: 100));
         expect(find.byKey(const ValueKey('ht-flash')), findsNothing);
-        if (find.text('Level 2 Complete!').evaluate().isNotEmpty) break;
+        if (find.text('Level 2 complete!').evaluate().isNotEmpty) break;
       }
-      expect(find.text('Level 2 Complete!'), findsOneWidget);
+      expect(find.text('Level 2 complete!'), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 100));
       expect(bar(tester).morphValue, inExclusiveRange(0.3, 0.7));
       await tester.pump(const Duration(milliseconds: 100));

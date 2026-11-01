@@ -29,7 +29,7 @@ void main() {
   testWidgets("Twitch's Closed Captions switch turns them on", (tester) async {
     await pump(tester);
 
-    await tester.tap(find.text('Closed Captions'));
+    await tester.tap(find.text('Closed captions'));
     await tester.pump();
 
     expect(settings.showCaptions, isTrue);

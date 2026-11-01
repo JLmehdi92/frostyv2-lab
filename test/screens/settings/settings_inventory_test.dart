@@ -24,7 +24,7 @@ import 'settings_harness.dart';
 typedef SwitchRows = Map<String, bool Function(SettingsStore store)>;
 
 final SwitchRows _general = {
-  'Use large stream card': (s) => s.largeStreamCard,
+  'Use large stream cards': (s) => s.largeStreamCard,
   'Show thumbnail': (s) => s.showThumbnails,
   'Open links in external browser': (s) => s.launchUrlExternal,
 };
@@ -39,10 +39,10 @@ final SwitchRows _video = {
   'Keep screen awake': (s) => s.keepScreenAwake,
   'Background audio': (s) => s.backgroundAudio,
   'Use custom video overlay': (s) => s.showOverlay,
-  'Long-press player to toggle overlay': (s) => s.toggleableOverlay,
+  'Long-press the player to toggle the overlay': (s) => s.toggleableOverlay,
   'Show latency': (s) => s.showLatency,
   'Warn about mature content': (s) => s.warnMatureContent,
-  'Closed Captions': (s) => s.showCaptions,
+  'Closed captions': (s) => s.showCaptions,
 };
 
 final SwitchRows _chat = {
@@ -56,7 +56,7 @@ final SwitchRows _chat = {
   'Sync message delay and stream latency': (s) => s.autoSyncChatDelay,
   'Move emote menu button left': (s) => s.emoteMenuButtonOnLeft,
   'Persist chat tabs': (s) => s.persistChatTabs,
-  'Highlight first time chatters': (s) => s.highlightFirstTimeChatter,
+  'Highlight first-time chatters': (s) => s.highlightFirstTimeChatter,
   'Show notices': (s) => s.showUserNotices,
   'Collapse gift bombs': (s) => s.collapseGiftBombs,
   'Show Hype Trains': (s) => s.showHypeTrain,
@@ -189,14 +189,12 @@ void main() {
     expect(settings.liveCatchUpMode, LiveCatchUpMode.jumpToLive);
     // Ultra is the default: the other choice must stick.
     expect(settings.bufferProfile, BufferProfile.ultra);
-    await tester.tap(find.text('Standard'));
-    await tester.pumpAndSettle();
+    await tapVisible(tester, find.text('Standard'));
     expect(settings.bufferProfile, BufferProfile.standard);
     expect(find.text('Twitch web token (2K)'), findsOneWidget);
 
     // The WebView fallback: IVS's own settings go.
-    await tester.tap(find.text('Low-latency player (Amazon IVS)'));
-    await tester.pumpAndSettle();
+    await tapVisible(tester, find.text('Low-latency player (Amazon IVS)'));
     expect(settings.playerEngine, PlayerEngine.twitchWeb);
     expect(find.text('Live catch-up'), findsNothing);
     expect(find.text('Buffer profile'), findsNothing);
@@ -222,7 +220,7 @@ void main() {
       'Low-latency player (Amazon IVS)',
       'Use fast video rendering',
       'Background audio',
-      'Closed Captions',
+      'Closed captions',
     ]) {
       expect(find.text(title), findsNothing, reason: title);
     }

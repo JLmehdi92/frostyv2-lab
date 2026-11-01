@@ -126,7 +126,7 @@ void main() {
   test('labels follow Twitch\'s notification categories', () {
     final en = L10n.english;
     expect(ActivityKind.live.label(en), 'Live');
-    expect(ActivityKind.mention.label(en), 'Chat Mentions');
+    expect(ActivityKind.mention.label(en), 'Chat mentions');
     expect(ActivityKind.reminder.label(en), 'Events');
     final fr = lookupAppLocalizations(const Locale('fr'));
     expect(ActivityKind.live.label(fr), 'En direct');

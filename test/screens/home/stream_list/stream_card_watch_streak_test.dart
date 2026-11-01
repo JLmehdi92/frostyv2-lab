@@ -40,7 +40,7 @@ void main() {
     );
 
     expect(find.text('Streak 6'), findsOneWidget);
-    expect(find.bySemanticsLabel(RegExp('Watch streak 6')), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Watch Streak 6')), findsOneWidget);
     // The tags stay.
     expect(find.text('English'), findsOneWidget);
 

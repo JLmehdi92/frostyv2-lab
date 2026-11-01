@@ -452,9 +452,9 @@ void main() {
       await ready(tester);
 
       expect(find.text('Just one second…'), findsOneWidget);
-      expect(find.text('It may contain: Mature-Rated Game'), findsOneWidget);
+      expect(find.text('It may contain: Mature-rated game'), findsOneWidget);
       expect(
-        find.text("Streamer's content is intended for certain audiences."),
+        find.text('Streamer’s content is intended for certain audiences.'),
         findsOneWidget,
       );
       expect(starts, isEmpty, reason: 'no player, so nothing plays behind');
@@ -646,9 +646,12 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byType(VodDetailsPanel), findsOneWidget);
       expect(find.text('Copy link at current time'), findsOneWidget);
-      expect(find.text('Speed Normal'), findsOneWidget);
-      expect(find.text('Quality Auto'), findsOneWidget);
-      expect(find.text('Double-tap the sides to skip 10 s'), findsOneWidget);
+      expect(find.text('Normal speed'), findsOneWidget);
+      expect(find.text('Auto quality'), findsOneWidget);
+      expect(
+        find.text('Double-tap the sides to skip 10 seconds'),
+        findsOneWidget,
+      );
       expect(find.text('Chat replay'), findsOneWidget);
       // The video keeps 16:9 at the top of its column.
       final details = tester.getRect(find.byType(VodDetailsPanel));
@@ -683,7 +686,10 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byType(VodDetailsPanel), findsOneWidget);
       // Under a portrait video, no legend: the chat replay needs the room.
-      expect(find.text('Double-tap the sides to skip 10 s'), findsNothing);
+      expect(
+        find.text('Double-tap the sides to skip 10 seconds'),
+        findsNothing,
+      );
       final details = tester.getRect(find.byType(VodDetailsPanel));
       final chat = tester.getRect(find.byType(VodChatReplay));
       expect(chat.top, greaterThanOrEqualTo(details.bottom - 0.5));

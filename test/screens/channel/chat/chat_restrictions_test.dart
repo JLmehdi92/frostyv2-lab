@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/chat_restrictions.dart';
 
@@ -39,7 +41,7 @@ void main() {
     expect(timedOut.kind, ChatRestrictionKind.timedOut);
     expect(
       timedOut.describe(const Duration(minutes: 4, seconds: 5)),
-      'You are timed out · 4:05',
+      'You’re timed out · 4:05',
     );
     // Over: nothing left.
     expect(_for(timedOutUntil: _now), isNull);
@@ -77,10 +79,19 @@ void main() {
     expect(_for(room: const ROOMSTATE(subMode: '1'), subscriber: true), isNull);
     final followers = _for(room: const ROOMSTATE(followersOnly: '10'))!;
     expect(followers.blocksInput, isFalse);
-    expect(
-      followers.describe(null),
-      'Followers-only chat · following for 10+ min',
-    );
+    expect(followers.describe(null), 'Follow for 10m');
+    // The follow age in its largest whole unit, never raw minutes.
+    String ageOf(String minutes, [AppLocalizations? l]) =>
+        _for(room: ROOMSTATE(followersOnly: minutes))!.describe(null, l);
+    expect(ageOf('180'), 'Follow for 3h');
+    expect(ageOf('90'), 'Follow for 1h 30m');
+    expect(ageOf('2880'), 'Follow for 2 days');
+    expect(ageOf('10080'), 'Follow for 7 days');
+    expect(ageOf('43200'), 'Follow for 1 month');
+    expect(ageOf('129600'), 'Follow for 3 months');
+    final french = lookupAppLocalizations(const Locale('fr'));
+    expect(ageOf('10', french), 'Followers depuis 10\u00a0min');
+    expect(ageOf('10080', french), 'Followers depuis 7\u00a0jours');
     expect(
       _for(room: const ROOMSTATE(followersOnly: '0'))!.describe(null),
       'Followers-only chat',

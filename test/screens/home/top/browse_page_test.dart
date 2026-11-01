@@ -235,7 +235,7 @@ void main() {
     await pump(tester, size: const Size(1280, 854));
     expect(tester.takeException(), isNull);
     expect(find.text('Top categories'), findsOneWidget);
-    expect(find.text('Most watched first'), findsOneWidget);
+    expect(find.text('Most-watched first'), findsOneWidget);
 
     // The first category is shown at once, in the pane.
     expect(find.byType(CategoryView), findsOneWidget);
@@ -510,7 +510,7 @@ void main() {
       1000,
     );
     await settle(tester);
-    expect(find.text('Something went wrong loading categories'), findsWidgets);
+    expect(find.text('Couldn’t load categories.'), findsWidgets);
     expect(find.text('Try again'), findsOneWidget);
   });
 

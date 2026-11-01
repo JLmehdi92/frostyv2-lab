@@ -15,7 +15,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('Closed Captions'));
+    await tester.tap(find.text('Closed captions'));
     await tester.pump();
     expect(store.showCaptions, isTrue);
 

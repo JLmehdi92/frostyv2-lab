@@ -163,8 +163,8 @@ void main() {
         ..receive(_live('live-1'));
       async.elapse(const Duration(milliseconds: 250));
       expect(ids(store), [
-        'Connecting to chat...',
-        "Welcome to Channel's chat!",
+        'Connecting to chat…',
+        'Welcome to Channel’s chat!',
         'live-1',
       ]);
 
@@ -177,8 +177,8 @@ void main() {
       expect(ids(store), [
         'h1',
         'h2',
-        'Connecting to chat...',
-        "Welcome to Channel's chat!",
+        'Connecting to chat…',
+        'Welcome to Channel’s chat!',
         'live-1',
       ]);
       expect(changes, 1, reason: 'one insert, not one per line');
@@ -623,7 +623,7 @@ void main() {
 
           expect(ids(store), isNot(contains('h1')));
           expect(ids(store), isNot(contains('h2')));
-          expect(ids(store), contains('Chat was cleared by a moderator'));
+          expect(ids(store), contains('Chat was cleared by a moderator.'));
           store.dispose();
           async.elapse(const Duration(seconds: 30));
         });

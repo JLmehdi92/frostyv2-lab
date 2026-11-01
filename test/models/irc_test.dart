@@ -346,7 +346,7 @@ void main() {
       // Messages list should be cleared and contain only the notice
       expect(messages.length, 1);
       expect(messages.first.command, Command.notice);
-      expect(messages.first.message, 'Chat was cleared by a moderator');
+      expect(messages.first.message, 'Chat was cleared by a moderator.');
     });
   });
 

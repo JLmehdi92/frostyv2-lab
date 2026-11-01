@@ -145,7 +145,7 @@ void main() {
       card(onStay: () {}, onWatch: () => watched++, staying: true),
     );
     await tester.pumpAndSettle();
-    expect(find.text('You stay on Nisqyy'), findsOneWidget);
+    expect(find.text('You’re staying on Nisqyy'), findsOneWidget);
     expect(find.text('The raid goes to Friend without you'), findsOneWidget);
     expect(find.text('Stay here'), findsNothing);
     expect(find.byKey(RaidCard.trackKey), findsNothing);
@@ -178,7 +178,7 @@ void main() {
   testWidgets('called off: a line, nothing to press', (tester) async {
     await pump(tester, card(raid: _raid(cancelled: true), onStay: () {}));
     await tester.pumpAndSettle();
-    expect(find.text('Raid cancelled'), findsOneWidget);
+    expect(find.text('Raid canceled'), findsOneWidget);
     expect(find.text('Nisqyy stays live'), findsOneWidget);
     expect(find.byType(TextButton), findsNothing);
   });

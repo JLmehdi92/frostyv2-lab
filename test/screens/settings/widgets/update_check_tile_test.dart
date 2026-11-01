@@ -78,7 +78,7 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => updater.check(force: true)).called(1);
-    expect(find.text("You're up to date"), findsOneWidget);
+    expect(find.text('You’re up to date'), findsOneWidget);
   });
 
   testWidgets('says when GitHub cannot be read', (tester) async {
@@ -91,7 +91,7 @@ void main() {
     await tester.tap(find.text('Check for updates'));
     await tester.pumpAndSettle();
 
-    expect(find.text("Couldn't check for updates"), findsOneWidget);
+    expect(find.text('Couldn’t check for updates.'), findsOneWidget);
   });
 
   testWidgets('a check that throws says so and can be retried', (tester) async {
@@ -102,7 +102,7 @@ void main() {
     await tester.tap(find.text('Check for updates'));
     await tester.pumpAndSettle();
 
-    expect(find.text("Couldn't check for updates"), findsOneWidget);
+    expect(find.text('Couldn’t check for updates.'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
     final tile = tester.widget<SettingsRow>(
       find.ancestor(

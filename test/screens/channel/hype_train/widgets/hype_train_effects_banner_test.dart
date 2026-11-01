@@ -58,7 +58,7 @@ void main() {
     final h = harnessFor(liveTrain(level: 2, treasure: _treasure));
     await pumpSlot(tester, h.store);
     expect(
-      find.text('Reach Level 3 to unlock 50% OFF Gift Subs!'),
+      find.text('Reach level 3 to unlock 50% off gift subs!'),
       findsOneWidget,
     );
 
@@ -67,7 +67,7 @@ void main() {
 
     expect(await seenWithin(tester, find.byType(CoinUnlock), 6000), isTrue);
     expect(
-      find.text('50% OFF 5+ Gift Subs for the rest of this Hype Train'),
+      find.text('50% off 5+ gift subs for the rest of this Hype Train'),
       findsOneWidget,
     );
     await h.close(tester);

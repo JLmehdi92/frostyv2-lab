@@ -183,7 +183,7 @@ void main() {
   testWidgets('catches an English message with punctuation added', (
     tester,
   ) async {
-    expect(english.clipsListFailed, "Couldn't load clips");
+    expect(english.clipsListFailed, 'Couldn’t load clips.');
     expect(
       await leaksOf(tester, [
         Text('${english.clipsListFailed}.'),
@@ -191,7 +191,7 @@ void main() {
         Text('${english.settingsTitle}\u00a0:'),
       ]),
       [
-        "Couldn't load clips.",
+        '${english.clipsListFailed}.',
         '${english.commonTryAgain}!',
         '${english.settingsTitle}\u00a0:',
       ],

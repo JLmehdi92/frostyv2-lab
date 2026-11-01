@@ -56,13 +56,13 @@ void main() {
     snapshot: HtOngoingSnapshot(train, fetchedAt: DateTime.utc(2026)),
   );
 
-  testWidgets('the level target reads 10 Tier 1 Subs or 4,700 Bits', (
+  testWidgets('the level target reads 10 Tier 1 subs or 4,700 Bits', (
     tester,
   ) async {
     final h = harnessFor(withRewards(liveTrain(value: 0)));
     await pumpSheet(tester, h.store);
 
-    expect(find.textContaining('10 Tier 1 Subs'), findsOneWidget);
+    expect(find.textContaining('10 Tier 1 subs'), findsOneWidget);
     expect(find.textContaining('4,700 Bits'), findsOneWidget);
     await h.close(tester);
   });
@@ -77,7 +77,7 @@ void main() {
     );
     await pumpSheet(tester, h.store);
 
-    expect(find.text('giver has contributed 5 Subs!'), findsOneWidget);
+    expect(find.text('giver has contributed 5 subs!'), findsOneWidget);
     expect(find.text('Use Bits to take over this spot!'), findsOneWidget);
     await h.close(tester);
   });
@@ -109,13 +109,13 @@ void main() {
     );
     final before = harnessFor(liveTrain(level: 2, treasure: treasure));
     await pumpSheet(tester, before.store);
-    expect(find.textContaining('at Level 3'), findsOneWidget);
+    expect(find.textContaining('at level 3'), findsOneWidget);
     await before.close(tester);
 
     final after = harnessFor(liveTrain(level: 4, treasure: treasure));
     await pumpSheet(tester, after.store);
     expect(find.textContaining('Save 50% on 5 or more'), findsOneWidget);
-    expect(find.textContaining('All Aboard!'), findsOneWidget);
+    expect(find.textContaining('All aboard!'), findsOneWidget);
     await after.close(tester);
   });
 
@@ -127,7 +127,7 @@ void main() {
     });
     final before = harnessFor(liveTrain(level: 3, community: community));
     await pumpSheet(tester, before.store);
-    expect(find.textContaining('Hit Level 5'), findsOneWidget);
+    expect(find.textContaining('Hit level 5'), findsOneWidget);
     await before.close(tester);
 
     final after = harnessFor(liveTrain(level: 6, community: community));
@@ -185,8 +185,8 @@ void main() {
     final h = harnessFor(liveTrain());
     await pumpSheet(tester, h.store, onLearnMore: () => opened++);
 
-    await tester.ensureVisible(find.text('More Info'));
-    await tester.tap(find.text('More Info'));
+    await tester.ensureVisible(find.text('More info'));
+    await tester.tap(find.text('More info'));
 
     expect(opened, 1);
     await h.close(tester);
@@ -287,9 +287,7 @@ void main() {
       final h = harnessFor(liveTrain(value: 0));
       await pumpSheet(tester, h.store);
 
-      final target = tester.widget<Text>(
-        find.textContaining('Completing Level 7'),
-      );
+      final target = tester.widget<Text>(find.textContaining('Level 7 needs'));
       expect(target.style?.fontSize, 12);
       await h.close(tester);
     });
@@ -325,7 +323,7 @@ void main() {
       );
       expect(
         tester
-            .widget<Text>(find.text('giver has contributed 5 Subs!'))
+            .widget<Text>(find.text('giver has contributed 5 subs!'))
             .style
             ?.fontSize,
         12,
@@ -386,7 +384,7 @@ void main() {
       final title = tester.widget<Text>(find.text('Treasure Train'));
       expect(title.style?.fontSize, 16);
       expect(title.style?.fontWeight, FontWeight.w600);
-      expect(find.textContaining('learn more'), findsOneWidget);
+      expect(find.textContaining('Learn more'), findsOneWidget);
       await h.close(tester);
     });
 
@@ -399,7 +397,7 @@ void main() {
       await pumpSheet(tester, h.store);
 
       final record = find.textContaining(
-        'Channel all-time record! 50% Level 9',
+        'Channel all-time record! Level 9 at 50%',
       );
       expect(record, findsOneWidget);
       expect(

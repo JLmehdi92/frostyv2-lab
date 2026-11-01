@@ -22,7 +22,7 @@ void main() {
     expect(
       find.text(
         'Folds a gift bomb of five subs or more into its first line; tap '
-        '"recipients" to see who got one.',
+        '“recipients” to see who got one.',
       ),
       findsOneWidget,
     );
@@ -50,7 +50,7 @@ void main() {
     );
 
     final subtitle = find.text(
-      'Shows polls, predictions, pinned messages, gift bombs and raids '
+      'Shows polls, predictions, pinned messages, gift bombs, and raids '
       'above chat.',
     );
     await tester.scrollUntilVisible(

@@ -489,8 +489,9 @@ const _hole = '\u{FFFC}';
 /// What [message] can show, as patterns matching the whole text: each
 /// combination of its plural and select branches ([_variants]), with each
 /// placeholder as any text, and any closing punctuation added after it
-/// ("Couldn't load clips." for "Couldn't load clips"). A variant with fewer than three letters of its
-/// own around its placeholders ("{scale}x") cannot be told from the data it
+/// ("Couldn’t load clips.." for "Couldn’t load clips."). A variant with
+/// fewer than three letters of its
+/// own around its placeholders ("{scale}×") cannot be told from the data it
 /// shows, and gives no pattern.
 List<RegExp> shownPatterns(String message) {
   final patterns = <RegExp>[];
@@ -730,10 +731,11 @@ List<String> ellipsizedTexts(WidgetTester tester, {Finder? within}) => [
     '"${paragraph.text.toPlainText()}" ends in an ellipsis',
 ];
 
-/// The texts the app writes whole (a French message with no placeholder:
-/// a label, a button, a title) that [tester]'s screen ends with an
-/// ellipsis: an app's words are never lost, whatever the window or the
-/// text size. Names, titles and other data may end in an ellipsis.
+/// The texts the app writes whole (a French or English message with no
+/// placeholder: a label, a button, a title) that [tester]'s screen ends
+/// with an ellipsis: an app's words are never lost, whatever the window,
+/// the language or the text size. Names, titles and other data may end in
+/// an ellipsis.
 ///
 /// Only text set in Inter is read: text with no family of its own under a
 /// button's style is laid out in the test font, whose letters are all an
@@ -742,17 +744,29 @@ List<String> ellipsizedAppTexts(WidgetTester tester) => [
   for (final paragraph in _ellipsized(tester, null))
     if (paragraph.text.toPlainText().trim() case final text
         when paragraph.text.style?.fontFamily == OnsetTokens.bodyFamily &&
-            _frenchFixed.contains(text.toLowerCase()))
+            _appFixed.contains(text.toLowerCase()))
       '"$text" (a message of the app) ends in an ellipsis',
 ];
 
-/// Every French message and branch with no placeholder, lower case
-/// ([ellipsizedAppTexts]).
-final Set<String> _frenchFixed = {
-  for (final value in _leakChecks.frenchValues)
+/// Every French and English message and branch with no placeholder, lower
+/// case ([ellipsizedAppTexts]).
+final Set<String> _appFixed = {
+  for (final value in [..._leakChecks.frenchValues, ..._englishValues()])
     if (!value.contains('{') && value.trim().isNotEmpty)
       value.trim().toLowerCase(),
 };
+
+/// Every English message, and each branch of its plurals and selects.
+Iterable<String> _englishValues() sync* {
+  final english =
+      jsonDecode(File('lib/l10n/app_en.arb').readAsStringSync())
+          as Map<String, Object?>;
+  for (final MapEntry(:key, :value) in english.entries) {
+    if (key.startsWith('@') || value is! String) continue;
+    yield value;
+    yield* _variants(value).where((v) => !v.contains(_hole));
+  }
+}
 
 /// The paragraphs that end with an ellipsis ([ellipsizedTexts]).
 Iterable<RenderParagraph> _ellipsized(
@@ -788,6 +802,15 @@ const frenchScreenSizes = [
 /// The text scales every French screen is checked at.
 const frenchTextScales = [1.0, 1.3];
 
+/// The languages the main screens are swept in at [frenchScreenSizes] and
+/// [frenchTextScales]: French, then English, whose words run shorter or
+/// longer in other places.
+const sweepLocales = [fr, en];
+
+/// How a sweep names [locale] in a test's name ("" for French, the
+/// default).
+String sweepName(Locale locale) => locale == en ? ', in English' : '';
+
 /// No overflow (nor any other exception), no English ([englishLeaks]), no
 /// text cut off without an ellipsis ([clippedTexts]) and no app's label
 /// ended by one ([ellipsizedAppTexts]) on what [tester]'s
@@ -795,6 +818,9 @@ const frenchTextScales = [1.0, 1.3];
 /// when scrolled to its end. [where] names the screen in failures;
 /// [content] is Twitch's or viewers' own words the screen shows
 /// ([englishLeaks]).
+///
+/// On a screen in English ([L10n.current] English: the English runs of
+/// the same screens, [sweepLocales]), everything but the leaks is checked.
 Future<void> expectFrenchThroughout(
   WidgetTester tester,
   String where, {
@@ -809,11 +835,13 @@ Future<void> expectFrenchThroughout(
           '$where, $step\n'
           '${exception is FlutterError ? exception.toStringDeep() : ''}',
     );
-    expect(
-      englishLeaks(tester, content: content),
-      isEmpty,
-      reason: '$where, $step',
-    );
+    if (L10n.current.localeName != 'en') {
+      expect(
+        englishLeaks(tester, content: content),
+        isEmpty,
+        reason: '$where, $step',
+      );
+    }
     expect(clippedTexts(tester), isEmpty, reason: '$where, $step');
     expect(ellipsizedAppTexts(tester), isEmpty, reason: '$where, $step');
   }

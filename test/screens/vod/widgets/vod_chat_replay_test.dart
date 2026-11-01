@@ -84,7 +84,7 @@ void main() {
 
     expect(find.byType(ReplayLoading), findsOneWidget);
     expect(find.byType(SkeletonLoader), findsNWidgets(3));
-    expect(find.text('Loading chat replay'), findsOneWidget);
+    expect(find.text('Loading chat replay…'), findsOneWidget);
   });
 
   testWidgets('an active replay without messages says so', (tester) async {

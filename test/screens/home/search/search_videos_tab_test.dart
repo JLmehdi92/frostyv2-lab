@@ -159,7 +159,7 @@ void main() {
     await tapTab(tester, 'Videos');
     await tester.pumpAndSettle();
 
-    expect(find.text('No search results found'), findsOneWidget);
+    expect(find.text('No results found'), findsOneWidget);
   });
 
   testWidgets('a failed search offers to try again', (tester) async {
@@ -173,7 +173,7 @@ void main() {
     await tapTab(tester, 'Videos');
     await tester.pumpAndSettle();
 
-    expect(find.text('Unable to load videos'), findsOneWidget);
+    expect(find.text('Couldn’t load videos.'), findsOneWidget);
     await tester.tap(find.text('Try again'));
     await tester.pumpAndSettle();
 
@@ -235,11 +235,11 @@ void main() {
     await tester.pumpAndSettle();
     await tapTab(tester, 'Channels');
     await tester.pumpAndSettle();
-    expect(find.text('Unable to load channels'), findsOneWidget);
+    expect(find.text('Couldn’t load channels.'), findsOneWidget);
     await tester.tap(find.text('Try again'));
     await tester.pumpAndSettle();
     expect(channelCalls, 2);
     expect(categoryCalls, 2);
-    expect(find.text('Unable to load channels'), findsNothing);
+    expect(find.text('Couldn’t load channels.'), findsNothing);
   });
 }

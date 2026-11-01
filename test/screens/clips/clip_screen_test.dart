@@ -185,7 +185,7 @@ void main() {
     await pump(tester);
     await tester.pump();
 
-    expect(find.text('This clip is no longer available'), findsOneWidget);
+    expect(find.text('This clip is no longer available.'), findsOneWidget);
     await close(tester);
   });
 
@@ -238,7 +238,7 @@ void main() {
       ..status = VodPlaybackStatus.problem;
     await pump(tester, known: clip);
     expect(
-      find.text('This clip is not available in your region'),
+      find.text('This clip isn’t available in your region.'),
       findsOneWidget,
     );
     await close(tester);
@@ -330,7 +330,7 @@ void main() {
     await pump(tester);
     await tester.pump();
 
-    expect(find.text("Couldn't load the clip details"), findsOneWidget);
+    expect(find.text('Couldn’t load the clip details.'), findsOneWidget);
     expect(find.byType(VodOverlay), findsOneWidget);
     expect(player.calls, isNot(contains('pause')));
 

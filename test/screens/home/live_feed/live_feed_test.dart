@@ -288,7 +288,7 @@ void main() {
           // The chips sit over the video on a phone (the tablet's are in
           // the shell's tab row).
           expect(find.text('All'), findsOneWidget);
-          expect(find.text('SWIPE UP FOR THE NEXT LIVE'), findsOneWidget);
+          expect(find.text('SWIPE UP FOR THE NEXT STREAM'), findsOneWidget);
         }
         await close(tester);
       });
@@ -320,7 +320,7 @@ void main() {
         await tester.tap(warning());
         await tester.pump();
         expect(find.text('Just one second…'), findsOneWidget);
-        expect(find.text('It may contain: Sexual Themes'), findsOneWidget);
+        expect(find.text('It may contain: Sexual themes'), findsOneWidget);
         expect(tester.takeException(), isNull);
         expect(log, isEmpty);
 
@@ -562,7 +562,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(store.current!.userId, '2');
-    expect(find.text("You won't see Name 1 in Live for now"), findsOneWidget);
+    expect(find.text('You won’t see Name 1 in Live for now.'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text('Undo'));
     await tester.pump(const Duration(milliseconds: 500));
@@ -663,7 +663,7 @@ void main() {
     top = [];
     await pump(tester);
 
-    expect(find.text('No top streams'), findsOneWidget);
+    expect(find.text('No live streams right now'), findsOneWidget);
     expect(log, isEmpty);
     await close(tester);
   });
@@ -673,7 +673,7 @@ void main() {
   ) async {
     failure = Exception('down');
     await pump(tester);
-    expect(find.text('Something went wrong loading streams'), findsOneWidget);
+    expect(find.text('Couldn’t load streams.'), findsOneWidget);
 
     failure = null;
     await tester.tap(find.text('Try again'));
@@ -695,7 +695,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    expect(find.text('Back to the first'), findsOneWidget);
+    expect(find.text('Back to the top'), findsOneWidget);
     expect(log, ['open https://usher/login1', 'dispose https://usher/login1']);
     await close(tester);
   });
@@ -887,7 +887,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(SnackBar),
-        matching: find.text('Something went wrong loading streams'),
+        matching: find.text('Couldn’t load streams.'),
       ),
       findsOneWidget,
     );
@@ -1012,7 +1012,7 @@ void main() {
   testWidgets('reduce motion: the hint stays still', (tester) async {
     await pump(tester, reduceMotion: true);
 
-    final hint = find.text('SWIPE UP FOR THE NEXT LIVE');
+    final hint = find.text('SWIPE UP FOR THE NEXT STREAM');
     final before = tester.getTopLeft(hint);
     await tester.pump(const Duration(milliseconds: 1200));
     expect(tester.getTopLeft(hint), before);

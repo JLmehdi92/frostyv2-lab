@@ -27,7 +27,7 @@ void main() {
 
     await tester.longPress(find.byType(ChatMessage));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Copy message and paste'));
+    await tester.tap(find.text('Copy into message box'));
     await tester.pumpAndSettle();
     return controller;
   }

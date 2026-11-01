@@ -24,11 +24,11 @@ void main() {
         until: now.add(const Duration(seconds: 65)),
       ),
     );
-    expect(find.text('You are timed out · 1:05'), findsOneWidget);
+    expect(find.text('You’re timed out · 1:05'), findsOneWidget);
 
     now = now.add(const Duration(seconds: 1));
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('You are timed out · 1:04'), findsOneWidget);
+    expect(find.text('You’re timed out · 1:04'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 
@@ -46,10 +46,7 @@ void main() {
     tester,
   ) async {
     await pump(tester, const ChatRestriction(ChatRestrictionKind.banned));
-    expect(
-      find.text('You are permanently banned from this chat'),
-      findsOneWidget,
-    );
+    expect(find.text('Permanently banned'), findsOneWidget);
     expect(
       tester.getSize(find.byType(ChatRestrictionBar)).height,
       kRestrictionBarHeight,

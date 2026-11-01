@@ -32,8 +32,8 @@ void main() {
     expect(find.byType(UserNoticeRow), findsOneWidget);
     expect(
       _systemLine(tester),
-      "ReSubber subscribed at Tier 1. They've subscribed for 14 months, "
-      'currently on a 5 month streak!',
+      'ReSubber subscribed at Tier 1. They’ve subscribed for 14 months, '
+      'currently on a 5-month streak!',
     );
     expect(find.textContaining('14 months!', findRichText: true), findsWidgets);
   });
@@ -59,7 +59,7 @@ void main() {
     expect(find.byIcon(Icons.card_giftcard_rounded), findsOneWidget);
   });
 
-  testWidgets("a gift bomb is aimed at the channel's community", (
+  testWidgets('a gift bomb is aimed at the channel’s community', (
     tester,
   ) async {
     await pumpChatMessage(
@@ -70,8 +70,8 @@ void main() {
 
     expect(
       _systemLine(tester),
-      "BigGifter is gifting 5 Tier 1 Subs to Channel's community. They've "
-      'gifted a total of 50 in the channel!',
+      'BigGifter is gifting 5 Tier 1 subs to Channel’s community. They’ve '
+      'gifted a total of 50 subs in the channel!',
     );
   });
 
@@ -200,8 +200,8 @@ void main() {
     await tester.pump();
 
     expect(copied, [
-      "ReSubber subscribed at Tier 1. They've subscribed for 14 months, "
-          'currently on a 5 month streak!\nKappa 14 months!',
+      'ReSubber subscribed at Tier 1. They’ve subscribed for 14 months, '
+          'currently on a 5-month streak!\nKappa 14 months!',
     ]);
   });
 
@@ -306,8 +306,8 @@ void main() {
       await tester.pump();
 
       expect(copied, [
-        "ReSubber subscribed at Tier 1. They've subscribed for 14 months, "
-            'currently on a 5 month streak!',
+        'ReSubber subscribed at Tier 1. They’ve subscribed for 14 months, '
+            'currently on a 5-month streak!',
       ]);
     });
 
@@ -400,8 +400,8 @@ void main() {
 
       expect(
         _systemLine(tester),
-        "PartnerGifter gifted a Tier 1 Sub to Lucky! It's their first Gift "
-        'Sub in the channel!',
+        'PartnerGifter gifted a Tier 1 sub to Lucky! It’s their first gift '
+        'sub in the channel!',
       );
     });
 
@@ -413,7 +413,7 @@ void main() {
       final store = fakeChatStore(channelProfiles: profiles);
 
       await pumpChatMessage(tester, message, store);
-      expect(_systemLine(tester), contains("Channel's community"));
+      expect(_systemLine(tester), contains('Channel’s community'));
 
       runInAction(
         () => profiles['99999'] = const UserTwitch(
@@ -424,7 +424,7 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(_systemLine(tester), contains("Partner's community"));
+      expect(_systemLine(tester), contains('Partner’s community'));
     });
   });
 }

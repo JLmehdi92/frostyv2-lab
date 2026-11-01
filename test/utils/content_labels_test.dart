@@ -8,7 +8,7 @@ void main() {
   final french = lookupAppLocalizations(const Locale('fr'));
 
   test('known labels get Twitch\'s wording', () {
-    expect(contentLabelName('SexualThemes', english), 'Sexual Themes');
+    expect(contentLabelName('SexualThemes', english), 'Sexual themes');
     expect(contentLabelName('Gambling', english), 'Gambling');
   });
 
@@ -38,7 +38,7 @@ void main() {
         'SexualThemes',
         'Gambling',
       ], english),
-      ['Sexual Themes', 'Gambling'],
+      ['Sexual themes', 'Gambling'],
     );
     expect(contentLabelNames(<String>[], english), isEmpty);
     expect(

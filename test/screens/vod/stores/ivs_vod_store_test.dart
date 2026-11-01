@@ -1227,26 +1227,29 @@ void main() {
       expect(store.captions.caption, 'hello');
     });
 
-    test('its caption tracks reach the menu, and each load asks again', () async {
-      settingsStore.showCaptions = true;
-      stubUrl();
-      store = await createStore();
-      await native.emit({
-        'type': 'textTracks',
-        'list': [
-          {'id': 'a', 'label': 'English', 'language': 'en'},
-        ],
-        'selected': 'a',
-      });
-      expect(store.captions.tracks.single.name, 'English');
+    test(
+      'its caption tracks reach the menu, and each load asks again',
+      () async {
+        settingsStore.showCaptions = true;
+        stubUrl();
+        store = await createStore();
+        await native.emit({
+          'type': 'textTracks',
+          'list': [
+            {'id': 'a', 'label': 'English', 'language': 'en'},
+          ],
+          'selected': 'a',
+        });
+        expect(store.captions.tracks.single.name, 'English');
 
-      final asked = native.callsNamed('setCaptions').length;
-      await native.emit({
-        'type': 'qualities',
-        'list': ['1080p60'],
-      });
-      expect(native.callsNamed('setCaptions').length, greaterThan(asked));
-    });
+        final asked = native.callsNamed('setCaptions').length;
+        await native.emit({
+          'type': 'qualities',
+          'list': ['1080p60'],
+        });
+        expect(native.callsNamed('setCaptions').length, greaterThan(asked));
+      },
+    );
   });
 
   group('captions on screen', () {
@@ -1262,7 +1265,9 @@ void main() {
         () => native.emit({'type': 'caption', 'text': 'hello there'}),
       );
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: VodVideo(store: store))),
+        MaterialApp(
+          home: Scaffold(body: VodVideo(store: store)),
+        ),
       );
 
       final line = tester.widget<CaptionText>(find.byType(CaptionText));
@@ -1294,11 +1299,11 @@ void main() {
       );
 
       await tester.scrollUntilVisible(
-        find.text('Closed Captions'),
+        find.text('Closed captions'),
         100,
         scrollable: find.byType(Scrollable).first,
       );
-      await tester.tap(find.text('Closed Captions'));
+      await tester.tap(find.text('Closed captions'));
       await tester.pump();
       expect(settingsStore.showCaptions, isTrue);
     });

@@ -6,7 +6,7 @@ import 'package:onset/screens/settings/widgets/chat_filters_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 
 void main() {
-  testWidgets("Twitch's chat filters, under Edit Chat Filters in Chat", (
+  testWidgets('Twitch’s chat filters, under Edit chat filters in Chat', (
     tester,
   ) async {
     final store = SettingsStore.fromJson({});
@@ -16,7 +16,7 @@ void main() {
       ),
     );
 
-    final entry = find.text('Edit Chat Filters');
+    final entry = find.text('Edit chat filters');
     await tester.scrollUntilVisible(
       entry,
       200,
@@ -41,7 +41,7 @@ void main() {
     expect(store.chatFiltersEnabled, isFalse);
     for (final title in [
       'Discrimination',
-      'Sexually Explicit Language',
+      'Sexually explicit language',
       'Harassment',
       'Profanity',
     ]) {
@@ -55,8 +55,8 @@ void main() {
     }
     expect(
       find.text(
-        'Select the filters you would like to block in chat across all '
-        'channels. In channels you moderate, you will still see all messages.',
+        'Choose what to filter out of chat in every channel. In channels you '
+        'moderate, you’ll still see every message.',
       ),
       findsOneWidget,
     );
@@ -71,7 +71,7 @@ void main() {
     expect(store.chatFilterHarassment, isTrue);
 
     await tester.tap(find.text('Discrimination'));
-    await tester.tap(find.text('Sexually Explicit Language'));
+    await tester.tap(find.text('Sexually explicit language'));
     await tester.tap(find.text('Harassment'));
     await tester.pump();
     expect(store.chatFilterDiscrimination, isFalse);

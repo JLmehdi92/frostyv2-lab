@@ -75,7 +75,7 @@ void main() {
 
     expect(find.text('Your Watch Streak: 4'), findsOneWidget);
     expect(
-      find.text('1 more stream until an extra 450 channel points reward'),
+      find.text('1 more stream to earn 450 bonus channel points'),
       findsOneWidget,
     );
     expect(find.text('4/5'), findsOneWidget);
@@ -90,7 +90,7 @@ void main() {
       live: false,
     );
 
-    expect(find.text('Watch Streak Expiring'), findsOneWidget);
+    expect(find.text('Watch Streak expiring'), findsOneWidget);
     expect(find.text('9/9'), findsNothing);
   });
 

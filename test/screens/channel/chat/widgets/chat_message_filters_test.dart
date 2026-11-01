@@ -81,19 +81,18 @@ void main() {
     _tapSpan(tester, '****');
     await tester.pumpAndSettle();
 
-    expect(find.text('Message Blocked'), findsOneWidget);
+    expect(find.text('Message hidden'), findsOneWidget);
     expect(
       find.text(
-        'Would you like to see this message? It has been hidden for you '
-        'based on your NSFW Chat Filter settings.',
+        'This message was hidden by your chat filters. Show it anyway?',
       ),
       findsOneWidget,
     );
 
-    await tester.tap(find.text('Show Message'));
+    await tester.tap(find.text('Show message'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Message Blocked'), findsNothing);
+    expect(find.text('Message hidden'), findsNothing);
     expect(_lineText(tester), contains('damn fine'));
   });
 

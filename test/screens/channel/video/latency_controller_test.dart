@@ -381,7 +381,7 @@ void main() {
       expect(controller.status.phase, AutoLatencyPhase.stopped);
     }
 
-    test('after giving up, drains at 1.03x only when clearly behind', () {
+    test('after giving up, drains at 1.03× only when clearly behind', () {
       strikeOut();
 
       expect(feed(4200, 40), everyElement(1.0), reason: 'not clearly high');
@@ -600,7 +600,7 @@ void main() {
           ),
           L10n.english,
         ),
-        'catching up 1.05x · target 1.3s',
+        'catching up 1.05× · target 1.3s',
       );
     });
 
@@ -666,7 +666,7 @@ void main() {
         ),
         L10n.english,
       ),
-      'draining 1.03x (stalls after catching up)',
+      'draining 1.03× (stalls after catching up)',
     );
   });
 

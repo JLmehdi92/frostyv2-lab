@@ -60,9 +60,9 @@ void main() {
     await pumpEventQueue();
 
     expect(notices, [
-      'Moderators approved your held message: "hello chat"',
-      'Moderators denied your held message: "hello chat"',
-      'Your held message can no longer be reviewed: "hello chat"',
+      'Moderators approved your held message: “hello chat”',
+      'Moderators denied your held message: “hello chat”',
+      'Your held message can no longer be reviewed: “hello chat”',
     ]);
   });
 
@@ -77,7 +77,7 @@ void main() {
     expect(notice, isNot(contains('\n')));
     expect(notice, isNot(contains('\u202e')));
     expect(notice.length, lessThan(160));
-    expect(notice, endsWith('…"'));
+    expect(notice, endsWith('…”'));
   });
 
   test('a quote keeps the joiners of emoji and scripts', () async {
@@ -90,7 +90,7 @@ void main() {
     await pumpEventQueue();
 
     expect(notices, [
-      'Moderators approved your held message: "$family $persian"',
+      'Moderators approved your held message: “$family $persian”',
     ]);
   });
 

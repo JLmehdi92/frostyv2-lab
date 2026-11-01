@@ -52,10 +52,10 @@ void main() {
     await pump(
       tester,
       controlsVisible: false,
-      actions: {'Forward 10 seconds': () => skipped++},
+      actions: {'Skip ahead 10 seconds': () => skipped++},
     );
 
-    const action = CustomSemanticsAction(label: 'Forward 10 seconds');
+    const action = CustomSemanticsAction(label: 'Skip ahead 10 seconds');
     final node = tester.getSemantics(find.bySemanticsLabel('Video player'));
     expect(
       node,

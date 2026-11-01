@@ -129,7 +129,7 @@ void main() {
     await untilStrip(tester);
     await frames(tester, 500);
 
-    expect(find.textContaining('24 hrs'), findsOneWidget);
+    expect(find.textContaining('24 hours'), findsOneWidget);
     await h.close(tester);
   });
 
@@ -138,7 +138,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     final text = tester.widget<Text>(
-      find.text('You missed the Train. Better luck next time!'),
+      find.text('You missed the train. Better luck next time!'),
     );
     expect(text.maxLines, 2);
     expect(tester.getSize(_strip).height, 74);

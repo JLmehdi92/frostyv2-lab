@@ -234,7 +234,7 @@ void main() {
     await pump(tester);
     expect(find.text('Following'), findsNothing);
     expect(find.text('Live'), findsOneWidget);
-    expect(find.text('No top streams'), findsOneWidget);
+    expect(find.text('No live streams right now'), findsOneWidget);
 
     // Clips: the feed, built only while it is on screen.
     await tester.tap(find.text('Clips'));
@@ -250,7 +250,7 @@ void main() {
     await tester.tap(nav('activity'));
     await tester.pumpAndSettle();
     expect(find.byType(ActivityScreen), findsOneWidget);
-    expect(find.text("Hooray! You're up to date"), findsOneWidget);
+    expect(find.text('Hooray! You’re up to date'), findsOneWidget);
 
     await tester.tap(nav('profile'));
     await tester.pumpAndSettle();
@@ -258,7 +258,7 @@ void main() {
     // own, the login card, the settings' sections, the header's settings.
     expect(find.byType(ProfileTab), findsOneWidget);
     expect(find.byTooltip('Back'), findsNothing);
-    expect(find.text('Connect with Twitch'), findsOneWidget);
+    expect(find.text('Log in with Twitch'), findsOneWidget);
     expect(find.text('Notifications'), findsOneWidget);
     expect(find.byTooltip('Settings'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -306,7 +306,7 @@ void main() {
 
     await tester.tap(nav('browse'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Search channels, categories or videos'));
+    await tester.tap(find.text('Search channels, categories, or videos'));
     await tester.pumpAndSettle();
     expect(find.byType(SearchScreen), findsOneWidget);
     await close(tester);
@@ -336,7 +336,7 @@ void main() {
     // From Browse's field this time: the same search.
     await tester.tap(nav('browse'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Search channels, categories or videos'));
+    await tester.tap(find.text('Search channels, categories, or videos'));
     await tester.pumpAndSettle();
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
@@ -450,14 +450,14 @@ void main() {
     expect(await tester.binding.handlePopRoute(), isTrue);
     await tester.pumpAndSettle();
     expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
-    expect(find.text('No top streams'), findsOneWidget);
+    expect(find.text('No live streams right now'), findsOneWidget);
 
     // Back from Profile: Home.
     await tester.tap(nav('profile'));
     await tester.pumpAndSettle();
     expect(await tester.binding.handlePopRoute(), isTrue);
     await tester.pumpAndSettle();
-    expect(find.text('No top streams'), findsOneWidget);
+    expect(find.text('No live streams right now'), findsOneWidget);
     expect(find.byType(ProfileTab), findsNothing);
 
     // Then the app may close: nothing handles back any more.
@@ -478,7 +478,7 @@ void main() {
     await tester.tap(nav('home'));
     await tester.pumpAndSettle();
     expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
-    expect(find.text('No top streams'), findsOneWidget);
+    expect(find.text('No live streams right now'), findsOneWidget);
     await close(tester);
   });
 
@@ -1330,7 +1330,7 @@ void main() {
       await tester.tap(nav('home'));
       await tester.pumpAndSettle();
       expect(find.text('Following'), findsNothing);
-      expect(find.text('No top streams'), findsOneWidget);
+      expect(find.text('No live streams right now'), findsOneWidget);
 
       // Logging in again: Following and the whispers are back; the tab on
       // screen stays (a session restored behind the viewer must not move
@@ -1338,7 +1338,7 @@ void main() {
       auth.setLoggedIn(true);
       await tester.pumpAndSettle();
       expect(find.text('Following'), findsOneWidget);
-      expect(find.text('No top streams'), findsOneWidget);
+      expect(find.text('No live streams right now'), findsOneWidget);
       expect(find.byTooltip('Whispers'), findsOneWidget);
       await tester.tap(find.text('Following'));
       await tester.pumpAndSettle();
@@ -1416,7 +1416,7 @@ void main() {
       (widget) => widget is StreamsList && widget.listType == ListType.top,
     );
     expect(live, findsOneWidget);
-    expect(find.text('No top streams'), findsOneWidget);
+    expect(find.text('No live streams right now'), findsOneWidget);
 
     // Home and back: Browse is still on its live channels.
     await tester.tap(nav('home'));
@@ -2050,44 +2050,45 @@ void main() {
   });
 
   group('in French', () {
-    final french = lookupAppLocalizations(fr);
-
     for (final (sizeName, size) in frenchScreenSizes) {
       for (final scale in frenchTextScales) {
         // The shell and every section's empty state (each screen's
-        // content has its own French test).
-        testWidgets('Following, Live, Clips, Browse, Activity, '
-            '$sizeName, text ×$scale', (tester) async {
-          await pump(
-            tester,
-            size: size,
-            auth: FakeAuthStore(loggedIn: true),
-            locale: fr,
-            textScale: scale,
-          );
-          expect(find.text(french.streamListEmptyFollowed), findsOneWidget);
-          await expectFrenchThroughout(tester, 'Following');
+        // content has its own French test), in French, then in English.
+        for (final locale in sweepLocales) {
+          testWidgets('Following, Live, Clips, Browse, Activity, '
+              '$sizeName, text ×$scale${sweepName(locale)}', (tester) async {
+            final words = lookupAppLocalizations(locale);
+            await pump(
+              tester,
+              size: size,
+              auth: FakeAuthStore(loggedIn: true),
+              locale: locale,
+              textScale: scale,
+            );
+            expect(find.text(words.streamListEmptyFollowed), findsOneWidget);
+            await expectFrenchThroughout(tester, 'Following');
 
-          for (final tab in [french.shellFeedLive, french.shellFeedClips]) {
-            await tester.tap(find.text(tab).first);
-            await tester.pump();
-            await tester.pump(const Duration(seconds: 1));
-            await expectFrenchThroughout(tester, tab);
-          }
+            for (final tab in [words.shellFeedLive, words.shellFeedClips]) {
+              await tester.tap(find.text(tab).first);
+              await tester.pump();
+              await tester.pump(const Duration(seconds: 1));
+              await expectFrenchThroughout(tester, tab);
+            }
 
-          await tester.tap(nav('browse'));
-          await tester.pumpAndSettle();
-          await expectFrenchThroughout(tester, 'Browse › categories');
-          await tester.tap(find.text(french.shellBrowseLiveChannels).first);
-          await tester.pumpAndSettle();
-          await expectFrenchThroughout(tester, 'Browse › live channels');
+            await tester.tap(nav('browse'));
+            await tester.pumpAndSettle();
+            await expectFrenchThroughout(tester, 'Browse › categories');
+            await tester.tap(find.text(words.shellBrowseLiveChannels).first);
+            await tester.pumpAndSettle();
+            await expectFrenchThroughout(tester, 'Browse › live channels');
 
-          await tester.tap(nav('activity'));
-          await tester.pumpAndSettle();
-          expect(find.text(french.activityEmpty), findsOneWidget);
-          await expectFrenchThroughout(tester, 'Activity');
-          await close(tester);
-        });
+            await tester.tap(nav('activity'));
+            await tester.pumpAndSettle();
+            expect(find.text(words.activityEmpty), findsOneWidget);
+            await expectFrenchThroughout(tester, 'Activity');
+            await close(tester);
+          });
+        }
       }
     }
   });

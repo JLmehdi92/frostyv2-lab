@@ -379,7 +379,7 @@ void main() {
     await send(tester, 'hello');
 
     expect(
-      find.text("Couldn't whisper: Verify your phone number first."),
+      find.text('Couldn’t whisper: Verify your phone number first.'),
       findsOneWidget,
     );
     expect(
@@ -531,7 +531,7 @@ void main() {
     runInAction(() => me.value = null);
     await pumpScreen(tester, WhispersScreen(store: store));
     expect(find.text('Log in to get whispers.'), findsOneWidget);
-    expect(find.text('Connect with Twitch'), findsOneWidget);
+    expect(find.text('Log in with Twitch'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

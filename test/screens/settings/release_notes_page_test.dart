@@ -174,7 +174,7 @@ void main() {
             updatedFrom: '1.0.2',
           );
           expect(tester.takeException(), isNull);
-          expect(find.text("WHAT'S NEW IN 1.1.0"), findsOneWidget);
+          expect(find.text('WHAT’S NEW IN 1.1.0'), findsOneWidget);
           expect(find.text('Updated to 1.1.0'), findsOneWidget);
           expect(find.textContaining('You were on'), findsOneWidget);
           expect(find.textContaining('1.0.2'), findsOneWidget);
@@ -229,7 +229,7 @@ void main() {
   ) async {
     await open(tester);
     // The header is 56 dp (no status bar in a test view).
-    expect(tester.getRect(find.text("WHAT'S NEW")).top, greaterThan(56));
+    expect(tester.getRect(find.text('WHAT’S NEW')).top, greaterThan(56));
     await open(tester, updatedTo: '1.1.0');
     expect(tester.getRect(find.byType(ReleaseFreshHero)).top, greaterThan(56));
   });

@@ -289,7 +289,7 @@ void main() {
     expect(find.byType(GiftBombPin), findsOneWidget);
     expect(find.text('BigGifter'), findsOneWidget);
     expect(find.text(' is gifting 5 subs'), findsOneWidget);
-    expect(highlightLabel(HighlightKind.giftBomb, L10n.english), 'Gift Subs');
+    expect(highlightLabel(HighlightKind.giftBomb, L10n.english), 'Gift subs');
     expect(highlightIcon(HighlightKind.giftBomb), Icons.card_giftcard_rounded);
 
     await tester.tap(find.byTooltip('Hide'));

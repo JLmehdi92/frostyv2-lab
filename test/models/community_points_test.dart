@@ -42,11 +42,11 @@ void main() {
     );
     expect(
       PointsActionResult.fromError('unauthorized').message,
-      contains('Sign in again'),
+      contains('Log in again'),
     );
     expect(
       PointsActionResult.fromError('request_failed').message,
-      'Could not reach Twitch. Try again.',
+      'Couldn’t reach Twitch. Try again.',
     );
     expect(
       PointsActionResult.fromError('NOT_ENOUGH_POINTS').message,
@@ -54,7 +54,7 @@ void main() {
     );
     expect(
       const PointsActionResult(PointsActionStatus.unknown).message,
-      'Twitch refused: no reason',
+      'Twitch refused: no reason given',
     );
   });
 

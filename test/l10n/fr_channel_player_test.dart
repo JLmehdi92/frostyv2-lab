@@ -110,43 +110,46 @@ void main() {
 
   for (final (sizeName, size) in frenchScreenSizes) {
     for (final scale in frenchTextScales) {
-      testWidgets('the controls over the video, live and offline, $sizeName, '
-          'text ×$scale', (tester) async {
-        final settings = SettingsStore.fromJson({});
-        final players = <String, FakePlayer>{
-          'live': FakePlayer(stream: fakeStream(), settings: settings),
-          'offline': FakePlayer(
-            offline: fakeOfflineChannel,
-            settings: settings,
-          ),
-        };
-        for (final MapEntry(key: name, value: player) in players.entries) {
-          for (final fullScreen in [false, true]) {
-            settings
-              ..fullScreen = fullScreen
-              ..fullScreenChatOverlay = fullScreen;
-            await pumpLocalized(
-              tester,
-              overlay(
-                VideoOverlay(
-                  videoStore: player,
-                  chatStore: chat,
-                  settingsStore: settings,
+      for (final locale in sweepLocales) {
+        testWidgets('the controls over the video, live and offline, $sizeName, '
+            'text ×$scale${sweepName(locale)}', (tester) async {
+          final settings = SettingsStore.fromJson({});
+          final players = <String, FakePlayer>{
+            'live': FakePlayer(stream: fakeStream(), settings: settings),
+            'offline': FakePlayer(
+              offline: fakeOfflineChannel,
+              settings: settings,
+            ),
+          };
+          for (final MapEntry(key: name, value: player) in players.entries) {
+            for (final fullScreen in [false, true]) {
+              settings
+                ..fullScreen = fullScreen
+                ..fullScreenChatOverlay = fullScreen;
+              await pumpLocalized(
+                tester,
+                overlay(
+                  VideoOverlay(
+                    videoStore: player,
+                    chatStore: chat,
+                    settingsStore: settings,
+                  ),
+                  size,
                 ),
-                size,
-              ),
-              size: size,
-              textScale: scale,
-            );
-            await tester.pump();
-            await expectFrenchThroughout(
-              tester,
-              '$name, full screen $fullScreen, $sizeName, ×$scale',
-            );
-            await tester.pumpWidget(const SizedBox());
+                locale: locale,
+                size: size,
+                textScale: scale,
+              );
+              await tester.pump();
+              await expectFrenchThroughout(
+                tester,
+                '$name, full screen $fullScreen, $sizeName, ×$scale',
+              );
+              await tester.pumpWidget(const SizedBox());
+            }
           }
-        }
-      });
+        });
+      }
 
       testWidgets('the quality and settings sheet, $sizeName, text ×$scale', (
         tester,
@@ -400,7 +403,7 @@ void main() {
           ),
           english,
         ),
-        'stopped: the player stayed at 1.05x',
+        'stopped: the player stayed at 1.05×',
       );
       expect(
         describeAutoLatency(
@@ -411,7 +414,7 @@ void main() {
           ),
           english,
         ),
-        'stopped: the player did not return to 1.0x',
+        'stopped: the player didn’t return to 1.0×',
       );
       expect(
         describeAutoLatency(
@@ -422,7 +425,7 @@ void main() {
           ),
           english,
         ),
-        'held: held · target 1.3s',
+        'held: waiting · target 1.3s',
       );
       expect(
         describeAutoLatency(
@@ -565,107 +568,112 @@ void main() {
 
     for (final (sizeName, size) in frenchScreenSizes) {
       for (final scale in frenchTextScales) {
-        testWidgets('the info row, the tablet panel and the chat header, '
-            '$sizeName, text ×$scale', (tester) async {
-          final settings = SettingsStore.fromJson({});
-          for (final live in [true, false]) {
-            final player = live
-                ? FakePlayer(stream: fakeStream())
-                : FakePlayer(offline: fakeOfflineChannel);
-            await pumpLocalized(
-              tester,
-              providers(
-                Scaffold(
-                  body: ListView(
-                    children: [
-                      ChannelInfoRow(
-                        player: player,
-                        login: 'streamer',
-                        displayName: 'Streamer',
-                        info: info,
-                        viewerLogin: () => 'viewer',
-                        onOpenProfile: () {},
-                        large: size.shortestSide >= 600,
-                      ),
-                      SizedBox(
-                        height: 380,
-                        child: TabletChannelPanel(
+        for (final locale in sweepLocales) {
+          testWidgets('the info row, the tablet panel and the chat header, '
+              '$sizeName, text ×$scale${sweepName(locale)}', (tester) async {
+            final words = lookupAppLocalizations(locale);
+            final settings = SettingsStore.fromJson({});
+            for (final live in [true, false]) {
+              final player = live
+                  ? FakePlayer(stream: fakeStream())
+                  : FakePlayer(offline: fakeOfflineChannel);
+              await pumpLocalized(
+                tester,
+                providers(
+                  Scaffold(
+                    body: ListView(
+                      children: [
+                        ChannelInfoRow(
                           player: player,
                           login: 'streamer',
                           displayName: 'Streamer',
                           info: info,
                           viewerLogin: () => 'viewer',
-                          onOpenChannel: (_) {},
-                          watchStreak: () => 12,
+                          onOpenProfile: () {},
+                          large: size.shortestSide >= 600,
                         ),
-                      ),
-                      TabletChatHeader(settings: settings, onMore: () {}),
-                      StreamInfoBar(
-                        displayName: 'Streamer',
-                        isOffline: !live,
-                        streamInfo: live ? fakeStream() : null,
-                        offlineChannelInfo: live ? null : fakeOfflineChannel,
-                        onTapChannel: () {},
-                      ),
-                    ],
+                        SizedBox(
+                          height: 380,
+                          child: TabletChannelPanel(
+                            player: player,
+                            login: 'streamer',
+                            displayName: 'Streamer',
+                            info: info,
+                            viewerLogin: () => 'viewer',
+                            onOpenChannel: (_) {},
+                            watchStreak: () => 12,
+                          ),
+                        ),
+                        TabletChatHeader(settings: settings, onMore: () {}),
+                        StreamInfoBar(
+                          displayName: 'Streamer',
+                          isOffline: !live,
+                          streamInfo: live ? fakeStream() : null,
+                          offlineChannelInfo: live ? null : fakeOfflineChannel,
+                          onTapChannel: () {},
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              size: size,
-              textScale: scale,
-            );
-            info.alsoLive.value = [
-              fakeStream(userId: '1', login: 'splinter', name: 'Splinter'),
-            ];
-            await tester.pump();
-            if (live && size.shortestSide < 600) {
-              // The phone's line under the video never cuts its viewers
-              // (« 2 445 spectate… »): it shrinks a little at most, then
-              // says the number short or alone, and a screen reader hears
-              // it in full.
-              final full = french.streamWatching(
-                count: fakeStream().viewerCount,
+                locale: locale,
+                size: size,
+                textScale: scale,
               );
-              final facts = find.byWidgetPredicate(
-                (w) =>
-                    w is Semantics &&
-                    (w.properties.label?.contains(full) ?? false),
-              );
-              expect(facts, findsOneWidget, reason: '$sizeName, ×$scale');
-              final text = find.descendant(
-                of: facts,
-                matching: find.byType(RichText),
-              );
-              final paragraph = tester.renderObject<RenderParagraph>(text);
-              expect(paragraph.didExceedMaxLines, isFalse);
-              final shrink = tester.getRect(text).width / paragraph.size.width;
-              final worded = paragraph.text.toPlainText().contains(
-                'spectateurs',
-              );
-              // A little with its word; more only for the bare number.
-              expect(
-                shrink,
-                greaterThanOrEqualTo(worded ? 0.849 : 0.7),
-                reason: '$sizeName, ×$scale: ${shrink.toStringAsFixed(2)}',
-              );
-            }
-            for (final delay in [true, false]) {
-              settings
-                ..autoSyncChatDelay = delay
-                ..chatDelay = 3;
+              info.alsoLive.value = [
+                fakeStream(userId: '1', login: 'splinter', name: 'Splinter'),
+              ];
               await tester.pump();
-              await expectFrenchThroughout(
-                tester,
-                'live $live, synced $delay, $sizeName, ×$scale',
-              );
+              if (live && size.shortestSide < 600) {
+                // The phone's line under the video never cuts its viewers
+                // (« 2 445 spectate… »): it shrinks a little at most, then
+                // says the number short or alone, and a screen reader hears
+                // it in full.
+                final full = words.streamWatching(
+                  count: fakeStream().viewerCount,
+                );
+                final facts = find.byWidgetPredicate(
+                  (w) =>
+                      w is Semantics &&
+                      (w.properties.label?.contains(full) ?? false),
+                );
+                expect(facts, findsOneWidget, reason: '$sizeName, ×$scale');
+                final text = find.descendant(
+                  of: facts,
+                  matching: find.byType(RichText),
+                );
+                final paragraph = tester.renderObject<RenderParagraph>(text);
+                expect(paragraph.didExceedMaxLines, isFalse);
+                final shrink =
+                    tester.getRect(text).width / paragraph.size.width;
+                final worded = paragraph.text.toPlainText().contains(
+                  locale == fr ? 'spectateurs' : 'watching',
+                );
+                // A little with its word; more only for the bare number.
+                expect(
+                  shrink,
+                  greaterThanOrEqualTo(worded ? 0.849 : 0.7),
+                  reason: '$sizeName, ×$scale: ${shrink.toStringAsFixed(2)}',
+                );
+              }
+              for (final delay in [true, false]) {
+                settings
+                  ..autoSyncChatDelay = delay
+                  ..chatDelay = 3;
+                await tester.pump();
+                await expectFrenchThroughout(
+                  tester,
+                  'live $live, synced $delay, $sizeName, ×$scale',
+                );
+              }
+              info.following.value = true;
+              await tester.pump();
+              await expectFrenchThroughout(tester, 'following, $sizeName');
+              info.following.value = false;
+              await tester.pumpWidget(const SizedBox());
             }
-            info.following.value = true;
-            await tester.pump();
-            await expectFrenchThroughout(tester, 'following, $sizeName');
-            info.following.value = false;
-            await tester.pumpWidget(const SizedBox());
-          }
-        });
+          });
+        }
       }
     }
 

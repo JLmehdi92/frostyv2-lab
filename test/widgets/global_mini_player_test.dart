@@ -261,7 +261,7 @@ void main() {
     expect(scaleNow(), 1);
     expect(targets, findsNothing);
 
-    await tester.tap(find.byTooltip('Close mini player'));
+    await tester.tap(find.byTooltip('Close miniplayer'));
     await tester.pump();
     expect(mini.visible, isFalse);
     await tester.pump(const Duration(seconds: 1));

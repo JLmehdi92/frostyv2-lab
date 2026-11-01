@@ -102,8 +102,8 @@ void main() {
     await pump(tester);
 
     await tester.tap(find.byTooltip('Play'));
-    await tester.tap(find.byTooltip('Back 10 seconds'));
-    await tester.tap(find.byTooltip('Forward 10 seconds'));
+    await tester.tap(find.byTooltip('Rewind 10 seconds'));
+    await tester.tap(find.byTooltip('Skip ahead 10 seconds'));
 
     expect(controller.calls, ['togglePlay', 'seekBy -10', 'seekBy 10']);
   });
@@ -152,8 +152,8 @@ void main() {
       await pump(tester, media: clipMedia, skipButtons: false);
 
       expect(find.text('breakup advice'), findsOneWidget);
-      expect(find.byTooltip('Back 10 seconds'), findsNothing);
-      expect(find.byTooltip('Forward 10 seconds'), findsNothing);
+      expect(find.byTooltip('Rewind 10 seconds'), findsNothing);
+      expect(find.byTooltip('Skip ahead 10 seconds'), findsNothing);
 
       await tester.tapAt(const Offset(100, 450));
       await tester.pump(const Duration(milliseconds: 50));
@@ -383,7 +383,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Past broadcast'), findsNothing);
       expect(tester.getSize(find.byTooltip('Play')).width, 56);
-      expect(tester.getSize(find.byTooltip('Back 10 seconds')).width, 44);
+      expect(tester.getSize(find.byTooltip('Rewind 10 seconds')).width, 44);
     });
 
     testWidgets('a short player shrinks the centre', (tester) async {

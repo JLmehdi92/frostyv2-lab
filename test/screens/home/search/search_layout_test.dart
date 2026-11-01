@@ -161,7 +161,7 @@ void main() {
         tester,
       ) async {
         await pump(tester, size: size, mode: mode);
-        expect(find.text('History'), findsOneWidget);
+        expect(find.text('Recent searches'), findsOneWidget);
         expect(find.text('lirik'), findsOneWidget);
         expect(find.byType(ShellTabs), findsNothing);
         expect(tester.takeException(), isNull);
@@ -194,7 +194,7 @@ void main() {
     await settle(tester);
     expect(tester.widget<ShellTabs>(find.byType(ShellTabs)).index, 1);
     expect(find.byType(SearchChannelRow), findsNWidgets(8));
-    expect(find.text('Go to channel "chess"'), findsOneWidget);
+    expect(find.text('Go to channel “chess”'), findsOneWidget);
   });
 
   testWidgets('tablet: Top has a Videos column with "See all"', (tester) async {
@@ -265,7 +265,7 @@ void main() {
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
       isEmpty,
     );
-    expect(find.text('History'), findsOneWidget);
+    expect(find.text('Recent searches'), findsOneWidget);
   });
 
   testWidgets('reduce motion: the tabs show at once', (tester) async {

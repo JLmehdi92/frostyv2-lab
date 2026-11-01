@@ -52,10 +52,7 @@ void main() {
       final notice = goLiveNotice(stream(), french);
       expect(notice.title, 'Streamer est en direct');
       expect(notice.body, 'Chess · Ranked');
-      expect(
-        french.notifGoLiveMore(count: 1),
-        '1 autre chaîne est en direct',
-      );
+      expect(french.notifGoLiveMore(count: 1), '1 autre chaîne est en direct');
       expect(
         french.notifGoLiveMore(count: 3),
         '3 autres chaînes sont en direct',
@@ -81,7 +78,7 @@ void main() {
 
     test('go-live, mentions, reminders', () {
       for (final (l, live, mentions, reminders) in [
-        (english, 'Go live', 'Chat Mentions', 'Stream reminders'),
+        (english, 'Go-live notifications', 'Chat mentions', 'Stream reminders'),
         (
           french,
           'Lives des chaînes suivies',
@@ -119,7 +116,7 @@ void main() {
       );
       expect(
         android(LocalReminderPlatform.detailsFor(english)).channelDescription,
-        'Scheduled streams you asked to be reminded of',
+        'When a scheduled stream you set a reminder for starts',
       );
     });
 
@@ -163,7 +160,10 @@ void main() {
       expect(en.title, 'Friend mentioned you in Streamer');
       expect(en.body, 'hey @viewer');
       final fr = (await posted(french))!;
-      expect(fr.title, 'Friend vous mentionne dans le chat de la chaîne Streamer');
+      expect(
+        fr.title,
+        'Friend vous mentionne dans le chat de la chaîne Streamer',
+      );
       expect(fr.body, 'hey @viewer');
     });
   });
@@ -185,9 +185,9 @@ void main() {
     );
 
     test('in English, as before', () {
-      expect(reminder.noticeTitleIn(english), "Streamer's stream is starting");
+      expect(reminder.noticeTitleIn(english), 'Streamer’s stream is starting');
       expect(reminder.noticeBodyIn(english), 'Ranked · Chess');
-      expect(untitled.noticeBodyIn(english), 'Stream');
+      expect(untitled.noticeBodyIn(english), 'Untitled stream');
     });
 
     test('in French', () {
@@ -236,7 +236,7 @@ void main() {
         'Le live de la chaîne Streamer commence',
       );
       expect(reminder.bodyIn(french), 'Live sans titre');
-      expect(reminder.bodyIn(english), 'Stream');
+      expect(reminder.bodyIn(english), 'Untitled stream');
     });
 
     test('keep what they say across a save', () {

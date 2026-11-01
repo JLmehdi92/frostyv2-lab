@@ -124,10 +124,10 @@ void main() {
           'Chat only',
           'Refresh emotes and badges',
           'Reconnect',
-          'Username color',
-          'Channel points, polls and predictions',
+          'Name color',
+          'Channel points, polls, and predictions',
           'Subscribe',
-          'Gift a Sub',
+          'Gift a sub',
           'Chatters',
           'Add chat',
           'Sleep timer',
@@ -158,7 +158,7 @@ void main() {
     await open(tester);
     expect(find.text('Slow mode'), findsOneWidget);
     expect(find.text('30s'), findsOneWidget);
-    expect(find.text('Follower only'), findsOneWidget);
+    expect(find.text('Followers-only'), findsOneWidget);
     expect(find.text('10m'), findsOneWidget);
     await scrollTo(tester, 'Chat modes');
     await tester.tap(find.text('Chat modes'));
@@ -171,9 +171,9 @@ void main() {
   ) async {
     when(() => auth.isLoggedIn).thenReturn(false);
     await open(tester);
-    expect(find.text('Username color'), findsNothing);
+    expect(find.text('Name color'), findsNothing);
     expect(find.text('Subscribe'), findsNothing);
-    expect(find.text('Channel points, polls and predictions'), findsNothing);
+    expect(find.text('Channel points, polls, and predictions'), findsNothing);
   });
 
   testWidgets('chat only flips the video and closes', (tester) async {
@@ -227,7 +227,7 @@ void main() {
     tester,
   ) async {
     await open(tester);
-    await tester.tap(find.text('Username color'));
+    await tester.tap(find.text('Name color'));
     await tester.pumpAndSettle();
     expect(
       find.textContaining('How it will look in chat', findRichText: true),
@@ -245,19 +245,19 @@ void main() {
       findsOneWidget,
     );
     await tester.dragUntilVisible(
-      find.text('Hot Pink'),
+      find.text('Hot pink'),
       find.byType(ListView).last,
       const Offset(0, -60),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Hot Pink'));
+    await tester.tap(find.text('Hot pink'));
     await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
     verify(
       () => api.updateUserChatColor(userId: '1', color: 'hot_pink'),
     ).called(1);
-    expect(find.text('Chat color updated successfully!'), findsOneWidget);
+    expect(find.text('Name color updated'), findsOneWidget);
     expect(find.text('Reconnect'), findsOneWidget);
   });
 
@@ -271,20 +271,20 @@ void main() {
       ),
     ).thenThrow(StateError('offline'));
     await open(tester);
-    await tester.tap(find.text('Username color'));
+    await tester.tap(find.text('Name color'));
     await tester.pumpAndSettle();
     await tester.dragUntilVisible(
-      find.text('Hot Pink'),
+      find.text('Hot pink'),
       find.byType(ListView).last,
       const Offset(0, -60),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Hot Pink'));
+    await tester.tap(find.text('Hot pink'));
     await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
     expect(
-      find.text('Failed to update chat color. Please try again.'),
+      find.text('Couldn’t update your name color. Try again.'),
       findsOneWidget,
     );
     // Still on the colours, Save usable again.

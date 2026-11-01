@@ -113,7 +113,7 @@ void main() {
     testWidgets('$name: the bar, the host, the help', (tester) async {
       await open(tester, size: size);
       expect(tester.takeException(), isNull);
-      expect(find.text('Connect with Twitch'), findsOneWidget);
+      expect(find.text('Log in with Twitch'), findsOneWidget);
       expect(find.text('id.twitch.tv'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Login help'));
@@ -138,7 +138,7 @@ void main() {
     onSignedIn!();
     await tester.pumpAndSettle();
     expect(find.text('open'), findsOneWidget);
-    expect(find.text('Connect with Twitch'), findsNothing);
+    expect(find.text('Log in with Twitch'), findsNothing);
   });
 
   testWidgets('the user said no (no token): the page still closes, as '
@@ -158,12 +158,12 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     // Still open: the WebView must reach twitch.tv for the 2K cookie.
-    expect(find.text('Connect with Twitch'), findsOneWidget);
-    expect(find.text('Signing you in…'), findsOneWidget);
+    expect(find.text('Log in with Twitch'), findsOneWidget);
+    expect(find.text('Logging you in…'), findsOneWidget);
     onSignedIn!();
     await tester.pumpAndSettle();
     expect(find.text('open'), findsOneWidget);
-    expect(find.text('Connect with Twitch'), findsNothing);
+    expect(find.text('Log in with Twitch'), findsNothing);
   });
 
   testWidgets('Twitch\'s redirect while the login is in flight: it waits '
@@ -175,11 +175,11 @@ void main() {
     onSignedIn!();
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Connect with Twitch'), findsOneWidget);
+    expect(find.text('Log in with Twitch'), findsOneWidget);
     login.complete(true);
     await tester.pumpAndSettle();
     expect(find.text('open'), findsOneWidget);
-    expect(find.text('Connect with Twitch'), findsNothing);
+    expect(find.text('Log in with Twitch'), findsNothing);
     // A late redirect does not close the page under it.
     onSignedIn!();
     await tester.pumpAndSettle();
@@ -192,7 +192,7 @@ void main() {
     onTokenCaptured!(Future.value(true));
     await tester.pump();
     await tester.pump(const Duration(seconds: 19));
-    expect(find.text('Connect with Twitch'), findsOneWidget);
+    expect(find.text('Log in with Twitch'), findsOneWidget);
     verifyNever(() => auth.harvestTwitchWebToken());
     await tester.pump(const Duration(seconds: 2));
     verify(() => auth.harvestTwitchWebToken()).called(1);
@@ -210,7 +210,7 @@ void main() {
     await tester.pump();
     await tester.pump(TwitchLoginPanel.signingInLimit);
     await tester.pump(const Duration(seconds: 4));
-    expect(find.text('Connect with Twitch'), findsOneWidget);
+    expect(find.text('Log in with Twitch'), findsOneWidget);
     await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();
     expect(find.text('open'), findsOneWidget);
@@ -225,11 +225,11 @@ void main() {
     onTokenCaptured!(Future.value(false));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch did not sign you in. Try again.'), findsOneWidget);
+    expect(find.text('Twitch didn’t log you in. Try again.'), findsOneWidget);
     // Twitch's redirect still comes: the page stays with Try again.
     onSignedIn!();
     await tester.pumpAndSettle();
-    expect(find.text('Connect with Twitch'), findsOneWidget);
+    expect(find.text('Log in with Twitch'), findsOneWidget);
     expect(find.widgetWithText(TextButton, 'Try again'), findsOneWidget);
   });
 
@@ -271,18 +271,18 @@ void main() {
     expect(find.textContaining('access_token'), findsNothing);
   });
 
-  testWidgets('the token is back: "Signing you in…" covers the page', (
+  testWidgets('the token is back: "Logging you in…" covers the page', (
     tester,
   ) async {
     await open(tester);
     onTokenCaptured!(Completer<bool>().future);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Signing you in…'), findsOneWidget);
+    expect(find.text('Logging you in…'), findsOneWidget);
     // Twitch never finishing: the page shows again.
     await tester.pump(TwitchLoginPanel.signingInLimit);
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Signing you in…'), findsNothing);
+    expect(find.text('Logging you in…'), findsNothing);
   });
 
   testWidgets('the page failing: what happened, and "Try again" reloads it', (
@@ -298,7 +298,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsNothing);
+    expect(find.text('Couldn’t reach Twitch.'), findsNothing);
 
     onError!(
       const WebResourceError(
@@ -308,7 +308,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    expect(find.text('Couldn’t reach Twitch.'), findsOneWidget);
     clearInteractions(controller);
     await tester.tap(find.text('Try again'));
     await tester.pump();
@@ -316,16 +316,16 @@ void main() {
     // A fresh attempt of this page's login (a new state), never the old
     // address again.
     verify(() => auth.retryLogin(controller)).called(1);
-    expect(find.text('Twitch could not be reached'), findsNothing);
+    expect(find.text('Couldn’t reach Twitch.'), findsNothing);
   });
 
-  testWidgets('a login that succeeds keeps "Signing you in…" until the '
+  testWidgets('a login that succeeds keeps "Logging you in…" until the '
       'page goes', (tester) async {
     await open(tester);
     onTokenCaptured!(Future.value(true));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Signing you in…'), findsOneWidget);
+    expect(find.text('Logging you in…'), findsOneWidget);
     expect(find.textContaining('did not sign you in'), findsNothing);
   });
 
@@ -337,12 +337,12 @@ void main() {
     onTokenCaptured!(login.future);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Signing you in…'), findsOneWidget);
+    expect(find.text('Logging you in…'), findsOneWidget);
     login.complete(false);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Signing you in…'), findsNothing);
-    expect(find.text('Twitch did not sign you in. Try again.'), findsOneWidget);
+    expect(find.text('Logging you in…'), findsNothing);
+    expect(find.text('Twitch didn’t log you in. Try again.'), findsOneWidget);
   });
 
   testWidgets('a login that fails: the line offers Try again', (tester) async {
@@ -350,11 +350,11 @@ void main() {
     onTokenCaptured!(Future.value(false));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch did not sign you in. Try again.'), findsOneWidget);
+    expect(find.text('Twitch didn’t log you in. Try again.'), findsOneWidget);
     await tester.tap(find.widgetWithText(TextButton, 'Try again'));
     await tester.pump();
     verify(() => auth.retryLogin(controller)).called(1);
-    expect(find.text('Twitch did not sign you in. Try again.'), findsNothing);
+    expect(find.text('Twitch didn’t log you in. Try again.'), findsNothing);
   });
 
   testWidgets('a reload that fails: the card stays until another page', (
@@ -377,11 +377,11 @@ void main() {
     await tester.tap(find.text('Try again'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    expect(find.text('Couldn’t reach Twitch.'), findsOneWidget);
     // The page it was on is not "another page".
     onPage!(Uri.parse('https://id.twitch.tv/oauth2/authorize?x=1'));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    expect(find.text('Couldn’t reach Twitch.'), findsOneWidget);
   });
 
   testWidgets('closing the page closes its login', (tester) async {
@@ -404,15 +404,15 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    expect(find.text('Couldn’t reach Twitch.'), findsOneWidget);
     // The same page again (a fragment, the host's case) is not another one.
     onPage!(Uri.parse('https://ID.twitch.tv/oauth2/authorize?x=1#top'));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    expect(find.text('Couldn’t reach Twitch.'), findsOneWidget);
     onPage!(Uri.parse('https://www.twitch.tv/'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsNothing);
+    expect(find.text('Couldn’t reach Twitch.'), findsNothing);
   });
 
   testWidgets('the failure clears once another page loads', (tester) async {
@@ -426,16 +426,16 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    expect(find.text('Couldn’t reach Twitch.'), findsOneWidget);
     // The failed page itself finishing (its error page) changes nothing.
     onPage!(Uri.parse('https://id.twitch.tv/failed'));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    expect(find.text('Couldn’t reach Twitch.'), findsOneWidget);
     // The page Twitch moves on to clears it.
     onPage!(Uri.parse('https://id.twitch.tv/oauth2/authorize'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsNothing);
+    expect(find.text('Couldn’t reach Twitch.'), findsNothing);
   });
 
   testWidgets('the lock only for https; a page without host shows no host', (
@@ -480,7 +480,7 @@ void main() {
       );
     }
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Twitch could not be reached'), findsNothing);
+    expect(find.text('Couldn’t reach Twitch.'), findsNothing);
   });
 
   testWidgets('the page shrinks above the keyboard', (tester) async {
@@ -500,7 +500,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('first step of the onboarding'), findsNothing);
     expect(
-      find.textContaining('go back, then open the login again.'),
+      find.textContaining('go back and open the login page again.'),
       findsOneWidget,
     );
   });
@@ -510,6 +510,6 @@ void main() {
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(find.text('open'), findsOneWidget);
-    expect(find.text('Connect with Twitch'), findsNothing);
+    expect(find.text('Log in with Twitch'), findsNothing);
   });
 }

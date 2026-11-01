@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,6 +23,8 @@ import 'package:onset/widgets/launch/onset_mark.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../helpers/l10n.dart';
 
 class MockUserStore extends Mock implements UserStore {}
 
@@ -103,6 +106,7 @@ void main() {
     bool holdOnName = false,
     bool reduceMotion = false,
     GlobalKey<NavigatorState>? navigatorKey,
+    double textScale = 1,
   }) async {
     tester.view
       ..physicalSize = size
@@ -144,8 +148,16 @@ void main() {
                 resolveAppLocale(AppLanguage.system, device ?? const []),
             navigatorKey: navigatorKey,
             navigatorObservers: [LaunchIntro.navigatorObserver],
-            builder: (context, child) =>
-                LaunchIntro(play: intro, holdOnName: holdOnName, child: child!),
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: LaunchIntro(
+                play: intro,
+                holdOnName: holdOnName,
+                child: child!,
+              ),
+            ),
             home: child ?? flow(),
           ),
         ),
@@ -172,6 +184,55 @@ void main() {
     await tapText(tester, 'Next');
     await tapText(tester, 'Skip');
   }
+
+  group('large text', () {
+    // The theme pills, the accent row and the tips' numbers grow with the
+    // text instead of cutting it, in both languages.
+    for (final language in [AppLanguage.en, AppLanguage.fr]) {
+      for (final (name, size) in const [
+        ('360x640', Size(360, 640)),
+        ('390x844', Size(390, 844)),
+      ]) {
+        for (final scale in [1.6, 2.0]) {
+          testWidgets('${language.name}, $name, text ×$scale: Setup and '
+              'Welcome keep every word', (tester) async {
+            await tester.runAsync(loadInter);
+            settings.appLanguage = language;
+            final words = lookupAppLocalizations(Locale(language.name));
+            await pump(tester, size: size, textScale: scale);
+            await settle(tester);
+            await tapText(tester, words.commonNext);
+            await tapText(tester, words.onboardingLoginSkip);
+            expect(tester.takeException(), isNull);
+            final list = tester
+                .stateList<ScrollableState>(find.byType(Scrollable))
+                .firstWhere(
+                  (state) => state.axisDirection == AxisDirection.down,
+                );
+            // Down the Setup step's list, checking each screenful.
+            while (true) {
+              expect(clippedTexts(tester), isEmpty, reason: 'Setup');
+              final position = list.position;
+              if (position.pixels >= position.maxScrollExtent) break;
+              position.jumpTo(
+                math.min(
+                  position.maxScrollExtent,
+                  position.pixels + position.viewportDimension * 0.75,
+                ),
+              );
+              await tester.pump();
+            }
+            await tester.tap(find.text(words.commonNext).hitTestable());
+            await settle(tester);
+            expect(tester.takeException(), isNull);
+            expect(find.text(words.onboardingWelcomeTitle), findsOneWidget);
+            expect(clippedTexts(tester), isEmpty, reason: 'Welcome');
+            await tester.pumpWidget(const SizedBox());
+          });
+        }
+      }
+    }
+  });
 
   group('every step, phone and tablet', () {
     for (final (name, size) in const [
@@ -202,8 +263,8 @@ void main() {
         await tapText(tester, 'Next');
         expect(tester.takeException(), isNull);
         expect(find.text('Log in'), findsOneWidget);
-        expect(find.text('What you will authorize'.toUpperCase()), findsOne);
-        expect(find.text('Connect with Twitch'), findsOneWidget);
+        expect(find.text('What you’ll authorize'.toUpperCase()), findsOne);
+        expect(find.text('Log in with Twitch'), findsOneWidget);
 
         await tapText(tester, 'Skip');
         expect(tester.takeException(), isNull);
@@ -215,7 +276,7 @@ void main() {
         // Says when the third party is asked, and what it receives.
         expect(
           find.textContaining(
-            'unavailable, fails or is empty',
+            'unavailable, fails, or is empty',
             findRichText: true,
           ),
           findsOneWidget,
@@ -304,10 +365,10 @@ void main() {
       await pump(tester);
       await settle(tester);
       await tapText(tester, 'Next');
-      await tapText(tester, 'Connect with Twitch');
+      await tapText(tester, 'Log in with Twitch');
       expect(find.byKey(const Key('twitch-page')), findsOneWidget);
       // The bar names the page instead of the progress.
-      expect(find.text('Connect with Twitch'), findsOneWidget);
+      expect(find.text('Log in with Twitch'), findsOneWidget);
       expect(find.bySemanticsLabel('Onboarding progress'), findsNothing);
 
       await tester.tap(find.byTooltip('Login help'));
@@ -335,19 +396,19 @@ void main() {
       await pump(tester);
       await settle(tester);
       await tapText(tester, 'Next');
-      await tapText(tester, 'Connect with Twitch');
+      await tapText(tester, 'Log in with Twitch');
       final login = Completer<bool>();
       tokenBack!(login.future);
       await tester.pump();
       signIn!();
       await settle(tester);
       expect(find.text('Setup'), findsOneWidget);
-      expect(find.text('Signing you in…'), findsOneWidget);
+      expect(find.text('Logging you in…'), findsOneWidget);
 
       auth.setLoggedIn(true);
       login.complete(true);
       await tester.pump();
-      expect(find.text('Signing you in…'), findsNothing);
+      expect(find.text('Logging you in…'), findsNothing);
       expect(find.textContaining('Logged in as'), findsOneWidget);
       expect(find.textContaining('Viewer'), findsOneWidget);
     });
@@ -358,7 +419,7 @@ void main() {
       await pump(tester);
       await settle(tester);
       await tapText(tester, 'Next');
-      await tapText(tester, 'Connect with Twitch');
+      await tapText(tester, 'Log in with Twitch');
       final first = Completer<bool>();
       final second = Completer<bool>();
       tokenBack!(first.future);
@@ -384,7 +445,7 @@ void main() {
       await pump(tester);
       await settle(tester);
       await tapText(tester, 'Next');
-      await tapText(tester, 'Connect with Twitch');
+      await tapText(tester, 'Log in with Twitch');
       // Someone was logged in before: the failure is this login's own.
       auth.setLoggedIn(true);
       final login = Completer<bool>();
@@ -396,7 +457,7 @@ void main() {
       await tester.pump();
       expect(
         find.text(
-          'Login failed · go back to try again, or log in later from Profile',
+          'Couldn’t log in · go back to try again, or log in later from Profile',
         ),
         findsOneWidget,
       );
@@ -406,7 +467,7 @@ void main() {
       await pump(tester);
       await settle(tester);
       await tapText(tester, 'Next');
-      await tapText(tester, 'Connect with Twitch');
+      await tapText(tester, 'Log in with Twitch');
       expect(
         tester.getRect(find.byKey(const Key('twitch-page'))).bottom,
         844 - 16,
@@ -424,7 +485,7 @@ void main() {
       await pump(tester);
       await settle(tester);
       await tapText(tester, 'Next');
-      await tapText(tester, 'Connect with Twitch');
+      await tapText(tester, 'Log in with Twitch');
       signIn!();
       await settle(tester);
       expect(find.text('Setup'), findsOneWidget);
@@ -474,7 +535,7 @@ void main() {
 
       await tapText(tester, 'Dark');
       expect(settings.themeType, ThemeType.dark);
-      expect(find.text('Noir, the ONSET default'), findsOneWidget);
+      expect(find.text('The ONSET default'), findsOneWidget);
       expect(preview(), const Color(0xFF0A0A0A));
     });
 
@@ -565,12 +626,11 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('first_run'), isFalse);
       for (final tip in [
-        'Check out the GitHub repo at the top-right of the settings page to '
-            'explore ONSET’s source code, report bugs, make feature requests, '
-            'and more.',
-        'Links to the full changelog and FAQ are in the settings page under '
-            '“Other”.',
-        'Don’t forget to leave a rating and/or review on the app store!',
+        'Check out the GitHub repo (top-right corner of Settings) to explore '
+            'ONSET’s source code, report bugs, request features, and more.',
+        'Links to the full changelog and the FAQ are in Settings › Other.',
+        'ONSET checks for new builds by itself, and the release notes open '
+            'after each update.',
       ]) {
         expect(find.text(tip), findsOneWidget);
       }

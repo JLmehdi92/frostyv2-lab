@@ -539,7 +539,7 @@ void main() {
       expect(store.autoLatencyStatus?.reason, AutoLatencyReason.paused);
     });
 
-    // A 1.05x rate is invisible and inaudible: picture-in-picture and the
+    // A 1.05× rate is invisible and inaudible: picture-in-picture and the
     // mini player keep correcting (the SDK speed-up it replaces did too).
     test('picture-in-picture keeps correcting', () async {
       store = await playing();
@@ -591,7 +591,7 @@ void main() {
       await tick(2200, 8);
       expect(rates(), [LatencyController.catchUpRate]);
 
-      // 1.05x was accepted; the way back fails (a reload under way...).
+      // 1.05× was accepted; the way back fails (a reload under way...).
       native.rejectRate = (rate) => rate == 1.0;
       store.handlePausePlay();
       await settle();
@@ -628,7 +628,7 @@ void main() {
       await tick(1300, 6);
       expect(rates(), [LatencyController.catchUpRate, 1.0]);
 
-      // The player keeps reporting 1.05x.
+      // The player keeps reporting 1.05×.
       await tick(1300, 2, rate: 1.05);
       expect(rates(), hasLength(4), reason: 'two quick resends');
       await tick(1300, 1, rate: 1.05);
@@ -1787,7 +1787,7 @@ void main() {
           'Streamer',
           L10n.english,
         ),
-        'You are banned from Streamer\'s channel.',
+        'You’re banned from Streamer’s channel.',
       );
       expect(
         playbackRefusalNotice(
@@ -1795,7 +1795,7 @@ void main() {
           'Streamer',
           L10n.english,
         ),
-        'Twitch refused this stream to the app player.',
+        'Twitch won’t play this stream in the low-latency player.',
       );
     });
   });

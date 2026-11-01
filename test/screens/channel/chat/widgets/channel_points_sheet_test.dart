@@ -348,7 +348,9 @@ void main() {
 
       expect(find.text('Collect bonus'), findsNothing);
       expect(
-        find.textContaining('Twitch blocks collecting the bonus'),
+        find.textContaining(
+          'Twitch’s anti-bot check blocks collecting the bonus',
+        ),
         findsOneWidget,
       );
     });
@@ -363,8 +365,8 @@ void main() {
 
       expect(find.text('PREDICTION — OPEN'), findsOneWidget);
       expect(find.text('Tap an outcome to bet.'), findsOneWidget);
-      expect(find.text('1.33 ×'), findsOneWidget);
-      expect(find.text('4.00 ×'), findsOneWidget);
+      expect(find.text('1.33×'), findsOneWidget);
+      expect(find.text('4.00×'), findsOneWidget);
     });
 
     testWidgets('a locked one shows its odds but takes no bet', (tester) async {

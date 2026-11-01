@@ -230,7 +230,7 @@ void main() {
 
       expect(
         (await store.send(thread, 'hi'))?.text(L10n.english),
-        "Couldn't whisper: You need a verified phone number.",
+        'Couldn’t whisper: You need a verified phone number.',
       );
       expect(thread.whispers, isEmpty);
 
@@ -338,7 +338,7 @@ void main() {
           displayName: 'Other',
           text: 'yo',
         ))?.text(L10n.english),
-        "Couldn't whisper: Nope",
+        'Couldn’t whisper: Nope',
       );
       expect(store.threads, isEmpty);
 
@@ -397,8 +397,8 @@ void main() {
         'This conversation belongs to another account.',
         'Whispers can be 500 characters at most.',
         'Log in again to whisper from this app.',
-        "Couldn't whisper: The recipient blocks whispers.",
-        "Couldn't whisper (unexpected error).",
+        'Couldn’t whisper: The recipient blocks whispers.',
+        'Couldn’t whisper (unexpected error).',
       ],
     );
     expect(

@@ -114,7 +114,7 @@ void main() {
         for (final tip in [
           'Show chat overlay',
           'Hide chat overlay',
-          'Enter fullscreen mode',
+          'Full screen',
           'Hide chat',
         ]) {
           expect(find.byTooltip(tip), findsNothing, reason: tip);
@@ -249,7 +249,7 @@ void main() {
       expect(tester.takeException(), isNull);
       for (final tip in [
         'Hide chat overlay',
-        'Exit fullscreen mode',
+        'Exit full screen',
         'Exit landscape mode',
         'Enter picture-in-picture',
         'Refresh',

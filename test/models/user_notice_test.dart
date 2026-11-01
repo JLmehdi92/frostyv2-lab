@@ -335,8 +335,8 @@ void main() {
     String text(String channelName) =>
         message.noticeText(channelName: channelName).map((s) => s.text).join();
 
-    expect(text('Here'), contains("Here's community"));
-    expect(text('Partner'), contains("Partner's community"));
+    expect(text('Here'), contains('Here’s community'));
+    expect(text('Partner'), contains('Partner’s community'));
     expect(
       identical(
         message.noticeText(channelName: 'Partner'),

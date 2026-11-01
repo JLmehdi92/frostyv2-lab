@@ -54,7 +54,7 @@ void main() {
     h.inject(htLevelUp(3));
     await tester.pump();
     // The compact plan is only the 2.5 s level pill.
-    expect(find.text('Level 2 Complete!'), findsOneWidget);
+    expect(find.text('Level 2 complete!'), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 2600));
     expect(find.text('LVL 3'), findsOneWidget);
 

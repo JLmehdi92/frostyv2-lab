@@ -15,7 +15,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Sorted by Viewers (High to Low)'), findsOneWidget);
+    expect(find.text('Sorted by Viewers (high to low)'), findsOneWidget);
 
     await tester.tap(find.byType(FollowedSortButton));
     await tester.pumpAndSettle();
@@ -23,10 +23,10 @@ void main() {
       expect(find.text(sort.label(L10n.english)), findsOneWidget);
     }
 
-    await tester.tap(find.text('Recently Started'));
+    await tester.tap(find.text('Recently started'));
     await tester.pumpAndSettle();
 
     expect(settings.followedSort, FollowedSort.recent);
-    expect(find.text('Sorted by Recently Started'), findsOneWidget);
+    expect(find.text('Sorted by Recently started'), findsOneWidget);
   });
 }

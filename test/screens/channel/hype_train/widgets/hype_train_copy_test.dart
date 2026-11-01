@@ -25,7 +25,7 @@ void main() {
     });
 
     test('the golden Kappa card reads the variant by its name', () {
-      expect(copy.goldenCard, startsWith("You'll have a limited time to earn"));
+      expect(copy.goldenCard, startsWith('You’ll have a limited time to earn'));
     });
 
     test('level pill, percentage and countdown', () {
@@ -44,7 +44,7 @@ void main() {
       expect(copy.finalLevel, 'Final level!');
       expect(
         copy.athApproaching,
-        'About to beat your last record. Keep up the support.',
+        'About to beat the channel’s record. Keep up the support.',
       );
       expect(
         copy.athReached(),
@@ -53,18 +53,18 @@ void main() {
       expect(copy.athReached(shared: true), contains('new shared record'));
       expect(
         copy.treasureLocked(3, 50),
-        'Reach Level 3 to unlock 50% OFF Gift Subs!',
+        'Reach level 3 to unlock 50% off gift subs!',
       );
       expect(
         copy.treasureUnlockedSubtitle(50),
-        '50% OFF 5+ Gift Subs for the rest of this Hype Train',
+        '50% off 5+ gift subs for the rest of this Hype Train',
       );
       expect(
         copy.communityLocked(5),
-        'Hit Level 5 and chat will receive emotes too!',
+        'Hit level 5 and chat will receive emotes too!',
       );
-      expect(copy.communityUnlockedSubtitle(1), '1 Emote for Chat');
-      expect(copy.communityUnlockedSubtitle(30), '30 Emotes for Chat');
+      expect(copy.communityUnlockedSubtitle(1), '1 emote for chat');
+      expect(copy.communityUnlockedSubtitle(30), '30 emotes for chat');
     });
 
     test('train titles per variant', () {
@@ -103,14 +103,14 @@ void main() {
         copy.started(HtVariant.goldenKappa),
         'Golden Kappa Train starting!',
       );
-      expect(copy.started(HtVariant.treasure), 'Treasure Train Incoming!');
+      expect(copy.started(HtVariant.treasure), 'Treasure Train incoming!');
       expect(
         copy.started(HtVariant.regular, shared: true),
         'Shared Hype Train starting!',
       );
       expect(copy.levelUp, 'hyyyyypeeee');
       expect(copy.completed(HtVariant.regular), 'Hype Train success!');
-      expect(copy.completed(HtVariant.mythic), 'Mythic Train Success!');
+      expect(copy.completed(HtVariant.mythic), 'Mythic Train success!');
       expect(
         copy.completed(HtVariant.regular, shared: true),
         'Shared Hype Train success!',
@@ -120,11 +120,11 @@ void main() {
     });
 
     test('level complete and summary', () {
-      expect(copy.levelComplete(2), 'Level 2 Complete!');
-      expect(copy.summary(4), 'Such strong support\nLevel 4 completed!');
+      expect(copy.levelComplete(2), 'Level 2 complete!');
+      expect(copy.summary(4), 'Such strong support!\nLevel 4 completed!');
       expect(
         copy.summary(4, variant: HtVariant.treasure),
-        'Such strong support\nTreasure Train Level 4 completed!',
+        'Such strong support!\nTreasure Train level 4 completed!',
       );
       expect(copy.summary(4, ath: true), startsWith('All-time record'));
     });
@@ -140,15 +140,15 @@ void main() {
       );
       expect(
         copy.contribution('Ann', const HtAction('TIER_1_GIFTED_SUB'), 1),
-        'Ann just gifted 1 Tier 1 Sub!',
+        'Ann just gifted 1 Tier 1 sub!',
       );
       expect(
         copy.contribution('Ann', const HtAction('TIER_2_GIFTED_SUB'), 50),
-        'Ann just gifted 50 Tier 2 Subs!',
+        'Ann just gifted 50 Tier 2 subs!',
       );
       expect(
         copy.contribution('Ann', const HtAction('TIER_3_SUB'), 1),
-        'Ann just subscribed with a Tier 3 Sub!',
+        'Ann just subscribed at Tier 3!',
       );
       expect(
         copy.contribution(null, const HtAction('CHEER'), 2),
@@ -157,8 +157,8 @@ void main() {
     });
 
     test('totals with plurals', () {
-      expect(copy.subsTotal(1), '1 Sub');
-      expect(copy.subsTotal(1200), '1,200 Subs');
+      expect(copy.subsTotal(1), '1 sub');
+      expect(copy.subsTotal(1200), '1,200 subs');
       expect(copy.bitsTotal(1), '1 Bit');
       expect(copy.bitsTotal(5000), '5,000 Bits');
     });
@@ -166,26 +166,26 @@ void main() {
     test('instructions', () {
       expect(
         copy.instruction('start', const {}),
-        "You'll have a limited time to earn exclusive emotes",
+        'You’ll have a limited time to earn exclusive emotes',
       );
       expect(
         copy.instruction('treasureReachLevel', const {
           'level': 3,
         }, discount: 50),
-        'Reach Level 3 during this train to unlock 50% OFF Gift Subs!',
+        'Reach level 3 during this train to unlock 50% off gift subs!',
       );
       expect(
         copy.instruction('treasureOneAway', const {}),
-        'One more level unlocks a discount for the rest of this train, '
-        'keep going!',
+        'One more level unlocks a discount for the rest of this train. '
+        'Keep going!',
       );
       expect(
         copy.instruction('treasureUnlocked', const {}, discount: 20),
-        "You've unlocked 20% OFF on 5+ Gift Subs! Don't miss out!",
+        'You’ve unlocked 20% off 5+ gift subs! Don’t miss out!',
       );
       expect(
         copy.instruction('communityReachLevel', const {'level': 5}),
-        'Hit Level 5 and chat will receive emotes too!',
+        'Hit level 5 and chat will receive emotes too!',
       );
       expect(
         copy.instruction('communityUnlocked', const {}, amount: 1),
@@ -197,7 +197,7 @@ void main() {
       );
       expect(
         copy.instruction('seeYouNextTime', const {}),
-        'See you next time in Shared Hype Train!',
+        'See you next time in a Shared Hype Train!',
       );
     });
 
@@ -208,7 +208,7 @@ void main() {
       expect(copy.continuesIn(4), 'LVL 4 train continues in');
       expect(
         copy.otherChannelRecord('Ann'),
-        "Ann's new all-time Shared record!",
+        'Ann’s new all-time shared record!',
       );
     });
   });
@@ -229,11 +229,11 @@ void main() {
       );
       expect(
         copy.approachingMore(1),
-        '1 more person needs to sub, gift or use Bits',
+        '1 more person needs to sub, gift, or use Bits',
       );
       expect(
         copy.approachingMore(3),
-        '3 more people need to sub, gift or use Bits',
+        '3 more people need to sub, gift, or use Bits',
       );
       expect(copy.approachingShort, 'Approaching');
     });
@@ -245,8 +245,8 @@ void main() {
         copy.rewards,
         'Great work! Emotes are being delivered to supporters',
       );
-      expect(copy.goldenRewards, endsWith('for 24 hrs'));
-      expect(copy.expired, 'You missed the Train. Better luck next time!');
+      expect(copy.goldenRewards, endsWith('for 24 hours'));
+      expect(copy.expired, 'You missed the train. Better luck next time!');
     });
   });
 
@@ -256,45 +256,46 @@ void main() {
       expect(copy.rewardsHeader, 'AVAILABLE REWARDS');
       expect(copy.contributionsHeader, 'CONTRIBUTIONS');
       expect(copy.levelEmotes(7), 'Level 7 emotes');
-      expect(copy.moreInfo, 'More Info');
+      expect(copy.moreInfo, 'More info');
     });
 
     test('level target with plurals', () {
       expect(
         copy.levelTarget(7, 10, 4700),
-        'Completing Level 7 requires combined support events totaling '
-        '10 Tier 1 Subs or 4,700 Bits',
+        'Level 7 needs 10 Tier 1 subs or 4,700 Bits in total',
       );
       expect(
         copy.levelTarget(1, 1, 1),
-        'Completing Level 1 requires combined support events totaling '
-        '1 Tier 1 Sub or 1 Bit',
+        'Level 1 needs 1 Tier 1 sub or 1 Bit in total',
       );
     });
 
     test('conductors', () {
-      expect(copy.subsConductor('Fan', 5), 'Fan has contributed 5 Subs!');
-      expect(copy.subsConductor('Fan', 1), 'Fan has contributed 1 Sub!');
+      expect(copy.subsConductor('Fan', 5), 'Fan has contributed 5 subs!');
+      expect(copy.subsConductor('Fan', 1), 'Fan has contributed 1 sub!');
       expect(copy.bitsConductor('Fan', 1500), 'Fan has used 1,500 Bits');
       expect(copy.bitsConductor('Fan', 1), 'Fan has used 1 Bit');
-      expect(copy.noSubsConductor, 'Sub or Gift to take over this spot!');
+      expect(copy.noSubsConductor, 'Sub or gift to take over this spot!');
       expect(copy.noBitsConductor, 'Use Bits to take over this spot!');
     });
 
     test('channel record', () {
-      expect(copy.channelRecord(50, 9), 'Channel all-time record! 50% Level 9');
+      expect(
+        copy.channelRecord(50, 9),
+        'Channel all-time record! Level 9 at 50%',
+      );
     });
 
     test('variant cards', () {
       expect(
         copy.treasureCard(3, 50, unlocked: false),
-        'Unlock a limited-time 50% OFF Gift Subs at Level 3 during this '
-        'train!',
+        'Unlock a limited-time 50% discount on gift subs at level 3 during '
+        'this train!',
       );
       expect(
         copy.treasureCard(3, 50, unlocked: true),
-        'Save 50% on 5 or more Gift Subs exclusively during this train. '
-        'All Aboard!',
+        'Save 50% on 5 or more gift subs, only during this train. '
+        'All aboard!',
       );
       expect(
         copy.communityCard(5, 30, unlocked: true),
@@ -306,11 +307,11 @@ void main() {
   });
 
   test('followed card', () {
-    expect(copy.cardLevel(4), 'Hype Train Level 4');
+    expect(copy.cardLevel(4), 'Hype Train level 4');
     expect(
       copy.cardLevel(4, variant: HtVariant.goldenKappa),
-      'Golden Kappa Train Level 4',
+      'Golden Kappa Train level 4',
     );
-    expect(copy.cardLevel(4, ath: true), 'All-Time High Train Level 4');
+    expect(copy.cardLevel(4, ath: true), 'All-time record · Level 4');
   });
 }

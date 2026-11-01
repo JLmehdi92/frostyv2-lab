@@ -94,7 +94,7 @@ void main() {
     expect(reminders.isSet('s1'), isTrue);
     final notice = platform.scheduled[reminderNoticeId('s1')]!;
     expect(notice.at, segment.startAt);
-    expect(notice.title, "Streamer's stream is starting");
+    expect(notice.title, 'Streamer’s stream is starting');
     expect(notice.body, 'Ranked · Chess');
     expect(notice.payload, 'streamer');
 
@@ -174,7 +174,7 @@ void main() {
       login: 'a',
       channelName: 'A',
     );
-    expect(platform.scheduled.values.single.body, 'Stream');
+    expect(platform.scheduled.values.single.body, 'Untitled stream');
   });
 
   test('past reminders are handed to Activity once, then forgotten', () async {
@@ -194,7 +194,7 @@ void main() {
     final entry = due.single;
     expect(entry.id, 'reminder:s1');
     expect(entry.kind, ActivityKind.reminder);
-    expect(entry.title, "Streamer's stream is starting");
+    expect(entry.title, 'Streamer’s stream is starting');
     expect(entry.login, 'streamer');
     expect(entry.at, _now.add(const Duration(minutes: 5)));
     expect(later.isSet('s1'), isFalse);
@@ -297,7 +297,7 @@ void main() {
       channelName: 'Streamer',
     );
     final id = reminderNoticeId('s1');
-    expect(platform.scheduled[id]!.title, "Streamer's stream is starting");
+    expect(platform.scheduled[id]!.title, 'Streamer’s stream is starting');
     expect(platform.scheduled[id]!.body, 'Ranked · Chess');
     expect(platform.languages[id], 'en');
 

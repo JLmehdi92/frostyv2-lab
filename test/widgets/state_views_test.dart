@@ -31,12 +31,12 @@ void main() {
   }
 
   test("the app's words for a connection problem", () {
-    expect(isConnectionProblem('Unable to connect to Twitch'), isTrue);
+    expect(isConnectionProblem('Couldn’t connect to Twitch.'), isTrue);
     expect(
-      isConnectionProblem('No internet connection. Please check your network.'),
+      isConnectionProblem('No internet connection. Check your network.'),
       isTrue,
     );
-    expect(isConnectionProblem('Unable to load videos'), isFalse);
+    expect(isConnectionProblem('Couldn’t load videos.'), isFalse);
     // In French too: the feeds hand over the worded message.
     expect(isConnectionProblem('Impossible de joindre Twitch'), isTrue);
     expect(
@@ -58,13 +58,13 @@ void main() {
     await pump(
       tester,
       FeedStatusView.error(
-        message: 'No internet connection. Please check your network.',
+        message: 'No internet connection. Check your network.',
         onRetry: () => retried++,
       ),
     );
     expect(_glyph(StateGlyphKind.offline), findsOneWidget);
     expect(
-      find.text('No internet connection. Please check your network.'),
+      find.text('No internet connection. Check your network.'),
       findsOneWidget,
     );
     await tester.tap(find.text('Try again'));
@@ -74,7 +74,7 @@ void main() {
   testWidgets('another failure: the alert mark', (tester) async {
     await pump(
       tester,
-      FeedStatusView.error(message: "Couldn't load clips", onRetry: () {}),
+      FeedStatusView.error(message: 'Couldn’t load clips.', onRetry: () {}),
     );
     expect(_glyph(StateGlyphKind.alert), findsOneWidget);
     expect(_glyph(StateGlyphKind.offline), findsNothing);
@@ -111,7 +111,7 @@ void main() {
       ),
     );
     expect(_glyph(StateGlyphKind.account), findsOneWidget);
-    await tester.tap(find.text('Connect with Twitch'));
+    await tester.tap(find.text('Log in with Twitch'));
     expect(connected, 1);
   });
 
@@ -124,10 +124,10 @@ void main() {
       Column(
         children: [
           InlineStatus.error(
-            message: 'Unable to connect to Twitch',
+            message: 'Couldn’t connect to Twitch.',
             onRetry: () => retried++,
           ),
-          const InlineStatus(message: 'No search results found', glyph: null),
+          const InlineStatus(message: 'No results found', glyph: null),
         ],
       ),
     );
@@ -143,12 +143,12 @@ void main() {
           '(${theme.name})', (tester) async {
         for (final state in [
           FeedStatusView.error(
-            message: 'Unable to connect to Twitch',
+            message: 'Couldn’t connect to Twitch.',
             onRetry: () {},
           ),
           const FeedStatusView.empty(message: 'No followed streams'),
           const FeedStatusView.empty(
-            message: "Hooray! You're up to date",
+            message: 'Hooray! You’re up to date',
             detail:
                 'Check back soon for alerts about you and the broadcasters '
                 'you follow.',
@@ -158,7 +158,7 @@ void main() {
             message: 'Log in to get whispers.',
             onConnect: () {},
           ),
-          InlineStatus.error(message: 'Unable to load videos', onRetry: () {}),
+          InlineStatus.error(message: 'Couldn’t load videos.', onRetry: () {}),
         ]) {
           await pump(tester, state, size: size, theme: theme);
           expect(tester.takeException(), isNull);

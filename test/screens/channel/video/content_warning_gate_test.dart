@@ -66,7 +66,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('Start watching'), findsOneWidget);
-    expect(find.textContaining('Sexual Themes'), findsOneWidget);
+    expect(find.textContaining('Sexual themes'), findsOneWidget);
 
     await tester.tap(find.text('Start watching'));
     await tester.pump();
@@ -160,7 +160,7 @@ void main() {
           home: Scaffold(
             body: ContentWarningCover(
               displayName: 'Streamer',
-              labels: const ['Mature-Rated Game', 'Gambling'],
+              labels: const ['Mature-rated game', 'Gambling'],
               onAccept: () => accepted++,
             ),
           ),
@@ -169,11 +169,11 @@ void main() {
 
       expect(find.text('Just one second…'), findsOneWidget);
       expect(
-        find.text("Streamer's content is intended for certain audiences."),
+        find.text('Streamer’s content is intended for certain audiences.'),
         findsOneWidget,
       );
       expect(
-        find.text('It may contain: Mature-Rated Game, Gambling'),
+        find.text('It may contain: Mature-rated game, Gambling'),
         findsOneWidget,
       );
       await tester.tap(find.text('Start watching'));
@@ -256,7 +256,7 @@ void main() {
               child: ContentWarningCover(
                 displayName: 'Streamer',
                 labels: const [
-                  'Significant Profanity or Vulgarity',
+                  'Significant profanity or vulgarity',
                   'Gambling',
                 ],
                 onAccept: () {},

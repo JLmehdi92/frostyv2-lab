@@ -131,7 +131,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Downloading update'), findsOneWidget);
+    expect(find.text('Downloading update…'), findsOneWidget);
     expect(find.text('5.0 / 10.0 MB'), findsOneWidget);
     final bar = tester.widget<LinearProgressIndicator>(
       find.byType(LinearProgressIndicator),
@@ -141,7 +141,7 @@ void main() {
 
     finish.complete();
     await tester.pumpAndSettle();
-    expect(find.text('Downloading update'), findsNothing);
+    expect(find.text('Downloading update…'), findsNothing);
     verifyNever(() => updater.postpone(any()));
   });
 
@@ -158,8 +158,8 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Installing update'), findsOneWidget);
-    expect(find.text('Downloading update'), findsNothing);
+    expect(find.text('Installing update…'), findsOneWidget);
+    expect(find.text('Downloading update…'), findsNothing);
     final cancel = tester.widget<SettingsButton>(
       find.ancestor(
         of: find.text('Cancel'),
@@ -170,7 +170,7 @@ void main() {
 
     finish.complete();
     await tester.pumpAndSettle();
-    expect(find.text('Installing update'), findsNothing);
+    expect(find.text('Installing update…'), findsNothing);
   });
 
   testWidgets('"Cancel" stops the download quietly', (tester) async {
@@ -185,17 +185,17 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Downloading update'), findsNothing);
+    expect(find.text('Downloading update…'), findsNothing);
     expect(find.byType(SnackBar), findsNothing);
   });
 
   for (final (error, message) in [
     (
       const UpdateIntegrityException(),
-      'The download was corrupted — try again',
+      'The download was corrupted. Try again.',
     ),
-    (const UpdateDownloadException(), 'Download failed'),
-    (const UpdateInstallException(), 'Android could not install the update'),
+    (const UpdateDownloadException(), 'Couldn’t download the update.'),
+    (const UpdateInstallException(), 'Android couldn’t install the update.'),
   ]) {
     testWidgets('${error.runtimeType} says "$message"', (tester) async {
       downloadDoes((_, _, _) async => throw error);
@@ -204,7 +204,7 @@ void main() {
       await tester.tap(find.text('Update'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Downloading update'), findsNothing);
+      expect(find.text('Downloading update…'), findsNothing);
       expect(find.text(message), findsOneWidget);
     });
   }
@@ -216,8 +216,8 @@ void main() {
     await tester.tap(find.text('Update'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Downloading update'), findsNothing);
-    expect(find.text('Download failed'), findsOneWidget);
+    expect(find.text('Downloading update…'), findsNothing);
+    expect(find.text('Couldn’t download the update.'), findsOneWidget);
   });
 
   group('without the install permission', () {
@@ -272,7 +272,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('ONSET is not allowed to install updates'),
+        find.text('ONSET isn’t allowed to install updates.'),
         findsOneWidget,
       );
     });

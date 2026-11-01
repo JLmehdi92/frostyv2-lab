@@ -137,7 +137,7 @@ void main() {
     await pump(tester);
     // An error the app raised itself (its message is for logs) reads as
     // an unexpected one.
-    expect(find.text('An unexpected error occurred'), findsOneWidget);
+    expect(find.text('An unexpected error occurred.'), findsOneWidget);
 
     when(() => vods.getFollowedVideos(any())).thenAnswer((_) async => []);
     await tester.tap(find.text('Try again'));
@@ -215,7 +215,7 @@ void main() {
           await pump(tester, size: size, theme: theme);
           expect(tester.takeException(), isNull);
           expect(
-            find.text('The newest videos of the channels you follow'),
+            find.text('The newest videos from channels you follow'),
             findsOneWidget,
           );
           final cards = find.byType(VodCard);

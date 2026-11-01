@@ -160,13 +160,13 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('1.3M'), findsOneWidget);
     expect(find.byTooltip('More'), findsOneWidget);
-    expect(find.byTooltip('Enter a message'), findsOneWidget);
+    expect(find.byTooltip('Send a message'), findsOneWidget);
   });
 
   testWidgets('a narrow landscape side chat keeps its pencil', (tester) async {
     chat.settings.chatWidth = 0.2;
     await pump(tester, screen: const Size(844, 390));
-    expect(find.byTooltip('Enter a message'), findsOneWidget);
+    expect(find.byTooltip('Send a message'), findsOneWidget);
     expect(find.byType(ExtendedTextField), findsNothing);
     expect(find.byTooltip('More'), findsOneWidget);
   });

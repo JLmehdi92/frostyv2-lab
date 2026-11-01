@@ -141,7 +141,7 @@ void main() {
     expect(find.text('LIVE'), findsOneWidget);
     expect(find.text('1 follower'), findsOneWidget);
     expect(find.text('Ranked grind'), findsOneWidget);
-    expect(find.text('27.7k watching · 3 h 12'), findsOneWidget);
+    expect(find.text('27.7k watching · 3h 12m'), findsOneWidget);
     expect(
       tester.widget<ProfileAvatar>(find.byType(ProfileAvatar)).live,
       isTrue,

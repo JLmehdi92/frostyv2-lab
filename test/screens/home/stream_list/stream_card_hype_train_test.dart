@@ -39,7 +39,7 @@ void main() {
       ),
     );
     expect(find.byType(HypeTrainCardPill), findsOneWidget);
-    expect(find.text('Treasure Train Level 4'), findsOneWidget);
+    expect(find.text('Treasure Train level 4'), findsOneWidget);
 
     await pump(
       tester,
@@ -58,7 +58,7 @@ void main() {
       ),
     );
 
-    expect(find.text('All-Time High Train Level 9'), findsOneWidget);
+    expect(find.text('All-time record · Level 9'), findsOneWidget);
   });
 
   testWidgets("Twitch's indicator: a 12 sp footnote and a green train", (
@@ -77,7 +77,7 @@ void main() {
       );
       // Past the app's theme animation.
       await tester.pumpAndSettle();
-      final text = tester.widget<Text>(find.text('Hype Train Level 4'));
+      final text = tester.widget<Text>(find.text('Hype Train level 4'));
       expect(text.style?.fontSize, 12);
       final icon = find.byIcon(Icons.train_rounded);
       expect(tester.getSize(icon).width, 15);

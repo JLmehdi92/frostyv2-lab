@@ -17,21 +17,18 @@ void main() {
     );
 
     await tester.scrollUntilVisible(
-      find.text('Video Autoplaying'),
+      find.text('Autoplay videos'),
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(
-      find.text('Choose when videos should play automatically'),
-      findsOneWidget,
-    );
+    expect(find.text('Choose when videos play automatically.'), findsOneWidget);
     for (final option in VodAutoplay.values) {
       expect(find.text(option.label(L10n.english)), findsOneWidget);
     }
 
     await tester.ensureVisible(find.text('Never'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Wi-Fi Only'));
+    await tester.tap(find.text('Wi-Fi only'));
     await tester.pumpAndSettle();
     expect(store.vodAutoplay, VodAutoplay.wifiOnly);
 

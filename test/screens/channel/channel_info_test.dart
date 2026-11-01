@@ -65,14 +65,14 @@ void main() {
   test('shortUptime reads short', () {
     expect(
       shortUptime(const Duration(hours: 3, minutes: 12), L10n.english),
-      '3 h 12',
+      '3h 12m',
     );
     expect(
       shortUptime(const Duration(hours: 1, minutes: 5), L10n.english),
-      '1 h 05',
+      '1h 05m',
     );
-    expect(shortUptime(const Duration(minutes: 45), L10n.english), '45 min');
-    expect(shortUptime(const Duration(minutes: -3), L10n.english), '0 min');
+    expect(shortUptime(const Duration(minutes: 45), L10n.english), '45m');
+    expect(shortUptime(const Duration(minutes: -3), L10n.english), '0m');
   });
 
   group('ChannelInfoRow', () {
@@ -118,13 +118,13 @@ void main() {
             find.byWidgetPredicate(
               (w) =>
                   w is Semantics &&
-                  w.properties.label == ' · 2,445 watching · 3 h 12',
+                  w.properties.label == ' · 2,445 watching · 3h 12m',
             ),
             findsOneWidget,
           );
           // Beside a short category the line shows in full on a phone.
           if (width >= 360) {
-            expect(find.text(' · 2,445 watching · 3 h 12'), findsOneWidget);
+            expect(find.text(' · 2,445 watching · 3h 12m'), findsOneWidget);
           }
           expect(find.text('Follow'), findsOneWidget);
         }
@@ -343,7 +343,7 @@ void main() {
         expect(find.text('ON TEST DOTA 2 AVEC @befreesh'), findsOneWidget);
         expect(find.text('Dota 2'), findsOneWidget);
         expect(find.text('FR'), findsOneWidget);
-        expect(find.text('Watch streak 12'), findsOneWidget);
+        expect(find.text('Watch Streak 12'), findsOneWidget);
         expect(find.text('Follow'), findsOneWidget);
         expect(find.text('Subscribe'), findsOneWidget);
         // Subscribe and the watch streak stay hype green in both themes
@@ -358,10 +358,10 @@ void main() {
         );
         expect(subscribe.style!.foregroundColor!.resolve({}), green);
         expect(
-          tester.widget<Text>(find.text('Watch streak 12')).style?.color,
+          tester.widget<Text>(find.text('Watch Streak 12')).style?.color,
           green,
         );
-        expect(find.text('ALSO LIVE FROM YOUR FOLLOWS'), findsOneWidget);
+        expect(find.text('ALSO LIVE FROM CHANNELS YOU FOLLOW'), findsOneWidget);
         info.alsoLive.value = const <StreamTwitch>[];
       }
       info.alsoLive.value = [other];

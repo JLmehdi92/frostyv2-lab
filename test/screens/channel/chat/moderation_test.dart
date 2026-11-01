@@ -74,7 +74,7 @@ void main() {
       (await moderation.run(
         const UnbanCommand('troll', timeout: true),
       )).message,
-      'You removed the timeout of Troll.',
+      'You lifted Troll’s timeout.',
     );
   });
 
@@ -161,7 +161,7 @@ void main() {
           duration: Duration(days: 7),
         ),
       )).message,
-      'Followers-only mode on (followers of 1 week).',
+      'Followers-only mode on (must follow for 1 week).',
     );
     verify(
       () => api.updateChatSettings(
@@ -199,7 +199,7 @@ void main() {
 
       expect(
         (await moderation.run(const DeleteMessageCommand('abc'))).message,
-        "Couldn't delete the message: No internet connection.",
+        'Couldn’t delete the message: No internet connection.',
       );
     });
 
@@ -212,7 +212,7 @@ void main() {
 
       expect(outcome, (
         ok: false,
-        message: "Couldn't ban: no user named ghost",
+        message: 'Couldn’t ban the user: no user named ghost.',
       ));
     });
 
@@ -223,7 +223,7 @@ void main() {
 
       expect(
         (await moderation.run(const BanCommand('troll', ''))).message,
-        "Couldn't ban: The user is already banned.",
+        'Couldn’t ban the user: The user is already banned.',
       );
     });
 
@@ -234,7 +234,7 @@ void main() {
       ).thenThrow(const ApiException('Access denied', 403));
       expect(
         (await moderation.run(const UnbanCommand('troll'))).message,
-        "Couldn't unban: Twitch says you can't moderate this chat.",
+        'Couldn’t unban the user: Twitch says you can’t moderate this chat.',
       );
 
       when(
@@ -374,7 +374,7 @@ void main() {
 
       expect(await moderation.run(const ClearChatCommand()), (
         ok: false,
-        message: "Couldn't clear the chat (unexpected error).",
+        message: 'Couldn’t clear the chat (unexpected error).',
       ));
     });
   });

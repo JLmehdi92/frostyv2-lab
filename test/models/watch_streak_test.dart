@@ -109,7 +109,7 @@ void main() {
       expect(text.title, 'Your Watch Streak: 2');
       expect(
         text.subtitle,
-        'Reach 5-stream streak and earn an extra 1,500 channel points',
+        'Reach a 5-stream streak and earn 1,500 bonus channel points',
       );
     });
 
@@ -118,7 +118,7 @@ void main() {
         copy(
           const WatchStreak(value: 4, threshold: 5, pointsBonus: 450),
         ).subtitle,
-        '1 more stream until an extra 450 channel points reward',
+        '1 more stream to earn 450 bonus channel points',
       );
     });
 
@@ -132,7 +132,7 @@ void main() {
             canShare: true,
           ),
         ).subtitle,
-        'You reached a 10-stream streak and earned an extra 450 channel points',
+        'You reached a 10-stream streak and earned 450 bonus channel points',
       );
     });
 
@@ -148,7 +148,7 @@ void main() {
       expect(text.title, 'Keep watching to save your Watch Streak!');
       expect(
         text.subtitle,
-        "Watch this live stream and you'll be able to save your current "
+        'Watch this live stream and you’ll be able to save your current '
         '8-stream streak.',
       );
     });
@@ -163,10 +163,30 @@ void main() {
         live: false,
       );
 
-      expect(text.title, 'Watch Streak Expiring');
+      expect(text.title, 'Watch Streak expiring');
       expect(
         text.subtitle,
-        'Watch Ninja in the next 5h 3m 9s to save your streak!',
+        'Watch Ninja in the next 5h 3m to save your streak!',
+      );
+    });
+
+    test('under an hour, the countdown has no zero hours', () {
+      String? left(Duration duration) => copy(
+        WatchStreak(
+          value: 8,
+          state: WatchStreakState.suspended,
+          expiresAt: now.add(duration),
+        ),
+        live: false,
+      ).subtitle;
+
+      expect(
+        left(const Duration(minutes: 4, seconds: 30)),
+        'Watch Ninja in the next 4m 30s to save your streak!',
+      );
+      expect(
+        left(const Duration(seconds: 12)),
+        'Watch Ninja in the next 12s to save your streak!',
       );
     });
 
@@ -180,7 +200,7 @@ void main() {
         live: false,
       );
 
-      expect(text.title, 'Watch Streak Expiring');
+      expect(text.title, 'Watch Streak expiring');
       expect(text.subtitle, isNull);
     });
   });

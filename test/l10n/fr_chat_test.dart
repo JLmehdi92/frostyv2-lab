@@ -305,30 +305,35 @@ void main() {
     for (final scale in frenchTextScales) {
       final at = '$sizeName, text ×$scale';
 
-      testWidgets('every line in the chat, $at', (tester) async {
-        await useLocale(fr);
-        final store = fakeChatStore();
-        final lines = [...appLines(), ...twitchLines()];
-        await pumpLocalized(
+      for (final locale in sweepLocales) {
+        testWidgets('every line in the chat, $at${sweepName(locale)}', (
           tester,
-          Scaffold(
-            body: ListView(
-              children: [
-                for (final line in lines)
-                  ChatMessage(ircMessage: line, chatStore: store),
-              ],
+        ) async {
+          await useLocale(locale);
+          final store = fakeChatStore();
+          final lines = [...appLines(), ...twitchLines()];
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: ListView(
+                children: [
+                  for (final line in lines)
+                    ChatMessage(ircMessage: line, chatStore: store),
+                ],
+              ),
             ),
-          ),
-          size: size,
-          textScale: scale,
-        );
-        await tester.pump();
-        await expectFrenchThroughout(
-          tester,
-          'chat lines, $at',
-          content: const ['14 months!', _slowNotice],
-        );
-      });
+            locale: locale,
+            size: size,
+            textScale: scale,
+          );
+          await tester.pump();
+          await expectFrenchThroughout(
+            tester,
+            'chat lines, $at',
+            content: const ['14 months!', _slowNotice],
+          );
+        });
+      }
 
       testWidgets('the input: commands, reply, counter, $at', (tester) async {
         final chat = fakeChatStore();
@@ -391,156 +396,185 @@ void main() {
         expect(find.textContaining('/ban'), findsWidgets);
       });
 
-      testWidgets('the input\'s placeholders and the restriction bar keep '
-          'their values in sight, $at', (tester) async {
-        // What each one shows, and the value it must never lose to an
-        // ellipsis (the channel's name, the delay, the follow age, the
-        // countdown). The banned line has none: the bar shows it whole.
-        final cases =
-            <
-              String,
-              ({
-                ChatRestriction? Function() restriction,
-                bool reply,
-                double delay,
-                List<Pattern> values,
-              })
-            >{
-              'named': (
-                restriction: () => null,
-                reply: false,
-                delay: 0,
-                values: [french.chatInChannel(name: 'Streamer')],
-              ),
-              'delayed': (
-                restriction: () => null,
-                reply: false,
-                delay: 5,
-                values: [
-                  french.chatInChannelDelayed(name: 'Streamer', seconds: 5),
-                ],
-              ),
-              'reply': (
-                restriction: () => null,
-                reply: true,
-                delay: 0,
-                values: [french.chatReplyIn(name: 'Streamer')],
-              ),
-              'followers for a while': (
-                restriction: () => const ChatRestriction(
-                  ChatRestrictionKind.followersOnly,
-                  minutes: 10,
+      for (final locale in sweepLocales) {
+        testWidgets('the input\'s placeholders and the restriction bar keep '
+            'their values in sight, $at${sweepName(locale)}', (tester) async {
+          final words = lookupAppLocalizations(locale);
+          // [text] with [mark] read as [digits]: a countdown that moves.
+          RegExp pattern(String text, String mark, String digits) =>
+              RegExp('^${RegExp.escape(text).replaceFirst(mark, digits)}\$');
+          // What each one shows, and the value it must never lose to an
+          // ellipsis (the channel's name, the delay, the follow age, the
+          // countdown). The banned line has none: the bar shows it whole.
+          final cases =
+              <
+                String,
+                ({
+                  ChatRestriction? Function() restriction,
+                  bool reply,
+                  double delay,
+                  List<Pattern> values,
+                })
+              >{
+                'named': (
+                  restriction: () => null,
+                  reply: false,
+                  delay: 0,
+                  values: [words.chatInChannel(name: 'Streamer')],
                 ),
-                reply: false,
-                delay: 0,
-                values: [french.chatRestrictionFollowersFor(minutes: 10)],
-              ),
-              'timed out': (
-                restriction: () => ChatRestriction(
-                  ChatRestrictionKind.timedOut,
-                  until: DateTime.now().add(
-                    const Duration(minutes: 4, seconds: 30),
+                'delayed': (
+                  restriction: () => null,
+                  reply: false,
+                  delay: 5,
+                  values: [
+                    words.chatInChannelDelayed(name: 'Streamer', seconds: 5),
+                  ],
+                ),
+                'reply': (
+                  restriction: () => null,
+                  reply: true,
+                  delay: 0,
+                  values: [words.chatReplyIn(name: 'Streamer')],
+                ),
+                'followers for a while': (
+                  restriction: () => const ChatRestriction(
+                    ChatRestrictionKind.followersOnly,
+                    minutes: 10,
+                  ),
+                  reply: false,
+                  delay: 0,
+                  values: [
+                    words.chatRestrictionFollowersFor(
+                      duration: words.chatShortMinutes(minutes: 10),
+                    ),
+                  ],
+                ),
+                'timed out': (
+                  restriction: () => ChatRestriction(
+                    ChatRestrictionKind.timedOut,
+                    until: DateTime.now().add(
+                      const Duration(minutes: 4, seconds: 30),
+                    ),
+                  ),
+                  reply: false,
+                  delay: 0,
+                  values: [
+                    pattern(
+                      words.chatRestrictionTimedOutFor(wait: '4:99'),
+                      '99',
+                      r'[0-3]\d',
+                    ),
+                  ],
+                ),
+                'slow mode': (
+                  restriction: () => ChatRestriction(
+                    ChatRestrictionKind.slowMode,
+                    until: DateTime.now().add(const Duration(seconds: 30)),
+                  ),
+                  reply: false,
+                  delay: 0,
+                  values: [
+                    pattern(
+                      words.chatRestrictionSlow(
+                        wait: words.chatShortSeconds(seconds: 99),
+                      ),
+                      '99',
+                      r'[23]\d',
+                    ),
+                  ],
+                ),
+                'banned': (
+                  restriction: () =>
+                      const ChatRestriction(ChatRestrictionKind.banned),
+                  reply: false,
+                  delay: 0,
+                  values: [words.chatRestrictionBanned],
+                ),
+              };
+          for (final MapEntry(key: name, value: setup) in cases.entries) {
+            final chat = fakeChatStore();
+            final text = TextEditingController();
+            final focus = FocusNode();
+            addTearDown(text.dispose);
+            addTearDown(focus.dispose);
+            final auth = _MockAuthStore();
+            when(() => auth.isLoggedIn).thenReturn(true);
+            when(() => chat.auth).thenReturn(auth);
+            final assets = chat.assetsStore;
+            when(() => assets.userEmoteToObject).thenReturn({});
+            when(() => chat.matchingEmotes).thenReturn(const []);
+            when(() => chat.matchingChatters).thenReturn(const []);
+            when(() => chat.matchingCommands).thenReturn(const []);
+            when(() => chat.showEmoteAutocomplete).thenReturn(false);
+            when(() => chat.showMentionAutocomplete).thenReturn(false);
+            when(() => chat.expandChat).thenReturn(true);
+            when(() => chat.restriction).thenReturn(setup.restriction());
+            when(() => chat.replyingToMessage).thenReturn(
+              setup.reply ? IRCMessage.fromString(basicPrivmsg) : null,
+            );
+            when(() => chat.isWaitingForAck).thenReturn(false);
+            when(() => chat.isConnected).thenReturn(true);
+            when(() => chat.hasConnected).thenReturn(true);
+            when(() => chat.textFieldFocusNode).thenReturn(focus);
+            when(() => chat.textController).thenReturn(text);
+            when(() => chat.showSendButton).thenReturn(false);
+            when(() => chat.settings).thenReturn(
+              SettingsStore.fromJson({})
+                ..showVideo = true
+                ..autoSyncChatDelay = false
+                ..chatDelay = setup.delay,
+            );
+            await pumpLocalized(
+              tester,
+              Scaffold(
+                body: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: ChatBottomBar(
+                    chatStore: chat,
+                    onAddChat: () {},
+                    channelDisplayName: 'Streamer',
                   ),
                 ),
-                reply: false,
-                delay: 0,
-                values: [RegExp(r'^Exclusion temporaire · 4:[0-3]\d$')],
               ),
-              'slow mode': (
-                restriction: () => ChatRestriction(
-                  ChatRestrictionKind.slowMode,
-                  until: DateTime.now().add(const Duration(seconds: 30)),
-                ),
-                reply: false,
-                delay: 0,
-                values: [RegExp(r'^Mode lent · encore [23]\d\u00a0s$')],
-              ),
-              'banned': (
-                restriction: () =>
-                    const ChatRestriction(ChatRestrictionKind.banned),
-                reply: false,
-                delay: 0,
-                values: [french.chatRestrictionBanned],
-              ),
-            };
-        for (final MapEntry(key: name, value: setup) in cases.entries) {
-          final chat = fakeChatStore();
-          final text = TextEditingController();
-          final focus = FocusNode();
-          addTearDown(text.dispose);
-          addTearDown(focus.dispose);
-          final auth = _MockAuthStore();
-          when(() => auth.isLoggedIn).thenReturn(true);
-          when(() => chat.auth).thenReturn(auth);
-          final assets = chat.assetsStore;
-          when(() => assets.userEmoteToObject).thenReturn({});
-          when(() => chat.matchingEmotes).thenReturn(const []);
-          when(() => chat.matchingChatters).thenReturn(const []);
-          when(() => chat.matchingCommands).thenReturn(const []);
-          when(() => chat.showEmoteAutocomplete).thenReturn(false);
-          when(() => chat.showMentionAutocomplete).thenReturn(false);
-          when(() => chat.expandChat).thenReturn(true);
-          when(() => chat.restriction).thenReturn(setup.restriction());
-          when(() => chat.replyingToMessage).thenReturn(
-            setup.reply ? IRCMessage.fromString(basicPrivmsg) : null,
-          );
-          when(() => chat.isWaitingForAck).thenReturn(false);
-          when(() => chat.isConnected).thenReturn(true);
-          when(() => chat.hasConnected).thenReturn(true);
-          when(() => chat.textFieldFocusNode).thenReturn(focus);
-          when(() => chat.textController).thenReturn(text);
-          when(() => chat.showSendButton).thenReturn(false);
-          when(() => chat.settings).thenReturn(
-            SettingsStore.fromJson({})
-              ..showVideo = true
-              ..autoSyncChatDelay = false
-              ..chatDelay = setup.delay,
-          );
-          await pumpLocalized(
-            tester,
-            Scaffold(
-              body: Align(
-                alignment: Alignment.bottomCenter,
-                child: ChatBottomBar(
-                  chatStore: chat,
-                  onAddChat: () {},
-                  channelDisplayName: 'Streamer',
-                ),
-              ),
-            ),
-            size: size,
-            textScale: scale,
-            wrap: (app) =>
-                Provider<ChannelEventsStore?>.value(value: null, child: app),
-          );
-          await tester.pump();
-          final where = '$name, $at';
-          await expectFrenchThroughout(tester, 'input, $where');
-          // The one-line bar above the input never loses words; nor does
-          // the placeholder when it carries a value.
-          final bar = find.byType(ChatRestrictionBar);
-          expect(ellipsizedTexts(tester, within: bar), isEmpty, reason: where);
-          if (setup.restriction()?.showsBar != true) {
-            expect(ellipsizedTexts(tester), isEmpty, reason: where);
-          }
-          final shown = [
-            for (final element in find.byType(RichText).evaluate())
-              (element.widget as RichText).text.toPlainText(),
-          ];
-          for (final value in setup.values) {
-            expect(
-              shown.any(
-                (text) => value is String
-                    ? text == value
-                    : value.allMatches(text).isNotEmpty,
-              ),
-              isTrue,
-              reason: '$where: $value in $shown',
+              locale: locale,
+              size: size,
+              textScale: scale,
+              wrap: (app) =>
+                  Provider<ChannelEventsStore?>.value(value: null, child: app),
             );
+            await tester.pump();
+            final where = '$name, $at';
+            await expectFrenchThroughout(tester, 'input, $where');
+            // The one-line bar above the input never loses words; nor does
+            // the placeholder when it carries a value.
+            final bar = find.byType(ChatRestrictionBar);
+            expect(
+              ellipsizedTexts(tester, within: bar),
+              isEmpty,
+              reason: where,
+            );
+            if (setup.restriction()?.showsBar != true) {
+              expect(ellipsizedTexts(tester), isEmpty, reason: where);
+            }
+            final shown = [
+              for (final element in find.byType(RichText).evaluate())
+                (element.widget as RichText).text.toPlainText(),
+            ];
+            for (final value in setup.values) {
+              expect(
+                shown.any(
+                  (text) => value is String
+                      ? text == value
+                      : value.allMatches(text).isNotEmpty,
+                ),
+                isTrue,
+                reason: '$where: $value in $shown',
+              );
+            }
+            await tester.pumpWidget(const SizedBox.shrink());
           }
-          await tester.pumpWidget(const SizedBox.shrink());
-        }
-      });
+        });
+      }
 
       testWidgets('the moderation bar and its dialog, $at', (tester) async {
         final answer = Completer<ModerationOutcome?>();
@@ -742,62 +776,68 @@ void main() {
         await expectFrenchThroughout(tester, 'emote menu, 7TV, $at');
       });
 
-      testWidgets('the chat details, $at', (tester) async {
-        final api = _MockTwitchApi();
-        when(
-          () => api.getUserChatColor(userId: any(named: 'userId')),
-        ).thenAnswer((_) async => '#FF7F50');
-        final auth = _MockAuthStore();
-        final user = _MockUserStore();
-        when(() => auth.isLoggedIn).thenReturn(true);
-        when(() => auth.user).thenReturn(user);
-        when(
-          () => user.details,
-        ).thenReturn(const UserTwitch('1', 'viewer', 'Viewer', ''));
-        final settings = SettingsStore.fromJson({});
-        final details = ChatDetailsStore(
-          twitchApi: api,
-          channelName: 'channel',
-        );
-        final store = fakeChatStore(settings: settings);
-        when(() => store.auth).thenReturn(auth);
-        when(() => store.twitchApi).thenReturn(api);
-        when(() => store.chatDetailsStore).thenReturn(details);
-        when(() => store.chatRules).thenReturn(null);
-        when(() => store.canModerate).thenReturn(true);
-        when(() => store.timeRemaining).thenReturn(Duration.zero);
-        when(() => store.sleepTimer).thenReturn(null);
-        when(() => store.userState).thenReturn(const USERSTATE());
-        await pumpLocalized(
+      for (final locale in sweepLocales) {
+        testWidgets('the chat details, $at${sweepName(locale)}', (
           tester,
-          Scaffold(
-            body: Builder(
-              builder: (context) => TextButton(
-                onPressed: () => showChatDetails(
-                  context,
-                  chatStore: store,
-                  onAddChat: () {},
+        ) async {
+          final words = lookupAppLocalizations(locale);
+          final api = _MockTwitchApi();
+          when(
+            () => api.getUserChatColor(userId: any(named: 'userId')),
+          ).thenAnswer((_) async => '#FF7F50');
+          final auth = _MockAuthStore();
+          final user = _MockUserStore();
+          when(() => auth.isLoggedIn).thenReturn(true);
+          when(() => auth.user).thenReturn(user);
+          when(
+            () => user.details,
+          ).thenReturn(const UserTwitch('1', 'viewer', 'Viewer', ''));
+          final settings = SettingsStore.fromJson({});
+          final details = ChatDetailsStore(
+            twitchApi: api,
+            channelName: 'channel',
+          );
+          final store = fakeChatStore(settings: settings);
+          when(() => store.auth).thenReturn(auth);
+          when(() => store.twitchApi).thenReturn(api);
+          when(() => store.chatDetailsStore).thenReturn(details);
+          when(() => store.chatRules).thenReturn(null);
+          when(() => store.canModerate).thenReturn(true);
+          when(() => store.timeRemaining).thenReturn(Duration.zero);
+          when(() => store.sleepTimer).thenReturn(null);
+          when(() => store.userState).thenReturn(const USERSTATE());
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => showChatDetails(
+                    context,
+                    chatStore: store,
+                    onAddChat: () {},
+                  ),
+                  child: const Text('⋯'),
                 ),
-                child: const Text('⋯'),
               ),
             ),
-          ),
-          size: size,
-          textScale: scale,
-        );
-        await tester.tap(find.text('⋯'));
-        await tester.pumpAndSettle();
-        await expectFrenchThroughout(tester, 'chat details, $at');
-        await tester.tap(find.text(french.chatDetailsSleepTimer));
-        await tester.pumpAndSettle();
-        await expectFrenchThroughout(tester, 'sleep timer, $at');
-        // Back to the menu, as the system back does.
-        await tester.state<NavigatorState>(find.byType(Navigator)).maybePop();
-        await tester.pumpAndSettle();
-        await tester.tap(find.text(french.chatDetailsUsernameColor));
-        await tester.pumpAndSettle();
-        await expectFrenchThroughout(tester, 'name colours, $at');
-      });
+            locale: locale,
+            size: size,
+            textScale: scale,
+          );
+          await tester.tap(find.text('⋯'));
+          await tester.pumpAndSettle();
+          await expectFrenchThroughout(tester, 'chat details, $at');
+          await tester.tap(find.text(words.chatDetailsSleepTimer));
+          await tester.pumpAndSettle();
+          await expectFrenchThroughout(tester, 'sleep timer, $at');
+          // Back to the menu, as the system back does.
+          await tester.state<NavigatorState>(find.byType(Navigator)).maybePop();
+          await tester.pumpAndSettle();
+          await tester.tap(find.text(words.chatDetailsUsernameColor));
+          await tester.pumpAndSettle();
+          await expectFrenchThroughout(tester, 'name colours, $at');
+        });
+      }
 
       testWidgets('channel points, a prediction and the bet, $at', (
         tester,

@@ -12,36 +12,40 @@ void main() {
   final english = L10n.english;
   final french = lookupAppLocalizations(fr);
 
-  test('English says what the API client always said, for every kind', () {
-    // The messages ApiException carried before it had a kind: the screens
-    // read the same in English.
+  test('English words every kind as a full sentence, in the app\'s style', () {
+    // Each kind's English (docs/L10N.md, English style guide): "Couldn't",
+    // no "Please", a full stop. ApiException.message keeps the API
+    // client's words for the logs.
     const said = {
-      ApiErrorKind.network:
-          'No internet connection. Please check your network.',
-      ApiErrorKind.connectionTimeout: 'Connection timeout. Please try again.',
-      ApiErrorKind.sendTimeout: 'Upload timeout. Please try again.',
-      ApiErrorKind.receiveTimeout: 'Server response timeout. Please try again.',
-      ApiErrorKind.cancelled: 'Request was cancelled',
-      ApiErrorKind.certificate: 'Security certificate error',
-      ApiErrorKind.unknown: 'An unexpected error occurred',
-      ApiErrorKind.badRequest: 'Invalid request data',
-      ApiErrorKind.unauthorized: 'Please log in to continue',
-      ApiErrorKind.forbidden: 'Access denied. Insufficient permissions',
-      ApiErrorKind.notFound: 'Resource not found',
-      ApiErrorKind.conflict: 'Conflict with current state. Please refresh',
-      ApiErrorKind.invalid: 'Invalid data provided',
+      ApiErrorKind.network: 'No internet connection. Check your network.',
+      ApiErrorKind.connectionTimeout: 'The connection timed out. Try again.',
+      ApiErrorKind.sendTimeout: 'Sending took too long. Try again.',
+      ApiErrorKind.receiveTimeout:
+          'Twitch took too long to respond. Try again.',
+      ApiErrorKind.cancelled: 'The request was canceled.',
+      ApiErrorKind.certificate:
+          'Couldn’t verify Twitch’s security certificate.',
+      ApiErrorKind.unknown: 'An unexpected error occurred.',
+      ApiErrorKind.badRequest: 'The request wasn’t valid.',
+      ApiErrorKind.unauthorized: 'Log in to continue.',
+      ApiErrorKind.forbidden: 'Access denied: missing permissions.',
+      ApiErrorKind.notFound: 'This content couldn’t be found.',
+      ApiErrorKind.conflict:
+          'This changed in the meantime. Refresh and try again.',
+      ApiErrorKind.invalid: 'The data sent wasn’t valid.',
       ApiErrorKind.rateLimited:
-          'Rate limit exceeded. Please wait before trying again',
-      ApiErrorKind.server: 'Server error. Please try again later',
-      ApiErrorKind.unavailable: 'Service temporarily unavailable',
-      ApiErrorKind.maintenance: 'Service maintenance. Please try again later',
-      ApiErrorKind.serverTimeout: 'Server timeout. Please try again',
-      ApiErrorKind.http: 'HTTP Error 418 occurred',
-      // The app's own errors, as their messages always read.
-      ApiErrorKind.userNotFound: 'User does not exist',
-      ApiErrorKind.channelNotFound: 'Channel does not exist',
-      ApiErrorKind.categoryNotFound: 'Category not found',
-      ApiErrorKind.tokenProxyTimeout: 'Token proxy timeout',
+          'Too many requests. Wait a moment, then try again.',
+      ApiErrorKind.server: 'Twitch had a server error. Try again later.',
+      ApiErrorKind.unavailable: 'Twitch is temporarily unavailable.',
+      ApiErrorKind.maintenance: 'Twitch is under maintenance. Try again later.',
+      ApiErrorKind.serverTimeout: 'Twitch’s server didn’t respond. Try again.',
+      ApiErrorKind.http: 'HTTP error 418.',
+      // The app's own errors.
+      ApiErrorKind.userNotFound: 'This user doesn’t exist.',
+      ApiErrorKind.channelNotFound: 'This channel doesn’t exist.',
+      ApiErrorKind.categoryNotFound: 'Category not found.',
+      ApiErrorKind.tokenProxyTimeout:
+          'The ONSET token service didn’t respond in time.',
     };
     expect(said.keys.toSet(), ApiErrorKind.values.toSet());
     for (final MapEntry(key: kind, value: text) in said.entries) {
@@ -92,7 +96,7 @@ void main() {
     expect(apiErrorText(french, StateError('x')), french.apiErrorUnexpected);
     expect(
       apiErrorText(english, const SocketException('down')),
-      'Unable to connect to Twitch',
+      'Couldn’t connect to Twitch.',
     );
   });
 
@@ -134,13 +138,26 @@ void main() {
   });
 
   test('the app\'s own not-found errors say what was not found', () {
+    // The API code's own message (for the logs), then what English shows.
     const cases = [
-      (ApiErrorKind.userNotFound, 'User does not exist'),
-      (ApiErrorKind.channelNotFound, 'Channel does not exist'),
-      (ApiErrorKind.categoryNotFound, 'Category not found'),
+      (
+        ApiErrorKind.userNotFound,
+        'User does not exist',
+        'This user doesn’t exist.',
+      ),
+      (
+        ApiErrorKind.channelNotFound,
+        'Channel does not exist',
+        'This channel doesn’t exist.',
+      ),
+      (
+        ApiErrorKind.categoryNotFound,
+        'Category not found',
+        'Category not found.',
+      ),
     ];
-    for (final (kind, englishText) in cases) {
-      final error = NotFoundException(englishText, null, kind);
+    for (final (kind, logged, englishText) in cases) {
+      final error = NotFoundException(logged, null, kind);
       expect(apiErrorText(english, error), englishText);
       expect(apiErrorText(french, error), apiErrorKindText(french, kind));
       expect(apiErrorText(french, error), isNot(french.apiErrorNotFound));
@@ -151,7 +168,10 @@ void main() {
       'Token proxy timeout',
       ApiErrorKind.tokenProxyTimeout,
     );
-    expect(apiErrorText(english, proxy), 'Token proxy timeout');
+    expect(
+      apiErrorText(english, proxy),
+      'The ONSET token service didn’t respond in time.',
+    );
     expect(apiErrorText(french, proxy), french.apiErrorTokenProxyTimeout);
   });
 

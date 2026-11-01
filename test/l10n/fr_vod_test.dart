@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
@@ -243,9 +244,13 @@ void main() {
           content: [next.title],
         );
         expect(find.text(french.vodUpNext.toUpperCase()), findsOneWidget);
+        final similar = find.text(french.vodUpNextSimilar(channel: 'Rival'));
+        expect(similar, findsOneWidget);
+        // « Rival · Suggestion » keeps its last word.
         expect(
-          find.text(french.vodUpNextSimilar(channel: 'Rival')),
-          findsOneWidget,
+          tester.renderObject<RenderParagraph>(similar).didExceedMaxLines,
+          isFalse,
+          reason: at,
         );
         store.cancel();
       });

@@ -103,7 +103,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(switchValue(tester), isFalse);
-    expect(find.textContaining("Couldn't turn on"), findsOneWidget);
+    expect(find.textContaining('Couldn’t turn on'), findsOneWidget);
     expect((await GoLivePrefs.load()).enabled, isFalse);
   });
 

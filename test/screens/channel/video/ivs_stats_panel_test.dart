@@ -68,9 +68,9 @@ void main() {
     expect(rowText(tester, 'Latency'), 'Latency  2.2s');
     expect(
       rowText(tester, 'Auto latency'),
-      'Auto latency  catching up 1.05x · target 1.3s',
+      'Auto latency  catching up 1.05× · target 1.3s',
     );
-    expect(rowText(tester, 'Speed'), 'Speed  1.05x');
+    expect(rowText(tester, 'Speed'), 'Speed  1.05×');
     expect(rowText(tester, 'Mode'), 'Mode  Auto · Ultra');
     expect(find.textContaining('Next streams'), findsNothing);
   });

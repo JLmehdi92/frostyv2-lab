@@ -39,7 +39,7 @@ void main() {
     expect(sheet.backgroundColor, SheetColors.dark.sheet);
     for (final label in [
       'Copy message',
-      'Copy message and paste',
+      'Copy into message box',
       'Reply to message',
     ]) {
       expect(find.widgetWithText(SheetRow, label), findsOneWidget);

@@ -101,8 +101,8 @@ void main() {
     });
 
     test('labels use Twitch wording where Twitch has one', () {
-      expect(FollowedSort.viewers.label(L10n.english), 'Viewers (High to Low)');
-      expect(FollowedSort.recent.label(L10n.english), 'Recently Started');
+      expect(FollowedSort.viewers.label(L10n.english), 'Viewers (high to low)');
+      expect(FollowedSort.recent.label(L10n.english), 'Recently started');
     });
   });
 

@@ -86,10 +86,12 @@ void main() {
     required AuthStore auth,
     required Size size,
     required double scale,
+    Locale locale = fr,
   }) async {
     await pumpLocalized(
       tester,
       child,
+      locale: locale,
       size: size,
       textScale: scale,
       wrap: (app) => MultiProvider(
@@ -265,33 +267,39 @@ void main() {
   for (final (sizeName, size) in frenchScreenSizes) {
     for (final scale in frenchTextScales) {
       group('$sizeName, text ×$scale', () {
-        for (final (name, build, makeAuth) in pages) {
-          testWidgets(name, (tester) async {
-            final auth = makeAuth();
-            await pump(
-              tester,
-              build(auth),
-              auth: auth,
-              size: size,
-              scale: scale,
-            );
-            await expectFrenchThroughout(tester, name);
-          });
-        }
-
-        if (size.shortestSide >= 600) {
-          for (final page in SettingsPageId.sections) {
-            testWidgets('the tablet pane on ${page.name}', (tester) async {
-              final auth = loggedIn();
+        // Every page, in French, then in English (sweepLocales).
+        for (final locale in sweepLocales) {
+          for (final (name, build, makeAuth) in pages) {
+            testWidgets('$name${sweepName(locale)}', (tester) async {
+              final auth = makeAuth();
               await pump(
                 tester,
-                Settings(settingsStore: settings, initialPage: page),
+                build(auth),
                 auth: auth,
                 size: size,
                 scale: scale,
+                locale: locale,
               );
-              await expectFrenchThroughout(tester, page.name);
+              await expectFrenchThroughout(tester, name);
             });
+          }
+
+          if (size.shortestSide >= 600) {
+            for (final page in SettingsPageId.sections) {
+              testWidgets('the tablet pane on ${page.name}'
+                  '${sweepName(locale)}', (tester) async {
+                final auth = loggedIn();
+                await pump(
+                  tester,
+                  Settings(settingsStore: settings, initialPage: page),
+                  auth: auth,
+                  size: size,
+                  scale: scale,
+                  locale: locale,
+                );
+                await expectFrenchThroughout(tester, page.name);
+              });
+            }
           }
         }
 

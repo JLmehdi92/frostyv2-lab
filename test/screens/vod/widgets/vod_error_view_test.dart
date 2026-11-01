@@ -51,7 +51,7 @@ void main() {
     );
 
     expect(
-      find.text('This video is only available to subscribers.'),
+      find.text('This video is available only to subscribers.'),
       findsOneWidget,
     );
     expect(
@@ -74,10 +74,10 @@ void main() {
       ),
     );
 
-    expect(find.text('This clip is no longer available'), findsOneWidget);
+    expect(find.text('This clip is no longer available.'), findsOneWidget);
     expect(
       VodErrorView.messageFor(VodPlaybackProblem.notFound, L10n.english),
-      'This video is no longer available',
+      'This video is no longer available.',
     );
   });
 

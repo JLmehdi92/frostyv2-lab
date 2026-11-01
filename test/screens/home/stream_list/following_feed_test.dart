@@ -229,7 +229,7 @@ void main() {
         expect(find.text('Continue watching'), findsOneWidget);
         expect(find.text('Past broadcast 100'), findsOneWidget);
         expect(find.text('Live now'), findsOneWidget);
-        expect(find.text('Sorted by Viewers (High to Low)'), findsOneWidget);
+        expect(find.text('Sorted by Viewers (high to low)'), findsOneWidget);
         // The first live channel is the hero.
         final hero = tester.widget<LargeStreamCard>(
           find.byType(LargeStreamCard),
@@ -334,7 +334,7 @@ void main() {
     failure = const _Offline();
     await pump(tester);
 
-    expect(find.text('Something went wrong loading streams'), findsOneWidget);
+    expect(find.text('Couldn’t load streams.'), findsOneWidget);
     expect(find.text('Followed videos'), findsOneWidget);
     // What loads on its own stays.
     expect(find.text('Continue watching'), findsOneWidget);
@@ -390,8 +390,8 @@ void main() {
     expect(savedWhen(DateTime(2026, 10, 28, 1), en, now: now), 'today');
     expect(savedWhen(DateTime(2026, 10, 27, 23), en, now: now), 'yesterday');
     expect(savedWhen(DateTime(2026, 10, 25), en, now: now), '3 days ago');
-    expect(savedWhen(DateTime(2026, 10, 14), en, now: now), '2 wk ago');
-    expect(savedWhen(DateTime(2026, 8, 28), en, now: now), '2 mo ago');
+    expect(savedWhen(DateTime(2026, 10, 14), en, now: now), '2 weeks ago');
+    expect(savedWhen(DateTime(2026, 8, 28), en, now: now), '2 months ago');
     expect(savedWhen(null, en, now: now), isNull);
     final fr = lookupAppLocalizations(const Locale('fr'));
     expect(savedWhen(DateTime(2026, 10, 28, 1), fr, now: now), 'aujourd’hui');

@@ -62,7 +62,7 @@ void main() {
     expect(find.textContaining(RegExp(r'^16(\.3)?K views$')), findsOneWidget);
     expect(find.text('1:00'), findsOneWidget);
     expect(find.textContaining('Clipped by clipper_1'), findsOneWidget);
-    expect(find.text('Showing the top 2 clips'), findsOneWidget);
+    expect(find.text('Showing the first 2 clips'), findsOneWidget);
   });
 
   testWidgets('a chip asks for that period', (tester) async {
@@ -117,7 +117,7 @@ void main() {
     await tester.tap(find.text('30 days'));
     await tester.pump();
     await tester.pump();
-    expect(find.text("Couldn't load clips"), findsOneWidget);
+    expect(find.text('Couldn’t load clips.'), findsOneWidget);
     expect(find.text('Try again'), findsOneWidget);
   });
 
