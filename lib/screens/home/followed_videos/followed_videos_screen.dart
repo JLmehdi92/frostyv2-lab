@@ -319,7 +319,7 @@ class _Header extends StatelessWidget {
         ),
       ),
     );
-    final title = Text(
+    final titleText = Text(
       context.l10n.followedVideosTitle,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -331,6 +331,13 @@ class _Header extends StatelessWidget {
         height: 1.2,
         color: colors.text,
       ),
+    );
+    // Smaller rather than cut when the header is short of room (a phone at
+    // large text): the title stays whole.
+    final title = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerStart,
+      child: titleText,
     );
     return DecoratedBox(
       decoration: BoxDecoration(

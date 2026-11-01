@@ -108,7 +108,7 @@ void main() {
     return ivs;
   }
 
-  for (final (sizeName, size) in frenchChannelScreenSizes) {
+  for (final (sizeName, size) in frenchScreenSizes) {
     for (final scale in frenchTextScales) {
       testWidgets('the controls over the video, live and offline, $sizeName, '
           'text ×$scale', (tester) async {
@@ -269,7 +269,7 @@ void main() {
       ),
     ];
 
-    for (final (sizeName, size) in frenchChannelScreenSizes) {
+    for (final (sizeName, size) in frenchScreenSizes) {
       for (final scale in frenchTextScales) {
         testWidgets('every row, $sizeName, text ×$scale', (tester) async {
           for (final status in statuses) {
@@ -436,7 +436,7 @@ void main() {
   });
 
   testWidgets('the latency pill, and its tooltip', (tester) async {
-    for (final (sizeName, size) in frenchChannelScreenSizes) {
+    for (final (sizeName, size) in frenchScreenSizes) {
       await pumpLocalized(
         tester,
         Scaffold(
@@ -483,7 +483,7 @@ void main() {
       );
     }
 
-    for (final (sizeName, size) in frenchChannelScreenSizes) {
+    for (final (sizeName, size) in frenchScreenSizes) {
       for (final scale in frenchTextScales) {
         testWidgets('each state, $sizeName, text ×$scale', (tester) async {
           // Signed out, then each answer Twitch can give.
@@ -563,7 +563,7 @@ void main() {
       child: child,
     );
 
-    for (final (sizeName, size) in frenchChannelScreenSizes) {
+    for (final (sizeName, size) in frenchScreenSizes) {
       for (final scale in frenchTextScales) {
         testWidgets('the info row, the tablet panel and the chat header, '
             '$sizeName, text ×$scale', (tester) async {

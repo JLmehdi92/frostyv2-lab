@@ -37,6 +37,13 @@ void main() {
       isTrue,
     );
     expect(isConnectionProblem('Unable to load videos'), isFalse);
+    // In French too: the feeds hand over the worded message.
+    expect(isConnectionProblem('Impossible de joindre Twitch'), isTrue);
+    expect(
+      isConnectionProblem('Pas de connexion Internet. Vérifiez votre réseau.'),
+      isTrue,
+    );
+    expect(isConnectionProblem('Impossible de charger les vidéos'), isFalse);
   });
 
   test('dark digits on the lime accent, light ones on a dark accent', () {

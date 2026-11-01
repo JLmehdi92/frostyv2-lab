@@ -1105,27 +1105,37 @@ class _WhispersColumn extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(18, 16, 12, 8),
                 child: Row(
                   children: [
-                    Flexible(
-                      child: Semantics(
-                        header: true,
-                        child: Text(
-                          context.l10n.whispersTitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.25,
-                            color: colors.text,
+                    // The title and its count take what "See all" leaves
+                    // (a Spacer would hold half of it back).
+                    Expanded(
+                      child: Row(
+                        children: [
+                          // Smaller rather than cut at large text.
+                          Flexible(
+                            child: Semantics(
+                              header: true,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  context.l10n.whispersTitle,
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.25,
+                                    color: colors.text,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                          if (unread > 0) ...[
+                            const SizedBox(width: 8),
+                            WhisperCountPill(count: unread, size: 18),
+                          ],
+                        ],
                       ),
                     ),
-                    if (unread > 0) ...[
-                      const SizedBox(width: 8),
-                      WhisperCountPill(count: unread, size: 18),
-                    ],
-                    const Spacer(),
                     TextButton(
                       onPressed: () => WhispersScreen.open(context, store),
                       style: TextButton.styleFrom(

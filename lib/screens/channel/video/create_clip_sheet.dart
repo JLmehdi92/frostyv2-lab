@@ -781,8 +781,14 @@ class _QuietPill extends StatelessWidget {
           children: [
             if (glyph != null)
               VideoGlyph(glyph, color: colors.text, size: 17, strokeWidth: 1.9),
+            // Two lines rather than an ellipsis (half a sheet, large text).
             Flexible(
-              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+              child: Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),

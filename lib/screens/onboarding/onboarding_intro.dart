@@ -787,7 +787,8 @@ class _MosaicTile extends StatelessWidget {
               left: 8,
               top: 8,
               child: Container(
-                height: 20,
+                // At least 20 dp, taller with large text.
+                constraints: const BoxConstraints(minHeight: 20),
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 decoration: BoxDecoration(
                   color: OnsetTokens.accent,

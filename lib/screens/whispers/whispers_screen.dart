@@ -401,18 +401,23 @@ class _WhispersScreenState extends State<WhispersScreen>
                         onPressed: () => Navigator.maybePop(context),
                       ),
                       const SizedBox(width: 4),
+                      // Smaller rather than cut in a narrow column at large
+                      // text: the title stays whole.
                       Expanded(
                         child: Semantics(
                           header: true,
-                          child: Text(
-                            context.l10n.whispersTitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.78,
-                              color: colors.text,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: AlignmentDirectional.centerStart,
+                            child: Text(
+                              context.l10n.whispersTitle,
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.78,
+                                color: colors.text,
+                              ),
                             ),
                           ),
                         ),
@@ -526,18 +531,22 @@ class _ListPage extends StatelessWidget {
                   onPressed: () => Navigator.maybePop(context),
                 ),
                 const SizedBox(width: 2),
+                // Smaller rather than cut in a narrow column at large text.
                 Expanded(
                   child: Semantics(
                     header: true,
-                    child: Text(
-                      context.l10n.whispersTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.4,
-                        color: colors.text,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        context.l10n.whispersTitle,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.4,
+                          color: colors.text,
+                        ),
                       ),
                     ),
                   ),

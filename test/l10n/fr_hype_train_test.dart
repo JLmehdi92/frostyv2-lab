@@ -123,7 +123,7 @@ void main() {
     }
   }
 
-  for (final (sizeName, size) in frenchChannelScreenSizes) {
+  for (final (sizeName, size) in frenchScreenSizes) {
     for (final scale in frenchTextScales) {
       testWidgets('the banner in each variant, $sizeName, text ×$scale', (
         tester,
@@ -172,7 +172,7 @@ void main() {
   }
 
   testWidgets('an expired train, and an approaching one', (tester) async {
-    for (final (sizeName, size) in frenchChannelScreenSizes) {
+    for (final (sizeName, size) in frenchScreenSizes) {
       final expired = HtHarness(
         snapshot: HtOngoingSnapshot(
           liveTrain(expiresIn: const Duration(minutes: 5)),
@@ -204,7 +204,7 @@ void main() {
     }
   });
 
-  for (final (sizeName, size) in frenchChannelScreenSizes) {
+  for (final (sizeName, size) in frenchScreenSizes) {
     for (final scale in frenchTextScales) {
       testWidgets('the sheet in each variant, $sizeName, text ×$scale', (
         tester,
@@ -251,7 +251,7 @@ void main() {
   }
 
   testWidgets('the sheet of an approaching train', (tester) async {
-    for (final (sizeName, size) in frenchChannelScreenSizes) {
+    for (final (sizeName, size) in frenchScreenSizes) {
       final h = HtHarness();
       await pumpLocalized(
         tester,

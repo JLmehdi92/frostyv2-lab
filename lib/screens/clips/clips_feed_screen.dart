@@ -1622,15 +1622,17 @@ class _Queue extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+          // The help goes under the heading when both do not fit on one
+          // line (a narrow column, large text): neither loses its words.
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.end,
+            spacing: 12,
+            runSpacing: 4,
             children: [
-              Expanded(
-                child: VideoSectionLabel(
-                  context.l10n.clipsUpNext,
-                  padding: EdgeInsets.zero,
-                ),
+              VideoSectionLabel(
+                context.l10n.clipsUpNext,
+                padding: EdgeInsets.zero,
               ),
               Text(
                 context.l10n.clipsUpNextHelp,

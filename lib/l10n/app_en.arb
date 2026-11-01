@@ -1777,7 +1777,7 @@
   },
   "mutedKeywordsHint": "Enter keywords to mute",
   "@mutedKeywordsHint": {
-    "description": "The muted keywords list: the hint in the field."
+    "description": "The muted keywords list: the hint in the field, beside its add button on one line (French keeps it short)."
   },
   "mutedKeywordsAdd": "Add keyword",
   "@mutedKeywordsAdd": {
@@ -2810,7 +2810,7 @@
   },
   "searchHint": "Search channels, categories or videos",
   "@searchHint": {
-    "description": "Search: the field's hint. One line, ellipsised if long."
+    "description": "Search: the field's hint, one line beside the search glyph, about 150 dp wide on a phone beside the Cancel button. French keeps the verb alone, whole at every size: the tabs under the field name channels, categories and videos."
   },
   "searchSeeAllSemantics": "See all {section}",
   "@searchSeeAllSemantics": {
@@ -4122,7 +4122,7 @@
   },
   "livePlayerResetStatsDetail": "Start a new latency measurement",
   "@livePlayerResetStatsDetail": {
-    "description": "Under « Reset stats »."
+    "description": "Under « Reset stats », one line in the player's settings sheet (French keeps it short)."
   },
   "livePlayerSharedChatTitle": "Shared chat · {title}",
   "@livePlayerSharedChatTitle": {
@@ -6941,7 +6941,7 @@
   },
   "chatDetailsModesDetail": "Slow, followers-only, clear chat…",
   "@chatDetailsModesDetail": {
-    "description": "The line under the « Chat modes » row."
+    "description": "The line under the « Chat modes » row, one line on a phone: a short list of what the page holds."
   },
   "chatDetailsChatters": "Chatters",
   "@chatDetailsChatters": {

@@ -1415,7 +1415,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get mutedKeywordsHint => 'Saisissez les mots-clés à masquer';
+  String get mutedKeywordsHint => 'Mots-clés à masquer';
 
   @override
   String get mutedKeywordsAdd => 'Ajouter le mot-clé';
@@ -2229,7 +2229,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get searchClear => 'Effacer';
 
   @override
-  String get searchHint => 'Rechercher des chaînes, catégories ou vidéos';
+  String get searchHint => 'Rechercher';
 
   @override
   String searchSeeAllSemantics({required String section}) {
@@ -3250,8 +3250,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get livePlayerResetStats => 'Réinitialiser les statistiques';
 
   @override
-  String get livePlayerResetStatsDetail =>
-      'Lancer une nouvelle mesure de la latence';
+  String get livePlayerResetStatsDetail => 'Mesurer à nouveau la latence';
 
   @override
   String livePlayerSharedChatTitle({required String title}) {
@@ -5332,8 +5331,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chatDetailsModes => 'Modes du chat';
 
   @override
-  String get chatDetailsModesDetail =>
-      'Lent, followers uniquement, effacer le chat…';
+  String get chatDetailsModesDetail => 'Lent, followers, effacer le chat…';
 
   @override
   String get chatDetailsChatters => 'Utilisateurs dans le chat';

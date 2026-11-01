@@ -7,7 +7,9 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 
 /// A setting with a few options: a segmented pill, or
-/// with [stacked] one option per line (Video Autoplaying).
+/// with [stacked] one option per line (Video Autoplaying). A pill whose
+/// labels would not fit their segments whole (a long word, large text)
+/// shows one option per line too: no option loses words.
 ///
 /// The options are [values], shown by [labelOf], with [value] selected:
 /// the choice is the value itself, never found back from its label (two
@@ -70,7 +72,14 @@ class SettingsListSelect<T> extends StatelessWidget {
             label: title ?? groupLabel,
             container: true,
             explicitChildNodes: true,
-            child: stacked ? _stack(context) : _segments(context),
+            child: stacked
+                ? _stack(context)
+                : LayoutBuilder(
+                    builder: (context, constraints) =>
+                        _segmentsFit(context, constraints.maxWidth)
+                        ? _segments(context)
+                        : _stack(context),
+                  ),
           ),
           if (subtitle != null)
             Text(
@@ -80,6 +89,38 @@ class SettingsListSelect<T> extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// The style of a segment's label (bold when selected).
+  static TextStyle _segmentStyle({required bool selected}) => TextStyle(
+    fontFamily: OnsetTokens.bodyFamily,
+    fontSize: 12.5,
+    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+  );
+
+  /// Whether every label fits its segment whole in [width], bold (as when
+  /// selected), at the text size shown.
+  bool _segmentsFit(BuildContext context, double width) {
+    if (!width.isFinite || values.isEmpty) return true;
+    // Each segment: 4 dp of ring on each side, then 8 dp of padding.
+    final room = width / values.length - 2 * (4 + 8);
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    for (final option in values) {
+      final painter = TextPainter(
+        text: TextSpan(
+          text: labelOf(option),
+          style: _segmentStyle(selected: true),
+        ),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      final fits = painter.width <= room;
+      painter.dispose();
+      if (!fits) return false;
+    }
+    return true;
   }
 
   Widget _segments(BuildContext context) {
@@ -136,14 +177,10 @@ class SettingsListSelect<T> extends StatelessWidget {
                             labelOf(option),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontFamily: OnsetTokens.bodyFamily,
-                              fontSize: 12.5,
-                              fontWeight: option == value
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              color: option == value ? accent : colors.body,
-                            ),
+                            style: _segmentStyle(selected: option == value)
+                                .copyWith(
+                                  color: option == value ? accent : colors.body,
+                                ),
                           ),
                         ),
                       ),

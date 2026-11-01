@@ -93,7 +93,7 @@ void main() {
       ),
   ];
 
-  for (final (sizeName, size) in frenchChannelScreenSizes) {
+  for (final (sizeName, size) in frenchScreenSizes) {
     for (final scale in frenchTextScales) {
       final at = '$sizeName, text ×$scale';
 

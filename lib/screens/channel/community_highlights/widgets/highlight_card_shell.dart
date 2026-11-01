@@ -138,7 +138,9 @@ class HighlightCardShell extends StatelessWidget {
                                 color: colors.secondary,
                               ),
                             ),
-                            maxLines: 1,
+                            // Two lines rather than losing a status's
+                            // words (« Annulée · points remboursés »).
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             child: Semantics(liveRegion: true, child: status),
                           ),

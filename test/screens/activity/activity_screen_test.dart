@@ -547,7 +547,7 @@ void main() {
       }
     }
 
-    for (final (sizeName, size) in frenchChannelScreenSizes) {
+    for (final (sizeName, size) in frenchScreenSizes) {
       for (final scale in frenchTextScales) {
         testWidgets('notices posted in English read in French, $sizeName, '
             'text ×$scale', (tester) async {

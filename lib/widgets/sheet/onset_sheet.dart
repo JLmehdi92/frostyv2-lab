@@ -487,10 +487,12 @@ class SheetRow extends StatelessWidget {
                             label,
                             style: SheetText.row.copyWith(color: labelColor),
                           ),
+                          // Two lines rather than losing words (a phone,
+                          // large text).
                           if (detail case final detail?)
                             Text(
                               detail,
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: SheetText.rowDetail.copyWith(
                                 color: colors.secondary,
@@ -777,20 +779,22 @@ class SheetButton extends StatelessWidget {
             : FontWeight.w700,
       ),
     );
+    // Two lines where one does not hold the words (a narrow sheet, large
+    // text): a button never loses its words.
+    final text = Text(
+      label,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+    );
     final child = icon == null
-        ? Text(label, maxLines: 1, overflow: TextOverflow.ellipsis)
+        ? text
         : Row(
             mainAxisSize: MainAxisSize.min,
             spacing: 8,
             children: [
               icon!,
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+              Flexible(child: text),
             ],
           );
     final size = Size(expand ? double.infinity : 0, height);

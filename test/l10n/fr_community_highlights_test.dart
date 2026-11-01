@@ -258,7 +258,7 @@ void main() {
     ),
   );
 
-  for (final (sizeName, size) in frenchChannelScreenSizes) {
+  for (final (sizeName, size) in frenchScreenSizes) {
     for (final scale in frenchTextScales) {
       testWidgets('every card, $sizeName, text ×$scale', (tester) async {
         for (final MapEntry(key: name, value: build) in cards.entries) {
@@ -281,7 +281,7 @@ void main() {
   }
 
   testWidgets('the pager, its pills and the heading to a raid', (tester) async {
-    for (final (sizeName, size) in frenchChannelScreenSizes) {
+    for (final (sizeName, size) in frenchScreenSizes) {
       for (final compact in [false, true]) {
         final h = Harness()..create();
         await pumpLocalized(

@@ -526,7 +526,9 @@ class _ReleaseRichTextState extends State<ReleaseRichText> {
         WidgetSpan(
           alignment: PlaceholderAlignment.middle,
           child: Container(
-            height: 18,
+            // At least 18 dp, taller with large text: the name keeps its
+            // top and bottom.
+            constraints: const BoxConstraints(minHeight: 18),
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 6),
             decoration: BoxDecoration(

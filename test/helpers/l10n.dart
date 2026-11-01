@@ -726,42 +726,71 @@ String? _ancestorClipOf(Element element, RenderParagraph paragraph) {
 /// end of a one-line bar, the channel's name in a placeholder). [within]
 /// limits the search to part of the screen.
 List<String> ellipsizedTexts(WidgetTester tester, {Finder? within}) => [
-  for (final element
-      in (within == null
-              ? find.byType(RichText)
-              : find.descendant(of: within, matching: find.byType(RichText)))
-          .evaluate())
+  for (final paragraph in _ellipsized(tester, within))
+    '"${paragraph.text.toPlainText()}" ends in an ellipsis',
+];
+
+/// The texts the app writes whole (a French message with no placeholder:
+/// a label, a button, a title) that [tester]'s screen ends with an
+/// ellipsis: an app's words are never lost, whatever the window or the
+/// text size. Names, titles and other data may end in an ellipsis.
+///
+/// Only text set in Inter is read: text with no family of its own under a
+/// button's style is laid out in the test font, whose letters are all an
+/// em wide, so its width says nothing of a device's.
+List<String> ellipsizedAppTexts(WidgetTester tester) => [
+  for (final paragraph in _ellipsized(tester, null))
+    if (paragraph.text.toPlainText().trim() case final text
+        when paragraph.text.style?.fontFamily == OnsetTokens.bodyFamily &&
+            _frenchFixed.contains(text.toLowerCase()))
+      '"$text" (a message of the app) ends in an ellipsis',
+];
+
+/// Every French message and branch with no placeholder, lower case
+/// ([ellipsizedAppTexts]).
+final Set<String> _frenchFixed = {
+  for (final value in _leakChecks.frenchValues)
+    if (!value.contains('{') && value.trim().isNotEmpty)
+      value.trim().toLowerCase(),
+};
+
+/// The paragraphs that end with an ellipsis ([ellipsizedTexts]).
+Iterable<RenderParagraph> _ellipsized(
+  WidgetTester tester,
+  Finder? within,
+) sync* {
+  final finder = within == null
+      ? find.byType(RichText)
+      : find.descendant(of: within, matching: find.byType(RichText));
+  for (final element in finder.evaluate()) {
     if (element.renderObject case final RenderParagraph paragraph
         when paragraph.hasSize &&
             paragraph.overflow == TextOverflow.ellipsis &&
             (paragraph.didExceedMaxLines ||
                 (!paragraph.softWrap &&
                     paragraph.getMaxIntrinsicWidth(double.infinity) >
-                        paragraph.size.width + 0.5)))
-      '"${paragraph.text.toPlainText()}" ends in an ellipsis',
-];
+                        paragraph.size.width + 0.5))) {
+      yield paragraph;
+    }
+  }
+}
 
-/// The windows every French screen is checked in: two phones, a landscape
-/// and a portrait tablet.
+/// The five windows every French screen is checked in: two phones, a
+/// landscape phone, and a landscape and a portrait tablet.
 const frenchScreenSizes = [
   ('360x640', Size(360, 640)),
   ('390x844', Size(390, 844)),
   ('1280x854', Size(1280, 854)),
   ('854x1280', Size(854, 1280)),
-];
-
-/// The windows the channel screen's French surfaces are checked in: the
-/// four above and a landscape phone.
-const frenchChannelScreenSizes = [
-  ...frenchScreenSizes,
   ('844x390', Size(844, 390)),
 ];
 
 /// The text scales every French screen is checked at.
 const frenchTextScales = [1.0, 1.3];
 
-/// No overflow (nor any other exception), no English ([englishLeaks]) and
-/// no text cut off without an ellipsis ([clippedTexts]) on what [tester]'s
+/// No overflow (nor any other exception), no English ([englishLeaks]), no
+/// text cut off without an ellipsis ([clippedTexts]) and no app's label
+/// ended by one ([ellipsizedAppTexts]) on what [tester]'s
 /// screen shows, then on what each vertical list shows
 /// when scrolled to its end. [where] names the screen in failures;
 /// [content] is Twitch's or viewers' own words the screen shows
@@ -786,6 +815,7 @@ Future<void> expectFrenchThroughout(
       reason: '$where, $step',
     );
     expect(clippedTexts(tester), isEmpty, reason: '$where, $step');
+    expect(ellipsizedAppTexts(tester), isEmpty, reason: '$where, $step');
   }
 
   check('at the top');

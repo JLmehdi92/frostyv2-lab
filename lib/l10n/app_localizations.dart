@@ -2396,7 +2396,7 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{None} =1{1 keyword} other{{count} keywords}}'**
   String mutedKeywordsCount({required int count});
 
-  /// The muted keywords list: the hint in the field.
+  /// The muted keywords list: the hint in the field, beside its add button on one line (French keeps it short).
   ///
   /// In en, this message translates to:
   /// **'Enter keywords to mute'**
@@ -3536,7 +3536,7 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get searchClear;
 
-  /// Search: the field's hint. One line, ellipsised if long.
+  /// Search: the field's hint, one line beside the search glyph, about 150 dp wide on a phone beside the Cancel button. French keeps the verb alone, whole at every size: the tabs under the field name channels, categories and videos.
   ///
   /// In en, this message translates to:
   /// **'Search channels, categories or videos'**
@@ -5009,7 +5009,7 @@ abstract class AppLocalizations {
   /// **'Reset stats'**
   String get livePlayerResetStats;
 
-  /// Under « Reset stats ».
+  /// Under « Reset stats », one line in the player's settings sheet (French keeps it short).
   ///
   /// In en, this message translates to:
   /// **'Start a new latency measurement'**
@@ -7357,7 +7357,7 @@ abstract class AppLocalizations {
   /// **'Chat modes'**
   String get chatDetailsModes;
 
-  /// The line under the « Chat modes » row.
+  /// The line under the « Chat modes » row, one line on a phone: a short list of what the page holds.
   ///
   /// In en, this message translates to:
   /// **'Slow, followers-only, clear chat…'**

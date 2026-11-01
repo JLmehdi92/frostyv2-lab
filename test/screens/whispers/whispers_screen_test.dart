@@ -750,7 +750,7 @@ void main() {
       }
     }
 
-    for (final (sizeName, size) in frenchChannelScreenSizes) {
+    for (final (sizeName, size) in frenchScreenSizes) {
       for (final scale in frenchTextScales) {
         testWidgets('why a whisper was not sent, $sizeName, text ×$scale', (
           tester,

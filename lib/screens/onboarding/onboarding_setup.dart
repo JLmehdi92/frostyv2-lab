@@ -490,7 +490,9 @@ class _Preview extends StatelessWidget {
                       top: 5,
                       child: AnimatedContainer(
                         duration: duration,
-                        height: 16,
+                        // At least 16 dp, taller with large text: the
+                        // word never loses its top or bottom.
+                        constraints: const BoxConstraints(minHeight: 16),
                         padding: const EdgeInsets.symmetric(horizontal: 5),
                         decoration: BoxDecoration(
                           color: accent,

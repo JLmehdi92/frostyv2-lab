@@ -41,19 +41,9 @@ const _release = OnsetRelease(
   apkSize: 38 * 1024 * 1024,
 );
 
-/// The windows every French screen is checked in: phones and tablets.
-const _sizes = [
-  ('360x640', Size(360, 640)),
-  ('390x844', Size(390, 844)),
-  ('1280x854', Size(1280, 854)),
-  ('854x1280', Size(854, 1280)),
-];
-
-const _scales = [1.0, 1.3];
-
 /// Settings, the release notes and the update prompt in French, in the real
 /// Inter font: nothing overflows and no English is left, at phone and
-/// tablet sizes, with text at ×1 and ×1.3. Every scrolling list is gone
+/// tablet sizes (frenchScreenSizes), with text at ×1 and ×1.3. Every scrolling list is gone
 /// through, so what is below the fold is checked too.
 void main() {
   final french = lookupAppLocalizations(fr);
@@ -112,36 +102,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-  }
-
-  /// No overflow and no English, on what is shown and on what every
-  /// vertical list shows when scrolled to its end.
-  Future<void> expectFrenchThroughout(WidgetTester tester, String where) async {
-    void check(String step) {
-      expect(tester.takeException(), isNull, reason: '$where, $step');
-      expect(englishLeaks(tester), isEmpty, reason: '$where, $step');
-    }
-
-    check('at the top');
-    final lists = tester
-        .stateList<ScrollableState>(find.byType(Scrollable))
-        .where((state) => state.axisDirection == AxisDirection.down)
-        .toList();
-    for (final (index, list) in lists.indexed) {
-      if (!list.mounted) continue;
-      final position = list.position;
-      var steps = 0;
-      while (position.pixels < position.maxScrollExtent && steps++ < 80) {
-        position.jumpTo(
-          math.min(
-            position.maxScrollExtent,
-            position.pixels + position.viewportDimension * 0.75,
-          ),
-        );
-        await tester.pump();
-        check('list $index scrolled to ${position.pixels.round()}');
-      }
-    }
   }
 
   /// A settings page as a phone pushes it: the header with its title.
@@ -302,8 +262,8 @@ void main() {
     ]);
   });
 
-  for (final (sizeName, size) in _sizes) {
-    for (final scale in _scales) {
+  for (final (sizeName, size) in frenchScreenSizes) {
+    for (final scale in frenchTextScales) {
       group('$sizeName, text ×$scale', () {
         for (final (name, build, makeAuth) in pages) {
           testWidgets(name, (tester) async {

@@ -203,6 +203,9 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
             decoration: InputDecoration(
               labelText: isSet ? l.webTokenNewField : _cookieName,
               hintText: l.webTokenFieldHint,
+              // Lines rather than an ellipsis (a phone, large text; the
+              // hint takes the wide letter spacing of the hidden token).
+              hintMaxLines: 3,
               floatingLabelBehavior: FloatingLabelBehavior.always,
               filled: true,
               fillColor: colors.well,

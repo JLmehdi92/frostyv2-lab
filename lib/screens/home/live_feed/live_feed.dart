@@ -1056,15 +1056,19 @@ class _WarningPill extends StatelessWidget {
                   size: 16,
                   strokeWidth: 1.7,
                 ),
+                // Smaller rather than cut where the pill is short of room
+                // (a phone at large text): its words stay whole.
                 Flexible(
-                  child: Text(
-                    l.liveFeedContentWarning,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: OverImage.text,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      l.liveFeedContentWarning,
+                      maxLines: 1,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: OverImage.text,
+                      ),
                     ),
                   ),
                 ),

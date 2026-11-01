@@ -98,3 +98,18 @@ String asSentence(String text) {
 /// The longest explanation of Twitch's [chatErrorText] quotes after the
 /// worded kind: a longer one would bury the line, and stays in the logs.
 const maxQuotedTwitchReason = 120;
+
+/// Whether [message] is how the app words a connection problem, in any of
+/// its languages: Twitch out of reach (`apiErrorUnableToConnect`) or no
+/// network (`apiErrorNetwork`). The feeds hand their status views the
+/// worded message, which picks the offline mark from it.
+bool isConnectionProblemText(String message) =>
+    _connectionProblems.contains(message);
+
+final _connectionProblems = {
+  for (final locale in AppLocalizations.supportedLocales)
+    if (lookupAppLocalizations(locale) case final l) ...[
+      l.apiErrorUnableToConnect,
+      l.apiErrorNetwork,
+    ],
+};

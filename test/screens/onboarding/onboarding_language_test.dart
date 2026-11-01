@@ -403,7 +403,16 @@ void main() {
             }
 
             void noEnglish() {
-              if (l == french) expect(englishLeaks(tester), isEmpty);
+              if (l != french) return;
+              expect(englishLeaks(tester), isEmpty);
+              // Nothing cut and no label shortened in the windows and text
+              // sizes every French screen is checked at (360 dp and up,
+              // text up to ×1.3); smaller windows and larger text only
+              // have to fit.
+              if (scale <= 1.3 && size.shortestSide >= 360) {
+                expect(clippedTexts(tester), isEmpty);
+                expect(ellipsizedAppTexts(tester), isEmpty);
+              }
             }
 
             noEnglish();

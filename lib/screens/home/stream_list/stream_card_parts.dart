@@ -502,10 +502,12 @@ class FeedSectionTitle extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
+            // Two lines rather than losing words (a narrow shelf, large
+            // text).
             Flexible(
               child: Text(
                 title,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: style.copyWith(color: colors.text),
               ),

@@ -325,16 +325,21 @@ class OnboardingButton extends StatelessWidget {
                       strokeWidth: 2,
                       color: onAccent,
                     ),
+                  // Smaller rather than cut when the button is short of
+                  // room (a tablet's half, large text): the words stay
+                  // whole and the button keeps its height.
                   Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.15,
-                        color: onAccent,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.15,
+                          color: onAccent,
+                        ),
                       ),
                     ),
                   ),

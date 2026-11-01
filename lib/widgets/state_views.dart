@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:onset/l10n/api_errors.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
@@ -6,11 +8,10 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/state_glyph.dart';
 
-/// The app's words for a connection problem: the feeds' own message, and
-/// the network error every API call reports (`NetworkException`).
-bool isConnectionProblem(String message) =>
-    message == 'Unable to connect to Twitch' ||
-    message == 'No internet connection. Please check your network.';
+/// The app's words for a connection problem, in the language on screen:
+/// the feeds' own message, and the network error every API call reports
+/// (`NetworkException`), worded (`isConnectionProblemText`).
+bool isConnectionProblem(String message) => isConnectionProblemText(message);
 
 /// Dark or light text on [fill], whichever reads better (the accent can
 /// be any colour the viewer picked).
@@ -169,8 +170,8 @@ class FeedStatusView extends StatelessWidget {
           spacing: quiet ? 12 : (large ? 18 : 16),
           children: [
             ExcludeSemantics(child: mark),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: large ? 360 : 260),
+            _CappedWidth(
+              maxWidth: large ? 360 : 260,
               child: Text(
                 message,
                 textAlign: TextAlign.center,
@@ -190,8 +191,8 @@ class FeedStatusView extends StatelessWidget {
               ),
             ),
             if (detail != null)
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 280),
+              _CappedWidth(
+                maxWidth: 280,
                 child: Text(
                   detail,
                   textAlign: TextAlign.center,
@@ -217,6 +218,47 @@ class FeedStatusView extends StatelessWidget {
       ),
     );
   }
+}
+
+/// At most [maxWidth] wide, its height asked at that width too: a status
+/// filling what is left of a list (`SliverFillRemaining`) asks its height
+/// before laying it out, and a [ConstrainedBox] would answer for the whole
+/// width, one line where the text takes three (the status then overflows a
+/// short window).
+class _CappedWidth extends SingleChildRenderObjectWidget {
+  const _CappedWidth({required this.maxWidth, super.child});
+
+  final double maxWidth;
+
+  @override
+  _RenderCappedWidth createRenderObject(BuildContext context) =>
+      _RenderCappedWidth(maxWidth);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderCappedWidth renderObject,
+  ) => renderObject.maxWidth = maxWidth;
+}
+
+class _RenderCappedWidth extends RenderConstrainedBox {
+  _RenderCappedWidth(double maxWidth)
+    : super(additionalConstraints: BoxConstraints(maxWidth: maxWidth));
+
+  set maxWidth(double value) =>
+      additionalConstraints = BoxConstraints(maxWidth: value);
+
+  double _capped(double width) => width < additionalConstraints.maxWidth
+      ? width
+      : additionalConstraints.maxWidth;
+
+  @override
+  double computeMinIntrinsicHeight(double width) =>
+      super.computeMinIntrinsicHeight(_capped(width));
+
+  @override
+  double computeMaxIntrinsicHeight(double width) =>
+      super.computeMaxIntrinsicHeight(_capped(width));
 }
 
 /// The signal turned off: a ring, a disc, a dark dot.
