@@ -62,8 +62,13 @@ const _viewInsetsAllowed = <String, String>{
       '(WidgetsBindingObserver.didChangeMetrics)',
 };
 
-/// [source] without its comments; string literals are kept whole, so a
-/// `//` in a URL is not taken for a comment.
+/// [source] without its comments and without the contents of its string
+/// literals (their quotes are kept): a `//` in a URL is not taken for a
+/// comment, and code quoted in a string is not taken for code.
+///
+/// Limit, on purpose: the code of a `${…}` interpolation goes with the
+/// string around it, so a read written inside an interpolation is not
+/// seen (the self-test below shows it).
 String stripComments(String source) {
   final out = StringBuffer();
   var i = 0;
@@ -94,12 +99,7 @@ String stripComments(String source) {
       out.write(quote);
       i += quote.length;
       while (i < source.length && !at(quote)) {
-        if (!raw && at(r'\')) {
-          out.write(source.substring(i, i + 2));
-          i += 2;
-        } else {
-          out.write(source[i++]);
-        }
+        i += !raw && at(r'\') ? 2 : 1;
       }
       if (i < source.length) {
         out.write(quote);
@@ -130,15 +130,25 @@ Map<String, int> _count(RegExp pattern) {
 final _wholeMediaQuery = RegExp(r'MediaQuery\s*\.\s*(of|maybeOf)\s*\(');
 
 void main() {
-  test('the comment stripping keeps code after a URL and drops comments', () {
+  test('the stripping keeps code after a URL and drops comments and the '
+      'contents of strings', () {
     const source = '''
 final url = 'https://example.com'; MediaQuery.of(context);
 // MediaQuery.of(context) in a line comment
 /* MediaQuery.of(context) in a block comment */
 final raw = r'C:\\path'; MediaQuery.maybeOf(context);
 final quoted = "it's // not a comment"; MediaQuery.of(context);
+final text = 'MediaQuery.of(context) quoted';
+final escaped = 'a \\' MediaQuery.of( quote'; MediaQuery.of(context);
 ''';
-    expect(_wholeMediaQuery.allMatches(stripComments(source)).length, 3);
+    expect(_wholeMediaQuery.allMatches(stripComments(source)).length, 4);
+  });
+
+  test('the known limit: a read inside an interpolation is not seen', () {
+    const source = r'''
+final label = 'size: ${MediaQuery.of(context).size}';
+''';
+    expect(_wholeMediaQuery.allMatches(stripComments(source)), isEmpty);
   });
 
   test('the whole MediaQuery is read only where it is needed', () {
