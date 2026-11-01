@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -84,6 +86,28 @@ void main() {
     await tester.pump();
     expect(find.byType(CachedNetworkImage), findsOneWidget);
     expect(calls, 2);
+  });
+
+  testWidgets('a retry that succeeds after the picture is gone does no '
+      'harm', (tester) async {
+    var calls = 0;
+    final second = Completer<UserTwitch>();
+    when(() => api.getUser(userLogin: 'gone_one')).thenAnswer((_) {
+      calls++;
+      if (calls == 1) return Future.error(Exception('blip'));
+      return second.future;
+    });
+    await pump(tester, 'gone_one');
+    await tester.pump();
+    // The retry fires and is still on its way when the picture goes (a
+    // list scrolled away).
+    await tester.pump(ProfilePicture.retryDelays.first);
+    expect(calls, 2);
+    await tester.pumpWidget(const SizedBox());
+    second.complete(user('gone_one'));
+    await tester.pump();
+    // Before: "A AppLifecycleListener was used after being disposed".
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a lookup that keeps failing is tried a bounded number of '

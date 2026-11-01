@@ -58,6 +58,7 @@ class _ProfilePictureState extends State<ProfilePicture> {
   void dispose() {
     _retry?.cancel();
     _lifecycle?.dispose();
+    _lifecycle = null;
     super.dispose();
   }
 
@@ -67,7 +68,8 @@ class _ProfilePictureState extends State<ProfilePicture> {
     final future = _getProfileImageUrl();
     future.then(
       (_) {
-        if (!identical(future, _url)) return;
+        // Gone meanwhile (its listener already disposed), or superseded.
+        if (!mounted || !identical(future, _url)) return;
         _failures = 0;
         _lifecycle?.dispose();
         _lifecycle = null;
