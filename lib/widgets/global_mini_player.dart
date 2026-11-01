@@ -128,8 +128,11 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
         final player = store.player;
         if (!store.visible || player == null) return const SizedBox.shrink();
 
-        final area = MiniWindowArea.of(
-          MediaQuery.of(context),
+        // Two aspects only: a keyboard sliding in under the window changes
+        // the rest of the screen's metrics on every frame.
+        final area = MiniWindowArea.fromMetrics(
+          MediaQuery.sizeOf(context),
+          MediaQuery.paddingOf(context),
           chrome: store.shellChrome,
         );
         final width = area.window.width;
@@ -358,15 +361,22 @@ class MiniWindowArea {
     required this.bottom,
   });
 
-  factory MiniWindowArea.of(MediaQueryData media, {EdgeInsets? chrome}) {
-    final screen = media.size;
+  factory MiniWindowArea.of(MediaQueryData media, {EdgeInsets? chrome}) =>
+      MiniWindowArea.fromMetrics(media.size, media.padding, chrome: chrome);
+
+  /// [MiniWindowArea.of] from the screen's [screen] size and [padding].
+  factory MiniWindowArea.fromMetrics(
+    Size screen,
+    EdgeInsets padding, {
+    EdgeInsets? chrome,
+  }) {
     final width = screen.width * widthFraction;
     final window = Size(width, width * 9 / 16);
     final cover =
         chrome ??
         EdgeInsets.only(
-          top: media.padding.top + kToolbarHeight,
-          bottom: media.padding.bottom,
+          top: padding.top + kToolbarHeight,
+          bottom: padding.bottom,
         );
     final top = cover.top + margin;
     // A screen too short for both: the header wins, the window may then

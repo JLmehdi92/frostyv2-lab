@@ -74,7 +74,7 @@ class _ChattersListState extends State<ChattersList> {
     // The filter, the count, one 48 dp row per
     // chatter; the sheet takes the room under the video.
     return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: MediaQuery.sizeOf(context).height * 0.8,
       child: Column(
         children: [
           Padding(

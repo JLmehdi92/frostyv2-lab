@@ -385,6 +385,14 @@ abstract class ChatStoreBase with Store {
     return _messages.sublist(_messages.length - _renderMessageLimit);
   }
 
+  /// Whether a deletion, a timeout or a ban marked lines in place since the
+  /// last flush (their command changed), which no observable reports. The
+  /// next flush ([addMessages], every 200 ms) hands the same lines out in a
+  /// new list if nothing else does, so the chat redraws them then rather
+  /// than at the next message (a quiet chat may have none for a while),
+  /// once per flush however many arrive (a ban wave).
+  var _linesMarkedInPlace = false;
+
   /// If the chat should automatically scroll/jump to the latest message.
   @readonly
   var _autoScroll = true;
@@ -1027,11 +1035,13 @@ abstract class ChatStoreBase with Store {
             break;
           case Command.clearChat:
             if (_historyPending) _moderationBeforeHistory.add(parsedIRCMessage);
-            IRCMessage.clearChat(
+            if (IRCMessage.clearChat(
               messages: _messages,
               bufferedMessages: messageBuffer,
               ircMessage: parsedIRCMessage,
-            );
+            )) {
+              _linesMarkedInPlace = true;
+            }
             if (settings.showModerationNotices) {
               _addModerationNotice(parsedIRCMessage, messageBuffer);
             }
@@ -1048,11 +1058,13 @@ abstract class ChatStoreBase with Store {
             break;
           case Command.clearMessage:
             if (_historyPending) _moderationBeforeHistory.add(parsedIRCMessage);
-            IRCMessage.clearMessage(
+            if (IRCMessage.clearMessage(
               messages: _messages,
               bufferedMessages: messageBuffer,
               ircMessage: parsedIRCMessage,
-            );
+            )) {
+              _linesMarkedInPlace = true;
+            }
             break;
           case Command.roomState:
             chatDetailsStore.roomState = chatDetailsStore.roomState
@@ -1509,7 +1521,14 @@ abstract class ChatStoreBase with Store {
   void addMessages() {
     _flushDueDelayedCallbacks();
 
-    if (!_autoScroll || messageBuffer.isEmpty) return;
+    final marked = _linesMarkedInPlace;
+    _linesMarkedInPlace = false;
+
+    if (!_autoScroll || messageBuffer.isEmpty) {
+      // Lines marked in place, and no new line to report the change.
+      if (marked) _messages = ObservableList.of(_messages);
+      return;
+    }
 
     _messages.addAll(messageBuffer);
     messageBuffer.clear();

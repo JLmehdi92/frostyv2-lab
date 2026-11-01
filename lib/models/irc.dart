@@ -216,7 +216,12 @@ class IRCMessage {
   });
 
   /// Applies the given CLEARCHAT message to the provided messages and buffer.
-  static void clearChat({
+  ///
+  /// Returns whether a line of [messages] was marked in place (its command
+  /// or its timeout changed), which nothing observable reports: a cleared
+  /// chat goes through the list's own operations and returns false, as does
+  /// a timeout of someone with no line, or one repeated.
+  static bool clearChat({
     required List<IRCMessage> messages,
     required List<IRCMessage> bufferedMessages,
     required IRCMessage ircMessage,
@@ -228,15 +233,22 @@ class IRCMessage {
       messages.add(
         IRCMessage.createNotice(message: 'Chat was cleared by a moderator'),
       );
-      return;
+      return false;
     }
 
     final bannedUser = ircMessage.message;
     final banDuration = ircMessage.tags['ban-duration'];
+    var marked = false;
 
     // Search the messages for the banned/timed-out user.
     messages.asMap().forEach((i, message) {
       if (message.user == bannedUser) {
+        if (message.command != Command.clearChat ||
+            (banDuration != null &&
+                message.tags['ban-duration'] != banDuration)) {
+          marked = true;
+        }
+
         // Mark the message for removal.
         messages[i].command = Command.clearChat;
 
@@ -259,19 +271,25 @@ class IRCMessage {
         }
       }
     });
+    return marked;
   }
 
   /// Applies the given CLEARMSG message to the provided messages and buffer.
-  static void clearMessage({
+  ///
+  /// Returns whether a line of [messages] was marked in place, which
+  /// nothing observable reports.
+  static bool clearMessage({
     required List<IRCMessage> messages,
     required List<IRCMessage> bufferedMessages,
     required IRCMessage ircMessage,
   }) {
     final targetId = ircMessage.tags['target-msg-id'];
+    var marked = false;
 
     // Search for the message associated with the ID and mark the message for deletion.
     for (var i = 0; i < messages.length; i++) {
       if (messages[i].tags['id'] == targetId) {
+        marked = messages[i].command != Command.clearMessage;
         messages[i].command = Command.clearMessage;
         break;
       }
@@ -284,6 +302,7 @@ class IRCMessage {
         break;
       }
     }
+    return marked;
   }
 
   /// Adds timestamp to the span if enabled

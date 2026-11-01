@@ -91,7 +91,7 @@ class _OnsetPhotoViewDialogState extends State<OnsetPhotoViewDialog>
     // If replacement yields the same URL, there is no full-res variant.
     final supportsFullRes = fullResUrl != widget.imageUrl;
 
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenHeight = MediaQuery.sizeOf(context).height;
     final fadeDistance = screenHeight * 0.20; // 20% of screen height
     final buttonsOpacity = (1.0 - (_dragOffset.abs() / fadeDistance)).clamp(
       0.0,
@@ -202,7 +202,7 @@ class _OnsetPhotoViewDialogState extends State<OnsetPhotoViewDialog>
             // Place the button roughly between the image area and the bottom of the screen.
             // Assumption: the photo view occupies the top portion of the screen; using
             // a fractional top offset (80%) places the button in the gap between image and bottom.
-            top: MediaQuery.of(context).size.height * 0.8,
+            top: MediaQuery.sizeOf(context).height * 0.8,
             left: 0,
             right: 0,
             child: SafeArea(

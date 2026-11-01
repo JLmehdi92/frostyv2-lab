@@ -45,21 +45,27 @@ class LargeScreenScope extends InheritedWidget {
       large != oldWidget.large;
 }
 
-/// Static utility class for orientation-related operations
+/// Static utility class for orientation-related operations.
+///
+/// Every reader below (and the [ContextExtensions] getters) depends on one
+/// aspect of the [MediaQuery] only. `MediaQuery.of` would make the caller
+/// rebuild on every change of the screen's metrics, and the software
+/// keyboard changes the view insets on every frame it slides in: a whole
+/// screen that reads its orientation would be rebuilt each frame of it.
 class OrientationUtils {
   /// Gets the current orientation from the given context
   static Orientation getCurrentOrientation(BuildContext context) {
-    return MediaQuery.of(context).orientation;
+    return MediaQuery.orientationOf(context);
   }
 
   /// Returns true if the current orientation is portrait
   static bool isPortrait(BuildContext context) {
-    return MediaQuery.of(context).orientation == Orientation.portrait;
+    return MediaQuery.orientationOf(context) == Orientation.portrait;
   }
 
   /// Returns true if the current orientation is landscape
   static bool isLandscape(BuildContext context) {
-    return MediaQuery.of(context).orientation == Orientation.landscape;
+    return MediaQuery.orientationOf(context) == Orientation.landscape;
   }
 }
 
@@ -105,10 +111,10 @@ extension ContextExtensions on BuildContext {
   // ===== SCREEN & LAYOUT =====
 
   /// Gets the screen width
-  double get screenWidth => MediaQuery.of(this).size.width;
+  double get screenWidth => MediaQuery.sizeOf(this).width;
 
   /// Gets the screen height
-  double get screenHeight => MediaQuery.of(this).size.height;
+  double get screenHeight => MediaQuery.sizeOf(this).height;
 
   /// Tablet-sized window (both sides at least 600 dp). A split-screen half
   /// narrower than that keeps the phone layouts.
@@ -117,10 +123,10 @@ extension ContextExtensions on BuildContext {
       isLargeScreenSize(MediaQuery.sizeOf(this));
 
   /// Gets the safe area padding top (commonly used)
-  double get safePaddingTop => MediaQuery.of(this).padding.top;
+  double get safePaddingTop => MediaQuery.paddingOf(this).top;
 
   /// Gets the safe area padding bottom (commonly used)
-  double get safePaddingBottom => MediaQuery.of(this).padding.bottom;
+  double get safePaddingBottom => MediaQuery.paddingOf(this).bottom;
 
   // ===== PROVIDER ACCESS =====
 

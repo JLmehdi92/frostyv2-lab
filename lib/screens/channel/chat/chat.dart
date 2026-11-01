@@ -57,10 +57,13 @@ class _ChatState extends State<Chat> {
   PanelPlacement? _emotePanelPlacement() {
     final chat = globalRectOf(context);
     if (chat == null || chat.isEmpty) return null;
-    final media = MediaQuery.of(context);
+    // One aspect each: this runs in the chat's build, which must not be
+    // rebuilt by the keyboard's insets changing on every frame.
+    final padding = MediaQuery.paddingOf(context);
+    final size = MediaQuery.sizeOf(context);
     final isHorizontalLandscape =
         context.isLandscape && !chatStore.settings.landscapeForceVerticalChat;
-    final bottomInset = isHorizontalLandscape ? 0.0 : media.padding.bottom;
+    final bottomInset = isHorizontalLandscape ? 0.0 : padding.bottom;
     // Where the input sits once the menu is a panel: at the bottom of the
     // chat, even while an inline menu still pushes it up.
     final barTop = chat.bottom - bottomInset - chatStore.bottomBarHeight;
@@ -73,10 +76,10 @@ class _ChatState extends State<Chat> {
     final buttonX = atStart != rtl ? chat.left + inset : chat.right - inset;
     return placePanel(
       bounds: Rect.fromLTRB(
-        media.padding.left,
-        media.padding.top,
-        media.size.width - media.padding.right,
-        media.size.height - media.padding.bottom,
+        padding.left,
+        padding.top,
+        size.width - padding.right,
+        size.height - padding.bottom,
       ),
       anchor: Rect.fromLTWH(buttonX - 18, barTop, 36, 44),
       size: EmoteMenu.panelSize,
@@ -126,11 +129,8 @@ class _ChatState extends State<Chat> {
                           chatStore.unfocusInput();
                         }
                       },
-                      child: MediaQuery(
-                        data: MediaQuery.of(context).copyWith(
-                          textScaler:
-                              chatStore.settings.messageScale.textScaler,
-                        ),
+                      child: _MessageTextScale(
+                        scale: chatStore.settings.messageScale,
                         child: DefaultTextStyle(
                           style: context.defaultTextStyle.copyWith(
                             fontSize: chatStore.settings.fontSize,
@@ -146,34 +146,40 @@ class _ChatState extends State<Chat> {
                                   !chatStore
                                       .settings
                                       .landscapeForceVerticalChat;
-                              final bottomPadding =
-                                  emoteMenuInline || isHorizontalLandscape
-                                  ? 0.0
-                                  : MediaQuery.of(context).padding.bottom;
+                              // The screen's bottom padding is read by the
+                              // leaves below only: it changes as the
+                              // keyboard slides over the navigation bar,
+                              // and the messages must not be rebuilt then.
+                              final safeBottom =
+                                  !emoteMenuInline && !isHorizontalLandscape;
 
                               final scrollController = _isMerged
                                   ? chatTabsStore!.mergedScrollController
                                   : chatStore.scrollController;
 
-                              return OnsetScrollbar(
-                                controller: scrollController,
-                                padding: EdgeInsets.only(
-                                  top: MediaQuery.of(context).padding.top,
-                                  bottom:
-                                      chatStore.bottomBarHeight + bottomPadding,
-                                ),
-                                child: Observer(
-                                  builder: (context) {
-                                    return _isMerged
-                                        ? _buildMergedList(
-                                            scrollController,
-                                            bottomPadding,
-                                          )
-                                        : _buildNormalList(
-                                            scrollController,
-                                            bottomPadding,
-                                          );
-                                  },
+                              final list = Observer(
+                                builder: (context) {
+                                  return _isMerged
+                                      ? _buildMergedList(
+                                          scrollController,
+                                          safeBottom,
+                                        )
+                                      : _buildNormalList(
+                                          scrollController,
+                                          safeBottom,
+                                        );
+                                },
+                              );
+                              // The input's height (reply bar, autocomplete,
+                              // restriction bar) is observed here: nothing
+                              // else rebuilds the scrollbar when it changes.
+                              // The list, built above, is passed in as is.
+                              return Observer(
+                                builder: (_) => _ChatScrollbar(
+                                  controller: scrollController,
+                                  bottomBarHeight: chatStore.bottomBarHeight,
+                                  safeBottom: safeBottom,
+                                  child: list,
                                 ),
                               );
                             },
@@ -221,66 +227,66 @@ class _ChatState extends State<Chat> {
     );
   }
 
-  Widget _buildNormalList(
-    ScrollController scrollController,
-    double bottomPadding,
-  ) {
-    return ListView.builder(
-      reverse: true,
-      padding: (listPadding ?? EdgeInsets.zero).add(
-        EdgeInsets.only(bottom: chatStore.bottomBarHeight + bottomPadding),
-      ),
-      addAutomaticKeepAlives: false,
+  Widget _buildNormalList(ScrollController scrollController, bool safeBottom) {
+    final messages = chatStore.renderMessages;
+    return _ChatListView(
       controller: scrollController,
-      itemCount: chatStore.renderMessages.length,
-      itemBuilder: (context, index) => ChatMessage(
-        ircMessage: chatStore
-            .renderMessages[chatStore.renderMessages.length - 1 - index],
-        chatStore: chatStore,
+      padding: listPadding,
+      bottomBarHeight: chatStore.bottomBarHeight,
+      safeBottom: safeBottom,
+      count: messages.length,
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => ChatMessage(
+          ircMessage: messages[messages.length - 1 - index],
+          chatStore: chatStore,
+        ),
+        childCount: messages.length,
+        addAutomaticKeepAlives: false,
       ),
     );
   }
 
-  Widget _buildMergedList(
-    ScrollController scrollController,
-    double bottomPadding,
-  ) {
+  Widget _buildMergedList(ScrollController scrollController, bool safeBottom) {
     final mergedMessages = chatTabsStore!.mergedMessages;
     final channelIdToUserTwitch = chatTabsStore!.mergedChannelIdToUserTwitch;
     final currentChannelId = chatTabsStore!.activeTab.channelId;
 
-    return ListView.builder(
-      reverse: true,
-      padding: (listPadding ?? EdgeInsets.zero).add(
-        EdgeInsets.only(bottom: chatStore.bottomBarHeight + bottomPadding),
-      ),
-      addAutomaticKeepAlives: false,
+    return _ChatListView(
       controller: scrollController,
-      itemCount: mergedMessages.length,
-      itemBuilder: (context, index) {
-        final merged = mergedMessages[mergedMessages.length - 1 - index];
-        return ChatMessage(
-          ircMessage: merged.ircMessage,
-          chatStore: merged.chatStore,
-          inputChatStore: chatStore,
-          onActivateSourceTab: () {
-            final tabs = chatTabsStore!.tabs;
-            final idx = tabs.indexWhere(
-              (t) => t.channelId == merged.chatStore.channelId,
-            );
-            if (idx != -1 && idx != chatTabsStore!.activeTabIndex) {
-              chatTabsStore!.setActiveTab(idx, silent: true);
-            }
-          },
-          overrideChannelIdToUserTwitch: channelIdToUserTwitch,
-          overrideCurrentChannelId: currentChannelId,
-        );
-      },
+      padding: listPadding,
+      bottomBarHeight: chatStore.bottomBarHeight,
+      safeBottom: safeBottom,
+      count: mergedMessages.length,
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final merged = mergedMessages[mergedMessages.length - 1 - index];
+          return ChatMessage(
+            ircMessage: merged.ircMessage,
+            chatStore: merged.chatStore,
+            inputChatStore: chatStore,
+            onActivateSourceTab: () {
+              final tabs = chatTabsStore!.tabs;
+              final idx = tabs.indexWhere(
+                (t) => t.channelId == merged.chatStore.channelId,
+              );
+              if (idx != -1 && idx != chatTabsStore!.activeTabIndex) {
+                chatTabsStore!.setActiveTab(idx, silent: true);
+              }
+            },
+            overrideChannelIdToUserTwitch: channelIdToUserTwitch,
+            overrideCurrentChannelId: currentChannelId,
+          );
+        },
+        childCount: mergedMessages.length,
+        addAutomaticKeepAlives: false,
+      ),
     );
   }
 
   Widget _buildResumeScrollButton(bool emoteMenuInline) {
-    return Builder(
+    // An Observer: it follows the input's height (a reply bar appearing),
+    // which nothing else rebuilds it for.
+    return Observer(
       builder: (context) {
         final isHorizontalLandscape =
             context.isLandscape &&
@@ -295,7 +301,7 @@ class _ChatState extends State<Chat> {
                 chatStore.bottomBarHeight +
                 (emoteMenuInline || isHorizontalLandscape
                     ? 0
-                    : MediaQuery.of(context).padding.bottom),
+                    : MediaQuery.paddingOf(context).bottom),
           ),
           child: Observer(
             builder: (_) {
@@ -360,6 +366,101 @@ class _ChatState extends State<Chat> {
               )
             : null,
       ),
+    );
+  }
+}
+
+/// The chat's message size setting, applied over the screen's metrics.
+///
+/// Its own widget: copying the whole [MediaQueryData] depends on all of
+/// it, and the software keyboard changes it on every frame it slides in.
+/// Here only this widget is rebuilt then; the messages under it, built
+/// once and passed as [child], are left alone unless an aspect they read
+/// changed.
+class _MessageTextScale extends StatelessWidget {
+  const _MessageTextScale({required this.scale, required this.child});
+
+  final double scale;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: scale.textScaler),
+      child: child,
+    );
+  }
+}
+
+/// The message list: a reversed [ListView] over [delegate], padded with
+/// [padding], the chat input's [bottomBarHeight] and, when [safeBottom],
+/// the screen's bottom padding.
+///
+/// The bottom padding is read here, in a widget of its own, and the
+/// [delegate] is made by the caller: when that padding changes (the
+/// keyboard sliding over the navigation bar) only this list is rebuilt,
+/// with the same delegate, so the messages already built are kept.
+class _ChatListView extends StatelessWidget {
+  const _ChatListView({
+    required this.controller,
+    required this.padding,
+    required this.bottomBarHeight,
+    required this.safeBottom,
+    required this.count,
+    required this.delegate,
+  });
+
+  final ScrollController controller;
+  final EdgeInsetsGeometry? padding;
+  final double bottomBarHeight;
+  final bool safeBottom;
+  final int count;
+  final SliverChildDelegate delegate;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPadding = safeBottom
+        ? MediaQuery.paddingOf(context).bottom
+        : 0.0;
+    // What ListView.builder makes, with the delegate kept.
+    return ListView.custom(
+      reverse: true,
+      padding: (padding ?? EdgeInsets.zero).add(
+        EdgeInsets.only(bottom: bottomBarHeight + bottomPadding),
+      ),
+      controller: controller,
+      semanticChildCount: count,
+      childrenDelegate: delegate,
+    );
+  }
+}
+
+/// The chat's scrollbar, kept clear of the screen's padding and of the chat
+/// input; it reads the padding itself so that [child], the message list,
+/// is not rebuilt when the padding changes.
+class _ChatScrollbar extends StatelessWidget {
+  const _ChatScrollbar({
+    required this.controller,
+    required this.bottomBarHeight,
+    required this.safeBottom,
+    required this.child,
+  });
+
+  final ScrollController controller;
+  final double bottomBarHeight;
+  final bool safeBottom;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = MediaQuery.paddingOf(context);
+    return OnsetScrollbar(
+      controller: controller,
+      padding: EdgeInsets.only(
+        top: padding.top,
+        bottom: bottomBarHeight + (safeBottom ? padding.bottom : 0),
+      ),
+      child: child,
     );
   }
 }

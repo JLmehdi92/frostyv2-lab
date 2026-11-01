@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
@@ -9,6 +11,14 @@ class ProfilePicture extends StatefulWidget {
 
   const ProfilePicture({super.key, required this.userLogin, this.radius = 20});
 
+  /// How long a failed lookup waits before each new try. After the last
+  /// one, it tries again when the app comes back to the front.
+  static const retryDelays = [
+    Duration(seconds: 2),
+    Duration(seconds: 10),
+    Duration(seconds: 30),
+  ];
+
   @override
   State<ProfilePicture> createState() => _ProfilePictureState();
 }
@@ -18,9 +28,76 @@ class _ProfilePictureState extends State<ProfilePicture> {
   static final Map<String, String> _urlCache = {};
   static final Map<String, Future<String>> _pendingRequests = {};
 
+  /// The picture's address, asked once per login shown. Asked in build, a
+  /// new future each time made every rebuild of a parent cost a frame of
+  /// placeholder and a rebuild more, and a request to Twitch again after a
+  /// failure.
+  late Future<String> _url = _lookUp();
+
+  /// Failed lookups in a row for the current login.
+  var _failures = 0;
+
+  /// The next try after a failure.
+  Timer? _retry;
+
+  /// Up only after a failure: the app coming back to the front tries again
+  /// (a network that was down while it was away).
+  AppLifecycleListener? _lifecycle;
+
   @override
-  void initState() {
-    super.initState();
+  void didUpdateWidget(ProfilePicture oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userLogin != widget.userLogin) {
+      _failures = 0;
+      _retry?.cancel();
+      _url = _lookUp();
+    }
+  }
+
+  @override
+  void dispose() {
+    _retry?.cancel();
+    _lifecycle?.dispose();
+    _lifecycle = null;
+    super.dispose();
+  }
+
+  /// Asks for the address; a failure is tried again after a delay (a few
+  /// times, then on the app's return to the front), never on a rebuild.
+  Future<String> _lookUp() {
+    final future = _getProfileImageUrl();
+    future.then(
+      (_) {
+        // Gone meanwhile (its listener already disposed), or superseded.
+        if (!mounted || !identical(future, _url)) return;
+        _failures = 0;
+        _lifecycle?.dispose();
+        _lifecycle = null;
+      },
+      onError: (Object _) {
+        if (!mounted || !identical(future, _url)) return;
+        _lifecycle ??= AppLifecycleListener(onResume: _retryNow);
+        final delays = ProfilePicture.retryDelays;
+        if (_failures >= delays.length) return;
+        _retry?.cancel();
+        _retry = Timer(delays[_failures++], _tryAgain);
+      },
+    );
+    return future;
+  }
+
+  void _tryAgain() {
+    if (!mounted) return;
+    setState(() {
+      _url = _lookUp();
+    });
+  }
+
+  /// Back in front after a failure: a new try, and a new round of delays.
+  void _retryNow() {
+    _retry?.cancel();
+    _failures = 0;
+    _tryAgain();
   }
 
   Future<String> _getProfileImageUrl() async {
@@ -61,7 +138,9 @@ class _ProfilePictureState extends State<ProfilePicture> {
 
     return ClipOval(
       child: FutureBuilder<String>(
-        future: _getProfileImageUrl(),
+        future: _url,
+        // A picture already known shows from the first frame.
+        initialData: _urlCache[widget.userLogin],
         builder: (context, snapshot) {
           return snapshot.hasData
               ? OnsetCachedNetworkImage(

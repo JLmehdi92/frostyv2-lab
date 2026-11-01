@@ -54,6 +54,7 @@ import 'package:onset/services/notifications/schedule_reminders.dart';
 import 'package:onset/services/onset_updater.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/services/realtime/twitch_realtime_client.dart';
+import 'package:onset/services/settings_persistence.dart';
 import 'package:onset/services/telemetry.dart';
 import 'package:onset/services/telemetry_consent.dart';
 import 'package:onset/stores/global_assets_store.dart';
@@ -131,8 +132,13 @@ void main() async {
   // app's lifetime.
   syncFirebaseCollection(settingsStore);
 
-  // Create a MobX reaction that will save the settings on disk every time they are changed.
-  autorun((_) => prefs.setString('settings', jsonEncode(settingsStore)));
+  // Save the settings on disk when they change (gathered, not once per
+  // frame of a drag), and at once when the app leaves the screen. Kept for
+  // the app's lifetime.
+  persistSettings(
+    settingsStore,
+    (json) => unawaited(prefs.setString('settings', json)),
+  );
 
   /// Initialize API services with a common Dio client.
   /// This will prevent every request from creating a new client instance.

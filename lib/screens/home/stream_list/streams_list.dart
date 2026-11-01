@@ -1019,7 +1019,7 @@ class SliverTopPadding extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: SizedBox(
-        height: MediaQuery.of(context).padding.top + extraTopPadding,
+        height: MediaQuery.paddingOf(context).top + extraTopPadding,
       ),
     );
   }
@@ -1032,7 +1032,7 @@ class SliverBottomPadding extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
-      child: SizedBox(height: MediaQuery.of(context).padding.bottom),
+      child: SizedBox(height: MediaQuery.paddingOf(context).bottom),
     );
   }
 }

@@ -510,7 +510,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     return page;
   }
 
-  Widget _homePage(MediaQueryData media, ShellSection section, HomeFeed feed) {
+  Widget _homePage(ShellSection section, HomeFeed feed) {
     return ShellPages<HomeFeed>(
       pages: _homeStore.feeds,
       current: feed,
@@ -521,10 +521,6 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
       // The clips feed plays: it only exists while it is on screen.
       keepAlive: (page) => page != HomeFeed.clips,
       builder: (context, page) {
-        final data = ShellMetrics.page(
-          media,
-          _headerFor(ShellSection.home, page, page: true),
-        );
         final onScreen = section == ShellSection.home;
         // Only the feed chosen plays: leaving it stops the preview at once
         // (not after the fade).
@@ -540,12 +536,12 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
             onScreen &&
             !_covered &&
             !LaunchIntro.running.value;
-        return _memo(
-          page,
-          (data, page == HomeFeed.clips && onScreen, liveActive, clipsActive),
-          () => MediaQuery(
-            data: data,
-            child: switch (page) {
+        return _ShellPageMedia(
+          header: _headerFor(ShellSection.home, page, page: true),
+          child: _memo(
+            page,
+            (page == HomeFeed.clips && onScreen, liveActive, clipsActive),
+            () => switch (page) {
               HomeFeed.following => StreamsList(
                 listType: ListType.followed,
                 scrollController: _homeStore.followedScrollController,
@@ -574,27 +570,25 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
 
   Widget _page(
     BuildContext context,
-    MediaQueryData media,
     ShellSection section,
     ShellSection page,
     HomeFeed feed,
   ) {
-    if (page == ShellSection.home) return _homePage(media, section, feed);
-    final data = ShellMetrics.page(media, _headerFor(page, feed, page: true));
+    if (page == ShellSection.home) return _homePage(section, feed);
     final loggedIn = _authStore.isLoggedIn;
     final activityTab = _homeStore.activityTab;
     final browseTab = _homeStore.browseTab;
     final active = section == ShellSection.activity && !_covered;
-    return _memo(
-      page,
-      switch (page) {
-        ShellSection.activity => (data, loggedIn, activityTab, active),
-        ShellSection.browse => (data, browseTab),
-        _ => data,
-      },
-      () => MediaQuery(
-        data: data,
-        child: switch (page) {
+    return _ShellPageMedia(
+      header: _headerFor(page, feed, page: true),
+      child: _memo(
+        page,
+        switch (page) {
+          ShellSection.activity => (loggedIn, activityTab, active),
+          ShellSection.browse => browseTab,
+          _ => null,
+        },
+        () => switch (page) {
           ShellSection.browse => BrowsePage(
             tab: browseTab,
             categoriesController: _homeStore.categoriesScrollController,
@@ -615,8 +609,6 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-
     return GestureDetector(
       onTap: FocusScope.of(context).unfocus,
       child: Observer(
@@ -637,7 +629,14 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
           final loggedIn = _authStore.isLoggedIn;
           final login = loggedIn ? _authStore.user.details?.login : null;
 
-          final chrome = ShellMetrics.chrome(media, header);
+          // Two aspects only: Home stays mounted under every page pushed
+          // over it, and the whole screen's metrics change on each frame
+          // of a keyboard sliding in there (a channel's chat).
+          final chrome = ShellMetrics.chromeFor(
+            MediaQuery.sizeOf(context),
+            MediaQuery.paddingOf(context),
+            header,
+          );
           if (!_covered) _publishChrome(chrome);
 
           return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -647,42 +646,45 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
               onPopInvokedWithResult: (didPop, _) {
                 if (!didPop) _homeStore.handleBack();
               },
-              child: Scaffold(
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                // Room for the floating bar, so that snack bars float above
-                // it; the shell draws the bar itself, over the page.
-                extendBody: true,
-                bottomNavigationBar: SizedBox(
-                  height: _clipsInPip ? 0 : chrome.bottom,
+              child: _ScreenMedia(
+                builder: (context, media, body) => Scaffold(
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  // Room for the floating bar, so that snack bars float above
+                  // it; the shell draws the bar itself, over the page.
+                  extendBody: true,
+                  bottomNavigationBar: SizedBox(
+                    height: _clipsInPip ? 0 : chrome.bottom,
+                  ),
+                  body: MediaQuery(
+                    // The shell lays itself out on the screen's own padding.
+                    data: media,
+                    child: body,
+                  ),
                 ),
-                body: MediaQuery(
-                  // The shell lays itself out on the screen's own padding.
-                  data: media,
-                  child: OnsetShell(
-                    chromeHidden: _clipsInPip,
-                    section: section,
-                    onSection: _homeStore.selectSection,
-                    header: header,
-                    onSearch: _openSearch,
-                    activityBadge: _activityStore.newCount,
-                    whispers: loggedIn
-                        ? ShellWhispers(
-                            unread: _whisperStore.unreadCount,
-                            refused:
-                                _whisperStore.status == WhisperStatus.refused,
-                            onOpen: () =>
-                                WhispersScreen.open(context, _whisperStore),
-                          )
-                        : null,
-                    avatar: login == null
-                        ? null
-                        : FittedBox(child: ProfilePicture(userLogin: login)),
-                    body: ShellPages<ShellSection>(
-                      pages: ShellSection.values,
-                      current: section,
-                      builder: (context, page) =>
-                          _page(context, media, section, page, feed),
-                    ),
+                body: OnsetShell(
+                  chromeHidden: _clipsInPip,
+                  section: section,
+                  onSection: _homeStore.selectSection,
+                  header: header,
+                  onSearch: _openSearch,
+                  activityBadge: _activityStore.newCount,
+                  whispers: loggedIn
+                      ? ShellWhispers(
+                          unread: _whisperStore.unreadCount,
+                          refused:
+                              _whisperStore.status == WhisperStatus.refused,
+                          onOpen: () =>
+                              WhispersScreen.open(context, _whisperStore),
+                        )
+                      : null,
+                  avatar: login == null
+                      ? null
+                      : FittedBox(child: ProfilePicture(userLogin: login)),
+                  body: ShellPages<ShellSection>(
+                    pages: ShellSection.values,
+                    current: section,
+                    builder: (context, page) =>
+                        _page(context, section, page, feed),
                   ),
                 ),
               ),
@@ -731,4 +733,42 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     _liveFeed?.dispose();
     super.dispose();
   }
+}
+
+/// Builds Home's [Scaffold] with the screen's own [MediaQueryData] and the
+/// shell as its [body].
+///
+/// Only this widget depends on the whole of it: Home stays mounted under
+/// every page pushed over it, and a keyboard sliding in there (a channel's
+/// chat) changes the screen's insets on every frame. The shell, built once
+/// by Home and passed in as [body], is then left alone.
+class _ScreenMedia extends StatelessWidget {
+  const _ScreenMedia({required this.builder, required this.body});
+
+  final Widget Function(BuildContext context, MediaQueryData media, Widget body)
+  builder;
+  final Widget body;
+
+  @override
+  Widget build(BuildContext context) =>
+      builder(context, MediaQuery.of(context), body);
+}
+
+/// A shell page's metrics under [header] ([ShellMetrics.page]), over the
+/// page [child].
+///
+/// The page is built (and kept) apart from them: when the screen's metrics
+/// change, this widget alone is rebuilt, and the page only where it reads
+/// what changed.
+class _ShellPageMedia extends StatelessWidget {
+  const _ShellPageMedia({required this.header, required this.child});
+
+  final ShellHeader header;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => MediaQuery(
+    data: ShellMetrics.page(MediaQuery.of(context), header),
+    child: child,
+  );
 }

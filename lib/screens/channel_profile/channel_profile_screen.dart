@@ -555,13 +555,15 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
   }
 
   Widget _phone(BuildContext context) {
-    final media = MediaQuery.of(context);
+    final size = MediaQuery.sizeOf(context);
+    final padding = MediaQuery.paddingOf(context);
+    final textScaler = MediaQuery.textScalerOf(context);
     final profile = _store.profile;
     final loading = profile == null && !_store.loaded;
     final name = _name;
-    final bannerHeight = (media.size.height * 0.2).clamp(96.0, 168.0);
+    final bannerHeight = (size.height * 0.2).clamp(96.0, 168.0);
     final tabsHeight =
-        ProfileTabBar.heightFor(large: false) - 15 + media.textScaler.scale(15);
+        ProfileTabBar.heightFor(large: false) - 15 + textScaler.scale(15);
     final follow = _followFor;
     final showSubscribe = _showSubscribe(profile);
     // Until laid out: the name's row, the actions, and the stream card
@@ -570,7 +572,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
         58.0 +
         58 +
         (profile != null && !ProfileStreamFacts(profile).isEmpty ? 97 : 0) +
-        (media.textScaler.scale(24) - 24);
+        (textScaler.scale(24) - 24);
     return NestedScrollView(
       headerSliverBuilder: (context, _) => [
         SliverOverlapAbsorber(
@@ -578,7 +580,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           sliver: SliverPersistentHeader(
             pinned: true,
             delegate: ProfilePhoneHeader(
-              topPadding: media.padding.top,
+              topPadding: padding.top,
               bannerHeight: bannerHeight,
               contentHeight: _headerHeight ?? guess,
               tabsHeight: tabsHeight,
@@ -602,9 +604,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
                 labels: [
                   for (final tab in ProfileTab.values) tab.label(context.l10n),
                 ],
-                padding: EdgeInsetsDirectional.only(
-                  start: 16 + media.padding.left,
-                ),
+                padding: EdgeInsetsDirectional.only(start: 16 + padding.left),
               ),
               actions: (onBar) => _actions(onBar: onBar),
               onBack: _back,
@@ -618,8 +618,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           nested: true,
           large: false,
           leading: [SliverOverlapInjector(handle: _overlap)],
-          edgeOffset:
-              media.padding.top + ProfilePhoneHeader.barHeight + tabsHeight,
+          edgeOffset: padding.top + ProfilePhoneHeader.barHeight + tabsHeight,
         ),
       ),
     );

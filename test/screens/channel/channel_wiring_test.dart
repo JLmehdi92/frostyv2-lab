@@ -154,9 +154,19 @@ void main() {
       code,
       contains(
         'Positioned.fill(child:PanelAvoidScope(holder:_panelAvoid,'
-        'child:videoChat),)',
+        'child:ChannelKeyboardScope(child:videoChat),),)',
       ),
     );
+  });
+
+  test("the overlays learn of the keyboard above the Scaffold's body", () {
+    final code = _code(
+      File('lib/screens/channel/channel.dart').readAsStringSync(),
+    );
+    // The Scaffold removes the keyboard's inset from its body: the scope
+    // wraps the whole screen, Scaffold included.
+    expect(code, contains('ChannelKeyboardScope(child:videoChat)'));
+    expect(code, contains('finalvideoChat=Observer('));
   });
 
   test("the double tap's side column is full screen beside the chat", () {
