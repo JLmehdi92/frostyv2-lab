@@ -90,6 +90,55 @@ void main() {
     await h.close(tester);
   });
 
+  testWidgets('the keyboard coming up takes the pill off the video, and '
+      'its going away brings it back', (tester) async {
+    settings
+      ..fullScreen = true
+      ..fullScreenChatOverlay = false;
+    final h = running();
+    tester.view
+      ..physicalSize = const Size(800, 360)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    // As the channel screen: the scope above the Scaffold, the screen
+    // reading only its orientation there (nothing above rebuilds on the
+    // keyboard's insets).
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            MediaQuery.orientationOf(context);
+            return ChannelKeyboardScope(
+              child: Scaffold(
+                body: Stack(
+                  children: [
+                    const SizedBox.expand(),
+                    ChannelVideoTopOverlay(
+                      hypeTrain: h.store,
+                      settingsStore: settings,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(HypeTrainVideoPill), findsOneWidget);
+
+    // Before: read from the view with no dependency, the pill stayed.
+    tester.view.viewInsets = const FakeViewPadding(bottom: 200);
+    await tester.pump();
+    expect(find.byType(HypeTrainVideoPill), findsNothing);
+
+    tester.view.resetViewInsets();
+    await tester.pump();
+    expect(find.byType(HypeTrainVideoPill), findsOneWidget);
+    await h.close(tester);
+  });
+
   testWidgets('the compact banner fits a 140 px landscape chat', (
     tester,
   ) async {

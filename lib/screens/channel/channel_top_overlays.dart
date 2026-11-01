@@ -17,10 +17,41 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/link_router.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
-/// The keyboard, read from the view: the channel `Scaffold` removes the
-/// inset from its body.
+/// Whether the keyboard is up, from the [ChannelKeyboardScope] above (a
+/// dependency: the overlays follow it coming up and going away). Without
+/// one (an overlay drawn alone), read from the view: the channel
+/// `Scaffold` removes the inset from its body.
 bool _keyboardOpen(BuildContext context) =>
+    context.dependOnInheritedWidgetOfExactType<_KeyboardOpen>()?.open ??
     View.of(context).viewInsets.bottom > 0;
+
+/// Tells the channel's overlays below it whether the software keyboard is
+/// up. Put it above the channel's `Scaffold`, which removes the keyboard's
+/// inset from its body (`MediaQuery.viewInsetsOf` reads 0 in there).
+///
+/// It reads the insets itself, so it is rebuilt on each frame of the
+/// keyboard's slide; [child] is passed in as is, and the overlays are
+/// told only when the keyboard comes up or goes away.
+class ChannelKeyboardScope extends StatelessWidget {
+  const ChannelKeyboardScope({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => _KeyboardOpen(
+    open: MediaQuery.viewInsetsOf(context).bottom > 0,
+    child: child,
+  );
+}
+
+class _KeyboardOpen extends InheritedWidget {
+  const _KeyboardOpen({required this.open, required super.child});
+
+  final bool open;
+
+  @override
+  bool updateShouldNotify(_KeyboardOpen oldWidget) => open != oldWidget.open;
+}
 
 HtPlacement _placement(
   BuildContext context,

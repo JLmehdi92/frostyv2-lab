@@ -1724,7 +1724,11 @@ class _VideoChatState extends State<VideoChat>
       child: Stack(
         children: [
           Positioned.fill(
-            child: PanelAvoidScope(holder: _panelAvoid, child: videoChat),
+            child: PanelAvoidScope(
+              holder: _panelAvoid,
+              // Above the Scaffold, which removes the keyboard from its body.
+              child: ChannelKeyboardScope(child: videoChat),
+            ),
           ),
           Positioned.fill(child: CelebrationOverlay(store: _eventsStore)),
         ],
