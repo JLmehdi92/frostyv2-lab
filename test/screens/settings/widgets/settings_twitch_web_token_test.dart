@@ -63,6 +63,9 @@ void main() {
 
     await tester.enterText(find.byType(TextField), '  fresh  ');
     await tester.pump();
+    // The hint takes up to three lines (the test font's letters are wide):
+    // the button may sit below the dialog's fold.
+    await tester.ensureVisible(find.text('Replace'));
     await tester.tap(find.text('Replace'));
     await tester.pumpAndSettle();
 
@@ -74,6 +77,9 @@ void main() {
     await pump(tester);
     await open(tester);
 
+    // The hint takes up to three lines (the test font's letters are wide):
+    // the button may sit below the dialog's fold.
+    await tester.ensureVisible(find.text('Replace'));
     await tester.tap(find.text('Replace'));
     await tester.pumpAndSettle();
 
