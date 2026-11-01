@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -222,5 +223,39 @@ void main() {
     expect(tester.takeException(), isNull);
     final panel = tester.getRect(find.byType(OnsetPanelSurface));
     expect(panel.bottom, lessThanOrEqualTo(1000 - 12));
+  });
+
+  group('tapping a name in a chat line', () {
+    ChatMessage line(String raw) =>
+        ChatMessage(ircMessage: IRCMessage.fromString(raw), chatStore: store);
+
+    testWidgets("opens the sender's card", (tester) async {
+      final context = await pump(tester, const Size(390, 844));
+      line(
+        '@display-name=Troll;user-id=33;id=a :troll!troll@troll.tmi.twitch.tv '
+        'PRIVMSG #channel :hi',
+      ).onTapName(context);
+      await tester.pumpAndSettle();
+      expect(find.byType(ChatUserModal), findsOneWidget);
+    });
+
+    testWidgets('does nothing, and does not throw, for a line with no user '
+        'id', (tester) async {
+      final context = await pump(tester, const Size(390, 844));
+      for (final raw in [
+        // A sender not known any more (the chat's history, a replay).
+        '@display-name=Deleted\\suser;id=b '
+            ':deleted_user!deleted_user@deleted_user.tmi.twitch.tv '
+            'PRIVMSG #channel :hi',
+        // A known login the history gave no id.
+        '@display-name=Ghost;id=c :ghost!ghost@ghost.tmi.twitch.tv '
+            'PRIVMSG #channel :hi',
+      ]) {
+        line(raw).onTapName(context);
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.byType(ChatUserModal), findsNothing, reason: raw);
+      }
+    });
   });
 }

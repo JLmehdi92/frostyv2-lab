@@ -72,12 +72,17 @@ class ChatMessage extends StatelessWidget {
       return;
     }
 
+    // A line with no user id (a sender not known any more, or one the
+    // chat's history did not identify) has no card to open.
+    final userId = ircMessage.tags['user-id'];
+    if (userId == null) return;
+
     showChatUserCard(
       context,
       chatStore: chatStore,
       username: ircMessage.user!,
-      userId: ircMessage.tags['user-id']!,
-      displayName: ircMessage.tags['display-name']!,
+      userId: userId,
+      displayName: ircMessage.tags['display-name'] ?? ircMessage.user!,
       // A tablet's card opens beside the tapped message.
       anchor: globalRectOf(context),
     );
