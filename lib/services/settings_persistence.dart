@@ -15,6 +15,10 @@ const kSettingsSaveDelay = Duration(milliseconds: 300);
 /// on every frame. Written at each change, the settings were encoded whole
 /// on the UI thread and sent to the platform up to 144 times a second.
 ///
+/// The consent to crash logs and analytics and the language are written at
+/// once, never gathered: other isolates read them from disk (the go-live
+/// worker turns its collection off on an opt-out), and they are rare.
+///
 /// Returns what stops it.
 VoidCallback persistSettings(
   SettingsStore settings,
@@ -30,9 +34,19 @@ VoidCallback persistSettings(
   }
 
   final disposeReaction = autorun((_) => save(), delay: delay.inMilliseconds);
+  final disposeImmediate = reaction(
+    (_) => (
+      settings.shareCrashLogsAndAnalytics,
+      settings.telemetryConsentVersion,
+      settings.appLanguage,
+      settings.languagePromptVersion,
+    ),
+    (_) => save(),
+  );
   final lifecycle = AppLifecycleListener(onHide: save, onPause: save);
   return () {
     disposeReaction();
+    disposeImmediate();
     lifecycle.dispose();
     save();
   };

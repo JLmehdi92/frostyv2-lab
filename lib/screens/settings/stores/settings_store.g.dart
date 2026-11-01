@@ -1854,6 +1854,28 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     );
   }
 
+  late final _$telemetryConsentVersionAtom = Atom(
+    name: '_SettingsStoreBase.telemetryConsentVersion',
+    context: context,
+  );
+
+  @override
+  int get telemetryConsentVersion {
+    _$telemetryConsentVersionAtom.reportRead();
+    return super.telemetryConsentVersion;
+  }
+
+  @override
+  set telemetryConsentVersion(int value) {
+    _$telemetryConsentVersionAtom.reportWrite(
+      value,
+      super.telemetryConsentVersion,
+      () {
+        super.telemetryConsentVersion = value;
+      },
+    );
+  }
+
   late final _$fullScreenAtom = Atom(
     name: '_SettingsStoreBase.fullScreen',
     context: context,
@@ -2083,6 +2105,7 @@ chatFilterSexual: ${chatFilterSexual},
 chatFilterHarassment: ${chatFilterHarassment},
 chatFilterProfanity: ${chatFilterProfanity},
 shareCrashLogsAndAnalytics: ${shareCrashLogsAndAnalytics},
+telemetryConsentVersion: ${telemetryConsentVersion},
 fullScreen: ${fullScreen},
 fullScreenChatOverlay: ${fullScreenChatOverlay},
 pinnedChannelIds: ${pinnedChannelIds},

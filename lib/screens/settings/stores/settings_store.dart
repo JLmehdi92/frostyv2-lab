@@ -729,7 +729,9 @@ abstract class _SettingsStoreBase with Store {
   /// "on" there is no consent. Settings saved without it read 0, are turned
   /// off once as they load (before anything reads the setting), and keep the
   /// viewer's choice from then on. A new install starts at the current one.
+  /// Observable so that a change is written to disk at once.
   @JsonKey(defaultValue: 0)
+  @observable
   var telemetryConsentVersion = kTelemetryConsentVersion;
 
   void _applyTelemetryConsentVersion() {

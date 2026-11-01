@@ -73,4 +73,37 @@ void main() {
       expect(chatWidthOf(writes.single), 0.37);
     });
   });
+
+  // Read from disk by other isolates (the go-live worker checks the consent
+  // there) and on the next start: written at once, never gathered.
+  for (final (name, change) in <(String, void Function(SettingsStore))>[
+    ('the crash logs consent', (s) => s.shareCrashLogsAndAnalytics = false),
+    ('the consent version', (s) => s.telemetryConsentVersion = 9999),
+    ('the language', (s) => s.appLanguage = AppLanguage.fr),
+    ('the language question', (s) => s.languagePromptVersion = 9999),
+  ]) {
+    test('$name is written at once', () {
+      fakeAsync((async) {
+        final settings = SettingsStore.fromJson({})
+          ..shareCrashLogsAndAnalytics = true;
+        final writes = <String>[];
+        final stop = persistSettings(settings, writes.add);
+        async.elapse(const Duration(seconds: 1));
+        writes.clear();
+
+        change(settings);
+        // Before: nothing until the 300 ms were up.
+        expect(writes, hasLength(1));
+        final expected = SettingsStore.fromJson({})
+          ..shareCrashLogsAndAnalytics = true;
+        change(expected);
+        expect(writes.single, jsonEncode(expected));
+
+        // Nothing written twice when the delay is up.
+        async.elapse(const Duration(seconds: 1));
+        expect(writes, hasLength(1));
+        stop();
+      });
+    });
+  }
 }
