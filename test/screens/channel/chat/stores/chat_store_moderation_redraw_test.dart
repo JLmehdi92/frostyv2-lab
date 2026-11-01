@@ -46,13 +46,20 @@ void main() {
         async.flushMicrotasks();
         store.addMessages();
 
-        // What the chat's list Observer sees.
+        // What the chat's list Observer reads: the list and its length.
         final seen = <Command>[];
-        final dispose = reaction(
-          (_) => store.renderMessages,
-          (List<IRCMessage> lines) =>
-              seen.add(lines.lastWhere((m) => m.tags['id'] == 'msg-1').command),
-        );
+        var first = true;
+        final dispose = autorun((_) {
+          final lines = store.renderMessages;
+          final command = lines
+              .lastWhere((m) => m.tags['id'] == 'msg-1')
+              .command;
+          if (first) {
+            first = false;
+            return;
+          }
+          seen.add(command);
+        });
 
         irc.receive(line);
         async.flushMicrotasks();
@@ -78,4 +85,76 @@ void main() {
       });
     });
   }
+
+  group('a ban wave', () {
+    String line(int i) =>
+        '@badge-info=;badges=;color=#00FF00;display-name=U$i;emotes=;'
+        'id=m-$i;room-id=12345;tmi-sent-ts=$i;user-id=${10000 + i} '
+        ':u$i!u$i@u$i.tmi.twitch.tv PRIVMSG #channel :hello $i';
+
+    String timeout(String user) =>
+        '@ban-duration=60;room-id=12345;target-user-id=1;tmi-sent-ts=9 '
+        ':tmi.twitch.tv CLEARCHAT #channel :$user';
+
+    /// A chat of 400 lines (u0 to u399), then [wave] played over [ticks]
+    /// flushes of 200 ms; returns how many times the list reported a change.
+    int redraws(List<String> wave, {int ticks = 1}) {
+      var reports = 0;
+      fakeAsync((async) {
+        final settings = SettingsStore.fromJson({})
+          ..showVideo = false
+          ..autoSyncChatDelay = false
+          ..chatDelay = 0
+          ..showModerationNotices = false;
+        final sockets = <FakeSocket>[];
+        final store = createTestChatStore(settings: settings, sockets: sockets);
+        async.flushMicrotasks();
+        final irc = sockets.single;
+        for (var i = 0; i < 400; i++) {
+          irc.receive(line(i));
+        }
+        async.flushMicrotasks();
+        store.addMessages();
+
+        // What the chat's list Observer reads: the list and its length.
+        var runs = 0;
+        final dispose = autorun((_) {
+          store.renderMessages.length;
+          runs++;
+        });
+        final perTick = (wave.length / ticks).ceil();
+        for (var tick = 0; tick < ticks; tick++) {
+          for (final message in wave.skip(tick * perTick).take(perTick)) {
+            irc.receive(message);
+          }
+          async.flushMicrotasks();
+          store.addMessages();
+        }
+
+        reports = runs - 1;
+        dispose();
+        store.dispose();
+        unawaited(irc.drop());
+        async.elapse(const Duration(seconds: 30));
+      });
+      return reports;
+    }
+
+    test('of users with no line in the chat redraws nothing', () {
+      // Before: one redraw per timeout, 200, each outside the 200 ms flush.
+      expect(redraws([for (var i = 0; i < 200; i++) timeout('nobody_$i')]), 0);
+    });
+
+    test('of users in the chat redraws once per flush at most', () {
+      final wave = [for (var i = 0; i < 200; i++) timeout('u$i')];
+      // Before: 200 redraws.
+      expect(redraws(wave), 1);
+      expect(redraws(wave, ticks: 4), 4);
+    });
+
+    test('repeating a timeout already shown redraws nothing more', () {
+      final wave = [for (var i = 0; i < 50; i++) timeout('u7')];
+      expect(redraws(wave, ticks: 5), 1);
+    });
+  });
 }
