@@ -501,14 +501,31 @@ void main() {
           children: [
             TextSpan(text: 'bob'),
             TextSpan(text: ': '),
-            TextSpan(text: 'Reconnect'),
+            TextSpan(text: 'brb, Reconnect'),
           ],
         ),
       ),
     ];
     // Unmarked, they read as English.
     expect(await leaksOf(tester, shown), isNotEmpty);
-    expect(englishLeaks(tester, content: const [notice, 'Reconnect']), isEmpty);
+    expect(
+      englishLeaks(tester, content: const [notice, 'brb, Reconnect']),
+      isEmpty,
+    );
+    // The app's own English is never content: passing it fails the test,
+    // as it would hide the leak. Twitch's own sentence holding an app's
+    // words (« slow mode », « 30 seconds ») still passes, above.
+    for (final app in [
+      english.chatReconnect,
+      english.chatReconnectingNotice,
+      english.whisperLogInAgain,
+    ]) {
+      expect(
+        () => englishLeaks(tester, content: [app]),
+        throwsA(isA<TestFailure>()),
+        reason: app,
+      );
+    }
     // What the app wrote around the content is still read.
     await leaksOf(tester, [
       Text.rich(

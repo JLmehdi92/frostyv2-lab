@@ -155,14 +155,28 @@ void main() {
     );
 
     expect(m.user, 'deleted_user');
-    // Data in no language: the name is worded where it shows.
-    expect(m.tags['display-name'], 'deleted_user');
+    // Data as the chat always had it (a reply quotes it): the name is
+    // worded where it shows.
+    expect(m.tags['display-name'], 'Deleted user');
     expect(m.tags.containsKey('user-id'), isFalse);
     expect(m.isFromDeletedUser, isTrue);
     expect(m.shownDisplayName(L10n.english), 'Deleted user');
     expect(
       m.shownDisplayName(lookupAppLocalizations(const Locale('fr'))),
       'Utilisateur supprimé',
+    );
+  });
+
+  test('an account really named deleted_user keeps its own name', () {
+    final m = _convert(
+      _comment(commenterId: null, login: 'deleted_user', displayName: null),
+    );
+
+    expect(m.tags['display-name'], 'deleted_user');
+    expect(m.isFromDeletedUser, isFalse);
+    expect(
+      m.shownDisplayName(lookupAppLocalizations(const Locale('fr'))),
+      'deleted_user',
     );
   });
 

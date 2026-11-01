@@ -188,10 +188,86 @@ void main() {
     });
   });
 
-  test('saveUiLanguage keeps the language for the background', () async {
+  test('saveUiLanguage keeps the language for the background, and says '
+      'whether it changed', () async {
     SharedPreferences.setMockInitialValues({});
-    await saveUiLanguage(const Locale('fr', 'CA'));
+    expect(await saveUiLanguage(const Locale('fr', 'CA')), isTrue);
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString(kUiLanguagePrefsKey), 'fr');
+    expect(await saveUiLanguage(const Locale('fr')), isFalse);
+    expect(await saveUiLanguage(const Locale('en')), isTrue);
+    expect(prefs.getString(kUiLanguagePrefsKey), 'en');
+
+    // None saved yet: the app spoke only English before it saved one.
+    SharedPreferences.setMockInitialValues({});
+    expect(await saveUiLanguage(const Locale('en')), isFalse);
+    expect(
+      (await SharedPreferences.getInstance()).getString(kUiLanguagePrefsKey),
+      'en',
+    );
+
+    // Asked twice at once, each compares with the one before it.
+    SharedPreferences.setMockInitialValues({kUiLanguagePrefsKey: 'en'});
+    final changes = await Future.wait([
+      saveUiLanguage(const Locale('fr')),
+      saveUiLanguage(const Locale('fr')),
+      saveUiLanguage(const Locale('en')),
+    ]);
+    expect(changes, [true, false, true]);
+  });
+
+  group('rememberUiLanguage', () {
+    Widget app(Locale locale, ValueChanged<Locale> listener) => MaterialApp(
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      builder: (context, child) =>
+          LocaleSync(onLocale: [listener], child: child!),
+      home: const SizedBox(),
+    );
+
+    Future<void> settle(WidgetTester tester) async {
+      await tester.pumpAndSettle();
+      await tester.runAsync(pumpEventQueue);
+    }
+
+    testWidgets('a launch in the language saved words nothing again', (
+      tester,
+    ) async {
+      addTearDown(() => L10n.use(en));
+      SharedPreferences.setMockInitialValues({kUiLanguagePrefsKey: 'fr'});
+      var changes = 0;
+      final listener = rememberUiLanguage(onChanged: () async => changes++);
+      await tester.pumpWidget(app(fr, listener));
+      await settle(tester);
+      expect(changes, 0, reason: 'cold start in the same language');
+
+      await tester.pumpWidget(app(en, listener));
+      await settle(tester);
+      expect(changes, 1);
+      await tester.pumpWidget(app(fr, listener));
+      await settle(tester);
+      expect(changes, 2);
+    });
+
+    testWidgets('a language that changed while the app was closed is '
+        'followed at launch; a failure is only logged', (tester) async {
+      addTearDown(() => L10n.use(en));
+      SharedPreferences.setMockInitialValues({kUiLanguagePrefsKey: 'en'});
+      var changes = 0;
+      final listener = rememberUiLanguage(
+        onChanged: () async {
+          changes++;
+          throw StateError('alarm');
+        },
+      );
+      await tester.pumpWidget(app(fr, listener));
+      await settle(tester);
+      expect(changes, 1);
+      expect(
+        (await SharedPreferences.getInstance()).getString(kUiLanguagePrefsKey),
+        'fr',
+      );
+    });
   });
 }

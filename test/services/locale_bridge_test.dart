@@ -1,3 +1,5 @@
+import 'dart:ui' show Locale;
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -13,15 +15,22 @@ void main() {
   late List<MethodCall> calls;
   // What the system holds ('' the device's); null: no per-app language.
   String? system;
+  // The device's own languages, as the system's tags.
+  String? device;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     calls = [];
     system = '';
+    device = 'en-US';
     messenger.setMockMethodCallHandler(channel, (call) async {
       calls.add(call);
       if (call.method == 'set') system = call.arguments as String;
-      return call.method == 'get' ? system : null;
+      return switch (call.method) {
+        'get' => system,
+        'systemLocales' => device,
+        _ => null,
+      };
     });
   });
 
@@ -83,6 +92,67 @@ void main() {
     expect(await bridge().changedInSystem(), isNull);
   });
 
+  test('a regional pick in the system is adopted as its language and '
+      'kept there', () async {
+    final settings = SettingsStore.fromJson({'appLanguage': 'en'});
+    final adopt = await syncSystemLanguage(settings, bridge());
+    expect(system, 'en');
+
+    // « Français (Canada) » picked in the system's settings.
+    system = 'fr-CA';
+    await adopt();
+    expect(settings.appLanguage, AppLanguage.fr);
+    // main.dart's reaction tells the system the app's language: the
+    // system's own pick stays.
+    calls.clear();
+    await bridge().push(settings.appLanguage);
+    expect(system, 'fr-CA');
+    expect(calls.where((call) => call.method == 'set'), isEmpty);
+    // Nothing more to adopt, nothing sent on later resumes.
+    await adopt();
+    await adopt();
+    expect(settings.appLanguage, AppLanguage.fr);
+    expect(calls.where((call) => call.method == 'set'), isEmpty);
+
+    // Another language picked in the app replaces it.
+    await bridge().push(AppLanguage.en);
+    expect(system, 'en');
+  });
+
+  test("the device's own languages: what System gives", () async {
+    device = 'fr-CA,en-US';
+    final local = bridge();
+    expect(local.lastSystemLocales, isNull);
+    expect(await local.systemLocales(), const [
+      Locale('fr', 'CA'),
+      Locale('en', 'US'),
+    ]);
+    expect(local.lastSystemLocales, const [
+      Locale('fr', 'CA'),
+      Locale('en', 'US'),
+    ]);
+    device = '';
+    expect(await local.systemLocales(), isNull);
+    device = null;
+    expect(await local.systemLocales(), isNull);
+    // The last answer is kept.
+    expect(local.lastSystemLocales, const [
+      Locale('fr', 'CA'),
+      Locale('en', 'US'),
+    ]);
+
+    expect(LocaleBridge.localeOfTag('zh-Hant-TW'), const Locale('zh', 'TW'));
+    expect(LocaleBridge.localeOfTag('es-419'), const Locale('es', '419'));
+    expect(LocaleBridge.localeOfTag('FR'), const Locale('fr'));
+    expect(LocaleBridge.localeOfTag(' '), isNull);
+    expect(LocaleBridge.localeOfTag('und!'), isNull);
+
+    // Nothing asked where the system does not answer (iOS).
+    calls.clear();
+    expect(await bridge(supported: false).systemLocales(), isNull);
+    expect(calls, isEmpty);
+  });
+
   test('nothing without a per-app language (before Android 13, iOS)', () async {
     system = null;
     final settings = SettingsStore.fromJson({'appLanguage': 'fr'});
@@ -104,5 +174,6 @@ void main() {
     );
     await bridge().push(AppLanguage.fr);
     expect(await bridge().changedInSystem(), isNull);
+    expect(await bridge().systemLocales(), isNull);
   });
 }

@@ -129,7 +129,9 @@ Future<void> pumpLocalized(
 /// title): never translated, so never a leak. Each is taken out of the
 /// texts it shows in before they are read, the rest of the line still
 /// checked ("bob: Reconnect", with "Reconnect" a viewer's message, leaves
-/// "bob: ").
+/// "bob: "). An item that is an English message of the app
+/// ([isAppEnglish]) fails the test: passed as content, it would hide that
+/// very leak.
 List<String> englishLeaks(
   WidgetTester tester, {
   Iterable<String> content = const [],
@@ -138,6 +140,14 @@ List<String> englishLeaks(
     for (final text in content)
       if (text.trim().isNotEmpty) text,
   ]..sort((a, b) => b.length.compareTo(a.length));
+  for (final text in words) {
+    if (isAppEnglish(text)) {
+      fail(
+        '"$text" is an English message of the app, not Twitch\'s or '
+        'viewers\' words: it cannot be passed as content.',
+      );
+    }
+  }
   String? app(String text) {
     var rest = text;
     for (final piece in words) {
@@ -149,14 +159,37 @@ List<String> englishLeaks(
   return [
     for (final text in shownTexts(tester))
       if (app(text) case final shown? when _isEnglishLeak(shown)) text,
-    for (final (:whole, :piece) in _spanPieces(tester))
+    for (final (:whole, :piece) in _spanPieces(tester, app))
       if (app(whole) case final shown?
-          when !_isEnglishLeak(shown) &&
-              app(piece) != null &&
-              _isEnglishPiece(app(piece)!.trim()))
+          when !_isEnglishLeak(shown) && _isEnglishPiece(piece.trim()))
         '$whole [$piece]',
   ];
 }
+
+/// Whether [text] is, whole and in any case, an English message of the
+/// app with no placeholder (or one branch of its plurals and selects) that
+/// French words differently: never Twitch's or viewers' own words.
+/// (Twitch's own sentences may hold an app's words, « slow mode » in its
+/// NOTICE, or end like a message with a placeholder, « 30 seconds »: only
+/// a whole fixed message tells the app's text apart.)
+bool isAppEnglish(String text) =>
+    !_leakChecks.frenchValues.contains(text) &&
+    _englishFixed.contains(text.trim().toLowerCase());
+
+/// Every English message and branch with no placeholder, lower case
+/// ([isAppEnglish]).
+final Set<String> _englishFixed = () {
+  final english =
+      jsonDecode(File('lib/l10n/app_en.arb').readAsStringSync())
+          as Map<String, Object?>;
+  return {
+    for (final MapEntry(:key, :value) in english.entries)
+      if (!key.startsWith('@') && value is String)
+        for (final variant in _variants(value))
+          if (!variant.contains(_hole) && variant.trim().isNotEmpty)
+            variant.trim().toLowerCase(),
+  };
+}();
 
 /// Whether [text], shown on a French screen, is English (see
 /// [englishLeaks]), whole or in a piece. Worked out once per text: the
@@ -229,9 +262,11 @@ List<String> textPieces(String text) => [
 ];
 
 /// Each span of each `Text.rich` that has several ([englishLeaks]), with
-/// the whole text it is in.
+/// the whole text it is in; [app] is what of a span the app wrote (the
+/// content taken out), null for nothing.
 Iterable<({String whole, String piece})> _spanPieces(
   WidgetTester tester,
+  String? Function(String text) app,
 ) sync* {
   for (final widget in tester.widgetList<RichText>(find.byType(RichText))) {
     final spans = <String>[];
@@ -242,7 +277,9 @@ Iterable<({String whole, String piece})> _spanPieces(
     if (spans.length < 2) continue;
     final whole = widget.text.toPlainText();
     for (final span in spans) {
-      for (final piece in textPieces(span)) {
+      final written = app(span);
+      if (written == null) continue;
+      for (final piece in textPieces(written)) {
         yield (whole: whole, piece: piece);
       }
     }

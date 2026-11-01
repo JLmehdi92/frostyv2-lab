@@ -1148,10 +1148,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get timestampDisabled => 'Désactivé';
 
   @override
-  String get timestampTwelve => '12 heures';
+  String get timestampTwelve => '12 heures';
 
   @override
-  String get timestampTwentyFour => '24 heures';
+  String get timestampTwentyFour => '24 heures';
 
   @override
   String get settingsDelayAndLatency => 'Délai et latence';
@@ -1944,7 +1944,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pas de connexion Internet. Vérifiez votre réseau.';
 
   @override
-  String get apiErrorConnectionTimeout => 'La connexion a expiré. Réessayez.';
+  String get apiErrorConnectionTimeout =>
+      'Impossible de joindre Twitch à temps. Réessayez.';
 
   @override
   String get apiErrorSendTimeout => 'L’envoi a pris trop de temps. Réessayez.';
@@ -5075,7 +5076,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get chatRestrictionBanned => 'Bannissement définitif de ce chat';
+  String get chatRestrictionBanned => 'Bannissement définitif';
 
   @override
   String get chatRestrictionTimedOut => 'Exclusion temporaire';
@@ -5097,7 +5098,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chatRestrictionSubscribersOnly => 'Mode abonnés uniquement';
 
   @override
-  String get chatRestrictionFollowersOnly => 'Mode followers uniquement';
+  String get chatRestrictionFollowersOnly => 'Followers uniquement';
 
   @override
   String chatRestrictionFollowersFor({required int minutes}) {
@@ -5238,13 +5239,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chatEnterMessage => 'Envoyer un message';
 
   @override
-  String get chatCannotChatNow => 'Envoi impossible pour l’instant';
+  String get chatCannotChatNow => 'Envoi impossible';
 
   @override
   String get chatInputDisconnected => 'Chat déconnecté';
 
   @override
-  String get chatInputConnecting => 'Connexion…';
+  String get chatInputConnecting => 'Connexion au chat…';
 
   @override
   String get chatSending => 'Envoi…';
@@ -6060,7 +6061,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String noticeGiftCount({required int count}) {
-    return 'Son total sur la chaîne : $count abonnements offerts !';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'Son total sur la chaîne : $countString abonnements offerts !';
   }
 
   @override
@@ -6105,7 +6110,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String noticeCommunityGiftTotal({required int count}) {
-    return 'Son total sur la chaîne : $count abonnements offerts !';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'Son total sur la chaîne : $countString abonnements offerts !';
   }
 
   @override
@@ -6170,9 +6179,18 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get vodSpeedPillNormal => 'Vitesse normale';
+
+  @override
   String vodQualityPill({required String quality}) {
     return 'Qualité $quality';
   }
+
+  @override
+  String get vodQualityPillAuto => 'Qualité auto';
+
+  @override
+  String get vodQualityPillAudioOnly => 'Qualité audio uniquement';
 
   @override
   String vodCaptionsState({required String state}) {
@@ -6191,11 +6209,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Appuyez deux fois sur un côté pour reculer ou avancer de 10 s';
 
   @override
-  String get vodLegendUpNext => 'Vidéo suivante à la fin';
+  String get vodLegendUpNext => 'Lecture automatique de la vidéo suivante';
 
   @override
   String vodLegendUpNextWhen({required String autoplay}) {
-    return 'Vidéo suivante à la fin · $autoplay';
+    return 'Lecture automatique de la vidéo suivante · $autoplay';
   }
 
   @override
@@ -6214,15 +6232,15 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count secondes',
-      one: '$count seconde',
+      other: 'dans $count s',
+      one: 'dans $count s',
     );
     return '$_temp0';
   }
 
   @override
   String vodUpNextSimilar({required String channel}) {
-    return '$channel · Vidéo similaire';
+    return '$channel · Suggestion';
   }
 
   @override
@@ -6230,6 +6248,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get vodReplayTitle => 'Rediffusion du chat';
+
+  @override
+  String get vodReplaySynced => 'synchronisé';
 
   @override
   String get vodReplayEmotesNote =>
@@ -6259,7 +6280,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String whisperTooLong({required int max}) {
-    return 'Les chuchotements sont limités à $max caractères.';
+    final intl.NumberFormat maxNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String maxString = maxNumberFormat.format(max);
+
+    return 'Les chuchotements sont limités à $maxString caractères.';
   }
 
   @override
@@ -6285,8 +6311,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count autres chaînes ont lancé un live',
-      one: '$count autre chaîne a lancé un live',
+      other: '$count autres chaînes sont en direct',
+      one: '$count autre chaîne est en direct',
     );
     return '$_temp0';
   }
@@ -6296,7 +6322,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String notifMentionTitle({required String sender, required String channel}) {
-    return 'Mention de $sender dans le chat de la chaîne $channel';
+    return '$sender vous mentionne dans le chat de la chaîne $channel';
   }
 
   @override
@@ -6305,7 +6331,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get notifReminderUntitled => 'Live prévu';
+  String get notifReminderUntitled => 'Live sans titre';
 
   @override
   String get notifChannelGoLive => 'Lives des chaînes suivies';
@@ -6319,14 +6345,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notifChannelMentionsDescription =>
-      'Quand quelqu’un vous mentionne dans un chat ouvert';
+      'Quand quelqu’un vous mentionne dans un chat ouvert en arrière-plan';
 
   @override
   String get notifChannelReminders => 'Rappels de lives';
 
   @override
   String get notifChannelRemindersDescription =>
-      'Quand un live programmé que vous avez demandé à vous rappeler commence';
+      'Quand commence un live prévu pour lequel vous avez activé un rappel';
 
   @override
   String get mediaChannel => 'Lecture en cours';

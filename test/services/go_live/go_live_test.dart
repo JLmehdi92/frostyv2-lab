@@ -412,6 +412,8 @@ void main() {
       'with the app in French, the background run posts French notices',
       () async {
         SharedPreferences.setMockInitialValues({
+          // French picked in the app, on an English device.
+          'settings': '{"appLanguage":"fr"}',
           kUiLanguagePrefsKey: 'fr',
           'go_live_enabled': true,
           'go_live_user_id': '7',

@@ -68,6 +68,10 @@ const l10nAllowlist = <String, Map<String, String>>{
     'GIF':
         'A GIF\'s title when it has none, and the format\'s name in its '
         'details: GIF in every language.',
+    'Deleted user':
+        'kDeletedUserDisplayName: the display name a line from an unknown '
+        'sender carries as data, as the chat always had it (a reply quotes '
+        'it); shown worded in the language on screen (chatDeletedUser).',
   },
   'lib/models/vod.dart': {
     'ARCHIVE':

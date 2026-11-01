@@ -408,7 +408,7 @@ void main() {
         'Cette conversation appartient à un autre compte.',
         'Les chuchotements sont limités à 500\u00a0caractères.',
         'Reconnectez-vous pour chuchoter depuis cette application.',
-        'Impossible de chuchoter. ${french.apiErrorBadRequest} Raison de '
+        'Impossible de chuchoter. Requête non valide. Raison de '
             'Twitch\u00a0: «\u00a0The recipient blocks whispers.\u00a0»',
         'Impossible de chuchoter (erreur inattendue).',
       ],

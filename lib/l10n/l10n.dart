@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
@@ -142,25 +143,72 @@ class _LocaleSyncState extends State<LocaleSync> {
 /// for what runs without the app's widgets (the background go-live check).
 const kUiLanguagePrefsKey = 'ui_language';
 
-/// Saves [locale]'s language under [kUiLanguagePrefsKey] (a [LocaleSync]
-/// listener). Nothing breaks without it: the background reads the device's
-/// language then. The background isolate that reads it calls [L10n.use]
-/// with no MaterialApp, so it initialises date formatting itself (see
-/// [L10n.use]).
-Future<void> saveUiLanguage(Locale locale) async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(kUiLanguagePrefsKey, locale.languageCode);
-  } catch (e) {
-    debugPrint('Language not saved for the background: ${e.runtimeType}');
+/// The end of the [saveUiLanguage] calls still running, and how many.
+Future<void> _uiLanguageSaves = Future<void>.value();
+var _uiLanguageSaving = 0;
+
+/// Saves [locale]'s language under [kUiLanguagePrefsKey], and says whether
+/// it differs from the language saved before (one saved by a version of
+/// the app that spoke only English reads as English). False when the
+/// preferences cannot be read or written: nothing breaks without them, the
+/// background reads the device's language then.
+///
+/// Calls made at once run one after the other, each comparing with what
+/// the one before it saved.
+///
+/// The background isolate that reads it calls [L10n.use] with no
+/// MaterialApp, so it initialises date formatting itself (see [L10n.use]).
+Future<bool> saveUiLanguage(Locale locale) {
+  Future<bool> save() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final before = prefs.getString(kUiLanguagePrefsKey);
+      if (before == locale.languageCode) return false;
+      await prefs.setString(kUiLanguagePrefsKey, locale.languageCode);
+      return (before ?? 'en') != locale.languageCode;
+    } catch (e) {
+      debugPrint('Language not saved for the background: ${e.runtimeType}');
+      return false;
+    }
   }
+
+  final saved = _uiLanguageSaving == 0
+      ? save()
+      : _uiLanguageSaves.then((_) => save());
+  _uiLanguageSaving++;
+  _uiLanguageSaves = saved.whenComplete(() => _uiLanguageSaving--);
+  return saved;
 }
+
+/// A [LocaleSync] listener: saves the language shown ([saveUiLanguage]),
+/// then calls [onChanged] only when it differs from the one saved before:
+/// what the system keeps worded (the reminders' notices) is worded again
+/// when the language changed, at once or while the app was closed, and
+/// not on every launch. A failure of [onChanged] is logged.
+ValueChanged<Locale> rememberUiLanguage({
+  required Future<void> Function() onChanged,
+}) =>
+    (locale) => unawaited(
+      saveUiLanguage(locale).then((changed) async {
+        if (!changed) return;
+        try {
+          await onChanged();
+        } catch (e) {
+          debugPrint('Language change not followed: $e');
+        }
+      }),
+    );
 
 /// The language ('en' or 'fr') what runs without the app's widgets (the
 /// background go-live check, its own isolate) shows, in this order:
-/// [saved], the language the app last showed ([kUiLanguagePrefsKey]); the
-/// language picked in [settingsJson], the settings the app keeps; the first
-/// supported language of [device], the device's preferred ones; English.
+/// - the language picked in [settingsJson], the settings the app keeps;
+/// - with System picked (or no settings that read), the first supported
+///   language of [device], the device's preferred ones: the device's
+///   language may have changed while the app was closed;
+/// - [saved], the language the app last showed ([kUiLanguagePrefsKey]),
+///   when [device] names none the app speaks (a background engine may
+///   know no device language);
+/// - English.
 String uiLanguageIn({
   String? saved,
   String? settingsJson,
@@ -169,17 +217,20 @@ String uiLanguageIn({
   bool supported(Object? code) => AppLocalizations.supportedLocales.any(
     (locale) => locale.languageCode == code,
   );
-  if (supported(saved)) return saved!;
   if (settingsJson != null) {
     try {
       final settings = jsonDecode(settingsJson);
       final picked = settings is Map ? settings['appLanguage'] : null;
       if (supported(picked)) return picked as String;
     } on FormatException {
-      // Settings that do not read say nothing: the device decides.
+      // Settings that do not read say nothing: as with System.
     }
   }
-  return resolveAppLocale(AppLanguage.system, device).languageCode;
+  if (device.any((locale) => supported(locale.languageCode))) {
+    return resolveAppLocale(AppLanguage.system, device).languageCode;
+  }
+  if (supported(saved)) return saved!;
+  return 'en';
 }
 
 /// The `intl` locale to write [l]'s dates in (`DateFormat.MMMM(…)`): its

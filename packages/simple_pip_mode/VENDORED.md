@@ -12,6 +12,10 @@ The one addition is `android/src/main/res/values-fr/strings.xml`: the French
 labels and descriptions of the Picture-in-picture actions (Lire, Mettre en
 pause, Suivant, Précédent, Direct), next to the plugin's English ones. Android
 picks them from the app's language on Android 13+ (per-app language,
-`locales_config.xml`); below Android 13 they follow the system's language.
+`locales_config.xml`). Below Android 13 they follow the system's language,
+not the language picked in the app: ONSET's activity is a `FlutterActivity`,
+not an AndroidX `AppCompatActivity`, so there is no per-app language backport
+there. An English device with ONSET in French shows the English labels on
+these versions.
 `test/guards/android_l10n_test.dart` checks that every key of `values/` has a
 French entry.

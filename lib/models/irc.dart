@@ -44,10 +44,15 @@ const String _staticEmoteSuffix = '/static/dark/3.0';
 const double _emojiSizeOffset = 5.0;
 
 /// The login of a line's sender who is not known any more (a deleted
-/// account in a VOD's replay or the chat's history): the line is built
-/// with it as login and display name, data in no language, and the name
-/// is worded where it is shown ([IRCMessage.shownDisplayName]).
+/// account in a VOD's replay or the chat's history), with
+/// [kDeletedUserDisplayName] as its display name.
 const kDeletedUserLogin = 'deleted_user';
+
+/// The display name of a line's sender who is not known any more: data, as
+/// the chat always had it (a reply to the line quotes it, and its mention
+/// too), shown in the language on screen ([IRCMessage.shownDisplayName]).
+/// No Twitch display name has a space: it is never a real account's.
+const kDeletedUserDisplayName = 'Deleted user';
 
 /// The object representation of a Twitch IRC message.
 class IRCMessage {
@@ -161,10 +166,12 @@ class IRCMessage {
   }
 
   /// Whether the line was built for a sender who is not known any more
-  /// ([kDeletedUserLogin], with no user id): its name is worded where it
-  /// shows ([shownDisplayName]).
+  /// ([kDeletedUserLogin] and [kDeletedUserDisplayName], with no user id):
+  /// its name is worded where it shows ([shownDisplayName]).
   bool get isFromDeletedUser =>
-      user == kDeletedUserLogin && tags['user-id'] == null;
+      user == kDeletedUserLogin &&
+      tags['display-name'] == kDeletedUserDisplayName &&
+      tags['user-id'] == null;
 
   /// The sender's name as a viewer reads it, in [l]'s language: the display
   /// name, or « Utilisateur supprimé » / "Deleted user" for a sender not

@@ -101,22 +101,37 @@ Future<void> _initTelemetry() => initGoLiveTelemetry(
   setCollection: setFirebaseCollection,
 );
 
-/// Shows, in this isolate, the language the app last showed: [L10n] and
-/// `Intl` set to [uiLanguageIn] what [prefs] keep (read afresh: the app is
-/// another isolate) and the device prefers ([device]), dates loaded for
-/// it (there is no MaterialApp here to load them). Returns its texts.
+/// Shows, in this isolate, the language the app shows: [L10n] and `Intl`
+/// set to [uiLanguageIn] what [prefs] keep (read afresh: the app is another
+/// isolate) and the device prefers ([device]), dates loaded for it (there
+/// is no MaterialApp here to load them). Returns its texts.
+///
+/// Preferences that cannot be read (damaged, or a failed reload) give
+/// English: the failure goes to [report] (else the log), and the check
+/// goes on.
 Future<AppLocalizations> useBackgroundLanguage(
   SharedPreferences prefs,
-  List<Locale> device,
-) async {
-  await prefs.reload();
-  final language = uiLanguageIn(
-    saved: prefs.getString(kUiLanguagePrefsKey),
-    settingsJson: prefs.getString('settings'),
-    device: device,
-  );
-  await initializeDateFormatting(language);
-  L10n.use(Locale(language));
+  List<Locale> device, {
+  void Function(Object error, StackTrace stack)? report,
+}) async {
+  try {
+    await prefs.reload();
+    final language = uiLanguageIn(
+      saved: prefs.getString(kUiLanguagePrefsKey),
+      settingsJson: prefs.getString('settings'),
+      device: device,
+    );
+    await initializeDateFormatting(language);
+    L10n.use(Locale(language));
+  } catch (error, stack) {
+    if (report != null) {
+      report(error, stack);
+    } else {
+      debugPrint('Background language not read: $error');
+    }
+    await initializeDateFormatting('en');
+    L10n.use(const Locale('en'));
+  }
   return L10n.current;
 }
 
@@ -139,6 +154,7 @@ void goLiveCallbackDispatcher() {
       final l = await useBackgroundLanguage(
         await SharedPreferences.getInstance(),
         PlatformDispatcher.instance.locales,
+        report: report,
       );
       await GoLiveNotifications.init();
       // The app a token of another app was issued to (kept with it): Helix
@@ -234,6 +250,10 @@ abstract final class GoLiveNotifications {
           l.notifChannelGoLive,
           channelDescription: l.notifChannelGoLiveDescription,
           groupKey: 'onset.goLive',
+          // Renames the existing channel when the language changed (the
+          // default only creates a missing one). Android keeps the viewer's
+          // settings of the channel: only its name and description change.
+          channelAction: AndroidNotificationChannelAction.update,
           // A channel announced twice (the app and the background task at
           // the same moment) replaces its notice without a second alert.
           onlyAlertOnce: true,

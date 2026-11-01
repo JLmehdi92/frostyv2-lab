@@ -154,9 +154,12 @@ List<NoticeSegment>? _sub(UserNotice notice, AppLocalizations l) {
 
 List<NoticeSegment>? _subGift(UserNotice notice, AppLocalizations l) {
   // Twitch names the gifter by their display name alone (the anonymous
-  // gifter account reads "AnAnonymousGifter"); only the recipient gets the
-  // login after a name beyond ASCII.
-  final gifter = notice.displayName ?? notice.login;
+  // gifter account reads "AnAnonymousGifter", as an English screen keeps
+  // it; another language says « Anonyme », as for an anonymous gift bomb);
+  // only the recipient gets the login after a name beyond ASCII.
+  final gifter = notice.isAnonymous && l.localeName != 'en'
+      ? l.chatAnonymousGifter
+      : notice.displayName ?? notice.login;
   final recipientName = notice.recipientDisplayName;
   if (gifter == null || recipientName == null) return null;
 

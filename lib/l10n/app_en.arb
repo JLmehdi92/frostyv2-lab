@@ -7886,11 +7886,12 @@
   },
   "noticeGiftCount": "They've given {count} Gift Subs in the channel!",
   "@noticeGiftCount": {
-    "description": "The sentence after a gift sub line: how many the gifter gave in all (2 or more). French opens with « Son total » (the gifter's, after the sentence naming them), so it never reads as the channel's total.",
+    "description": "The sentence after a gift sub line: how many the gifter gave in all (2 or more), with the language's thousands separator. French opens with « Son total » (the gifter's, after the sentence naming them), so it never reads as the channel's total.",
     "placeholders": {
       "count": {
         "type": "int",
-        "example": "12"
+        "format": "decimalPattern",
+        "example": "1500"
       }
     }
   },
@@ -7930,11 +7931,12 @@
   },
   "noticeCommunityGiftTotal": "They've gifted a total of {count} in the channel!",
   "@noticeCommunityGiftTotal": {
-    "description": "The sentence after a gift bomb's line: how many subs the gifter gave in all. French opens with « Son total » (the gifter's).",
+    "description": "The sentence after a gift bomb's line: how many subs the gifter gave in all, with the language's thousands separator. French opens with « Son total » (the gifter's).",
     "placeholders": {
       "count": {
         "type": "int",
-        "example": "50"
+        "format": "decimalPattern",
+        "example": "1500"
       }
     }
   },
@@ -8015,23 +8017,35 @@
   },
   "vodSpeedPill": "Speed {rate}",
   "@vodSpeedPill": {
-    "description": "A tablet's action pill: the playback speed; tapping opens the settings. rate is « Normale » (playerSpeedNormal) or a speed (vodPlaybackRate).",
+    "description": "A tablet's action pill: the playback speed, other than normal (vodSpeedPillNormal); tapping opens the settings. rate is a speed (vodPlaybackRate, « 1,25 × »).",
     "placeholders": {
       "rate": {
         "type": "String",
-        "example": "Normal"
+        "example": "1.25×"
       }
     }
   },
+  "vodSpeedPillNormal": "Speed Normal",
+  "@vodSpeedPillNormal": {
+    "description": "The same pill at the normal speed. French: « normale » in lower case, inside the pill's words."
+  },
   "vodQualityPill": "Quality {quality}",
   "@vodQualityPill": {
-    "description": "A tablet's action pill: the video quality; tapping opens the settings. quality is the quality's name (1080p60, Auto).",
+    "description": "A tablet's action pill: the video quality; tapping opens the settings. quality is the rendition's name (1080p60); Auto and Audio only have their own messages.",
     "placeholders": {
       "quality": {
         "type": "String",
         "example": "1080p60"
       }
     }
+  },
+  "vodQualityPillAuto": "Quality Auto",
+  "@vodQualityPillAuto": {
+    "description": "The same pill on the adaptive quality. French: « auto » in lower case, inside the pill's words."
+  },
+  "vodQualityPillAudioOnly": "Quality Audio only",
+  "@vodQualityPillAudioOnly": {
+    "description": "The same pill when only the sound plays. French: in lower case, inside the pill's words."
   },
   "vodCaptionsState": "{state, select, on{Closed Captions, on} other{Closed Captions, off}}",
   "@vodCaptionsState": {
@@ -8089,7 +8103,7 @@
   },
   "vodUpNextSeconds": "{count, plural, one{{count} second} other{{count} seconds}}",
   "@vodUpNextSeconds": {
-    "description": "Beside « Up Next »: the seconds before the next video plays by itself.",
+    "description": "Beside « Up Next »: the seconds before the next video plays by itself. French reads as a countdown with the unit's symbol (« dans 10 s »), which fits beside « À SUIVRE » and the Cancel button on a phone at large text.",
     "placeholders": {
       "count": {
         "type": "int",
@@ -8114,6 +8128,10 @@
   "vodReplayTitle": "Chat replay",
   "@vodReplayTitle": {
     "description": "The title of the pane showing the chat as it was during the broadcast, under or beside the video."
+  },
+  "vodReplaySynced": "synced to video",
+  "@vodReplaySynced": {
+    "description": "The pill beside « Chat replay »: the replay follows the video. Lower case; French keeps one word, the title says what it follows (a tablet's live chat says it in full: channelChatSynced)."
   },
   "vodReplayEmotesNote": "7TV, BTTV and FFZ emotes are the channel's current sets, which may differ from the ones used during the broadcast.",
   "@vodReplayEmotesNote": {
@@ -8145,11 +8163,12 @@
   },
   "whisperTooLong": "Whispers can be {max} characters at most.",
   "@whisperTooLong": {
-    "description": "A whisper could not be sent: it is too long for Twitch. max is the limit.",
+    "description": "A whisper could not be sent: it is too long for Twitch. max is the limit, with the language's thousands separator (10,000).",
     "placeholders": {
       "max": {
         "type": "int",
-        "example": "500"
+        "format": "decimalPattern",
+        "example": "10000"
       }
     }
   },

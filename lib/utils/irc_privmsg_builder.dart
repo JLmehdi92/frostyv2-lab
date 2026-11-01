@@ -110,9 +110,11 @@ IRCMessage buildPrivmsgIrcMessage({
   final known = login != null && _twitchLogin.hasMatch(login);
   final sender = known ? login.toLowerCase() : kDeletedUserLogin;
   final shownName = (displayName ?? '').replaceAll(_tagBreakers, '').trim();
-  // An unknown sender's name is data in no language: it is worded where it
-  // shows (IRCMessage.shownDisplayName), in the language on screen then.
-  final name = known ? (shownName.isEmpty ? sender : shownName) : sender;
+  // An unknown sender's name is data, as the chat always had it: it is
+  // worded where it shows (IRCMessage.shownDisplayName).
+  final name = known
+      ? (shownName.isEmpty ? sender : shownName)
+      : kDeletedUserDisplayName;
 
   final safeBadges = badges.where(_isSafeBadge).toList();
   final tags = <String, String>{

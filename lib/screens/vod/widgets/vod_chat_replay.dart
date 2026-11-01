@@ -37,8 +37,9 @@ class VodChatReplay extends StatefulWidget {
   /// A tablet's side column: the 56 dp header with its hairline.
   final bool large;
 
-  /// The pill's words ("synced to the clip" under a clip); null for
-  /// "synced to video" in the language on screen.
+  /// The pill's words ("synced to the clip" under a clip); null for the
+  /// replay's own (vodReplaySynced: « synchronisé », short beside the
+  /// title).
   final String? syncLabel;
 
   @override
@@ -67,7 +68,7 @@ class _VodChatReplayState extends State<VodChatReplay> {
                     status == ReplayStatus.unavailable ||
                         status == ReplayStatus.notApplicable
                     ? null
-                    : widget.syncLabel ?? context.l10n.channelChatSynced,
+                    : widget.syncLabel ?? context.l10n.vodReplaySynced,
                 noteShown: _noteShown,
                 onNote: () => setState(() => _noteShown = !_noteShown),
               );

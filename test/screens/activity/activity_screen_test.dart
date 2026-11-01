@@ -606,7 +606,7 @@ void main() {
           expect(find.text('Streamer est en direct'), findsWidgets);
           expect(find.text('Échecs · Partie classée'), findsWidgets);
           expect(
-            find.text('Mention de Ami dans le chat de la chaîne Streamer'),
+            find.text('Ami vous mentionne dans le chat de la chaîne Streamer'),
             findsWidgets,
           );
           expect(find.text('Oldie is live'), findsWidgets);

@@ -154,4 +154,33 @@ void main() {
     expect(apiErrorText(english, proxy), 'Token proxy timeout');
     expect(apiErrorText(french, proxy), french.apiErrorTokenProxyTimeout);
   });
+
+  test('in chat, a French failure is a sentence; English reads as it '
+      'always did', () {
+    expect(asSentence('Requête non valide'), 'Requête non valide.');
+    for (final ended in ['Réessayez.', 'Vraiment\u202f!', 'Ah\u202f?', 'Et…']) {
+      expect(asSentence(ended), ended);
+    }
+    expect(asSentence('Fin.  '), 'Fin.');
+    expect(asSentence(''), '');
+    // Every kind, alone and with a short reason of Twitch's: a full stop
+    // before the reason, and after its closing quote when its words have
+    // none.
+    for (final kind in ApiErrorKind.values) {
+      for (final twitch in [null, 'Already done.', 'Not allowed']) {
+        final error = ApiException('Logged words.', 400, null, kind, twitch);
+        final line = chatErrorText(french, error);
+        final worded = asSentence(apiErrorText(french, error));
+        expect(endsSentence(worded), isTrue, reason: kind.name);
+        expect(line, switch (twitch) {
+          null => worded,
+          'Not allowed' =>
+            '$worded ${french.chatTwitchReason(reason: twitch)}.',
+          _ => '$worded ${french.chatTwitchReason(reason: twitch)}',
+        }, reason: '${kind.name} $twitch');
+        // English: the logged words, exactly.
+        expect(chatErrorText(english, error), 'Logged words.');
+      }
+    }
+  });
 }

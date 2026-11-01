@@ -3,6 +3,7 @@ package app.onset
 import android.annotation.TargetApi
 import android.app.LocaleManager
 import android.content.Intent
+import android.content.res.Resources
 import android.os.Build
 import android.os.Bundle
 import android.os.LocaleList
@@ -74,7 +75,9 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
 
         // The app's language in the system's per-app language settings
         // (Android 13+): `set(tag)` ("" for the device's) when the viewer
-        // picks one in the app, `get()` to adopt one picked in the system.
+        // picks one in the app, `get()` to adopt one picked in the system,
+        // `systemLocales()` for the device's own languages (what "System"
+        // gives: Flutter's list is the per-app language once one is set).
         localeChannel = MethodChannel(messenger, "onset/locale").apply {
             setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -83,6 +86,7 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
                         result.success(null)
                     }
                     "get" -> result.success(appLocale())
+                    "systemLocales" -> result.success(systemLocales())
                     else -> result.notImplemented()
                 }
             }
@@ -173,6 +177,18 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
         val manager = getSystemService(LocaleManager::class.java) ?: return null
         return manager.applicationLocales.toLanguageTags()
+    }
+
+    /** The device's languages, most preferred first, as tags
+     * ("fr-FR,en-US"): what the app shows with no per-app language. From
+     * Android 13 the activity's own configuration holds the per-app
+     * language instead. */
+    private fun systemLocales(): String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val manager = getSystemService(LocaleManager::class.java)
+            if (manager != null) return manager.systemLocales.toLanguageTags()
+        }
+        return Resources.getSystem().configuration.locales.toLanguageTags()
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {

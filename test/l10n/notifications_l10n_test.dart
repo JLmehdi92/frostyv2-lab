@@ -54,11 +54,11 @@ void main() {
       expect(notice.body, 'Chess · Ranked');
       expect(
         french.notifGoLiveMore(count: 1),
-        '1 autre chaîne a lancé un live',
+        '1 autre chaîne est en direct',
       );
       expect(
         french.notifGoLiveMore(count: 3),
-        '3 autres chaînes ont lancé un live',
+        '3 autres chaînes sont en direct',
       );
     });
 
@@ -101,6 +101,16 @@ void main() {
         expect(reminder.channelId, 'schedule_reminders');
         expect(reminder.channelName, reminders);
         expect(reminder.channelDescription, l.notifChannelRemindersDescription);
+        // Posted with `update`: an existing channel takes the new name and
+        // description (the default only creates a missing channel, so the
+        // first language would stay in the system's settings forever).
+        for (final details in [go, mention, reminder]) {
+          expect(
+            details.channelAction,
+            AndroidNotificationChannelAction.update,
+            reason: details.channelId,
+          );
+        }
       }
       // The English channels keep their words.
       expect(
@@ -153,7 +163,7 @@ void main() {
       expect(en.title, 'Friend mentioned you in Streamer');
       expect(en.body, 'hey @viewer');
       final fr = (await posted(french))!;
-      expect(fr.title, 'Mention de Friend dans le chat de la chaîne Streamer');
+      expect(fr.title, 'Friend vous mentionne dans le chat de la chaîne Streamer');
       expect(fr.body, 'hey @viewer');
     });
   });
@@ -186,7 +196,7 @@ void main() {
         'Le live de la chaîne Streamer commence',
       );
       expect(reminder.noticeBodyIn(french), 'Chess · Ranked');
-      expect(untitled.noticeBodyIn(french), 'Live prévu');
+      expect(untitled.noticeBodyIn(french), 'Live sans titre');
     });
   });
 
@@ -211,7 +221,7 @@ void main() {
       ), at);
       expect(
         mention.titleIn(french),
-        'Mention de Friend dans le chat de la chaîne Streamer',
+        'Friend vous mentionne dans le chat de la chaîne Streamer',
       );
       expect(mention.bodyIn(french), 'hey @viewer');
 
@@ -225,7 +235,7 @@ void main() {
         reminder.titleIn(french),
         'Le live de la chaîne Streamer commence',
       );
-      expect(reminder.bodyIn(french), 'Live prévu');
+      expect(reminder.bodyIn(french), 'Live sans titre');
       expect(reminder.bodyIn(english), 'Stream');
     });
 
@@ -275,20 +285,31 @@ void main() {
   });
 
   group('the background check\'s language', () {
-    test('uiLanguageIn: saved, then the settings, then the device, then '
-        'English', () {
-      expect(uiLanguageIn(saved: 'fr'), 'fr');
-      expect(
-        uiLanguageIn(saved: 'en', settingsJson: '{"appLanguage":"fr"}'),
-        'en',
-      );
-      expect(uiLanguageIn(settingsJson: '{"appLanguage":"fr"}'), 'fr');
+    test('uiLanguageIn: the language picked, else the device\'s, else the '
+        'one saved, else English', () {
+      // Picked in the app: it wins.
       expect(
         uiLanguageIn(
+          saved: 'en',
+          settingsJson: '{"appLanguage":"fr"}',
+          device: const [Locale('en')],
+        ),
+        'fr',
+      );
+      expect(uiLanguageIn(settingsJson: '{"appLanguage":"fr"}'), 'fr');
+      // System: the device's now, even when the app last showed another
+      // (the device's language changed while the app was closed).
+      expect(
+        uiLanguageIn(
+          saved: 'en',
           settingsJson: '{"appLanguage":"system"}',
           device: const [Locale('fr', 'CA')],
         ),
         'fr',
+      );
+      expect(
+        uiLanguageIn(saved: 'fr', device: const [Locale('en', 'US')]),
+        'en',
       );
       expect(
         uiLanguageIn(
@@ -298,7 +319,19 @@ void main() {
         ),
         'fr',
       );
+      // A device naming none the app speaks (or none at all, as a
+      // background engine may): the one saved.
+      expect(uiLanguageIn(saved: 'fr'), 'fr');
+      expect(
+        uiLanguageIn(
+          saved: 'fr',
+          settingsJson: '{"appLanguage":"system"}',
+          device: const [Locale('de')],
+        ),
+        'fr',
+      );
       expect(uiLanguageIn(device: const [Locale('de')]), 'en');
+      expect(uiLanguageIn(saved: 'de'), 'en');
       expect(uiLanguageIn(), 'en');
     });
 
@@ -312,9 +345,10 @@ void main() {
         'settings': '{"appLanguage":"system"}',
         kUiLanguagePrefsKey: 'fr',
       });
+      // No device language known here: the one the app last showed.
       final l = await useBackgroundLanguage(
         await SharedPreferences.getInstance(),
-        const [Locale('en')],
+        const [],
       );
       expect(l.localeName, 'fr');
       expect(L10n.current.localeName, 'fr');
@@ -322,6 +356,35 @@ void main() {
       // French month names: the isolate loaded them itself.
       expect(DateFormat.MMMM().format(DateTime(2026, 6)), 'juin');
       expect(goLiveNotice(stream()).title, 'Streamer est en direct');
+    });
+
+    test('damaged preferences give English, reported, and the check goes '
+        'on', () async {
+      addTearDown(() => L10n.use(const Locale('en')));
+      L10n.use(const Locale('fr'));
+      SharedPreferences.setMockInitialValues({'settings': 5});
+      final reported = <Object>[];
+      final l = await useBackgroundLanguage(
+        await SharedPreferences.getInstance(),
+        const [Locale('fr')],
+        report: (error, _) => reported.add(error),
+      );
+      expect(l.localeName, 'en');
+      expect(L10n.current.localeName, 'en');
+      expect(Intl.defaultLocale, 'en');
+      expect(reported, hasLength(1));
+      expect(goLiveNotice(stream()).title, 'Streamer is live');
+
+      // A reload that throws: the same.
+      reported.clear();
+      L10n.use(const Locale('fr'));
+      expect(
+        (await useBackgroundLanguage(_FailingReload(), const [
+          Locale('fr'),
+        ], report: (error, _) => reported.add(error))).localeName,
+        'en',
+      );
+      expect(reported.single, isA<StateError>());
     });
 
     test('without a saved language, the device\'s', () async {
@@ -362,7 +425,8 @@ void main() {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       builder: (context, child) => LocaleSync(
         onLocale: [
-          (_) => reminders.reschedule(),
+          // As main.dart: worded again when the language changed.
+          rememberUiLanguage(onChanged: reminders.reschedule),
           (_) => labels.add(mediaLabelsOf(L10n.current)),
         ],
         child: child!,
@@ -403,4 +467,10 @@ class _RecordingReminderPlatform implements ReminderPlatform {
 
   @override
   Future<void> cancel(int id) async => scheduled.remove(id);
+}
+
+/// Preferences whose reload fails (the platform side failed).
+class _FailingReload extends Fake implements SharedPreferences {
+  @override
+  Future<void> reload() async => throw StateError('reload');
 }

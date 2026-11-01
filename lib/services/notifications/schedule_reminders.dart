@@ -168,6 +168,27 @@ class ScheduleReminders extends ChangeNotifier {
 
   late Map<String, ScheduleReminder> _reminders;
 
+  /// The end of the last change queued ([_oneAtATime]), and how many are
+  /// queued or running.
+  Future<void> _queue = Future<void>.value();
+  var _queued = 0;
+
+  /// Runs [task] once every change queued before it has ended: toggling,
+  /// following a schedule, handing the due ones to Activity and wording
+  /// them again each wait for the alarms between, so one never schedules
+  /// a reminder another has just cancelled or moved. With nothing queued
+  /// it starts at once.
+  Future<T> _oneAtATime<T>(Future<T> Function() task) {
+    final result = _queued == 0
+        ? Future.sync(task)
+        : _queue.then((_) => task());
+    _queued++;
+    _queue = result
+        .then<void>((_) {}, onError: (Object _) {})
+        .whenComplete(() => _queued--);
+    return result;
+  }
+
   Map<String, ScheduleReminder> _read() {
     final map = <String, ScheduleReminder>{};
     for (final raw in _prefs.getStringList(_key) ?? const <String>[]) {
@@ -204,26 +225,44 @@ class ScheduleReminders extends ChangeNotifier {
   }
 
   /// Schedules every reminder still to come again, worded in the language
-  /// on screen now (a [LocaleSync] listener: the system keeps the text a
-  /// notice was scheduled with). One that fails is left as it was.
-  Future<void> reschedule() async {
+  /// on screen now (called when that language changed: the system keeps
+  /// the text a notice was scheduled with). One that fails is left as it
+  /// was. Queued with the other changes, and each reminder checked again
+  /// around its alarm: one cancelled or moved meanwhile is not put back.
+  Future<void> reschedule() => _oneAtATime(() async {
     final now = _now();
     for (final reminder in [..._reminders.values]) {
       if (!reminder.startAt.isAfter(now)) continue;
+      // Cancelled or moved since the list was read: its own change set its
+      // alarm.
+      if (!identical(_reminders[reminder.segmentId], reminder)) continue;
       try {
         await _schedule(reminder);
       } catch (e) {
         debugPrint('Schedule reminder not reworded: $e');
+        continue;
+      }
+      // Changed while its alarm was set: the alarm follows the reminder.
+      final current = _reminders[reminder.segmentId];
+      if (identical(current, reminder)) continue;
+      try {
+        if (current == null) {
+          await platform.cancel(reminderNoticeId(reminder.segmentId));
+        } else {
+          await _schedule(current);
+        }
+      } catch (e) {
+        debugPrint('Schedule reminder not reworded: $e');
       }
     }
-  }
+  });
 
   /// Sets [segment]'s reminder, or clears it when set.
   Future<ReminderResult> toggle(
     ScheduleSegment segment, {
     required String login,
     required String channelName,
-  }) async {
+  }) => _oneAtATime(() async {
     try {
       if (isSet(segment.id)) {
         // Cancelled first: "Remind Me" only once nothing will go off.
@@ -255,64 +294,65 @@ class ScheduleReminders extends ChangeNotifier {
       debugPrint('Schedule reminder failed: $e');
       return ReminderResult.failed;
     }
-  }
+  });
 
   /// Follows [login]'s schedule as just read: a segment moved to later
   /// moves its reminder; one cancelled, moved into the past or gone from
   /// the schedule drops it and its alarm. A reminder that went off on time
   /// is left for Activity ([takeDue]).
-  Future<void> sync(String login, List<ScheduleSegment> segments) async {
-    final now = _now();
-    final read = {for (final segment in segments) segment.id: segment};
-    // Beyond the last segment read, a reminder may just not have been read.
-    final readUntil = segments
-        .map((s) => s.startAt)
-        .fold<DateTime?>(null, (a, b) => a == null || b.isAfter(a) ? b : a);
-    var changed = false;
-    for (final reminder in [..._reminders.values]) {
-      if (reminder.login != login) continue;
-      final segment = read[reminder.segmentId];
-      final bool drop;
-      ScheduleReminder? moved;
-      if (segment == null) {
-        drop =
-            reminder.startAt.isAfter(now) &&
-            readUntil != null &&
-            !reminder.startAt.isAfter(readUntil);
-      } else if (segment.isCancelled) {
-        drop = true;
-      } else if (segment.startAt.isAtSameMomentAs(reminder.startAt)) {
-        drop = false;
-      } else if (canRemind(segment)) {
-        drop = false;
-        moved = reminder.movedTo(segment.startAt.toUtc());
-      } else {
-        // Moved into the past: nothing to remind of any more.
-        drop = true;
-      }
-      try {
-        if (drop) {
-          await platform.cancel(reminderNoticeId(reminder.segmentId));
-          _reminders.remove(reminder.segmentId);
-          changed = true;
-        } else if (moved != null) {
-          await _schedule(moved);
-          _reminders[reminder.segmentId] = moved;
-          changed = true;
+  Future<void> sync(String login, List<ScheduleSegment> segments) =>
+      _oneAtATime(() async {
+        final now = _now();
+        final read = {for (final segment in segments) segment.id: segment};
+        // Beyond the last segment read, a reminder may just not have been read.
+        final readUntil = segments
+            .map((s) => s.startAt)
+            .fold<DateTime?>(null, (a, b) => a == null || b.isAfter(a) ? b : a);
+        var changed = false;
+        for (final reminder in [..._reminders.values]) {
+          if (reminder.login != login) continue;
+          final segment = read[reminder.segmentId];
+          final bool drop;
+          ScheduleReminder? moved;
+          if (segment == null) {
+            drop =
+                reminder.startAt.isAfter(now) &&
+                readUntil != null &&
+                !reminder.startAt.isAfter(readUntil);
+          } else if (segment.isCancelled) {
+            drop = true;
+          } else if (segment.startAt.isAtSameMomentAs(reminder.startAt)) {
+            drop = false;
+          } else if (canRemind(segment)) {
+            drop = false;
+            moved = reminder.movedTo(segment.startAt.toUtc());
+          } else {
+            // Moved into the past: nothing to remind of any more.
+            drop = true;
+          }
+          try {
+            if (drop) {
+              await platform.cancel(reminderNoticeId(reminder.segmentId));
+              _reminders.remove(reminder.segmentId);
+              changed = true;
+            } else if (moved != null) {
+              await _schedule(moved);
+              _reminders[reminder.segmentId] = moved;
+              changed = true;
+            }
+          } catch (e) {
+            debugPrint('Schedule reminder sync failed: $e');
+          }
         }
-      } catch (e) {
-        debugPrint('Schedule reminder sync failed: $e');
-      }
-    }
-    if (changed) {
-      await _save();
-      notifyListeners();
-    }
-  }
+        if (changed) {
+          await _save();
+          notifyListeners();
+        }
+      });
 
   /// The reminders that went off since last asked (for Activity), now
   /// forgotten.
-  Future<List<ActivityEntry>> takeDue() async {
+  Future<List<ActivityEntry>> takeDue() => _oneAtATime(() async {
     final now = _now();
     final due = [
       for (final reminder in _reminders.values)
@@ -325,7 +365,7 @@ class ScheduleReminders extends ChangeNotifier {
     await _save();
     notifyListeners();
     return [for (final reminder in due) reminder.entryIn(_words())];
-  }
+  });
 }
 
 /// Reminders through local notifications (Android and iOS). The alarm is
@@ -347,6 +387,10 @@ class LocalReminderPlatform implements ReminderPlatform {
           l.notifChannelReminders,
           channelDescription: l.notifChannelRemindersDescription,
           groupKey: 'onset.reminders',
+          // Renames the existing channel when the language changed (the
+          // default only creates a missing one). Android keeps the viewer's
+          // settings of the channel: only its name and description change.
+          channelAction: AndroidNotificationChannelAction.update,
         ),
         iOS: const DarwinNotificationDetails(
           threadIdentifier: 'schedule_reminders',

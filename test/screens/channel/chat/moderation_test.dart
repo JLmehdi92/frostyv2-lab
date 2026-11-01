@@ -262,7 +262,6 @@ void main() {
     });
 
     group('on a French screen', () {
-      final french = lookupAppLocalizations(const Locale('fr'));
       setUp(() => L10n.use(const Locale('fr')));
       tearDown(() => L10n.use(const Locale('en')));
 
@@ -287,7 +286,7 @@ void main() {
 
           expect(
             (await moderation.run(const BanCommand('troll', ''))).message,
-            'Impossible de bannir. ${french.apiErrorBadRequest} Raison de '
+            'Impossible de bannir. Requête non valide. Raison de '
             'Twitch\u00a0: «\u00a0The user is already banned.\u00a0»',
           );
         },
@@ -300,7 +299,8 @@ void main() {
         ).thenThrow(const NetworkException('No internet connection.'));
         expect(
           (await moderation.run(const BanCommand('troll', ''))).message,
-          'Impossible de bannir. ${french.apiErrorNetwork}',
+          'Impossible de bannir. Pas de connexion Internet. Vérifiez votre '
+          'réseau.',
         );
 
         when(
@@ -317,7 +317,41 @@ void main() {
         );
         expect(
           (await moderation.run(const BanCommand('troll', ''))).message,
-          'Impossible de bannir. ${french.apiErrorBadRequest}',
+          'Impossible de bannir. Requête non valide.',
+        );
+      });
+
+      test('the kind ends as a sentence, before the reason and alone; the '
+          "reason too when Twitch's words have no full stop", () async {
+        void refuse(ApiErrorKind kind, String? twitch) => when(
+          () =>
+              api.banUser(broadcasterId: '11', moderatorId: '22', userId: '33'),
+        ).thenThrow(ApiException('x', 400, null, kind, twitch));
+
+        // A kind with no full stop (a caption on the error screens).
+        refuse(ApiErrorKind.forbidden, null);
+        expect(
+          (await moderation.run(const BanCommand('troll', ''))).message,
+          'Impossible de bannir. Accès refusé. Autorisations insuffisantes.',
+        );
+        refuse(ApiErrorKind.forbidden, 'Verify your phone number first.');
+        expect(
+          (await moderation.run(const BanCommand('troll', ''))).message,
+          'Impossible de bannir. Accès refusé. Autorisations insuffisantes. '
+          'Raison de Twitch\u00a0: «\u00a0Verify your phone number '
+          'first.\u00a0»',
+        );
+        refuse(ApiErrorKind.unknown, 'You may not ban');
+        expect(
+          (await moderation.run(const BanCommand('troll', ''))).message,
+          'Impossible de bannir. Une erreur inattendue est survenue. Raison de '
+          'Twitch\u00a0: «\u00a0You may not ban\u00a0».',
+        );
+        // A kind that ends with its own punctuation keeps it alone.
+        refuse(ApiErrorKind.sendTimeout, null);
+        expect(
+          (await moderation.run(const BanCommand('troll', ''))).message,
+          'Impossible de bannir. L’envoi a pris trop de temps. Réessayez.',
         );
       });
 

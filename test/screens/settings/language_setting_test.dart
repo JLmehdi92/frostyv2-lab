@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/l10n/l10n.dart';
@@ -8,6 +9,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/language_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/services/locale_bridge.dart';
 import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 
@@ -250,6 +252,95 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(french.settingsPageChatFilters), findsNWidgets(2));
     expect(find.text(english.settingsPageChatFilters), findsNothing);
+  });
+
+  group('Android 13+, with a per-app language set', () {
+    const channel = MethodChannel('onset/locale-setting-test');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    // The device's own languages, as the system says them.
+    late String systemTags;
+
+    setUp(() {
+      systemTags = 'en-US';
+      messenger.setMockMethodCallHandler(
+        channel,
+        (call) async => call.method == 'systemLocales' ? systemTags : null,
+      );
+    });
+    tearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+    testWidgets("System names the device's own language, not the app's", (
+      tester,
+    ) async {
+      settings.chooseLanguage(AppLanguage.fr);
+      final bridge = LocaleBridge(channel: channel, supported: true);
+      // Flutter's list is the per-app language (French) on an English
+      // device.
+      await pump(
+        tester,
+        device: const [Locale('fr')],
+        home: Scaffold(
+          body: ListView(
+            children: [
+              LanguageSetting(settingsStore: settings, bridge: bridge),
+            ],
+          ),
+        ),
+      );
+      expect(
+        find.text(
+          french.settingsLanguageSystemSubtitle(
+            language: french.languageInTextEnglish,
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      // The device's language changed in the system's settings meanwhile:
+      // said again when the app comes back.
+      systemTags = 'fr-FR,en-US';
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          french.settingsLanguageSystemSubtitle(
+            language: french.languageInTextFrench,
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets("where the system does not answer, Flutter's list", (
+      tester,
+    ) async {
+      messenger.setMockMethodCallHandler(
+        channel,
+        (_) async => throw PlatformException(code: 'boom'),
+      );
+      final bridge = LocaleBridge(channel: channel, supported: true);
+      await pump(
+        tester,
+        device: const [Locale('fr', 'FR')],
+        home: Scaffold(
+          body: ListView(
+            children: [
+              LanguageSetting(settingsStore: settings, bridge: bridge),
+            ],
+          ),
+        ),
+      );
+      expect(
+        find.text(
+          french.settingsLanguageSystemSubtitle(
+            language: french.languageInTextFrench,
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
   });
 }
 

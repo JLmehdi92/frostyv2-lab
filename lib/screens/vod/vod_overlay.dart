@@ -1208,7 +1208,22 @@ class _VolumeSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SheetColors.of(context);
     final shown = muted ? 0.0 : volume.clamp(0.0, 1.0);
-    final percent = NumberFormat.percentPattern().format(shown);
+    final format = NumberFormat.percentPattern();
+    final percent = format.format(shown);
+    final style = SheetText.tabular(
+      SheetText.rowDetail.copyWith(fontSize: 12, color: colors.secondary),
+    );
+    // As wide as the widest value (« 100 % », with its space in French) at
+    // this text size: the number and its sign stay on one line, and the
+    // slider does not move as the value changes.
+    final painter = TextPainter(
+      text: TextSpan(text: format.format(1), style: style),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final widest = math.max(36.0, painter.width.ceilToDouble() + 1);
+    painter.dispose();
     return Row(
       spacing: 8,
       children: [
@@ -1259,16 +1274,13 @@ class _VolumeSlider extends StatelessWidget {
           ),
         ),
         SizedBox(
-          width: 36,
+          width: widest,
           child: Text(
             percent,
             textAlign: TextAlign.right,
-            style: SheetText.tabular(
-              SheetText.rowDetail.copyWith(
-                fontSize: 12,
-                color: colors.secondary,
-              ),
-            ),
+            maxLines: 1,
+            softWrap: false,
+            style: style,
           ),
         ),
       ],

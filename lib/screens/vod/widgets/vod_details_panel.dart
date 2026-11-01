@@ -122,70 +122,117 @@ class _ChannelCard extends StatelessWidget {
           width: OnsetTokens.hairlineWidth,
         ),
       ),
-      child: Row(
-        spacing: 12,
-        children: [
-          ProfilePicture(userLogin: vod.ownerLogin),
-          Expanded(
-            child: Text(
-              name,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final nameStyle = TextStyle(
+            fontFamily: OnsetTokens.bodyFamily,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: colors.text,
+          );
+          final labelStyle = TextStyle(
+            fontFamily: OnsetTokens.bodyFamily,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: colors.text,
+          );
+          final label = context.l10n.vodOpenChannel;
+          final scaler = MediaQuery.textScalerOf(context);
+          double widthOf(String text, TextStyle style) {
+            final painter = TextPainter(
+              text: TextSpan(text: text, style: style),
+              textDirection: Directionality.of(context),
+              textScaler: scaler,
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: OnsetTokens.bodyFamily,
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: colors.text,
-              ),
-            ),
-          ),
-          Semantics(
+            )..layout();
+            final width = painter.width;
+            painter.dispose();
+            return width;
+          }
+
+          // The name is the card's only information: when it would not
+          // show whole beside the labelled button, the button keeps its
+          // chevron only (its words in the tooltip and for screen
+          // readers).
+          const picture = 40.0;
+          const gaps = 2 * 12.0;
+          final labelled = 16 + widthOf(label, labelStyle) + 6 + 14 + 16;
+          final compact =
+              constraints.maxWidth - picture - gaps - labelled <
+              widthOf(name, nameStyle);
+          final button = Semantics(
             button: true,
-            label: context.l10n.vodOpenChannel,
+            label: label,
             onTap: openChannel,
             excludeSemantics: true,
             child: PressScale(
               child: Material(
                 color: colors.raised,
-                shape: StadiumBorder(
-                  side: BorderSide(
-                    color: colors.pillBorder,
-                    width: OnsetTokens.hairlineWidth,
-                  ),
-                ),
+                shape: compact
+                    ? CircleBorder(
+                        side: BorderSide(
+                          color: colors.pillBorder,
+                          width: OnsetTokens.hairlineWidth,
+                        ),
+                      )
+                    : StadiumBorder(
+                        side: BorderSide(
+                          color: colors.pillBorder,
+                          width: OnsetTokens.hairlineWidth,
+                        ),
+                      ),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
                   onTap: openChannel,
-                  child: Container(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 6,
-                      children: [
-                        Text(
-                          context.l10n.vodOpenChannel,
-                          style: TextStyle(
-                            fontFamily: OnsetTokens.bodyFamily,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: colors.text,
+                  child: compact
+                      ? SizedBox.square(
+                          dimension: 40,
+                          child: Center(
+                            child: VideoGlyph(
+                              VideoGlyphKind.chevronRight,
+                              color: colors.text,
+                              size: 14,
+                              strokeWidth: 2.2,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 6,
+                            children: [
+                              Text(label, style: labelStyle),
+                              VideoGlyph(
+                                VideoGlyphKind.chevronRight,
+                                color: colors.text,
+                                size: 14,
+                                strokeWidth: 2.2,
+                              ),
+                            ],
                           ),
                         ),
-                        VideoGlyph(
-                          VideoGlyphKind.chevronRight,
-                          color: colors.text,
-                          size: 14,
-                          strokeWidth: 2.2,
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          );
+          return Row(
+            spacing: 12,
+            children: [
+              ProfilePicture(userLogin: vod.ownerLogin),
+              Expanded(
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: nameStyle,
+                ),
+              ),
+              if (compact) Tooltip(message: label, child: button) else button,
+            ],
+          );
+        },
       ),
     );
   }
@@ -260,18 +307,21 @@ class _Actions extends StatelessWidget {
             if (player != null) ...[
               VideoActionPill(
                 glyph: VideoGlyphKind.speed,
-                label: l.vodSpeedPill(
-                  rate: rate == 1.0
-                      ? l.playerSpeedNormal
-                      : formatPlaybackRate(rate, l),
-                ),
+                label: rate == 1.0
+                    ? l.vodSpeedPillNormal
+                    : l.vodSpeedPill(rate: formatPlaybackRate(rate, l)),
                 selected: rate != 1.0,
                 onTap: () => _openSettings(context, player),
               ),
               if (qualities.length > 1 && quality != null)
                 VideoActionPill(
                   glyph: VideoGlyphKind.settings,
-                  label: l.vodQualityPill(quality: qualityLabel(quality, l)),
+                  label: switch (quality) {
+                    // The option's word in the middle of the pill's words.
+                    'Auto' => l.vodQualityPillAuto,
+                    kAudioOnlyQuality => l.vodQualityPillAudioOnly,
+                    _ => l.vodQualityPill(quality: quality),
+                  },
                   onTap: () => _openSettings(context, player),
                 ),
               if (captions != null)

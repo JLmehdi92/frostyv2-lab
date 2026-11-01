@@ -267,6 +267,19 @@ void main() {
       );
     });
 
+    test('in French, an anonymous gift comes from « Anonyme »', () {
+      final segments = userNoticeText(
+        UserNotice.fromTags(IRCMessage.fromString(anonymousSubGift).tags),
+        channelName: 'Channel',
+        l: lookupAppLocalizations(const Locale('fr')),
+      );
+      expect(
+        _text(segments),
+        'Anonyme a offert un abonnement de niveau 1 à Lucky\u202f!',
+      );
+      expect(_bold(segments), contains('Anonyme'));
+    });
+
     test('a recipient in another script is followed by the login', () {
       final tags = _gift()
         ..['msg-param-recipient-display-name'] = '名前'

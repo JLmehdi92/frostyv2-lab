@@ -769,9 +769,9 @@ void main() {
                 ApiErrorKind.forbidden,
                 'Verify your phone number first.',
               ),
-              'Impossible de chuchoter. ${french.apiErrorForbidden} Raison '
-                  'de Twitch\u00a0: «\u00a0Verify your phone number first.'
-                  '\u00a0»',
+              'Impossible de chuchoter. Accès refusé. Autorisations '
+                  'insuffisantes. Raison de Twitch\u00a0: «\u00a0Verify your '
+                  'phone number first.\u00a0»',
             ),
             (
               const UnauthorizedException('Please log in'),

@@ -269,6 +269,10 @@ abstract final class MentionNotifications {
           l.notifChannelMentions,
           channelDescription: l.notifChannelMentionsDescription,
           groupKey: 'onset.mentions',
+          // Renames the existing channel when the language changed (the
+          // default only creates a missing one). Android keeps the viewer's
+          // settings of the channel: only its name and description change.
+          channelAction: AndroidNotificationChannelAction.update,
           category: AndroidNotificationCategory.message,
         ),
         iOS: const DarwinNotificationDetails(threadIdentifier: 'chat_mentions'),

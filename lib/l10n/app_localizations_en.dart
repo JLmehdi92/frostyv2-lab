@@ -5972,7 +5972,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String noticeGiftCount({required int count}) {
-    return 'They\'ve given $count Gift Subs in the channel!';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'They\'ve given $countString Gift Subs in the channel!';
   }
 
   @override
@@ -6015,7 +6019,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String noticeCommunityGiftTotal({required int count}) {
-    return 'They\'ve gifted a total of $count in the channel!';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'They\'ve gifted a total of $countString in the channel!';
   }
 
   @override
@@ -6079,9 +6087,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get vodSpeedPillNormal => 'Speed Normal';
+
+  @override
   String vodQualityPill({required String quality}) {
     return 'Quality $quality';
   }
+
+  @override
+  String get vodQualityPillAuto => 'Quality Auto';
+
+  @override
+  String get vodQualityPillAudioOnly => 'Quality Audio only';
 
   @override
   String vodCaptionsState({required String state}) {
@@ -6140,6 +6157,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vodReplayTitle => 'Chat replay';
 
   @override
+  String get vodReplaySynced => 'synced to video';
+
+  @override
   String get vodReplayEmotesNote =>
       '7TV, BTTV and FFZ emotes are the channel\'s current sets, which may differ from the ones used during the broadcast.';
 
@@ -6165,7 +6185,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String whisperTooLong({required int max}) {
-    return 'Whispers can be $max characters at most.';
+    final intl.NumberFormat maxNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String maxString = maxNumberFormat.format(max);
+
+    return 'Whispers can be $maxString characters at most.';
   }
 
   @override

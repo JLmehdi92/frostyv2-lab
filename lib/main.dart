@@ -617,11 +617,15 @@ class _MyAppState extends State<MyApp> {
           // and loads underneath.
           builder: (context, child) => LocaleSync(
             // The language shown, for what runs without the app's widgets:
-            // the background check, the reminders the system keeps, the
-            // media notification.
+            // the background check, the reminders the system keeps (worded
+            // again only when the language changed), the media
+            // notification.
             onLocale: [
-              saveUiLanguage,
-              (_) => unawaited(ScheduleReminders.shared?.reschedule()),
+              rememberUiLanguage(
+                onChanged: () async {
+                  await ScheduleReminders.shared?.reschedule();
+                },
+              ),
               (_) => unawaited(
                 BackgroundAudio.shared.setLabels(mediaLabelsOf(L10n.current)),
               ),

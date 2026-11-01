@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -51,16 +52,69 @@ class LocaleBridge {
     };
   }
 
-  /// Tells the system the app shows [language]. Failures are logged.
+  /// Tells the system the app shows [language]. A language the system
+  /// already gives, maybe for a region (« Français (Canada) », fr-CA,
+  /// for French), is kept as the viewer picked it there. Failures are
+  /// logged.
   Future<void> push(AppLanguage language) async {
     if (!_supported) return;
-    final tag = tagOf(language);
     try {
+      final current = await _channel.invokeMethod<String>('get');
+      final prefs = await _prefs();
+      if (current != null && languageOf(current) == language) {
+        await prefs.setString(_toldKey, current);
+        return;
+      }
+      final tag = tagOf(language);
       await _channel.invokeMethod<void>('set', tag);
-      await (await _prefs()).setString(_toldKey, tag);
+      await prefs.setString(_toldKey, tag);
     } catch (e) {
       debugPrint('Per-app language not set: $e');
     }
+  }
+
+  /// The device's own languages from the last [systemLocales] that
+  /// answered, null before.
+  List<Locale>? get lastSystemLocales => _lastSystemLocales;
+  List<Locale>? _lastSystemLocales;
+
+  /// The device's own languages, most preferred first: what System gives.
+  /// On Android 13+ Flutter's list is the per-app language once the app
+  /// set one, so the system is asked. Null where it does not answer (iOS,
+  /// older Android before this version, a failure): Flutter's list is the
+  /// device's there.
+  Future<List<Locale>?> systemLocales() async {
+    if (!_supported) return null;
+    try {
+      final tags = await _channel.invokeMethod<String>('systemLocales');
+      final locales = [
+        for (final tag in (tags ?? '').split(','))
+          ?localeOfTag(tag),
+      ];
+      if (locales.isEmpty) return null;
+      return _lastSystemLocales = locales;
+    } catch (e) {
+      debugPrint('System languages not read: $e');
+      return null;
+    }
+  }
+
+  /// The locale a BCP 47 [tag] names ("fr-CA", "zh-Hant-TW"): its language
+  /// and region (the script is left out), null for a blank or malformed
+  /// one.
+  @visibleForTesting
+  static Locale? localeOfTag(String tag) {
+    final parts = tag.trim().split(RegExp('[-_]'));
+    final language = parts.first.toLowerCase();
+    if (!RegExp(r'^[a-z]{2,8}$').hasMatch(language)) return null;
+    final region = parts
+        .skip(1)
+        .where((part) => RegExp(r'^([a-zA-Z]{2}|[0-9]{3})$').hasMatch(part))
+        .firstOrNull;
+    return Locale.fromSubtags(
+      languageCode: language,
+      countryCode: region?.toUpperCase(),
+    );
   }
 
   /// The language picked in the system's settings since the app last

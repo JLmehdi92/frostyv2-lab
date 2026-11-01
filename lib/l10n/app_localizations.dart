@@ -8184,7 +8184,7 @@ abstract class AppLocalizations {
   /// **'It\'s their first Gift Sub in the channel!'**
   String get noticeGiftFirst;
 
-  /// The sentence after a gift sub line: how many the gifter gave in all (2 or more). French opens with « Son total » (the gifter's, after the sentence naming them), so it never reads as the channel's total.
+  /// The sentence after a gift sub line: how many the gifter gave in all (2 or more), with the language's thousands separator. French opens with « Son total » (the gifter's, after the sentence naming them), so it never reads as the channel's total.
   ///
   /// In en, this message translates to:
   /// **'They\'ve given {count} Gift Subs in the channel!'**
@@ -8209,7 +8209,7 @@ abstract class AppLocalizations {
   /// **'It\'s their first Gift Sub in the channel!'**
   String get noticeCommunityGiftFirst;
 
-  /// The sentence after a gift bomb's line: how many subs the gifter gave in all. French opens with « Son total » (the gifter's).
+  /// The sentence after a gift bomb's line: how many subs the gifter gave in all, with the language's thousands separator. French opens with « Son total » (the gifter's).
   ///
   /// In en, this message translates to:
   /// **'They\'ve gifted a total of {count} in the channel!'**
@@ -8280,17 +8280,35 @@ abstract class AppLocalizations {
   /// **'Open channel'**
   String get vodOpenChannel;
 
-  /// A tablet's action pill: the playback speed; tapping opens the settings. rate is « Normale » (playerSpeedNormal) or a speed (vodPlaybackRate).
+  /// A tablet's action pill: the playback speed, other than normal (vodSpeedPillNormal); tapping opens the settings. rate is a speed (vodPlaybackRate, « 1,25 × »).
   ///
   /// In en, this message translates to:
   /// **'Speed {rate}'**
   String vodSpeedPill({required String rate});
 
-  /// A tablet's action pill: the video quality; tapping opens the settings. quality is the quality's name (1080p60, Auto).
+  /// The same pill at the normal speed. French: « normale » in lower case, inside the pill's words.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed Normal'**
+  String get vodSpeedPillNormal;
+
+  /// A tablet's action pill: the video quality; tapping opens the settings. quality is the rendition's name (1080p60); Auto and Audio only have their own messages.
   ///
   /// In en, this message translates to:
   /// **'Quality {quality}'**
   String vodQualityPill({required String quality});
+
+  /// The same pill on the adaptive quality. French: « auto » in lower case, inside the pill's words.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality Auto'**
+  String get vodQualityPillAuto;
+
+  /// The same pill when only the sound plays. French: in lower case, inside the pill's words.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality Audio only'**
+  String get vodQualityPillAudioOnly;
 
   /// What a screen reader says for a tablet's captions pill: whether captions show. state is on or off.
   ///
@@ -8340,7 +8358,7 @@ abstract class AppLocalizations {
   /// **'Up Next'**
   String get vodUpNext;
 
-  /// Beside « Up Next »: the seconds before the next video plays by itself.
+  /// Beside « Up Next »: the seconds before the next video plays by itself. French reads as a countdown with the unit's symbol (« dans 10 s »), which fits beside « À SUIVRE » and the Cancel button on a phone at large text.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} second} other{{count} seconds}}'**
@@ -8363,6 +8381,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chat replay'**
   String get vodReplayTitle;
+
+  /// The pill beside « Chat replay »: the replay follows the video. Lower case; French keeps one word, the title says what it follows (a tablet's live chat says it in full: channelChatSynced).
+  ///
+  /// In en, this message translates to:
+  /// **'synced to video'**
+  String get vodReplaySynced;
 
   /// The note under the chat replay's info button: why some emotes may look different from the broadcast.
   ///
@@ -8406,7 +8430,7 @@ abstract class AppLocalizations {
   /// **'This conversation belongs to another account.'**
   String get whisperOtherAccount;
 
-  /// A whisper could not be sent: it is too long for Twitch. max is the limit.
+  /// A whisper could not be sent: it is too long for Twitch. max is the limit, with the language's thousands separator (10,000).
   ///
   /// In en, this message translates to:
   /// **'Whispers can be {max} characters at most.'**
