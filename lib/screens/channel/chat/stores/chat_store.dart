@@ -385,6 +385,12 @@ abstract class ChatStoreBase with Store {
     return _messages.sublist(_messages.length - _renderMessageLimit);
   }
 
+  /// A deletion, a timeout or a ban marks its lines in place (their command
+  /// changes), which no observable reports: the same lines are handed out
+  /// in a new list, so the chat redraws them now rather than at the next
+  /// message (a quiet chat may have none for a while).
+  void _redrawMarkedLines() => _messages = ObservableList.of(_messages);
+
   /// If the chat should automatically scroll/jump to the latest message.
   @readonly
   var _autoScroll = true;
@@ -1032,6 +1038,7 @@ abstract class ChatStoreBase with Store {
               bufferedMessages: messageBuffer,
               ircMessage: parsedIRCMessage,
             );
+            _redrawMarkedLines();
             if (settings.showModerationNotices) {
               _addModerationNotice(parsedIRCMessage, messageBuffer);
             }
@@ -1053,6 +1060,7 @@ abstract class ChatStoreBase with Store {
               bufferedMessages: messageBuffer,
               ircMessage: parsedIRCMessage,
             );
+            _redrawMarkedLines();
             break;
           case Command.roomState:
             chatDetailsStore.roomState = chatDetailsStore.roomState
