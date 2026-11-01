@@ -317,6 +317,39 @@ https://example.org. Write to `me@example.com`; an address such as
       );
     });
 
+    test(
+      'finds a settings path the app does not have and odd « en anglais »',
+      () {
+        final paths = {'Settings › Other', 'Settings › Other › Privacy'};
+        expect(
+          pathProblems(
+            '**Settings › Other › Privacy** and **Settings › Other**',
+            'p.md',
+            paths,
+          ),
+          isEmpty,
+        );
+        expect(pathProblems('**Settings › Video › Privacy**', 'p.md', paths), [
+          contains('"Settings › Video › Privacy"'),
+        ]);
+        expect(
+          unrecognisedEnAnglais(
+            '**A** (« Show 7TV emotes » en anglais). Elle est aussi disponible '
+            '[en anglais](PRIVACY.md).',
+          ),
+          isEmpty,
+        );
+        expect(
+          unrecognisedEnAnglais('**A** (Show 7TV emotes en anglais).'),
+          hasLength(1),
+        );
+        expect(
+          unrecognisedEnAnglais('**A** (« Show 7TV emotes », en anglais).'),
+          hasLength(1),
+        );
+      },
+    );
+
     test('refuses a page without the policy article', () {
       expect(
         () => htmlPolicyText('<main><p>Nothing</p></main>', 'page.html'),
@@ -368,6 +401,60 @@ https://example.org. Write to `me@example.com`; an address such as
       }
     });
   }
+
+  test('the policies cite only real settings paths', () {
+    final fr = arbMap('lib/l10n/app_fr.arb');
+    final en = arbMap('lib/l10n/app_en.arb');
+    Set<String> resolve(Map<String, String> arb) => {
+      for (final path in settingsPaths)
+        path.map((key) => arb[key] ?? '(missing $key)').join(' › '),
+    };
+    final frPaths = resolve(fr);
+    final enPaths = resolve(en);
+    expect(
+      frPaths.any((p) => p.contains('(missing')),
+      isFalse,
+      reason: '$frPaths',
+    );
+    expect(
+      enPaths.any((p) => p.contains('(missing')),
+      isFalse,
+      reason: '$enPaths',
+    );
+
+    // Each entry of a path is built by that page (or by a settings widget the
+    // page imports).
+    final structure = <String>[];
+    for (final path in settingsPaths.where((p) => p.length == 3)) {
+      final pageFile = File(settingsPageFiles[path[1]]!);
+      final page = pageFile.readAsStringSync();
+      final widgets = RegExp(
+        r"import 'package:onset/(screens/settings/widgets/[\w/]+\.dart)';",
+      ).allMatches(page).map((m) => File('lib/${m[1]}').readAsStringSync());
+      final code = [page, ...widgets].join('\n');
+      if (!RegExp('\\b${path[2]}\\b').hasMatch(code)) {
+        structure.add(
+          '${path[2]} is not on the page built by ${pageFile.path}',
+        );
+      }
+    }
+
+    final frPolicy = File('PRIVACY.fr.md').readAsStringSync();
+    final enPolicy = File('PRIVACY.md').readAsStringSync();
+    final cited = boldRuns(frPolicy).where((r) => r.contains(' › ')).length;
+    expect(cited, greaterThan(4), reason: 'the check must see the paths');
+    final problems = [
+      ...structure,
+      ...pathProblems(frPolicy, 'PRIVACY.fr.md', frPaths),
+      ...pathProblems(enPolicy, 'PRIVACY.md', enPaths),
+      for (final c in englishCitations(frPolicy))
+        if (c.contains(' › ') && !enPaths.contains(c))
+          'PRIVACY.fr.md: English path "$c" is not one of the app\'s settings paths',
+      for (final odd in unrecognisedEnAnglais(frPolicy))
+        'PRIVACY.fr.md: « en anglais » not written as « Label » en anglais: "$odd"',
+    ];
+    if (problems.isNotEmpty) fail(problems.join('\n'));
+  });
 
   test('the policies name only settings the app has', () {
     final fr = arbValues('lib/l10n/app_fr.arb');
@@ -425,6 +512,54 @@ https://example.org. Write to `me@example.com`; an address such as
       );
     }
   });
+}
+
+/// The settings paths the policies may cite, as ARB keys: the settings title,
+/// a page, and optionally an entry on that page. Each page's entries are
+/// checked against the page's own code, so a path cannot name an entry that
+/// lives elsewhere in the app.
+const settingsPaths = [
+  ['settingsTitle', 'settingsPageVideo'],
+  ['settingsTitle', 'settingsPageVideo', 'webTokenTitle'],
+  ['settingsTitle', 'settingsPageOther'],
+  ['settingsTitle', 'settingsPageOther', 'settingsClearCache'],
+  ['settingsTitle', 'settingsPageOther', 'settingsPrivacy'],
+];
+
+/// The code that builds each settings page.
+const settingsPageFiles = {
+  'settingsPageVideo': 'lib/screens/settings/video_settings.dart',
+  'settingsPageOther': 'lib/screens/settings/other_settings.dart',
+};
+
+/// Every bold run that reads as a settings path (it contains " › ") and is
+/// not one of [paths].
+List<String> pathProblems(String markdown, String name, Set<String> paths) => [
+  for (final run in boldRuns(markdown))
+    if (run.contains(' › ') && !paths.contains(run))
+      '$name: settings path "$run" is not one of the app\'s settings paths',
+];
+
+/// Every « en anglais » the citation format does not account for: the only
+/// other allowed use is the sentence pointing to the English policy.
+List<String> unrecognisedEnAnglais(String markdown) {
+  var flat = _flat(
+    markdown.replaceAllMapped(RegExp(r'\[([^\]]*)\]\([^)]*\)'), (m) => m[1]!),
+  );
+  flat = flat
+      .replaceAll(RegExp(r'((?:«[^»]+»(?: et |, ))*«[^»]+») en anglais'), '')
+      .replaceAll('aussi disponible en anglais', '');
+  return [for (final m in RegExp(r'.{0,40}en anglais').allMatches(flat)) m[0]!];
+}
+
+/// The string values of an ARB file by key, whitespace collapsed.
+Map<String, String> arbMap(String path) {
+  final map = jsonDecode(File(path).readAsStringSync()) as Map<String, dynamic>;
+  return {
+    for (final e in map.entries)
+      if (!e.key.startsWith('@') && e.value is String)
+        e.key: _flat(e.value as String),
+  };
 }
 
 /// Bold runs that are not labels of the app: emphasis, lead-ins, the services
@@ -502,7 +637,6 @@ const notAppLabels = {
     'Twitch et les autres services :',
     'Effacer les données de l’application',
     'désinstaller',
-    'Désactiver',
   },
 };
 
@@ -556,6 +690,11 @@ Set<String> arbValues(String path) {
   };
 }
 
+/// A Markdown link to the other policy file (it works on GitHub) opens that
+/// policy's page on the site; every other target is kept as written.
+const policyPages = {'PRIVACY.md': '/privacy', 'PRIVACY.fr.md': '/fr/privacy'};
+String _pageTarget(String target) => policyPages[target] ?? target;
+
 /// Code spans the pages show as links, with their targets. Any other code
 /// span, such as the example address `https://api.twitch.tv`, stays code.
 const linkedCode = {
@@ -591,7 +730,7 @@ List<String> markdownLinkTargets(String markdown) {
       targets.add(
         email != null
             ? 'mailto:$email'
-            : (m.group(1) ?? m.group(2) ?? m.group(3))!,
+            : _pageTarget((m.group(1) ?? m.group(2) ?? m.group(3))!),
       );
     }
   }

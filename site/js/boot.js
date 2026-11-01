@@ -23,12 +23,15 @@
     // Crawlers and automated browsers always get the page they asked for.
     if (nav.webdriver) return false;
     if (/bot|crawl|spider|slurp|archiver|preview|lighthouse|headless|facebookexternalhit|embedly|whatsapp|telegram|discord|slack|skype|vkshare|pinterest|google-|mediapartners|chatgpt|gptbot|perplexity|bytespider|petal/i.test(nav.userAgent || '')) return false;
-    // Coming from another page of this site is a deliberate visit to the English page (this also
-    // keeps the English link on /fr/ working when the browser blocks storage).
-    var ref = d.referrer || '';
-    if (ref && ref.indexOf(location.protocol + '//' + location.host + '/') === 0) return false;
-    var first = (nav.languages && nav.languages[0]) || nav.language || '';
-    if (stored !== 'fr' && !/^fr(?:[-_]|$)/i.test(first)) return false;
+    // A stored French choice wins over everything below; clicking EN stores "en", so there is no loop.
+    if (stored !== 'fr') {
+      // Coming from another page of this site is a deliberate visit to the English page (this also
+      // keeps the English link on /fr/ working when the browser blocks storage).
+      var ref = d.referrer || '';
+      if (ref && ref.indexOf(location.protocol + '//' + location.host + '/') === 0) return false;
+      var first = (nav.languages && nav.languages[0]) || nav.language || '';
+      if (!/^fr(?:[-_]|$)/i.test(first)) return false;
+    }
     // Nothing of the English page is painted while the French one loads.
     d.documentElement.style.visibility = 'hidden';
     var unhide = function () { d.documentElement.style.visibility = ''; };

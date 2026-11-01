@@ -207,10 +207,10 @@ html[lang="fr"] .fo-msg2{left:76%;top:4%}
 /* 1200–1279 (a 1280 laptop with a scrollbar lands here): the upper-left "ON" disc reaches the sub copy */
 @media (min-width:1200px) and (max-width:1279px){
   .fo-on1{left:11%}
+  html[lang="fr"] .fo-spl1{left:19%}
 }
 @media (min-width:1200px) and (max-width:1259px){
   html[lang="fr"] .fo-msg2{display:none}
-  html[lang="fr"] .fo-spl1{left:19%}
 }
 /* French, narrow portrait tablets: the headline reaches the drifting "Proche du direct" chip */
 @media (min-width:768px) and (max-width:899px){
