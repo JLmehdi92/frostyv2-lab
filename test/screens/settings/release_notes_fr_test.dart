@@ -85,7 +85,7 @@ void main() {
 
     test('are read as French: dates and section kinds', () {
       final entry = parseReleaseEntries(french).entries.first;
-      expect(entry.date, '29 octobre 2026');
+      expect(entry.date, '1er novembre 2026');
       expect(
         [for (final section in entry.sections) section.kind],
         [
@@ -95,7 +95,7 @@ void main() {
         ],
       );
       final l = lookupAppLocalizations(const Locale('fr'));
-      expect(entry.summary(l), '5 nouveautés · 2 améliorations · 1 correction');
+      expect(entry.summary(l), '1 nouveauté · 2 améliorations · 1 correction');
     });
 
     test('are declared and bundled', () async {

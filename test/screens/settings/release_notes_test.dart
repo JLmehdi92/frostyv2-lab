@@ -158,13 +158,14 @@ A big update.
     });
   });
 
-  test('the bundled release notes hold the 1.0.0 entry', () {
+  test('the bundled release notes hold the 1.1.0 and 1.0.0 entries', () {
     final bundled = File('assets/release-notes.md').readAsStringSync();
     // The comment for writers stays first.
     expect(bundled.trimLeft(), startsWith('<!--'));
     final entries = parseReleaseEntries(bundled).entries;
-    expect(entries, hasLength(1));
-    final entry = entries.single;
+    expect(entries, hasLength(2));
+    expect(entries.first.version, '1.1.0');
+    final entry = entries.last;
     expect(entry.version, '1.0.0');
     expect(entry.label, 'v1.0.0');
     expect(entry.date, matches(RegExp(r'^[A-Z][a-z]+ \d{1,2}, \d{4}$')));
@@ -191,11 +192,11 @@ A big update.
     final data = await rootBundle.load('assets/release-notes.md');
     expect(data.lengthInBytes, greaterThan(0));
     final text = await rootBundle.loadString('assets/release-notes.md');
-    expect(parseReleaseEntries(text).entries, hasLength(1));
+    expect(parseReleaseEntries(text).entries, hasLength(2));
     expect(await ReleaseNotes.read(), text);
     expect(
       parseReleaseEntries(await ReleaseNotes.load()).entries,
-      hasLength(1),
+      hasLength(2),
     );
   });
 

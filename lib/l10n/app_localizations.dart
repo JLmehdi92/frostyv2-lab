@@ -7006,7 +7006,7 @@ abstract class AppLocalizations {
   /// The input's one-line placeholder when followers must have followed for a while: what it takes to chat. duration is that follow age, short so it stays in sight on a phone at large text (chatShortMinutes, chatShortHours, else whole days or months: « 10m », « 3h », « 7 days », « 10 min », « 7 jours »).
   ///
   /// In en, this message translates to:
-  /// **'Follow for {duration}'**
+  /// **'Followers-only · {duration}'**
   String chatRestrictionFollowersFor({required String duration});
 
   /// The button over a paused chat: how many messages arrived since; tapping it scrolls back down.

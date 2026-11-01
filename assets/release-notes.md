@@ -1,5 +1,24 @@
 <!-- ONSET release notes: one "## v1.2.0" entry per version, newest first, its date on the next line. -->
 
+## v1.1.0
+
+November 1, 2026
+
+ONSET now speaks French, and the chat keyboard opens smoothly.
+
+### New
+
+- **French:** the whole app is available in French. Pick English or French on first launch, or anytime in `Settings › General`.
+
+### Improvements
+
+- The keyboard now slides up smoothly when you tap the chat field, with less work for the app on every frame.
+- Clearer, more consistent English across the app.
+
+### Fixes
+
+- Tapping a name on some older chat lines no longer closes the app.
+
 ## v1.0.0
 
 October 29, 2026

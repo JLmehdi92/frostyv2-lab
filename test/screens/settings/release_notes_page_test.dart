@@ -211,16 +211,15 @@ void main() {
   });
 
   for (final size in _sizes) {
-    testWidgets('the bundled 1.0.0 notes fit '
+    testWidgets('the bundled notes fit '
         '${size.width.toInt()}×${size.height.toInt()}', (tester) async {
       final bundled = File('assets/release-notes.md').readAsStringSync();
       await open(tester, size: size, notes: bundled);
       expect(tester.takeException(), isNull);
-      expect(find.text('ONSET 1.0.0'), findsOneWidget);
-      expect(find.text('5 new · 2 improvements · 1 fix'), findsWidgets);
-      expect(find.text('EARLIER VERSIONS'), findsNothing);
-      expect(find.text('Newer'), findsNothing);
-      expect(find.text('Older'), findsNothing);
+      expect(find.text('ONSET 1.1.0'), findsOneWidget);
+      expect(find.text('1 new · 2 improvements · 1 fix'), findsWidgets);
+      // The 1.0.0 entry stays reachable below the newest one.
+      expect(find.text('v1.0.0', skipOffstage: false), findsWidgets);
     });
   }
 

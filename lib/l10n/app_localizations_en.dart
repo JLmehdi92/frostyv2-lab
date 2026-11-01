@@ -5037,7 +5037,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatRestrictionFollowersFor({required String duration}) {
-    return 'Follow for $duration';
+    return 'Followers-only · $duration';
   }
 
   @override

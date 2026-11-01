@@ -79,16 +79,16 @@ void main() {
     expect(_for(room: const ROOMSTATE(subMode: '1'), subscriber: true), isNull);
     final followers = _for(room: const ROOMSTATE(followersOnly: '10'))!;
     expect(followers.blocksInput, isFalse);
-    expect(followers.describe(null), 'Follow for 10m');
+    expect(followers.describe(null), 'Followers-only · 10m');
     // The follow age in its largest whole unit, never raw minutes.
     String ageOf(String minutes, [AppLocalizations? l]) =>
         _for(room: ROOMSTATE(followersOnly: minutes))!.describe(null, l);
-    expect(ageOf('180'), 'Follow for 3h');
-    expect(ageOf('90'), 'Follow for 1h 30m');
-    expect(ageOf('2880'), 'Follow for 2 days');
-    expect(ageOf('10080'), 'Follow for 7 days');
-    expect(ageOf('43200'), 'Follow for 1 month');
-    expect(ageOf('129600'), 'Follow for 3 months');
+    expect(ageOf('180'), 'Followers-only · 3h');
+    expect(ageOf('90'), 'Followers-only · 1h 30m');
+    expect(ageOf('2880'), 'Followers-only · 2 days');
+    expect(ageOf('10080'), 'Followers-only · 7 days');
+    expect(ageOf('43200'), 'Followers-only · 1 month');
+    expect(ageOf('129600'), 'Followers-only · 3 months');
     final french = lookupAppLocalizations(const Locale('fr'));
     expect(ageOf('10', french), 'Followers depuis 10\u00a0min');
     expect(ageOf('10080', french), 'Followers depuis 7\u00a0jours');

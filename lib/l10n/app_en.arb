@@ -6611,7 +6611,7 @@
   "@chatRestrictionFollowersOnly": {
     "description": "The chat input's placeholder in followers-only mode."
   },
-  "chatRestrictionFollowersFor": "Follow for {duration}",
+  "chatRestrictionFollowersFor": "Followers-only · {duration}",
   "@chatRestrictionFollowersFor": {
     "description": "The input's one-line placeholder when followers must have followed for a while: what it takes to chat. duration is that follow age, short so it stays in sight on a phone at large text (chatShortMinutes, chatShortHours, else whole days or months: « 10m », « 3h », « 7 days », « 10 min », « 7 jours »).",
     "placeholders": {

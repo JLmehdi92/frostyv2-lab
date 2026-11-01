@@ -1,5 +1,24 @@
 <!-- Notes de version d’ONSET en français : la traduction de release-notes.md, version pour version (mêmes versions, sections, points et étiquettes [Android]/[iOS]). -->
 
+## v1.1.0
+
+1er novembre 2026
+
+ONSET parle désormais français, et le clavier du chat s’ouvre en douceur.
+
+### Nouveautés
+
+- **Français :** toute l’application est disponible en français. Choisissez l’anglais ou le français au premier lancement, ou à tout moment dans `Paramètres › Général`.
+
+### Améliorations
+
+- Le clavier monte désormais en douceur quand vous appuyez sur le champ du chat, et l’application travaille moins à chaque image.
+- Un anglais plus clair et plus homogène dans toute l’application.
+
+### Corrections
+
+- Appuyer sur un pseudo dans certains anciens messages du chat ne ferme plus l’application.
+
 ## v1.0.0
 
 29 octobre 2026
