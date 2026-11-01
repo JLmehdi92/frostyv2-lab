@@ -35,11 +35,11 @@ List<UserCardBadge> userCardBadges(
   ];
 }
 
-/// [date] on the user card ("Nov 1, 2026", in the language of `Intl`, the
-/// one on screen); French writes the first of the month « 1er » (« 1er nov.
+/// [date] on the user card ("Nov 1, 2026", in [l]'s language, the one
+/// on screen); French writes the first of the month « 1er » (« 1er nov.
 /// 2026 »).
 String _cardDate(DateTime date, AppLocalizations l) {
-  final text = DateFormat.yMMMd().format(date);
+  final text = DateFormat.yMMMd(dateLocaleOf(l)).format(date);
   return l.localeName == 'fr' && date.day == 1
       ? text.replaceFirst(RegExp(r'^1(?!\d)'), '1er')
       : text;

@@ -6670,7 +6670,7 @@ abstract class AppLocalizations {
   /// **'Couldn\'t whisper: no user named {login}.'**
   String chatWhisperNoUser({required String login});
 
-  /// A line in chat: the whisper failed; reason is the error, worded (a sentence).
+  /// A line in chat: the whisper failed; reason is the error, worded (a sentence; French puts a full stop before it).
   ///
   /// In en, this message translates to:
   /// **'Couldn\'t whisper: {reason}'**
@@ -6772,7 +6772,7 @@ abstract class AppLocalizations {
   /// **'seconds'**
   String get chatCommandArgSeconds;
 
-  /// A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the id of the message to delete.
+  /// A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the id of the message to delete. French joins its words with no-break spaces, so the argument never breaks inside its brackets.
   ///
   /// In en, this message translates to:
   /// **'message id'**
@@ -6856,7 +6856,7 @@ abstract class AppLocalizations {
   /// **'Followers-only mode on (followers of {duration}).'**
   String chatModeFollowersOn({required String duration});
 
-  /// A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error).
+  /// A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error); French makes it a sentence after a full stop (« Impossible de bannir. … »).
   ///
   /// In en, this message translates to:
   /// **'Couldn\'t {command, select, ban{ban} timeout{time out} untimeout{remove the timeout of} unban{unban} warn{warn} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}}: {reason}'**
@@ -6874,7 +6874,13 @@ abstract class AppLocalizations {
   /// **'Twitch says you can\'t moderate this chat.'**
   String get chatModCannotModerate;
 
-  /// Why a moderation action failed (after chatModFailed's colon): nobody has that name. login is what the viewer typed.
+  /// After « Couldn't … » in chat, on a screen in another language than English: a sentence after the failure's kind worded in that language, quoting Twitch's own short explanation as Twitch wrote it (English). An English screen shows Twitch's words alone instead, as it always has.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch’s reason: “{reason}”'**
+  String chatTwitchReason({required String reason});
+
+  /// Why a moderation action failed (after chatModFailed's colon; French: a sentence after its full stop): nobody has that name. login is what the viewer typed.
   ///
   /// In en, this message translates to:
   /// **'no user named {login}'**
@@ -6955,25 +6961,25 @@ abstract class AppLocalizations {
     required String duration,
   });
 
-  /// Above the chat input (and as its placeholder): the viewer is banned. « votre compte » so nothing agrees with the viewer.
+  /// Above the chat input (and as its placeholder, one line each): the viewer is banned. French uses the noun, so nothing agrees with the viewer and the key word comes first.
   ///
   /// In en, this message translates to:
   /// **'You are permanently banned from this chat'**
   String get chatRestrictionBanned;
 
-  /// The chat input's placeholder while the viewer is timed out.
+  /// The chat input's placeholder while the viewer is timed out (one line): French uses the noun, as on the bar above the input (chatRestrictionTimedOutFor).
   ///
   /// In en, this message translates to:
   /// **'You are timed out'**
   String get chatRestrictionTimedOut;
 
-  /// Above the chat input while the viewer is timed out. wait is the time left (« 4:05 », « 12 s »).
+  /// Above the chat input while the viewer is timed out (one line at 12 dp). wait is the time left (« 4:05 », « 12 s »), the line's point: French keeps it short so it never falls under the ellipsis.
   ///
   /// In en, this message translates to:
   /// **'You are timed out · {wait}'**
   String chatRestrictionTimedOutFor({required String wait});
 
-  /// Above the chat input in slow mode, after a message. wait is the time left.
+  /// Above the chat input in slow mode, after a message (one line at 12 dp). wait is the time left: French keeps the line short (« encore 29 s ») so it never falls under the ellipsis on a phone at large text.
   ///
   /// In en, this message translates to:
   /// **'Slow mode · you can chat again in {wait}'**
@@ -6997,7 +7003,7 @@ abstract class AppLocalizations {
   /// **'Followers-only chat'**
   String get chatRestrictionFollowersOnly;
 
-  /// The same, when followers must have followed for a while. minutes is that follow age.
+  /// The same, when followers must have followed for a while (the input's one-line placeholder). minutes is that follow age; French keeps the line short so the age stays visible on a phone at large text.
   ///
   /// In en, this message translates to:
   /// **'Followers-only chat · following for {minutes}+ min'**
@@ -7147,13 +7153,19 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{Timed out for {count} second} other{Timed out for {count} seconds}}'**
   String chatTimedOutFor({required int count});
 
+  /// Above the messages of someone timed out, on a screen in another language than English: for how long, worded like the timeout notices (chatDuration…, « 10 minutes »). An English screen keeps chatTimedOutFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Timed out for {duration}'**
+  String chatTimedOutForLength({required String duration});
+
   /// Above a moderator's announcement.
   ///
   /// In en, this message translates to:
   /// **'Announcement'**
   String get chatAnnouncement;
 
-  /// What a screen reader says a long press on a message does (it opens its options). Lower case: it follows « double tap and hold to ».
+  /// What a screen reader says a long press on a message does (it opens its options). Lower case: it follows « double tap and hold to », so French is a verb in the infinitive.
   ///
   /// In en, this message translates to:
   /// **'message options'**
@@ -7195,7 +7207,7 @@ abstract class AppLocalizations {
   /// **'Enter a message'**
   String get chatEnterMessage;
 
-  /// The chat input's placeholder while the viewer cannot send (rules not accepted yet, a restriction).
+  /// The chat input's placeholder while the viewer cannot send (rules not accepted yet, a restriction); one line, so French keeps it short (the bar above says why).
   ///
   /// In en, this message translates to:
   /// **'You can\'t chat right now'**
@@ -7225,7 +7237,7 @@ abstract class AppLocalizations {
   /// **'Send'**
   String get chatSend;
 
-  /// The chat input's placeholder while replying. name is the channel's display name.
+  /// The chat input's placeholder while replying (one line). name is the channel's display name; French keeps the words before it short so the name shows.
   ///
   /// In en, this message translates to:
   /// **'Reply in {name}'**
@@ -7237,7 +7249,7 @@ abstract class AppLocalizations {
   /// **'Reply'**
   String get chatReply;
 
-  /// The chat input's placeholder while the chat is delayed to match the video. name is the channel's display name; « délai » is the setting's word (Délai des messages).
+  /// The chat input's placeholder while the chat is delayed to match the video (one line). name is the channel's display name; « délai » is the setting's word (Délai des messages). French puts the name first and keeps the line short, so the name and the delay both show on a phone at large text.
   ///
   /// In en, this message translates to:
   /// **'Chat in {name} ({seconds}s delay)'**
@@ -7249,7 +7261,7 @@ abstract class AppLocalizations {
   /// **'Chat ({seconds}s delay)'**
   String chatDelayed({required int seconds});
 
-  /// The chat input's placeholder. name is the channel's display name.
+  /// The chat input's placeholder (one line). name is the channel's display name; French keeps the words before it short so the name shows.
   ///
   /// In en, this message translates to:
   /// **'Chat in {name}'**
@@ -7783,11 +7795,17 @@ abstract class AppLocalizations {
   /// **'1 second (purge)'**
   String get chatModBarPurge;
 
-  /// The moderation bar's button that opens the timeout lengths.
+  /// What a screen reader says for the moderation bar's button that opens the timeout lengths, in full (the button shows chatModBarTimeoutShort).
   ///
   /// In en, this message translates to:
   /// **'Timeout'**
   String get chatModBarTimeout;
+
+  /// The label shown on the moderation bar's timeout button (chatModBarTimeout is what a screen reader says): short, so the bar's four buttons fit a phone. Its chevron and the lengths menu say the exclusion is temporary.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeout'**
+  String get chatModBarTimeoutShort;
 
   /// The moderation bar's unban button (lifts a ban or a timeout).
   ///
@@ -7933,11 +7951,11 @@ abstract class AppLocalizations {
   /// **'Pays about {odds} × if this wins — moves with every other bet.'**
   String pointsPaysAbout({required String odds});
 
-  /// The bet view's button once an amount is typed.
+  /// The bet view's button once an amount is typed. points is the amount, written with the language's digits; count is the same amount as a number, for the plural.
   ///
   /// In en, this message translates to:
-  /// **'Bet {points}'**
-  String pointsBetAmount({required String points});
+  /// **'{count, plural, other{Bet {points}}}'**
+  String pointsBetAmount({required String points, required int count});
 
   /// The bet view's button before an amount is typed.
   ///
@@ -8166,7 +8184,7 @@ abstract class AppLocalizations {
   /// **'It\'s their first Gift Sub in the channel!'**
   String get noticeGiftFirst;
 
-  /// The sentence after a gift sub line: how many the gifter gave in all (2 or more).
+  /// The sentence after a gift sub line: how many the gifter gave in all (2 or more). French opens with « Son total » (the gifter's, after the sentence naming them), so it never reads as the channel's total.
   ///
   /// In en, this message translates to:
   /// **'They\'ve given {count} Gift Subs in the channel!'**
@@ -8191,7 +8209,7 @@ abstract class AppLocalizations {
   /// **'It\'s their first Gift Sub in the channel!'**
   String get noticeCommunityGiftFirst;
 
-  /// The sentence after a gift bomb's line: how many subs the gifter gave in all.
+  /// The sentence after a gift bomb's line: how many subs the gifter gave in all. French opens with « Son total » (the gifter's).
   ///
   /// In en, this message translates to:
   /// **'They\'ve gifted a total of {count} in the channel!'**
@@ -8207,6 +8225,12 @@ abstract class AppLocalizations {
     required int tier,
     required String month,
   });
+
+  /// The line when another channel raids this one: who (drawn bold) and how many viewers they bring. Shown on screens in another language than English only: an English screen shows Twitch's own sentence (system-msg), as it always has. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{name} is raiding with {count} viewer!} other{{name} is raiding with {count} viewers!}}'**
+  String noticeRaid({required String name, required int count});
 }
 
 class _AppLocalizationsDelegate

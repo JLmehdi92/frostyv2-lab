@@ -154,6 +154,12 @@ Future<void> saveUiLanguage(Locale locale) async {
   }
 }
 
+/// The `intl` locale to write [l]'s dates in (`DateFormat.MMMM(…)`): its
+/// language, English as en_US, the same words and always loaded (no
+/// `initializeDateFormatting` needed for it).
+String dateLocaleOf(AppLocalizations l) =>
+    l.localeName == 'en' ? 'en_US' : l.localeName;
+
 /// A decimal number written by code ("2.3", from `toStringAsFixed`) with
 /// the decimal separator of the language of `Intl` (« 2,3 » in French).
 String localDecimal(String number) {

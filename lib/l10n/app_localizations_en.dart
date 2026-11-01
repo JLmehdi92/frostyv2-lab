@@ -4927,6 +4927,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Twitch says you can\'t moderate this chat.';
 
   @override
+  String chatTwitchReason({required String reason}) {
+    return 'Twitch’s reason: “$reason”';
+  }
+
+  @override
   String chatModNoUser({required String login}) {
     return 'no user named $login';
   }
@@ -5119,6 +5124,11 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'Timed out for $count second',
     );
     return '$_temp0';
+  }
+
+  @override
+  String chatTimedOutForLength({required String duration}) {
+    return 'Timed out for $duration';
   }
 
   @override
@@ -5574,6 +5584,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatModBarTimeout => 'Timeout';
 
   @override
+  String get chatModBarTimeoutShort => 'Timeout';
+
+  @override
   String get chatModBarUnban => 'Unban';
 
   @override
@@ -5666,8 +5679,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String pointsBetAmount({required String points}) {
-    return 'Bet $points';
+  String pointsBetAmount({required String points, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bet $points',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -6011,6 +6029,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'yes': '$name extended their Tier $tier subscription through $month!',
       'other': '$name extended their subscription through $month!',
     });
+    return '$_temp0';
+  }
+
+  @override
+  String noticeRaid({required String name, required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name is raiding with $countString viewers!',
+      one: '$name is raiding with $countString viewer!',
+    );
     return '$_temp0';
   }
 }

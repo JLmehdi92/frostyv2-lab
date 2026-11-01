@@ -406,15 +406,17 @@ Widget _restColumn(
       HtDims.margin,
       HtDims.margin,
     ),
-    child: htSplit(
-      palette,
-      Text(
-        compact ? title : htSubtitle(store, train, copy),
-        key: const ValueKey('ht-subtitle'),
-        maxLines: compact ? 1 : 2,
-        overflow: TextOverflow.ellipsis,
-        style: palette.textStyle(HtType.bodySmall),
-      ),
+    // Every word shows: the train's name in compact (one line, then a
+    // little smaller, then wrapped), the subtitle on two lines, then three
+    // (the banner grows), then a little smaller.
+    child: _FittedText(
+      compact ? title : htSubtitle(store, train, copy),
+      textKey: const ValueKey('ht-subtitle'),
+      palette: palette,
+      style: palette.textStyle(HtType.bodySmall),
+      lines: compact ? 1 : 2,
+      moreLines: compact ? 0 : 1,
+      lastLines: compact ? 2 : 4,
     ),
   );
   // Read here, in the banner's observer, not in the layout builder.
@@ -453,8 +455,9 @@ Widget _restColumn(
               if (!compact) ...[
                 const SizedBox(width: HtDims.margin),
                 Flexible(
-                  child: _FittedTitle(
+                  child: _FittedText(
                     title,
+                    textKey: const ValueKey('ht-title'),
                     palette: palette,
                     style: palette.textStyle(HtType.titleDefault),
                   ),
@@ -475,58 +478,100 @@ Widget _restColumn(
   );
 }
 
-/// The train's name in the banner's top row, never losing its last word
-/// (the variant, « trésor », "Shared…"): one line at its size when it
-/// fits, else a little smaller (down to [_minScale]), else on more lines
-/// at that size (the banner grows).
-class _FittedTitle extends StatelessWidget {
-  const _FittedTitle(this.title, {required this.palette, required this.style});
+/// A banner text that never loses a word to an ellipsis (the train's
+/// variant, « trésor », "Shared…", a subtitle's last words): on [lines]
+/// lines at its size when it fits, else on up to [lines] + [moreLines] (the
+/// banner grows), else a little smaller (down to [_minScale]) on that many,
+/// else at that size on up to [lastLines] (a long name at large text on a
+/// narrow phone), ending in an ellipsis only beyond them.
+class _FittedText extends StatelessWidget {
+  const _FittedText(
+    this.text, {
+    required this.textKey,
+    required this.palette,
+    required this.style,
+    this.lines = 1,
+    this.moreLines = 0,
+    this.lastLines = 3,
+    this.split = true,
+  });
 
-  final String title;
+  final String text;
+  final Key textKey;
+
+  /// Whether it turns colour at the fill's edge ([htSplit]).
+  final bool split;
   final HtPalette palette;
   final TextStyle style;
+  final int lines;
+  final int moreLines;
+  final int lastLines;
 
   static const _minScale = 0.8;
+  static const _scaleStep = 0.05;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final scaler = MediaQuery.textScalerOf(context);
+      final direction = Directionality.of(context);
+      final size = style.fontSize ?? 14;
       var shownScaler = scaler;
-      var lines = 1;
+      int? shownLines = lines;
       if (constraints.hasBoundedWidth) {
-        final painter = TextPainter(
-          text: TextSpan(text: title, style: style),
-          textDirection: Directionality.of(context),
-          textScaler: scaler,
-          maxLines: 1,
-        )..layout();
-        final natural = painter.width;
-        painter.dispose();
-        if (natural > constraints.maxWidth) {
-          // Rounded down, so the smaller text surely fits; the style keeps
-          // its size, the text is scaled.
-          final scale =
-              (constraints.maxWidth / natural * 100).floorToDouble() / 100;
-          final size = style.fontSize ?? 14;
-          shownScaler = TextScaler.linear(
-            scaler.scale(size) / size * max(scale, _minScale),
-          );
-          // A shared train at large text on a narrow phone: up to three.
-          if (scale < _minScale) lines = 3;
+        bool fits(TextScaler scaler, int maxLines) {
+          final painter = TextPainter(
+            text: TextSpan(text: text, style: style),
+            textDirection: direction,
+            textScaler: scaler,
+            maxLines: maxLines,
+          )..layout(maxWidth: constraints.maxWidth);
+          final fits = !painter.didExceedMaxLines;
+          painter.dispose();
+          return fits;
+        }
+
+        TextScaler scaled(double scale) =>
+            TextScaler.linear(scaler.scale(size) / size * scale);
+
+        final most = lines + moreLines;
+        shownLines = null;
+        for (var count = lines; count <= most; count++) {
+          if (fits(scaler, count)) {
+            shownLines = count;
+            break;
+          }
+        }
+        if (shownLines == null) {
+          // The style keeps its size, the text is scaled.
+          for (
+            var scale = 1 - _scaleStep;
+            scale >= _minScale - 0.001;
+            scale -= _scaleStep
+          ) {
+            if (fits(scaled(scale), most)) {
+              shownScaler = scaled(scale);
+              shownLines = most;
+              break;
+            }
+          }
+        }
+        // A long name at large text on a narrow phone: smaller and wrapped
+        // on more lines.
+        if (shownLines == null) {
+          shownScaler = scaled(_minScale);
+          shownLines = max(lastLines, most);
         }
       }
-      return htSplit(
-        palette,
-        Text(
-          title,
-          key: const ValueKey('ht-title'),
-          maxLines: lines,
-          overflow: TextOverflow.ellipsis,
-          style: style,
-          textScaler: shownScaler,
-        ),
+      final shown = Text(
+        text,
+        key: textKey,
+        maxLines: shownLines,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+        textScaler: shownScaler,
       );
+      return split ? htSplit(palette, shown) : shown;
     },
   );
 }
@@ -572,12 +617,15 @@ Widget _athApproaching(
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(HtDims.margin),
-              child: Text(
+              child: _FittedText(
                 compact ? copy.athApproachingCompact : copy.athApproaching,
-                key: const ValueKey('ht-subtitle'),
-                maxLines: compact ? 1 : 2,
-                overflow: TextOverflow.ellipsis,
+                textKey: const ValueKey('ht-subtitle'),
+                palette: palette,
                 style: palette.textStyle(HtType.bodySmall),
+                lines: compact ? 1 : 2,
+                moreLines: compact ? 0 : 1,
+                lastLines: compact ? 2 : 4,
+                split: false,
               ),
             ),
           ),

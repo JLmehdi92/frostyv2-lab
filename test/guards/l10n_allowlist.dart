@@ -90,6 +90,11 @@ const l10nAllowlist = <String, Map<String, String>>{
         'The id of the colour picker\'s fake preview message (an IRC tag), '
         'never shown.',
   },
+  'lib/screens/channel/chat/moderation.dart': {
+    'no user named {}':
+        'The log message of the exception for a login nobody has (the '
+        'failure\'s line words it: chatModNoUser), never shown.',
+  },
   'lib/screens/channel/chat/stores/chat_assets_store.dart': {
     'Channel Emotes': _emoteSection,
     'Global Emotes': _emoteSection,

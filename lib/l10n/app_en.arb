@@ -6203,7 +6203,7 @@
   },
   "chatWhisperFailedBecause": "Couldn't whisper: {reason}",
   "@chatWhisperFailedBecause": {
-    "description": "A line in chat: the whisper failed; reason is the error, worded (a sentence).",
+    "description": "A line in chat: the whisper failed; reason is the error, worded (a sentence; French puts a full stop before it).",
     "placeholders": {
       "reason": {
         "type": "String",
@@ -6307,7 +6307,7 @@
   },
   "chatCommandArgMessageId": "message id",
   "@chatCommandArgMessageId": {
-    "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the id of the message to delete."
+    "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the id of the message to delete. French joins its words with no-break spaces, so the argument never breaks inside its brackets."
   },
   "chatCommandDescription": "{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} help{List the commands} ban{Ban a user from the chat} unban{Lift a ban} timeout{Time a user out (10m by default; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Slow mode (30s by default)} slowoff{Turn slow mode off} followers{Followers-only mode (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Subscribers-only mode} subscribersoff{Turn subscribers-only mode off} emoteonly{Emote-only mode} emoteonlyoff{Turn emote-only mode off} uniquechat{Unique chat mode (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}",
   "@chatCommandDescription": {
@@ -6421,7 +6421,7 @@
   },
   "chatModFailed": "Couldn't {command, select, ban{ban} timeout{time out} untimeout{remove the timeout of} unban{unban} warn{warn} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}}: {reason}",
   "@chatModFailed": {
-    "description": "A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error).",
+    "description": "A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error); French makes it a sentence after a full stop (« Impossible de bannir. … »).",
     "placeholders": {
       "command": {
         "type": "String",
@@ -6447,9 +6447,19 @@
   "@chatModCannotModerate": {
     "description": "Why a moderation action failed (after chatModFailed's colon): the viewer is not a moderator here."
   },
+  "chatTwitchReason": "Twitch’s reason: “{reason}”",
+  "@chatTwitchReason": {
+    "description": "After « Couldn't … » in chat, on a screen in another language than English: a sentence after the failure's kind worded in that language, quoting Twitch's own short explanation as Twitch wrote it (English). An English screen shows Twitch's words alone instead, as it always has.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "The user is already banned."
+      }
+    }
+  },
   "chatModNoUser": "no user named {login}",
   "@chatModNoUser": {
-    "description": "Why a moderation action failed (after chatModFailed's colon): nobody has that name. login is what the viewer typed.",
+    "description": "Why a moderation action failed (after chatModFailed's colon; French: a sentence after its full stop): nobody has that name. login is what the viewer typed.",
     "placeholders": {
       "login": {
         "type": "String",
@@ -6563,15 +6573,15 @@
   },
   "chatRestrictionBanned": "You are permanently banned from this chat",
   "@chatRestrictionBanned": {
-    "description": "Above the chat input (and as its placeholder): the viewer is banned. « votre compte » so nothing agrees with the viewer."
+    "description": "Above the chat input (and as its placeholder, one line each): the viewer is banned. French uses the noun, so nothing agrees with the viewer and the key word comes first."
   },
   "chatRestrictionTimedOut": "You are timed out",
   "@chatRestrictionTimedOut": {
-    "description": "The chat input's placeholder while the viewer is timed out."
+    "description": "The chat input's placeholder while the viewer is timed out (one line): French uses the noun, as on the bar above the input (chatRestrictionTimedOutFor)."
   },
   "chatRestrictionTimedOutFor": "You are timed out · {wait}",
   "@chatRestrictionTimedOutFor": {
-    "description": "Above the chat input while the viewer is timed out. wait is the time left (« 4:05 », « 12 s »).",
+    "description": "Above the chat input while the viewer is timed out (one line at 12 dp). wait is the time left (« 4:05 », « 12 s »), the line's point: French keeps it short so it never falls under the ellipsis.",
     "placeholders": {
       "wait": {
         "type": "String",
@@ -6581,7 +6591,7 @@
   },
   "chatRestrictionSlow": "Slow mode · you can chat again in {wait}",
   "@chatRestrictionSlow": {
-    "description": "Above the chat input in slow mode, after a message. wait is the time left.",
+    "description": "Above the chat input in slow mode, after a message (one line at 12 dp). wait is the time left: French keeps the line short (« encore 29 s ») so it never falls under the ellipsis on a phone at large text.",
     "placeholders": {
       "wait": {
         "type": "String",
@@ -6603,7 +6613,7 @@
   },
   "chatRestrictionFollowersFor": "Followers-only chat · following for {minutes}+ min",
   "@chatRestrictionFollowersFor": {
-    "description": "The same, when followers must have followed for a while. minutes is that follow age.",
+    "description": "The same, when followers must have followed for a while (the input's one-line placeholder). minutes is that follow age; French keeps the line short so the age stays visible on a phone at large text.",
     "placeholders": {
       "minutes": {
         "type": "int",
@@ -6753,13 +6763,23 @@
       }
     }
   },
+  "chatTimedOutForLength": "Timed out for {duration}",
+  "@chatTimedOutForLength": {
+    "description": "Above the messages of someone timed out, on a screen in another language than English: for how long, worded like the timeout notices (chatDuration…, « 10 minutes »). An English screen keeps chatTimedOutFor.",
+    "placeholders": {
+      "duration": {
+        "type": "String",
+        "example": "10 minutes"
+      }
+    }
+  },
   "chatAnnouncement": "Announcement",
   "@chatAnnouncement": {
     "description": "Above a moderator's announcement."
   },
   "chatMessageOptionsHint": "message options",
   "@chatMessageOptionsHint": {
-    "description": "What a screen reader says a long press on a message does (it opens its options). Lower case: it follows « double tap and hold to »."
+    "description": "What a screen reader says a long press on a message does (it opens its options). Lower case: it follows « double tap and hold to », so French is a verb in the infinitive."
   },
   "chatCopyMessageHint": "copy message",
   "@chatCopyMessageHint": {
@@ -6787,7 +6807,7 @@
   },
   "chatCannotChatNow": "You can't chat right now",
   "@chatCannotChatNow": {
-    "description": "The chat input's placeholder while the viewer cannot send (rules not accepted yet, a restriction)."
+    "description": "The chat input's placeholder while the viewer cannot send (rules not accepted yet, a restriction); one line, so French keeps it short (the bar above says why)."
   },
   "chatInputDisconnected": "Chat disconnected",
   "@chatInputDisconnected": {
@@ -6807,7 +6827,7 @@
   },
   "chatReplyIn": "Reply in {name}",
   "@chatReplyIn": {
-    "description": "The chat input's placeholder while replying. name is the channel's display name.",
+    "description": "The chat input's placeholder while replying (one line). name is the channel's display name; French keeps the words before it short so the name shows.",
     "placeholders": {
       "name": {
         "type": "String",
@@ -6821,7 +6841,7 @@
   },
   "chatInChannelDelayed": "Chat in {name} ({seconds}s delay)",
   "@chatInChannelDelayed": {
-    "description": "The chat input's placeholder while the chat is delayed to match the video. name is the channel's display name; « délai » is the setting's word (Délai des messages).",
+    "description": "The chat input's placeholder while the chat is delayed to match the video (one line). name is the channel's display name; « délai » is the setting's word (Délai des messages). French puts the name first and keeps the line short, so the name and the delay both show on a phone at large text.",
     "placeholders": {
       "name": {
         "type": "String",
@@ -6845,7 +6865,7 @@
   },
   "chatInChannel": "Chat in {name}",
   "@chatInChannel": {
-    "description": "The chat input's placeholder. name is the channel's display name.",
+    "description": "The chat input's placeholder (one line). name is the channel's display name; French keeps the words before it short so the name shows.",
     "placeholders": {
       "name": {
         "type": "String",
@@ -7344,7 +7364,11 @@
   },
   "chatModBarTimeout": "Timeout",
   "@chatModBarTimeout": {
-    "description": "The moderation bar's button that opens the timeout lengths."
+    "description": "What a screen reader says for the moderation bar's button that opens the timeout lengths, in full (the button shows chatModBarTimeoutShort)."
+  },
+  "chatModBarTimeoutShort": "Timeout",
+  "@chatModBarTimeoutShort": {
+    "description": "The label shown on the moderation bar's timeout button (chatModBarTimeout is what a screen reader says): short, so the bar's four buttons fit a phone. Its chevron and the lengths menu say the exclusion is temporary."
   },
   "chatModBarUnban": "Unban",
   "@chatModBarUnban": {
@@ -7486,12 +7510,16 @@
       }
     }
   },
-  "pointsBetAmount": "Bet {points}",
+  "pointsBetAmount": "{count, plural, other{Bet {points}}}",
   "@pointsBetAmount": {
-    "description": "The bet view's button once an amount is typed.",
+    "description": "The bet view's button once an amount is typed. points is the amount, written with the language's digits; count is the same amount as a number, for the plural.",
     "placeholders": {
       "points": {
         "type": "String",
+        "example": "500"
+      },
+      "count": {
+        "type": "int",
         "example": "500"
       }
     }
@@ -7858,7 +7886,7 @@
   },
   "noticeGiftCount": "They've given {count} Gift Subs in the channel!",
   "@noticeGiftCount": {
-    "description": "The sentence after a gift sub line: how many the gifter gave in all (2 or more).",
+    "description": "The sentence after a gift sub line: how many the gifter gave in all (2 or more). French opens with « Son total » (the gifter's, after the sentence naming them), so it never reads as the channel's total.",
     "placeholders": {
       "count": {
         "type": "int",
@@ -7902,7 +7930,7 @@
   },
   "noticeCommunityGiftTotal": "They've gifted a total of {count} in the channel!",
   "@noticeCommunityGiftTotal": {
-    "description": "The sentence after a gift bomb's line: how many subs the gifter gave in all.",
+    "description": "The sentence after a gift bomb's line: how many subs the gifter gave in all. French opens with « Son total » (the gifter's).",
     "placeholders": {
       "count": {
         "type": "int",
@@ -7929,6 +7957,21 @@
       "month": {
         "type": "String",
         "example": "May"
+      }
+    }
+  },
+  "noticeRaid": "{count, plural, one{{name} is raiding with {count} viewer!} other{{name} is raiding with {count} viewers!}}",
+  "@noticeRaid": {
+    "description": "The line when another channel raids this one: who (drawn bold) and how many viewers they bring. Shown on screens in another language than English only: an English screen shows Twitch's own sentence (system-msg), as it always has. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Raider"
+      },
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "15"
       }
     }
   }

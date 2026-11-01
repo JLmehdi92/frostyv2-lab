@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/models/hype_train.dart';
@@ -10,9 +9,11 @@ import '../hype_train_test_data.dart';
 import 'hype_train_widget_harness.dart';
 
 /// Every banner shows all its words, in English and in French, at phone
-/// widths and in landscape, at both text scales: its two-line subtitles
-/// are never cut in half (the banner grows), and a train's name never
-/// loses its variant to an ellipsis (it shrinks, then wraps).
+/// widths (320, 360 and 390 dp) and in landscape, at both text scales: its
+/// subtitles are never cut in half nor lose words to an ellipsis (they
+/// wrap, the banner grows), and a train's name never loses its variant
+/// (it shrinks, then wraps), in the full banner's title and as the compact
+/// banner's line.
 void main() {
   const treasure = HtTreasure(
     discountPercentage: 50,
@@ -60,6 +61,7 @@ void main() {
 
   for (final locale in [en, fr]) {
     for (final (name, size, compact) in const [
+      ('320x640', Size(320, 640), false),
       ('360x640', Size(360, 640), false),
       ('390x844', Size(390, 844), false),
       ('844x390', Size(844, 390), true),
@@ -99,14 +101,21 @@ void main() {
             final where = '$train, ${locale.languageCode} $name ×$scale';
             expect(tester.takeException(), isNull, reason: where);
             expect(clippedTexts(tester), isEmpty, reason: where);
-            final title = find.byKey(const ValueKey('ht-title'));
-            if (title.evaluate().isNotEmpty) {
-              final paragraph = tester.renderObject<RenderParagraph>(
-                find
-                    .descendant(of: title, matching: find.byType(RichText))
-                    .first,
+            for (final key in ['ht-title', 'ht-subtitle']) {
+              final text = find.byKey(ValueKey(key));
+              expect(
+                ellipsizedTexts(tester, within: text),
+                isEmpty,
+                reason: '$where, $key',
               );
-              expect(paragraph.didExceedMaxLines, isFalse, reason: where);
+            }
+            // The compact banner's line is the train's name.
+            if (compact) {
+              expect(
+                find.byKey(const ValueKey('ht-subtitle')),
+                findsOneWidget,
+                reason: where,
+              );
             }
             await h.close(tester);
           }

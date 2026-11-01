@@ -161,7 +161,8 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
           ),
       ],
       builder: (context, controller, _) => ModerationPill(
-        label: context.l10n.chatModBarTimeout,
+        label: context.l10n.chatModBarTimeoutShort,
+        semanticsLabel: context.l10n.chatModBarTimeout,
         glyph: SheetGlyphKind.timer,
         height: height,
         tone: ModerationPillTone.raised,
@@ -267,9 +268,14 @@ class ModerationPill extends StatelessWidget {
     this.tone = ModerationPillTone.outlined,
     this.height = 44,
     this.expanded,
+    this.semanticsLabel,
   });
 
   final String label;
+
+  /// What a screen reader says instead of [label], when the label is a
+  /// short form (« Exclure » for « Exclure temporairement »).
+  final String? semanticsLabel;
   final SheetGlyphKind glyph;
 
   /// Null while an action runs.
@@ -324,6 +330,7 @@ class ModerationPill extends StatelessWidget {
                   SheetGlyph(glyph, size: 16, color: fg),
                   Text(
                     label,
+                    semanticsLabel: semanticsLabel,
                     style: TextStyle(
                       fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 12.5,

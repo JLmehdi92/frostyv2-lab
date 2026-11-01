@@ -974,6 +974,7 @@ class _BetSheetState extends State<BetSheet> {
                 label: _stake > 0
                     ? context.l10n.pointsBetAmount(
                         points: ChannelPointsSheet.formatPoints(_stake),
+                        count: _stake,
                       )
                     : context.l10n.pointsBet,
                 large: true,

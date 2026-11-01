@@ -132,26 +132,60 @@ class ChannelInfoRow extends StatelessWidget {
                 ],
               ],
             );
+          } else if (live) {
+            // The facts take the room a short category leaves (« Dota 2 ·
+            // 2 445 spectateurs · 3 h 12 »), and at least half the row
+            // beside a long one, which then gives way first.
+            metaLine = LayoutBuilder(
+              builder: (context, constraints) {
+                var room = constraints.maxWidth;
+                if (category.isNotEmpty && room.isFinite) {
+                  // Measured as the Text draws it (the app's font).
+                  final painter = TextPainter(
+                    text: TextSpan(
+                      text: category,
+                      style: DefaultTextStyle.of(context).style.merge(meta),
+                    ),
+                    textDirection: Directionality.of(context),
+                    textScaler: MediaQuery.textScalerOf(context),
+                    maxLines: 1,
+                  )..layout();
+                  room = math.max(
+                    room - painter.width.ceilToDouble(),
+                    room / 2,
+                  );
+                  painter.dispose();
+                }
+                return Row(
+                  children: [
+                    if (category.isNotEmpty)
+                      Flexible(child: categoryLink(category)),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: room),
+                      child: _LiveFacts(
+                        prefix: category.isEmpty ? '' : ' · ',
+                        viewers: stream.viewerCount,
+                        startedAt: stream.startedAt,
+                        style: meta,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
           } else {
             metaLine = Row(
               children: [
                 if (category.isNotEmpty)
                   Flexible(child: categoryLink(category)),
                 Flexible(
-                  child: live
-                      ? _LiveFacts(
-                          prefix: category.isEmpty ? '' : ' · ',
-                          viewers: stream.viewerCount,
-                          startedAt: stream.startedAt,
-                          style: meta,
-                        )
-                      : Text(
-                          category.isEmpty
-                              ? context.l10n.streamOffline
-                              : ' · ${context.l10n.streamOffline}',
-                          maxLines: 1,
-                          style: meta,
-                        ),
+                  child: Text(
+                    category.isEmpty
+                        ? context.l10n.streamOffline
+                        : ' · ${context.l10n.streamOffline}',
+                    maxLines: 1,
+                    style: meta,
+                  ),
                 ),
               ],
             );
@@ -381,6 +415,8 @@ class _LiveFactsState extends State<_LiveFacts> {
         [widget.prefix + viewers, ?uptime].join(' · ');
     final full = line(l.streamWatching(count: widget.viewers));
     final style = OnsetType.tabular(widget.style);
+    // Measured as the Text draws it, in the app's font.
+    final measured = DefaultTextStyle.of(context).style.merge(style);
     return LayoutBuilder(
       builder: (context, constraints) {
         // Beside the category on a phone the line can run out of room
@@ -401,7 +437,7 @@ class _LiveFactsState extends State<_LiveFacts> {
           ]) {
             shown = candidate;
             final painter = TextPainter(
-              text: TextSpan(text: candidate, style: style),
+              text: TextSpan(text: candidate, style: measured),
               textDirection: direction,
               textScaler: scaler,
               maxLines: 1,

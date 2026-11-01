@@ -1,4 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/user_notice.dart';
 import 'package:onset/models/user_notice_text.dart';
@@ -350,6 +354,36 @@ void main() {
   });
 
   group('extendsub', () {
+    test('writes the month in the language it is given, whatever Intl '
+        'says', () async {
+      await initializeDateFormatting('fr');
+      final previous = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previous);
+      final notice = UserNotice.fromTags(IRCMessage.fromString(extendSub).tags);
+      Intl.defaultLocale = 'fr';
+      expect(
+        _text(
+          userNoticeText(
+            notice,
+            channelName: 'Channel',
+            l: lookupAppLocalizations(const Locale('en')),
+          ),
+        ),
+        contains('through June!'),
+      );
+      Intl.defaultLocale = 'en_US';
+      expect(
+        _text(
+          userNoticeText(
+            notice,
+            channelName: 'Channel',
+            l: lookupAppLocalizations(const Locale('fr')),
+          ),
+        ),
+        contains('jusqu\u2019en juin'),
+      );
+    });
+
     test('names the month the sub runs to', () {
       final words = _wordRaw(extendSub);
 
@@ -418,6 +452,92 @@ void main() {
       });
 
       expect(_bold(words), isEmpty);
+    });
+
+    group('in French, worded from the tags', () {
+      final french = lookupAppLocalizations(const Locale('fr'));
+      List<NoticeSegment> wordFr(Map<String, String> tags) => userNoticeText(
+        UserNotice.fromTags(tags),
+        channelName: 'Channel',
+        l: french,
+      );
+
+      test('the raider in bold, the viewers counted', () {
+        final words = userNoticeText(
+          UserNotice.fromTags(IRCMessage.fromString(raidNotice).tags),
+          channelName: 'Channel',
+          l: french,
+        );
+
+        expect(
+          _text(words),
+          'Raider lance un raid avec 15\u00a0spectateurs\u202f!',
+        );
+        expect(_bold(words), ['Raider']);
+      });
+
+      test('one viewer, and thousands grouped as French writes them', () {
+        expect(
+          _text(
+            wordFr({
+              'msg-id': 'raid',
+              'msg-param-displayName': 'Raider',
+              'msg-param-viewerCount': '1',
+              'system-msg': '1 raiders from Raider have joined!',
+            }),
+          ),
+          'Raider lance un raid avec 1\u00a0spectateur\u202f!',
+        );
+        expect(
+          _text(
+            wordFr({
+              'msg-id': 'raid',
+              'msg-param-displayName': 'Raider',
+              'msg-param-viewerCount': '1234',
+              'system-msg': '1234 raiders from Raider have joined!',
+            }),
+          ),
+          'Raider lance un raid avec 1\u202f234\u00a0spectateurs\u202f!',
+        );
+      });
+
+      test("a name in other letters keeps its login, as Twitch's names do", () {
+        final words = wordFr({
+          'msg-id': 'raid',
+          'login': 'raider',
+          'msg-param-displayName': '레이더',
+          'msg-param-viewerCount': '15',
+          'system-msg': '15 raiders from 레이더 have joined!',
+        });
+
+        expect(_bold(words), ['레이더 (raider)']);
+      });
+
+      test("Twitch's sentence when a tag is missing", () {
+        expect(
+          _text(
+            wordFr({
+              'msg-id': 'raid',
+              'msg-param-displayName': 'Raider',
+              'system-msg': '15 raiders from Raider have joined!',
+            }),
+          ),
+          '15 raiders from Raider have joined!',
+        );
+      });
+
+      test('the English screen keeps Twitch\'s own sentence', () {
+        expect(
+          _text(
+            userNoticeText(
+              UserNotice.fromTags(IRCMessage.fromString(raidNotice).tags),
+              channelName: 'Channel',
+              l: lookupAppLocalizations(const Locale('en')),
+            ),
+          ),
+          '15 raiders from Raider have joined!',
+        );
+      });
     });
   });
 

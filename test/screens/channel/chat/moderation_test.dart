@@ -1,7 +1,9 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
@@ -243,6 +245,92 @@ void main() {
         (await moderation.run(const UnbanCommand('troll'))).message,
         'Log in again to moderate from this app.',
       );
+    });
+
+    test("an unknown login is named in the failure's log", () async {
+      when(
+        () => api.getUser(userLogin: 'ghost'),
+      ).thenThrow(const NotFoundException('User does not exist'));
+      final logged = <String?>[];
+      final previous = debugPrint;
+      debugPrint = (message, {wrapWidth}) => logged.add(message);
+      addTearDown(() => debugPrint = previous);
+
+      await moderation.run(const BanCommand('ghost', ''));
+
+      expect(logged.single, contains('ghost'));
+    });
+
+    group('on a French screen', () {
+      final french = lookupAppLocalizations(const Locale('fr'));
+      setUp(() => L10n.use(const Locale('fr')));
+      tearDown(() => L10n.use(const Locale('en')));
+
+      test(
+        "the failure's kind in French, then Twitch's short reason quoted",
+        () async {
+          when(
+            () => api.banUser(
+              broadcasterId: '11',
+              moderatorId: '22',
+              userId: '33',
+            ),
+          ).thenThrow(
+            const ApiException(
+              'The user is already banned.',
+              400,
+              null,
+              ApiErrorKind.badRequest,
+              'The user is already banned.',
+            ),
+          );
+
+          expect(
+            (await moderation.run(const BanCommand('troll', ''))).message,
+            'Impossible de bannir. ${french.apiErrorBadRequest} Raison de '
+            'Twitch\u00a0: «\u00a0The user is already banned.\u00a0»',
+          );
+        },
+      );
+
+      test("no quote without Twitch's words, nor for a long text", () async {
+        when(
+          () =>
+              api.banUser(broadcasterId: '11', moderatorId: '22', userId: '33'),
+        ).thenThrow(const NetworkException('No internet connection.'));
+        expect(
+          (await moderation.run(const BanCommand('troll', ''))).message,
+          'Impossible de bannir. ${french.apiErrorNetwork}',
+        );
+
+        when(
+          () =>
+              api.banUser(broadcasterId: '11', moderatorId: '22', userId: '33'),
+        ).thenThrow(
+          ApiException(
+            'x',
+            400,
+            null,
+            ApiErrorKind.badRequest,
+            'x' * (maxQuotedTwitchReason + 1),
+          ),
+        );
+        expect(
+          (await moderation.run(const BanCommand('troll', ''))).message,
+          'Impossible de bannir. ${french.apiErrorBadRequest}',
+        );
+      });
+
+      test('an unknown login, as a sentence', () async {
+        when(
+          () => api.getUser(userLogin: 'ghost'),
+        ).thenThrow(const NotFoundException('User does not exist'));
+
+        expect(
+          (await moderation.run(const BanCommand('ghost', ''))).message,
+          'Impossible de bannir. Aucun utilisateur nommé ghost.',
+        );
+      });
     });
 
     test('anything else never escapes', () async {

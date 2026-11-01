@@ -46,7 +46,7 @@ List<NoticeSegment> userNoticeText(
     UserNoticeKind.subGift => _subGift(notice, words),
     UserNoticeKind.communityGift => _communityGift(notice, channelName, words),
     UserNoticeKind.extendSub => _extendSub(notice, words),
-    UserNoticeKind.raid => _raid(notice),
+    UserNoticeKind.raid => _raid(notice, words),
     _ => null,
   };
 
@@ -250,8 +250,8 @@ List<NoticeSegment>? _extendSub(UserNotice notice, AppLocalizations l) {
       tiered: tier == null ? 'no' : 'yes',
       name: l10nMark(0),
       tier: tier ?? 0,
-      // In the language of `Intl`, the one on screen.
-      month: DateFormat.MMMM().format(DateTime(2000, month)),
+      // In [l]'s language (the one on screen by default).
+      month: DateFormat.MMMM(dateLocaleOf(l)).format(DateTime(2000, month)),
     ),
     [name],
   );
@@ -259,9 +259,26 @@ List<NoticeSegment>? _extendSub(UserNotice notice, AppLocalizations l) {
 
 final _wordCharacter = RegExp(r'\w');
 
-/// Twitch's raid sentence ("15 raiders from X have joined!"), with the
-/// raiding channel's name in bold, or null when the name is not in it.
-List<NoticeSegment>? _raid(UserNotice notice) {
+/// The raid line: on an English screen, Twitch's own sentence ("15
+/// raiders from X have joined!", as the chat always showed it) with the
+/// raiding channel's name in bold, or null when the name is not in it; in
+/// another language, the sentence worded from the tags (the raider and the
+/// viewer count, Twitch's sentence being English whatever the channel), or
+/// Twitch's when a tag is missing.
+List<NoticeSegment>? _raid(UserNotice notice, AppLocalizations l) {
+  final name = notice.raiderDisplayName;
+  final count = notice.raidViewerCount;
+  if (l.localeName != 'en' && name != null && count != null && count >= 0) {
+    return _sentences(l.noticeRaid(count: count, name: l10nMark(0)), [
+      readableNoticeName(name, notice.login),
+    ]);
+  }
+  return _twitchRaid(notice);
+}
+
+/// Twitch's raid sentence with the raiding channel's name in bold, or null
+/// when the name is not in it.
+List<NoticeSegment>? _twitchRaid(UserNotice notice) {
   final message = notice.systemMessage;
   final name = notice.raiderDisplayName;
   if (message.isEmpty || name == null) return null;

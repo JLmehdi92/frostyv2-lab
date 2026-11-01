@@ -87,3 +87,12 @@ String chatNameOf(String login, Iterable<IRCMessage> newestFirst) {
   }
   return login;
 }
+
+/// The header above the messages of someone timed out for [seconds], in
+/// [l]'s language: in English the seconds, as the chat always read
+/// ("Timed out for 600 seconds"); in another language the length worded
+/// like the timeout notices ([timeoutLength]: « Exclusion temporaire
+/// (10 minutes) »).
+String timedOutLabel(int seconds, AppLocalizations l) => l.localeName == 'en'
+    ? l.chatTimedOutFor(count: seconds)
+    : l.chatTimedOutForLength(duration: timeoutLength(seconds, l));

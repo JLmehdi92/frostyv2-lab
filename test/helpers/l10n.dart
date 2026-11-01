@@ -117,12 +117,46 @@ Future<void> pumpLocalized(
 /// least that French words differently, and that no French message holds
 /// as is ([_pieceChecks]): a short word French shares ("Message",
 /// "Points") cannot be told apart, and stays unchecked.
-List<String> englishLeaks(WidgetTester tester) => [
-  for (final text in shownTexts(tester))
-    if (_isEnglishLeak(text)) text,
-  for (final (:whole, :piece) in _spanPieces(tester))
-    if (!_isEnglishLeak(whole) && _isEnglishPiece(piece)) '$whole [$piece]',
-];
+///
+/// A text is also caught when it holds an English message of two words and
+/// eight letters at least that French never uses, inside French words with
+/// no separator around it ("Vous devez Log in to whisper"), and when it
+/// holds an English command word between brackets (`<color>`, `[reason]`
+/// in a French help line).
+///
+/// [content] is what the test put on screen as Twitch's or viewers' own
+/// words (a chat message, an IRC NOTICE kept as Twitch sends it, a stream
+/// title): never translated, so never a leak. Each is taken out of the
+/// texts it shows in before they are read, the rest of the line still
+/// checked ("bob: Reconnect", with "Reconnect" a viewer's message, leaves
+/// "bob: ").
+List<String> englishLeaks(
+  WidgetTester tester, {
+  Iterable<String> content = const [],
+}) {
+  final words = [
+    for (final text in content)
+      if (text.trim().isNotEmpty) text,
+  ]..sort((a, b) => b.length.compareTo(a.length));
+  String? app(String text) {
+    var rest = text;
+    for (final piece in words) {
+      rest = rest.replaceAll(piece, '\n');
+    }
+    return RegExp(r'\p{L}{2}', unicode: true).hasMatch(rest) ? rest : null;
+  }
+
+  return [
+    for (final text in shownTexts(tester))
+      if (app(text) case final shown? when _isEnglishLeak(shown)) text,
+    for (final (:whole, :piece) in _spanPieces(tester))
+      if (app(whole) case final shown?
+          when !_isEnglishLeak(shown) &&
+              app(piece) != null &&
+              _isEnglishPiece(app(piece)!.trim()))
+        '$whole [$piece]',
+  ];
+}
 
 /// Whether [text], shown on a French screen, is English (see
 /// [englishLeaks]), whole or in a piece. Worked out once per text: the
@@ -131,8 +165,28 @@ bool _isEnglishLeak(String text) => _leakVerdicts.putIfAbsent(
   text,
   () =>
       _findsEnglish(text, _leakChecks.checks, _leakChecks.anyEnglish) ||
-      textPieces(text).any((piece) => piece != text && _isEnglishPiece(piece)),
+      textPieces(
+        text,
+      ).any((piece) => piece != text && _isEnglishPiece(piece)) ||
+      _holdsEnglish(text),
 );
+
+/// Whether [text] holds, inside other words, an English message French
+/// never uses, or an English command word between brackets
+/// ([englishLeaks]).
+bool _holdsEnglish(String text) {
+  if (_leakChecks.frenchValues.contains(text)) return false;
+  if (_leakChecks.anyInline?.hasMatch(text) ?? false) return true;
+  for (final match in _bracketed.allMatches(text)) {
+    final word = (match[1] ?? match[2])!.trim().toLowerCase();
+    if (_leakChecks.commandWords.contains(word)) return true;
+  }
+  return false;
+}
+
+/// A word between angle or square brackets (`<color>`, `[reason]`): what a
+/// command's usage asks for.
+final _bracketed = RegExp(r'<([^<>\n]{2,30})>|\[([^\[\]\n]{2,30})\]');
 
 final _leakVerdicts = <String, bool>{};
 
@@ -206,6 +260,8 @@ final ({
   Set<String> frenchValues,
   RegExp? anyEnglish,
   RegExp? anyPiece,
+  RegExp? anyInline,
+  Set<String> commandWords,
 })
 _leakChecks = () {
   final english =
@@ -234,12 +290,36 @@ _leakChecks = () {
     unicode: true,
   ).hasMatch(frenchCorpus);
 
+  final frenchLower = {for (final value in frenchValues) value.toLowerCase()};
   final checks = <_LeakCheck>[];
   final pieceChecks = <_LeakCheck>[];
+  final inline = <String>{};
+  final commandWords = <String>{};
   for (final MapEntry(:key, :value) in english.entries) {
     if (key.startsWith('@') || value is! String) continue;
     // Shown as is in French too (an endonym): it cannot be told apart.
     if (frenchValues.contains(value)) continue;
+    // A word a command's usage shows between brackets ("color", "user").
+    if (!value.contains('{') &&
+        RegExp(r'^[a-z][a-z ]{1,28}$').hasMatch(value) &&
+        !frenchLower.contains(value)) {
+      commandWords.add(value);
+    }
+    // Fixed words of two or more and eight letters or more that no French
+    // text holds: found inside any text.
+    for (final variant in _variants(value)) {
+      for (final part in variant.split(_hole)) {
+        final words = part.replaceAll(
+          RegExp(r'^[\s\p{P}]+|[\s\p{P}]+$', unicode: true),
+          '',
+        );
+        if (RegExp(r'\p{L}+', unicode: true).allMatches(words).length >= 2 &&
+            RegExp(r'\p{L}', unicode: true).allMatches(words).length >= 8 &&
+            !inFrench(words)) {
+          inline.add(words);
+        }
+      }
+    }
     final englishPatterns = shownPatterns(value);
     if (englishPatterns.isEmpty) continue;
     final frenchPatterns = shownPatterns(french[key]! as String);
@@ -268,6 +348,14 @@ _leakChecks = () {
     frenchValues: frenchValues,
     anyEnglish: anyOf(checks),
     anyPiece: anyOf(pieceChecks),
+    anyInline: inline.isEmpty
+        ? null
+        : RegExp(
+            '(?<![\\p{L}\\d])(?:${[for (final words in inline) words.split(RegExp(r'\s+')).map(RegExp.escape).join(r'[\s\u00a0]+')].join('|')})(?![\\p{L}\\d])',
+            caseSensitive: false,
+            unicode: true,
+          ),
+    commandWords: commandWords,
   );
 }();
 
@@ -454,16 +542,22 @@ int _closing(String text, int open) {
 /// The texts [tester]'s screen draws cut off without showing it: a
 /// paragraph whose box is shorter than the lines it lays out (a banner of
 /// fixed height under a two-line subtitle: the second line is cut in
-/// half), or one that goes past its lines or its width with nothing drawn
-/// to say so (`TextOverflow.clip`, the default). An ellipsis is visible,
-/// so a text ending in one passes, unless its box is too short too.
+/// half), even squeezed under a pixel; one that goes past its lines or its
+/// width with nothing drawn to say so (`TextOverflow.clip`, the default);
+/// and one whose lines an ancestor cuts off: a `ClipRect` (or rounded or
+/// path clip) around an `OverflowBox` or an `Align` with a `heightFactor`
+/// (what `SizeTransition` does), or a scroll view of fixed size that the
+/// viewer cannot scroll. A text an ancestor hides whole (a collapsed
+/// section) is not shown, so not cut. An ellipsis is visible, so a text
+/// ending in one passes, unless its box is too short too
+/// ([ellipsizedTexts] finds those where losing words is not acceptable).
 ///
 /// Each is described with what it needs and what it has.
 List<String> clippedTexts(WidgetTester tester) => [
   for (final element in find.byType(RichText).evaluate())
     if (element.renderObject case final RenderParagraph paragraph
-        when paragraph.hasSize && paragraph.size.height >= 1)
-      ?_clipOf(paragraph),
+        when paragraph.hasSize && paragraph.size.height > 0)
+      ?(_clipOf(paragraph) ?? _ancestorClipOf(element, paragraph)),
 ];
 
 String? _clipOf(RenderParagraph paragraph) {
@@ -489,6 +583,127 @@ String? _clipOf(RenderParagraph paragraph) {
   return null;
 }
 
+/// Whether [text] is words (an icon is one private-use glyph).
+final _hasWords = RegExp(r'[\p{L}\p{N}]', unicode: true);
+
+/// The first ancestor of [element]'s [paragraph] that cuts its lines off
+/// in part ([clippedTexts]), described; null when none does.
+String? _ancestorClipOf(Element element, RenderParagraph paragraph) {
+  final text = paragraph.text.toPlainText();
+  if (!_hasWords.hasMatch(text)) return null;
+  // Where the lines are drawn: the glyphs, not the whole box.
+  final boxes = paragraph.getBoxesForSelection(
+    TextSelection(
+      baseOffset: 0,
+      extentOffset: paragraph.text
+          .toPlainText(includeSemanticsLabels: false)
+          .length,
+    ),
+  );
+  if (boxes.isEmpty) return null;
+  var lines = boxes.first.toRect();
+  for (final box in boxes.skip(1)) {
+    lines = lines.expandToInclude(box.toRect());
+  }
+  // Within its own box (a line's trailing space may hang past it; a box
+  // too short is _clipOf's).
+  lines = lines.intersect(Offset.zero & paragraph.size);
+  if (lines.width <= 0 || lines.height <= 0) return null;
+  // Only what draws the paragraph: an overlay's content (a menu) has
+  // elements under its anchor, its render objects elsewhere.
+  final drawnBy = <RenderObject>{};
+  for (
+    RenderObject? node = paragraph.parent;
+    node != null;
+    node = node.parent
+  ) {
+    drawnBy.add(node);
+  }
+  String? found;
+  void check(RenderBox clip, String what) {
+    if (found != null || !clip.hasSize || !drawnBy.contains(clip)) return;
+    final shown = MatrixUtils.transformRect(
+      paragraph.getTransformTo(clip),
+      lines,
+    );
+    final room = Offset.zero & clip.size;
+    final kept = shown.intersect(room);
+    // Hidden whole (a collapsed section): not on screen, not cut.
+    if (kept.width <= 0.5 || kept.height <= 0.5) return;
+    if (kept.height + 0.5 < shown.height || kept.width + 0.5 < shown.width) {
+      found =
+          '"$text": ${shown.width.toStringAsFixed(1)}×'
+          '${shown.height.toStringAsFixed(1)} px of lines, '
+          '${kept.width.toStringAsFixed(1)}×'
+          '${kept.height.toStringAsFixed(1)} px left by $what';
+    }
+  }
+
+  element.visitAncestorElements((ancestor) {
+    // A section still opening or closing is cut for a moment only.
+    if (ancestor.widget case SizeTransition(
+      :final sizeFactor,
+    ) when sizeFactor.isAnimating && drawnBy.contains(ancestor.renderObject)) {
+      return false;
+    }
+    // In a list the viewer scrolls, what is cut is scrolled out of sight:
+    // nothing above it is checked.
+    if (ancestor case StatefulElement(:final ScrollableState state)
+        when drawnBy.contains(state.context.findRenderObject()) &&
+            state.position.hasContentDimensions &&
+            state.position.physics.shouldAcceptUserOffset(state.position)) {
+      return false;
+    }
+    final render = ancestor.renderObject;
+    if (render is! RenderBox || identical(render, paragraph)) return true;
+    switch (render) {
+      case RenderClipRect(:final clipBehavior) ||
+              RenderClipRRect(:final clipBehavior) ||
+              RenderClipPath(:final clipBehavior) ||
+              RenderClipOval(:final clipBehavior)
+          when clipBehavior != Clip.none:
+        check(
+          render,
+          'a ${render.runtimeType} (${ancestor.widget.runtimeType})',
+        );
+      case RenderAbstractViewport()
+          when ancestor is StatefulElement && ancestor.state is ScrollableState:
+        break;
+      case RenderAbstractViewport():
+        final scrollable = ancestor.findAncestorStateOfType<ScrollableState>();
+        if (scrollable != null &&
+            scrollable.position.hasContentDimensions &&
+            !scrollable.position.physics.shouldAcceptUserOffset(
+              scrollable.position,
+            )) {
+          check(render, 'a scroll view the viewer cannot scroll');
+        }
+    }
+    return found == null;
+  });
+  return found;
+}
+
+/// The texts [tester]'s screen ends with an ellipsis: words lost where
+/// losing them is not acceptable (a banner's subtitle, a countdown at the
+/// end of a one-line bar, the channel's name in a placeholder). [within]
+/// limits the search to part of the screen.
+List<String> ellipsizedTexts(WidgetTester tester, {Finder? within}) => [
+  for (final element
+      in (within == null
+              ? find.byType(RichText)
+              : find.descendant(of: within, matching: find.byType(RichText)))
+          .evaluate())
+    if (element.renderObject case final RenderParagraph paragraph
+        when paragraph.hasSize &&
+            paragraph.overflow == TextOverflow.ellipsis &&
+            (paragraph.didExceedMaxLines ||
+                (!paragraph.softWrap &&
+                    paragraph.getMaxIntrinsicWidth(double.infinity) >
+                        paragraph.size.width + 0.5)))
+      '"${paragraph.text.toPlainText()}" ends in an ellipsis',
+];
+
 /// The windows every French screen is checked in: two phones, a landscape
 /// and a portrait tablet.
 const frenchScreenSizes = [
@@ -511,8 +726,14 @@ const frenchTextScales = [1.0, 1.3];
 /// No overflow (nor any other exception), no English ([englishLeaks]) and
 /// no text cut off without an ellipsis ([clippedTexts]) on what [tester]'s
 /// screen shows, then on what each vertical list shows
-/// when scrolled to its end. [where] names the screen in failures.
-Future<void> expectFrenchThroughout(WidgetTester tester, String where) async {
+/// when scrolled to its end. [where] names the screen in failures;
+/// [content] is Twitch's or viewers' own words the screen shows
+/// ([englishLeaks]).
+Future<void> expectFrenchThroughout(
+  WidgetTester tester,
+  String where, {
+  Iterable<String> content = const [],
+}) async {
   void check(String step) {
     final exception = tester.takeException();
     expect(
@@ -522,7 +743,11 @@ Future<void> expectFrenchThroughout(WidgetTester tester, String where) async {
           '$where, $step\n'
           '${exception is FlutterError ? exception.toStringDeep() : ''}',
     );
-    expect(englishLeaks(tester), isEmpty, reason: '$where, $step');
+    expect(
+      englishLeaks(tester, content: content),
+      isEmpty,
+      reason: '$where, $step',
+    );
     expect(clippedTexts(tester), isEmpty, reason: '$where, $step');
   }
 

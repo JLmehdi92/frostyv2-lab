@@ -4658,7 +4658,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatShortMinutesSeconds({required int minutes, required int seconds}) {
-    return '$minutes min $seconds s';
+    return '$minutes min $seconds s';
   }
 
   @override
@@ -4668,7 +4668,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatShortHoursMinutes({required int hours, required int minutes}) {
-    return '$hours h $minutes min';
+    return '$hours h $minutes min';
   }
 
   @override
@@ -4775,12 +4775,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatWhisperNoUser({required String login}) {
-    return 'Impossible de chuchoter : aucun utilisateur nommé $login.';
+    return 'Impossible de chuchoter. Aucun utilisateur nommé $login.';
   }
 
   @override
   String chatWhisperFailedBecause({required String reason}) {
-    return 'Impossible de chuchoter : $reason';
+    return 'Impossible de chuchoter. $reason';
   }
 
   @override
@@ -4844,7 +4844,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chatCommandArgSeconds => 'secondes';
 
   @override
-  String get chatCommandArgMessageId => 'id du message';
+  String get chatCommandArgMessageId => 'ID du message';
 
   @override
   String chatCommandDescription({required String command}) {
@@ -4863,15 +4863,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'warn': 'Avertir un utilisateur',
       'delete': 'Supprimer un message',
       'clear': 'Supprimer tous les messages',
-      'slow': 'Mode lent (30s par défaut)',
+      'slow': 'Activer le mode lent (30s par défaut)',
       'slowoff': 'Désactiver le mode lent',
-      'followers': 'Mode followers uniquement (m, h, d, w, mo)',
+      'followers': 'Activer le mode followers uniquement (m, h, d, w, mo)',
       'followersoff': 'Désactiver le mode followers uniquement',
-      'subscribers': 'Mode abonnés uniquement',
+      'subscribers': 'Activer le mode abonnés uniquement',
       'subscribersoff': 'Désactiver le mode abonnés uniquement',
-      'emoteonly': 'Mode emotes uniquement',
+      'emoteonly': 'Activer le mode emotes uniquement',
       'emoteonlyoff': 'Désactiver le mode emotes uniquement',
-      'uniquechat': 'Mode chat unique (pas de messages répétés)',
+      'uniquechat': 'Activer le mode chat unique (pas de messages répétés)',
       'uniquechatoff': 'Désactiver le mode chat unique',
       'other': '',
     });
@@ -4885,7 +4885,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatCommandBadLength({required String length}) {
-    return 'Durée inconnue « $length ». Utilisez par exemple 30, 10m, 2h, 1d ou 1w.';
+    return 'Durée non reconnue : « $length ». Utilisez par exemple 30, 10m, 2h, 1d ou 1w.';
   }
 
   @override
@@ -4902,7 +4902,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatCommandUnknownColor =>
-      'Couleur inconnue. Essayez par exemple blue, coral, hotpink… ou #RRGGBB (Turbo ou Prime).';
+      'Couleur inconnue. Essayez blue, coral, hotpink… ou #RRGGBB (Turbo ou Prime).';
 
   @override
   String chatCommandNotInApp({required String command}) {
@@ -4951,7 +4951,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatModeFollowersOn({required String duration}) {
-    return 'Mode followers uniquement activé (followers depuis $duration).';
+    return 'Mode followers uniquement activé (followers depuis au moins $duration).';
   }
 
   @override
@@ -4976,7 +4976,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'uniqueChatOff': 'de désactiver le mode chat unique',
       'other': 'd’effectuer cette action',
     });
-    return 'Impossible $_temp0 : $reason';
+    return 'Impossible $_temp0. $reason';
   }
 
   @override
@@ -5009,8 +5009,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Twitch indique que vous ne pouvez pas modérer ce chat.';
 
   @override
+  String chatTwitchReason({required String reason}) {
+    return 'Raison de Twitch : « $reason »';
+  }
+
+  @override
   String chatModNoUser({required String login}) {
-    return 'aucun utilisateur nommé $login';
+    return 'Aucun utilisateur nommé $login.';
   }
 
   @override
@@ -5070,20 +5075,19 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get chatRestrictionBanned =>
-      'Votre compte est banni définitivement de ce chat';
+  String get chatRestrictionBanned => 'Bannissement définitif de ce chat';
 
   @override
-  String get chatRestrictionTimedOut => 'Votre compte est exclu temporairement';
+  String get chatRestrictionTimedOut => 'Exclusion temporaire';
 
   @override
   String chatRestrictionTimedOutFor({required String wait}) {
-    return 'Votre compte est exclu temporairement · $wait';
+    return 'Exclusion temporaire · $wait';
   }
 
   @override
   String chatRestrictionSlow({required String wait}) {
-    return 'Mode lent · vous pourrez écrire à nouveau dans $wait';
+    return 'Mode lent · encore $wait';
   }
 
   @override
@@ -5097,7 +5101,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatRestrictionFollowersFor({required int minutes}) {
-    return 'Mode followers uniquement · follower depuis $minutes min au moins';
+    return 'Followers depuis $minutes min';
   }
 
   @override
@@ -5119,7 +5123,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatSentFromCurrent({required String name}) {
-    return 'Envoyé depuis la chaîne $name (chaîne actuelle)';
+    return 'Envoyé depuis la chaîne $name (celle-ci)';
   }
 
   @override
@@ -5205,10 +5209,15 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String chatTimedOutForLength({required String duration}) {
+    return 'Exclusion temporaire ($duration)';
+  }
+
+  @override
   String get chatAnnouncement => 'Annonce';
 
   @override
-  String get chatMessageOptionsHint => 'options du message';
+  String get chatMessageOptionsHint => 'afficher les options du message';
 
   @override
   String get chatCopyMessageHint => 'copier le message';
@@ -5229,7 +5238,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chatEnterMessage => 'Envoyer un message';
 
   @override
-  String get chatCannotChatNow => 'Vous ne pouvez pas discuter pour le moment';
+  String get chatCannotChatNow => 'Envoi impossible pour l’instant';
 
   @override
   String get chatInputDisconnected => 'Chat déconnecté';
@@ -5245,7 +5254,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatReplyIn({required String name}) {
-    return 'Répondre · $name';
+    return 'Réponse · $name';
   }
 
   @override
@@ -5253,17 +5262,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatInChannelDelayed({required String name, required int seconds}) {
-    return 'Envoyer un message · $name ($seconds s de délai)';
+    return '$name · délai $seconds s';
   }
 
   @override
   String chatDelayed({required int seconds}) {
-    return 'Envoyer un message ($seconds s de délai)';
+    return 'Chat · délai $seconds s';
   }
 
   @override
   String chatInChannel({required String name}) {
-    return 'Envoyer un message · $name';
+    return 'Chat · $name';
   }
 
   @override
@@ -5660,6 +5669,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chatModBarTimeout => 'Exclure temporairement';
 
   @override
+  String get chatModBarTimeoutShort => 'Exclure';
+
+  @override
   String get chatModBarUnban => 'Débannir';
 
   @override
@@ -5688,7 +5700,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pointsStreakNote =>
-      'C’est Twitch qui compte les séries : regarder dans cette application peut ne pas compter.';
+      'C’est Twitch qui gère les séries : regarder dans cette application peut ne pas compter.';
 
   @override
   String get pointsBonusBlocked =>
@@ -5752,8 +5764,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String pointsBetAmount({required String points}) {
-    return 'Miser $points';
+  String pointsBetAmount({required String points, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Miser $points points',
+      one: 'Miser $points point',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -5801,7 +5819,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'highlight': 'Mettre mon message en avant',
       'randomEmote': 'Débloquer une emote d’abonné au hasard',
       'chosenEmote': 'Choisir une emote à débloquer',
-      'modifiedEmote': 'Modifier une emote',
+      'modifiedEmote': 'Modifier une seule emote',
       'subOnlyMessage': 'Envoyer un message en mode abonnés uniquement',
       'other': '',
     });
@@ -5834,7 +5852,7 @@ class AppLocalizationsFr extends AppLocalizations {
     required int minutes,
     required int seconds,
   }) {
-    return 'Regardez la chaîne $name dans les $hours h $minutes min $seconds s pour sauver votre série !';
+    return 'Regardez la chaîne $name dans les $hours h $minutes min $seconds s pour sauver votre série !';
   }
 
   @override
@@ -5912,7 +5930,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'twitchFollower': 'Emote de follower Twitch',
       'twitchSub': 'Emote d’abonné Twitch',
       'twitchGlobal': 'Emote globale Twitch',
-      'twitchUnlocked': 'Emote débloquée Twitch',
+      'twitchUnlocked': 'Emote Twitch débloquée',
       'twitchChannel': 'Emote de chaîne Twitch',
       'ffzGlobal': 'Emote globale FrankerFaceZ',
       'ffzChannel': 'Emote de chaîne FrankerFaceZ',
@@ -5971,15 +5989,15 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       months,
       locale: localeName,
-      other: 'Abonnement depuis $months mois, série de $streak mois en cours !',
-      one: 'Abonnement depuis $months mois, série de $streak mois en cours !',
+      other: '$months mois d’abonnement, série de $streak mois en cours !',
+      one: '$months mois d’abonnement, série de $streak mois en cours !',
     );
     return '$_temp0';
   }
 
   @override
   String noticeSubMonths({required int months}) {
-    return 'Abonnement depuis $months mois !';
+    return '$months mois d’abonnement !';
   }
 
   @override
@@ -6042,7 +6060,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String noticeGiftCount({required int count}) {
-    return 'Au total, $count abonnements offerts sur la chaîne !';
+    return 'Son total sur la chaîne : $count abonnements offerts !';
   }
 
   @override
@@ -6087,7 +6105,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String noticeCommunityGiftTotal({required int count}) {
-    return 'Au total, $count abonnements offerts sur la chaîne !';
+    return 'Son total sur la chaîne : $count abonnements offerts !';
   }
 
   @override
@@ -6102,6 +6120,21 @@ class AppLocalizationsFr extends AppLocalizations {
           '$name a prolongé son abonnement de niveau $tier jusqu’en $month !',
       'other': '$name a prolongé son abonnement jusqu’en $month !',
     });
+    return '$_temp0';
+  }
+
+  @override
+  String noticeRaid({required String name, required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name lance un raid avec $countString spectateurs !',
+      one: '$name lance un raid avec $countString spectateur !',
+    );
     return '$_temp0';
   }
 }

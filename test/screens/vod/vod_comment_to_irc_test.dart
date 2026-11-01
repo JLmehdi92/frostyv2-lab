@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/vod_comment.dart';
 import 'package:onset/screens/vod/vod_comment_to_irc.dart';
@@ -153,8 +155,15 @@ void main() {
     );
 
     expect(m.user, 'deleted_user');
-    expect(m.tags['display-name'], 'Deleted user');
+    // Data in no language: the name is worded where it shows.
+    expect(m.tags['display-name'], 'deleted_user');
     expect(m.tags.containsKey('user-id'), isFalse);
+    expect(m.isFromDeletedUser, isTrue);
+    expect(m.shownDisplayName(L10n.english), 'Deleted user');
+    expect(
+      m.shownDisplayName(lookupAppLocalizations(const Locale('fr'))),
+      'Utilisateur supprimé',
+    );
   });
 
   test('a login that is not a Twitch login is treated as deleted', () {

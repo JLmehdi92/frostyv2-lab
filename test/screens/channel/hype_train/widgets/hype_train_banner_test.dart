@@ -11,6 +11,7 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_progress_bar.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_split_color.dart';
 
+import '../../../../helpers/l10n.dart' show ellipsizedTexts;
 import 'hype_train_widget_harness.dart';
 
 const _step = 'ht-step-';
@@ -400,7 +401,7 @@ void main() {
       await h.close(tester);
     });
 
-    testWidgets('compact: no title, the train name as one line', (
+    testWidgets('compact: no title, the train name as its line, every word', (
       tester,
     ) async {
       final h = running(tester);
@@ -418,8 +419,15 @@ void main() {
         find.byKey(const ValueKey('ht-subtitle')),
       );
       expect(subtitle.data, 'Hype Train');
-      expect(subtitle.maxLines, 1);
-      expect(tester.getSize(_banner).height, lessThan(74));
+      // Shrunk, then wrapped on a narrow banner, never cut.
+      expect(subtitle.maxLines, lessThanOrEqualTo(2));
+      expect(
+        ellipsizedTexts(
+          tester,
+          within: find.byKey(const ValueKey('ht-subtitle')),
+        ),
+        isEmpty,
+      );
       await h.close(tester);
     });
 
@@ -443,7 +451,9 @@ void main() {
       expect(find.byType(HypeTrainLevelPill), findsNothing);
       expect(find.byKey(const ValueKey('ht-title')), findsNothing);
       expect(find.text(HtCopy(L10n.english).athApproaching), findsOneWidget);
-      expect(tester.getSize(_banner).height, 74);
+      // At least the 74 dp base, taller when the line wraps (every word
+      // in the app's font: hype_train_banner_fit_test).
+      expect(tester.getSize(_banner).height, greaterThanOrEqualTo(74));
       await h.close(tester);
     });
 

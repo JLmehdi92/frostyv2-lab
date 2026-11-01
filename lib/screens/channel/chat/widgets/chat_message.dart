@@ -11,6 +11,7 @@ import 'package:onset/models/user_notice.dart';
 import 'package:onset/models/user_notice_presentation.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/chat_filters.dart';
+import 'package:onset/screens/channel/chat/moderation_notice.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_link_card.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
@@ -526,9 +527,7 @@ class ChatMessage extends StatelessWidget {
                       )
                   else
                     Text(
-                      context.l10n.chatTimedOutFor(
-                        count: int.parse(banDuration),
-                      ),
+                      timedOutLabel(int.parse(banDuration), context.l10n),
                       style: const TextStyle(
                         fontWeight: messageHeaderFontWeight,
                       ),

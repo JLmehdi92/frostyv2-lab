@@ -455,6 +455,184 @@ void main() {
     expect(await clipsOf(const Text(long)), isEmpty);
   });
 
+  testWidgets('catches English inside French with no separator, and '
+      'English command words in a French help line (the phase 5 review\'s '
+      'plants)', (tester) async {
+    expect(
+      await leaksOf(tester, const [Text('Vous devez Log in to whisper')]),
+      ['Vous devez Log in to whisper'],
+    );
+    expect(
+      await leaksOf(tester, const [
+        Text('Commandes : /me <message>, /color <color>, /block <user>'),
+      ]),
+      isNotEmpty,
+    );
+    expect(
+      await leaksOf(tester, const [Text('/ban <utilisateur> [reason]')]),
+      isNotEmpty,
+    );
+    // The French help line passes: « message » is the same word.
+    expect(
+      await leaksOf(tester, [
+        Text(
+          french.chatHelpCommands(
+            commands:
+                '/me <${french.chatCommandArgMessage}>, /color '
+                '<${french.chatCommandArgColor}>, /ban '
+                '<${french.chatCommandArgUser}> '
+                '[${french.chatCommandArgReason}]',
+          ),
+        ),
+      ]),
+      isEmpty,
+    );
+  });
+
+  testWidgets('passes chat content marked as such: a viewer\'s English '
+      'message, an IRC NOTICE as Twitch sends it', (tester) async {
+    const notice =
+        'This room is now in slow mode. You may send messages every 30 '
+        'seconds.';
+    const shown = [
+      Text(notice),
+      Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: 'bob'),
+            TextSpan(text: ': '),
+            TextSpan(text: 'Reconnect'),
+          ],
+        ),
+      ),
+    ];
+    // Unmarked, they read as English.
+    expect(await leaksOf(tester, shown), isNotEmpty);
+    expect(englishLeaks(tester, content: const [notice, 'Reconnect']), isEmpty);
+    // What the app wrote around the content is still read.
+    await leaksOf(tester, [
+      Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: english.chatReconnect),
+            const TextSpan(text: ' · '),
+            const TextSpan(text: 'Kappa 14 months!'),
+          ],
+        ),
+      ),
+    ]);
+    expect(
+      englishLeaks(tester, content: const ['Kappa 14 months!']),
+      isNotEmpty,
+    );
+  });
+
+  testWidgets('clippedTexts finds a text an ancestor cuts off, and a box '
+      'squeezed under a pixel (the phase 5 review\'s plants)', (tester) async {
+    const long = 'Une phrase assez longue pour deux lignes';
+    final planted = <String, Widget>{
+      'a ClipRect around an OverflowBox': const SizedBox(
+        width: 120,
+        height: 16,
+        child: ClipRect(
+          child: OverflowBox(
+            maxHeight: double.infinity,
+            alignment: Alignment.topLeft,
+            child: Text(long),
+          ),
+        ),
+      ),
+      'a scroll view of fixed height the viewer cannot scroll': const SizedBox(
+        width: 120,
+        height: 16,
+        child: SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          child: Text(long),
+        ),
+      ),
+      'a ClipRect around an Align with a heightFactor': const SizedBox(
+        width: 120,
+        child: ClipRect(
+          child: Align(
+            alignment: Alignment.topLeft,
+            heightFactor: 0.5,
+            child: Text(long),
+          ),
+        ),
+      ),
+      'a SizeTransition half open': SizeTransition(
+        sizeFactor: const AlwaysStoppedAnimation(0.5),
+        axisAlignment: -1,
+        child: const SizedBox(width: 120, child: Text(long)),
+      ),
+      'a box squeezed to half a pixel': const SizedBox(
+        width: 120,
+        height: 0.5,
+        child: Text('Abonnements'),
+      ),
+    };
+    for (final MapEntry(key: where, value: widget) in planted.entries) {
+      await pumpLocalized(
+        tester,
+        Scaffold(
+          body: Align(alignment: Alignment.topLeft, child: widget),
+        ),
+      );
+      tester.takeException();
+      expect(clippedTexts(tester), isNotEmpty, reason: where);
+    }
+    // What a viewer can scroll to, or what is hidden whole, is not cut.
+    final fine = <String, Widget>{
+      'a scroll view the viewer can scroll': const SizedBox(
+        width: 120,
+        height: 16,
+        child: SingleChildScrollView(child: Text(long)),
+      ),
+      'a collapsed SizeTransition': SizeTransition(
+        sizeFactor: const AlwaysStoppedAnimation(0),
+        child: const SizedBox(width: 120, child: Text(long)),
+      ),
+      'a ClipRect with room': const SizedBox(
+        width: 120,
+        child: ClipRect(child: Text(long)),
+      ),
+    };
+    for (final MapEntry(key: where, value: widget) in fine.entries) {
+      await pumpLocalized(
+        tester,
+        Scaffold(
+          body: Align(alignment: Alignment.topLeft, child: widget),
+        ),
+      );
+      expect(clippedTexts(tester), isEmpty, reason: where);
+    }
+  });
+
+  testWidgets('ellipsizedTexts finds words lost to an ellipsis, and only '
+      'those', (tester) async {
+    const long = 'Atteignez le niveau 5 et le chat recevra aussi des emotes !';
+    await pumpLocalized(
+      tester,
+      const Scaffold(
+        body: Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 120,
+            child: Column(
+              children: [
+                Text(long, maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(long, softWrap: false, overflow: TextOverflow.ellipsis),
+                Text('Court', maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(long),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(ellipsizedTexts(tester), hasLength(2));
+  });
+
   testWidgets('passes what French writes as English does: an endonym, data', (
     tester,
   ) async {

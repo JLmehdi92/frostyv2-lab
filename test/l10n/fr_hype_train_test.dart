@@ -143,6 +143,14 @@ void main() {
           await tester.pump();
           final where = '$name, $sizeName, ×$scale';
           await expectFrenchThroughout(tester, where);
+          // The train's name and the subtitle never lose a word.
+          for (final key in ['ht-title', 'ht-subtitle']) {
+            expect(
+              ellipsizedTexts(tester, within: find.byKey(ValueKey(key))),
+              isEmpty,
+              reason: '$where, $key',
+            );
+          }
           // The start's steps, then a large gift and a level up.
           await play(tester, const Duration(seconds: 4), '$where, start');
           h.inject(htSmall(16500, level: train.level, isLarge: true));

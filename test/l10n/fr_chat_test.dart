@@ -16,6 +16,7 @@ import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/watch_streak.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/chat_restrictions.dart';
 import 'package:onset/screens/channel/chat/details/chat_details.dart';
 import 'package:onset/screens/channel/chat/details/chat_mode_controls.dart';
 import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
@@ -26,6 +27,7 @@ import 'package:onset/screens/channel/chat/widgets/channel_points_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -251,9 +253,10 @@ void main() {
     return [
       for (final raw in [
         userNoticeSubscription,
-        // The viewer's own message, in French (it is theirs, not the app's).
-        resubStreak.replaceFirst(':Kappa 14 months!', ':Kappa 14 mois !'),
-        resubHiddenStreak.replaceFirst(':Kappa 14 months!', ':Kappa 14 mois !'),
+        // The viewer's own message, in English: theirs, not the app's
+        // (marked as content where the lines are checked).
+        resubStreak,
+        resubHiddenStreak,
         primeSub,
         subGift,
         multiMonthGift,
@@ -262,6 +265,8 @@ void main() {
         anonymousMassGift,
         extendSub,
         raidNotice,
+        // An IRC NOTICE, shown as Twitch sends it (English, its words).
+        '@msg-id=slow_on :tmi.twitch.tv NOTICE #channel :$_slowNotice',
         // A tier Twitch does not name, a gift of months without a tier.
         '@display-name=Fan;login=fan;id=n1;msg-id=sub;msg-param-sub-plan=x;'
             'system-msg=Fan\\ssubscribed.;tmi-sent-ts=1700000000300 '
@@ -318,7 +323,11 @@ void main() {
           textScale: scale,
         );
         await tester.pump();
-        await expectFrenchThroughout(tester, 'chat lines, $at');
+        await expectFrenchThroughout(
+          tester,
+          'chat lines, $at',
+          content: const ['14 months!', _slowNotice],
+        );
       });
 
       testWidgets('the input: commands, reply, counter, $at', (tester) async {
@@ -382,6 +391,157 @@ void main() {
         expect(find.textContaining('/ban'), findsWidgets);
       });
 
+      testWidgets('the input\'s placeholders and the restriction bar keep '
+          'their values in sight, $at', (tester) async {
+        // What each one shows, and the value it must never lose to an
+        // ellipsis (the channel's name, the delay, the follow age, the
+        // countdown). The banned line has none: the bar shows it whole.
+        final cases =
+            <
+              String,
+              ({
+                ChatRestriction? Function() restriction,
+                bool reply,
+                double delay,
+                List<Pattern> values,
+              })
+            >{
+              'named': (
+                restriction: () => null,
+                reply: false,
+                delay: 0,
+                values: [french.chatInChannel(name: 'Streamer')],
+              ),
+              'delayed': (
+                restriction: () => null,
+                reply: false,
+                delay: 5,
+                values: [
+                  french.chatInChannelDelayed(name: 'Streamer', seconds: 5),
+                ],
+              ),
+              'reply': (
+                restriction: () => null,
+                reply: true,
+                delay: 0,
+                values: [french.chatReplyIn(name: 'Streamer')],
+              ),
+              'followers for a while': (
+                restriction: () => const ChatRestriction(
+                  ChatRestrictionKind.followersOnly,
+                  minutes: 10,
+                ),
+                reply: false,
+                delay: 0,
+                values: [french.chatRestrictionFollowersFor(minutes: 10)],
+              ),
+              'timed out': (
+                restriction: () => ChatRestriction(
+                  ChatRestrictionKind.timedOut,
+                  until: DateTime.now().add(
+                    const Duration(minutes: 4, seconds: 30),
+                  ),
+                ),
+                reply: false,
+                delay: 0,
+                values: [RegExp(r'^Exclusion temporaire · 4:[0-3]\d$')],
+              ),
+              'slow mode': (
+                restriction: () => ChatRestriction(
+                  ChatRestrictionKind.slowMode,
+                  until: DateTime.now().add(const Duration(seconds: 30)),
+                ),
+                reply: false,
+                delay: 0,
+                values: [RegExp(r'^Mode lent · encore [23]\d\u00a0s$')],
+              ),
+              'banned': (
+                restriction: () =>
+                    const ChatRestriction(ChatRestrictionKind.banned),
+                reply: false,
+                delay: 0,
+                values: [french.chatRestrictionBanned],
+              ),
+            };
+        for (final MapEntry(key: name, value: setup) in cases.entries) {
+          final chat = fakeChatStore();
+          final text = TextEditingController();
+          final focus = FocusNode();
+          addTearDown(text.dispose);
+          addTearDown(focus.dispose);
+          final auth = _MockAuthStore();
+          when(() => auth.isLoggedIn).thenReturn(true);
+          when(() => chat.auth).thenReturn(auth);
+          final assets = chat.assetsStore;
+          when(() => assets.userEmoteToObject).thenReturn({});
+          when(() => chat.matchingEmotes).thenReturn(const []);
+          when(() => chat.matchingChatters).thenReturn(const []);
+          when(() => chat.matchingCommands).thenReturn(const []);
+          when(() => chat.showEmoteAutocomplete).thenReturn(false);
+          when(() => chat.showMentionAutocomplete).thenReturn(false);
+          when(() => chat.expandChat).thenReturn(true);
+          when(() => chat.restriction).thenReturn(setup.restriction());
+          when(() => chat.replyingToMessage).thenReturn(
+            setup.reply ? IRCMessage.fromString(basicPrivmsg) : null,
+          );
+          when(() => chat.isWaitingForAck).thenReturn(false);
+          when(() => chat.isConnected).thenReturn(true);
+          when(() => chat.hasConnected).thenReturn(true);
+          when(() => chat.textFieldFocusNode).thenReturn(focus);
+          when(() => chat.textController).thenReturn(text);
+          when(() => chat.showSendButton).thenReturn(false);
+          when(() => chat.settings).thenReturn(
+            SettingsStore.fromJson({})
+              ..showVideo = true
+              ..autoSyncChatDelay = false
+              ..chatDelay = setup.delay,
+          );
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: ChatBottomBar(
+                  chatStore: chat,
+                  onAddChat: () {},
+                  channelDisplayName: 'Streamer',
+                ),
+              ),
+            ),
+            size: size,
+            textScale: scale,
+            wrap: (app) =>
+                Provider<ChannelEventsStore?>.value(value: null, child: app),
+          );
+          await tester.pump();
+          final where = '$name, $at';
+          await expectFrenchThroughout(tester, 'input, $where');
+          // The one-line bar above the input never loses words; nor does
+          // the placeholder when it carries a value.
+          final bar = find.byType(ChatRestrictionBar);
+          expect(ellipsizedTexts(tester, within: bar), isEmpty, reason: where);
+          if (setup.restriction()?.showsBar != true) {
+            expect(ellipsizedTexts(tester), isEmpty, reason: where);
+          }
+          final shown = [
+            for (final element in find.byType(RichText).evaluate())
+              (element.widget as RichText).text.toPlainText(),
+          ];
+          for (final value in setup.values) {
+            expect(
+              shown.any(
+                (text) => value is String
+                    ? text == value
+                    : value.allMatches(text).isNotEmpty,
+              ),
+              isTrue,
+              reason: '$where: $value in $shown',
+            );
+          }
+          await tester.pumpWidget(const SizedBox.shrink());
+        }
+      });
+
       testWidgets('the moderation bar and its dialog, $at', (tester) async {
         final answer = Completer<ModerationOutcome?>();
         await pumpLocalized(
@@ -400,7 +560,10 @@ void main() {
           textScale: scale,
         );
         await expectFrenchThroughout(tester, 'moderation bar, $at');
-        await tester.tap(find.text(french.chatModBarTimeout));
+        // « Exclure » on screen, the full words for a screen reader.
+        expect(find.text(french.chatModBarTimeoutShort), findsOneWidget);
+        expect(find.bySemanticsLabel(french.chatModBarTimeout), findsOneWidget);
+        await tester.tap(find.text(french.chatModBarTimeoutShort));
         await tester.pumpAndSettle();
         await expectFrenchThroughout(tester, 'timeout lengths, $at');
         await tester.tapAt(Offset.zero);
@@ -742,7 +905,7 @@ void main() {
       containsAll([
         '/ban <utilisateur> [motif]',
         '/timeout <utilisateur> [durée] [motif]',
-        '/delete <id du message>',
+        '/delete <ID\u00a0du\u00a0message>',
         '/slow [secondes]',
       ]),
     );
@@ -755,3 +918,7 @@ void main() {
     }
   });
 }
+
+/// An IRC NOTICE as Twitch sends it: its words, never translated.
+const _slowNotice =
+    'This room is now in slow mode. You may send messages every 30 seconds.';

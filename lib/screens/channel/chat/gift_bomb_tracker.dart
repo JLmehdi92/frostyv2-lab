@@ -94,7 +94,9 @@ class GiftBomb {
   );
 
   @override
-  String toString() => 'GiftBomb($key, $gifterName, $count, $received)';
+  String toString() =>
+      'GiftBomb($key, ${isAnonymous ? '(anonymous)' : gifterName}, $count, '
+      '$received)';
 }
 
 /// A gift bomb pinned above chat, from [startedAt] until [endsAt] (Twitch

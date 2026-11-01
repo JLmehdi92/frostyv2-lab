@@ -14,6 +14,7 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:provider/provider.dart';
 
 import '../../helpers/fake_player.dart';
+import '../../helpers/l10n.dart' show loadInter;
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -95,9 +96,11 @@ void main() {
     );
 
     testWidgets('the channel, what it streams, and Follow', (tester) async {
+      // The app's font, so the line is measured as on a device.
+      await tester.runAsync(loadInter);
       var opened = 0;
       for (final dark in [true, false]) {
-        for (final width in [390.0, 320.0]) {
+        for (final width in [390.0, 360.0, 320.0]) {
           await pump(
             tester,
             row(
@@ -119,6 +122,10 @@ void main() {
             ),
             findsOneWidget,
           );
+          // Beside a short category the line shows in full on a phone.
+          if (width >= 360) {
+            expect(find.text(' · 2,445 watching · 3 h 12'), findsOneWidget);
+          }
           expect(find.text('Follow'), findsOneWidget);
         }
       }

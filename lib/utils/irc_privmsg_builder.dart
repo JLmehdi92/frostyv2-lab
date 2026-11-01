@@ -1,4 +1,3 @@
-import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/chat_gif.dart';
 import 'package:onset/models/irc.dart';
 
@@ -109,13 +108,11 @@ IRCMessage buildPrivmsgIrcMessage({
   }
 
   final known = login != null && _twitchLogin.hasMatch(login);
-  final sender = known ? login.toLowerCase() : 'deleted_user';
+  final sender = known ? login.toLowerCase() : kDeletedUserLogin;
   final shownName = (displayName ?? '').replaceAll(_tagBreakers, '').trim();
-  // A line made for the chat: an unknown sender is named in the language
-  // on screen now.
-  final name = known
-      ? (shownName.isEmpty ? sender : shownName)
-      : L10n.current.chatDeletedUser;
+  // An unknown sender's name is data in no language: it is worded where it
+  // shows (IRCMessage.shownDisplayName), in the language on screen then.
+  final name = known ? (shownName.isEmpty ? sender : shownName) : sender;
 
   final safeBadges = badges.where(_isSafeBadge).toList();
   final tags = <String, String>{
