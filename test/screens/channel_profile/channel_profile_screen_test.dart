@@ -919,6 +919,99 @@ void main() {
       }
     }
 
+    // Follow and Subscribe, in every state the header shows them: signed
+    // out (Subscribe only), on someone else's channel (Following or Follow,
+    // and Subscribe), on the viewer's own channel (neither).
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('Follow and Subscribe, $sizeName, text ×$scale', (
+          tester,
+        ) async {
+          final cases =
+              <(String, AuthStore?, bool, List<String>, List<String>)>[
+                ('signed out', null, true, [french.channelSubscribe], []),
+                (
+                  'another channel, followed',
+                  signedIn('viewer'),
+                  true,
+                  [french.channelFollowing, french.channelSubscribe],
+                  [french.channelFollow],
+                ),
+                (
+                  'another channel, not followed',
+                  signedIn('viewer'),
+                  false,
+                  [french.channelFollow, french.channelSubscribe],
+                  [french.channelFollowing],
+                ),
+                (
+                  'their own channel',
+                  signedIn('xqc', id: '71092938'),
+                  true,
+                  [],
+                  [
+                    french.channelFollow,
+                    french.channelFollowing,
+                    french.channelSubscribe,
+                  ],
+                ),
+              ];
+          for (final (who, auth, follows, shown, hidden) in cases) {
+            answerProfile();
+            when(
+              () => helix.isFollowing(
+                userId: any(named: 'userId'),
+                broadcasterId: any(named: 'broadcasterId'),
+              ),
+            ).thenAnswer((_) async => follows);
+            await pump(
+              tester,
+              size: size,
+              textScale: scale,
+              locale: fr,
+              auth: auth,
+            );
+            for (final text in shown) {
+              expect(find.text(text), findsOneWidget, reason: '$who: $text');
+            }
+            for (final text in hidden) {
+              expect(find.text(text), findsNothing, reason: '$who: $text');
+            }
+            final tooltips = [
+              for (final tooltip in tester.widgetList<Tooltip>(
+                find.byType(Tooltip),
+              ))
+                tooltip.message,
+            ];
+            if (shown.contains(french.channelSubscribe)) {
+              expect(
+                tooltips,
+                contains(french.channelSubscribeTooltip(name: 'xQc')),
+                reason: who,
+              );
+            }
+            if (shown.contains(french.channelFollowing)) {
+              expect(
+                tooltips,
+                contains(french.channelFollowingTooltip(name: 'xQc')),
+                reason: who,
+              );
+            }
+            if (shown.contains(french.channelFollow)) {
+              expect(
+                tooltips,
+                contains(french.channelFollowTooltip(name: 'xQc')),
+                reason: who,
+              );
+            }
+            await expectFrenchThroughout(tester, who);
+            // Back to the empty page for the next case.
+            await tester.pumpWidget(const SizedBox());
+          }
+        });
+      }
+    }
+
     testWidgets('a channel not found, and a schedule that failed', (
       tester,
     ) async {

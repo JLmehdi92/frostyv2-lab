@@ -148,10 +148,18 @@ const mentionClosablePages = {
   '/continue-watching',
 };
 
+/// The route names of the settings' sub-pages start with this
+/// (`settingsRouteName`: "Settings/general"): closable as Settings is.
+const mentionClosableSettingsPrefix = 'Settings/';
+
 /// Whether the pages named [namesAbove] (the routes above a channel) may
-/// close for a mention: every one is in [mentionClosablePages].
-bool mentionMayClose(Iterable<String?> namesAbove) =>
-    namesAbove.every(mentionClosablePages.contains);
+/// close for a mention: every one is in [mentionClosablePages], or is a
+/// settings sub-page ([mentionClosableSettingsPrefix]).
+bool mentionMayClose(Iterable<String?> namesAbove) => namesAbove.every(
+  (name) =>
+      mentionClosablePages.contains(name) ||
+      (name?.startsWith(mentionClosableSettingsPrefix) ?? false),
+);
 
 /// The Activity entry of a mention notice posted [at].
 ActivityEntry mentionEntry(MentionNotice notice, DateTime at) => ActivityEntry(

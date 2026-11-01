@@ -22,6 +22,20 @@ String formatStartsIn(DateTime at, DateTime now, AppLocalizations l) {
   return l.startsInDays(count: left.inDays);
 }
 
+/// The heading of [day] in the schedule, in the language of `Intl`:
+/// "Sunday, November 1"; in French a title's capital and the first of the
+/// month's ordinal, « Dimanche 1er novembre » (intl gives « dimanche 1
+/// novembre »).
+String scheduleDayTitle(DateTime day) {
+  final format = DateFormat.MMMMEEEEd();
+  final text = format.format(day);
+  if (!format.locale.startsWith('fr')) return text;
+  final ordinal = day.day == 1
+      ? text.replaceFirst(RegExp(r'(?<!\d)1(?!\d)'), '1er')
+      : text;
+  return toBeginningOfSentenceCase(ordinal, format.locale);
+}
+
 /// Sets or clears [segment]'s reminder, and says when it could not.
 Future<void> toggleScheduleReminder(
   BuildContext context,
@@ -250,7 +264,7 @@ class ProfileScheduleContent extends StatelessWidget {
             child: Semantics(
               header: true,
               child: Text(
-                DateFormat.MMMMEEEEd().format(day),
+                scheduleDayTitle(day),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,

@@ -336,12 +336,14 @@ October 29, 2026
           ReleaseSectionKind.other,
         ),
         ('Misc', 'Divers', ReleaseSectionKind.other),
-        // "fix" anywhere is a fix in English, as it always was.
+        // "fix" is a whole word: "prefixes" is no fix, in either language.
         (
           'Command prefixes',
           'Préfixes des commandes',
-          ReleaseSectionKind.fixed,
+          ReleaseSectionKind.other,
         ),
+        ('Hotfix', 'Correctif', ReleaseSectionKind.fixed),
+        ('Fixed', 'Corrigé', ReleaseSectionKind.fixed),
       ];
       for (final (english, french, expected) in pairs) {
         expect(kind(english), expected, reason: english);

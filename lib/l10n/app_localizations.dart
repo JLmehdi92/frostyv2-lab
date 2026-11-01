@@ -3158,6 +3158,30 @@ abstract class AppLocalizations {
   /// **'HTTP Error {status} occurred'**
   String apiErrorHttp({required int status});
 
+  /// No Twitch user has the login asked for: Search › « Go to channel », and other places that open a channel by its name.
+  ///
+  /// In en, this message translates to:
+  /// **'User does not exist'**
+  String get apiErrorUserNotFound;
+
+  /// The Twitch user asked for has no channel: Search › « Go to channel ».
+  ///
+  /// In en, this message translates to:
+  /// **'Channel does not exist'**
+  String get apiErrorChannelNotFound;
+
+  /// A category page whose category Twitch no longer has.
+  ///
+  /// In en, this message translates to:
+  /// **'Category not found'**
+  String get apiErrorCategoryNotFound;
+
+  /// A list could not load for a viewer not logged in: ONSET's token proxy (its server that gives the app a Twitch token) did not answer in time. French names it « le serveur d’ONSET », plainer than a token proxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Token proxy timeout'**
+  String get apiErrorTokenProxyTimeout;
+
   /// A category's or a tag's live streams sorted by viewers, most first (an option of « Sorted by »).
   ///
   /// In en, this message translates to:
@@ -3392,7 +3416,7 @@ abstract class AppLocalizations {
   /// **'Sound on'**
   String get liveFeedSoundOn;
 
-  /// Home › Live: beside the viewers, the preview plays muted.
+  /// Home › Live: beside the viewers, the preview plays muted (« Son coupé » pairs with liveFeedSoundOn, « Son activé »).
   ///
   /// In en, this message translates to:
   /// **'Muted preview'**
@@ -3470,7 +3494,7 @@ abstract class AppLocalizations {
   /// **'That’s every live channel here for now'**
   String get liveFeedEnd;
 
-  /// Home › Live: the button on the last page that goes back to the first channel (« la première » chaîne).
+  /// Home › Live: the button on the last page that goes back to the first channel.
   ///
   /// In en, this message translates to:
   /// **'Back to the first'**
@@ -4253,7 +4277,7 @@ abstract class AppLocalizations {
   /// **'Recording'**
   String get profileRecording;
 
-  /// A channel's Home tab: the chip on a video the viewer watched to the end (« Vue » agrees with « vidéo »). Kept short.
+  /// A channel's Home tab: the chip on a video the viewer watched to the end (« Regardée » agrees with « vidéo »; « Vue » would read as the noun of « 1 vue »). Kept short.
   ///
   /// In en, this message translates to:
   /// **'Watched'**
@@ -4301,7 +4325,7 @@ abstract class AppLocalizations {
   /// **'Remind Me'**
   String get profileRemindMe;
 
-  /// When a scheduled stream starts: now. Lower case (inside « Next stream now · 14:05 »).
+  /// When a scheduled stream starts: now. Lower case (inside « Next stream now · 14:05 »; French « Prochain live imminent », agreeing with « live »).
   ///
   /// In en, this message translates to:
   /// **'now'**
@@ -4457,7 +4481,7 @@ abstract class AppLocalizations {
   /// **'Check back soon for alerts about you and the broadcasters you follow.'**
   String get activityEmptyDetail;
 
-  /// Activity: the title of the latest notifications (« récentes » agrees with « notifications »).
+  /// Activity: the title of the latest notifications (« Récentes » agrees with « notifications », and pairs with « Plus anciennes »).
   ///
   /// In en, this message translates to:
   /// **'Most Recent'**
@@ -4756,6 +4780,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'show controls'**
   String get playerShowControls;
+
+  /// Button that follows the channel on twitch.tv (channel profile header, the video's info bar on a tablet).
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get channelFollow;
+
+  /// The same button once the viewer follows the channel; it opens the channel on twitch.tv. « Suivie » agrees with « chaîne ».
+  ///
+  /// In en, this message translates to:
+  /// **'Following'**
+  String get channelFollowing;
+
+  /// Tooltip of the Follow button. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow {name} on Twitch'**
+  String channelFollowTooltip({required String name});
+
+  /// Tooltip of the Following button: the viewer follows the channel; it opens twitch.tv. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Following {name} · opens twitch.tv'**
+  String channelFollowingTooltip({required String name});
+
+  /// Button that opens the channel's subscription page on twitch.tv (channel profile header, the video's info bar on a tablet), and the title of that page.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe'**
+  String get channelSubscribe;
+
+  /// Tooltip of the Subscribe button. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to {name} · opens twitch.tv'**
+  String channelSubscribeTooltip({required String name});
 }
 
 class _AppLocalizationsDelegate

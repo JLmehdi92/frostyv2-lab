@@ -66,11 +66,6 @@ const l10nAllowlist = <String, Map<String, String>>{
     'ONSET v{} ({})':
         'The app\'s name, its version and build number: a brand and figures.',
   },
-  'lib/screens/settings/widgets/settings_twitch_web_token.dart': {
-    'auth-token':
-        'The name of Twitch\'s cookie, shown as the field\'s label: code, the '
-        'same in every language.',
-  },
   'lib/utils/stream_languages.dart': {
     'English':
         'A language\'s own name (an endonym), the same in every language.',

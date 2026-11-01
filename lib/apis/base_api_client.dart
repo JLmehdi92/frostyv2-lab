@@ -1,3 +1,5 @@
+import 'dart:io' show HttpException, SocketException;
+
 import 'package:dio/dio.dart';
 import 'package:onset/services/telemetry.dart';
 
@@ -73,6 +75,19 @@ enum ApiErrorKind {
 
   /// Any other HTTP status ([ApiException.statusCode]).
   http,
+
+  /// No user has the login or id asked for (Helix answered with none).
+  userNotFound,
+
+  /// The user has no channel (Helix answered with none).
+  channelNotFound,
+
+  /// Twitch has no category with that id (any more).
+  categoryNotFound,
+
+  /// The token proxy (the app token of a viewer not logged in) did not
+  /// answer in time.
+  tokenProxyTimeout,
 }
 
 /// Custom API exceptions for better error handling
@@ -87,7 +102,9 @@ class ApiException implements Exception {
   final ApiErrorKind kind;
 
   /// The server's own explanation from its answer's body (Twitch's words,
-  /// shown as they are), when it gave one.
+  /// in English), when it gave one that is not blank: shown as it is on an
+  /// English screen, kept for logs on others (lib/l10n/api_errors.dart).
+  /// Never a bare HTTP reason phrase (the body's `error`, "Not Found").
   final String? twitchMessage;
 
   const ApiException(
@@ -113,6 +130,7 @@ class NetworkException extends ApiException {
 }
 
 class TimeoutException extends ApiException {
+  /// [kind] is what timed out: connecting by default.
   const TimeoutException(
     String message, [
     ApiErrorKind kind = ApiErrorKind.connectionTimeout,
@@ -135,14 +153,13 @@ class ServerException extends ApiException {
 }
 
 class NotFoundException extends ApiException {
-  const NotFoundException(String message, [String? twitchMessage])
-    : super(
-        message,
-        404,
-        DioExceptionType.badResponse,
-        ApiErrorKind.notFound,
-        twitchMessage,
-      );
+  /// [kind] says what was not found, for a screen to word it: anything
+  /// ([ApiErrorKind.notFound]) by default.
+  const NotFoundException(
+    String message, [
+    String? twitchMessage,
+    ApiErrorKind kind = ApiErrorKind.notFound,
+  ]) : super(message, 404, DioExceptionType.badResponse, kind, twitchMessage);
 }
 
 class UnauthorizedException extends ApiException {
@@ -339,6 +356,13 @@ abstract class BaseApiClient {
         null,
         ApiErrorKind.certificate,
       ),
+      // The connection dropped after it was made (reset, closed early):
+      // Dio does not call it a connection error, but it is one.
+      DioExceptionType.unknown
+          when error.error is SocketException || error.error is HttpException =>
+        NetworkException(
+          error.message ?? 'No internet connection. Please check your network.',
+        ),
       DioExceptionType.unknown => ApiException(
         error.message ?? 'An unexpected error occurred',
       ),
@@ -378,13 +402,19 @@ abstract class BaseApiClient {
     final statusCode = error.response?.statusCode;
     final responseData = error.response?.data;
 
-    // Extract error message from server response
+    // Extract error message from server response: for logs, whatever it
+    // gave; for a screen, only an explanation (not the bare reason phrase
+    // of `error`, and nothing blank).
     String? serverMessage;
+    String? explanation;
     if (responseData is JsonMap) {
+      String? text(String key) => switch (responseData[key]) {
+        final String value when value.trim().isNotEmpty => value,
+        _ => null,
+      };
+      explanation = text('message') ?? text('error_description');
       serverMessage =
-          responseData['message'] as String? ??
-          responseData['error'] as String? ??
-          responseData['error_description'] as String?;
+          text('message') ?? text('error') ?? text('error_description');
     }
 
     switch (statusCode) {
@@ -394,7 +424,7 @@ abstract class BaseApiClient {
           400,
           DioExceptionType.badResponse,
           ApiErrorKind.badRequest,
-          serverMessage,
+          explanation,
         );
       case 401:
         return UnauthorizedException('Please log in to continue');
@@ -404,12 +434,12 @@ abstract class BaseApiClient {
           403,
           DioExceptionType.badResponse,
           ApiErrorKind.forbidden,
-          serverMessage,
+          explanation,
         );
       case 404:
         return NotFoundException(
           serverMessage ?? 'Resource not found',
-          serverMessage,
+          explanation,
         );
       case 409:
         return ApiException(
@@ -417,7 +447,7 @@ abstract class BaseApiClient {
           409,
           DioExceptionType.badResponse,
           ApiErrorKind.conflict,
-          serverMessage,
+          explanation,
         );
       case 422:
         return ApiException(
@@ -425,7 +455,7 @@ abstract class BaseApiClient {
           422,
           DioExceptionType.badResponse,
           ApiErrorKind.invalid,
-          serverMessage,
+          explanation,
         );
       case 429:
         return ApiException(
@@ -434,7 +464,7 @@ abstract class BaseApiClient {
           429,
           DioExceptionType.badResponse,
           ApiErrorKind.rateLimited,
-          serverMessage,
+          explanation,
         );
       case 500:
         return ServerException('Server error. Please try again later', 500);
@@ -461,7 +491,7 @@ abstract class BaseApiClient {
           serverMessage ?? 'HTTP Error $statusCode occurred',
           statusCode ?? 500,
           ApiErrorKind.http,
-          serverMessage,
+          explanation,
         );
     }
   }

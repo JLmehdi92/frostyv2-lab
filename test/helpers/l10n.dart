@@ -174,28 +174,64 @@ _leakChecks = () {
 }();
 
 /// Every text [tester]'s screen shows a viewer: drawn text (with its
-/// spans' screen-reader labels), and what a screen reader reads from
-/// `Semantics` (label, value, hint, tooltip) and `Tooltip` (message).
+/// spans' screen-reader labels, and `SelectableText`), the texts of each
+/// row read together (a number and its word drawn apart, "2 445" +
+/// " watching"), and what a screen reader reads from `Semantics` (label,
+/// value, hint, tooltip, attributed or not) and `Tooltip` (message).
 Set<String> shownTexts(WidgetTester tester) => {
   for (final widget in tester.widgetList<RichText>(find.byType(RichText)))
     widget.text.toPlainText(),
+  for (final widget in tester.widgetList<SelectableText>(
+    find.byType(SelectableText),
+  ))
+    ?(widget.data ?? widget.textSpan?.toPlainText()),
+  ..._rowTexts(tester),
   for (final widget in tester.widgetList<Semantics>(find.byType(Semantics)))
     ...[
       widget.properties.label,
       widget.properties.value,
       widget.properties.hint,
       widget.properties.tooltip,
+      widget.properties.attributedLabel?.string,
+      widget.properties.attributedValue?.string,
+      widget.properties.attributedHint?.string,
     ].nonNulls.where((text) => text.trim().isNotEmpty),
   for (final widget in tester.widgetList<Tooltip>(find.byType(Tooltip)))
     ?(widget.message ?? widget.richMessage?.toPlainText()),
 };
+
+/// The text of each horizontal [Flex] (a `Row`) drawing more than one
+/// text: its texts in order, joined as they stand side by side. A number
+/// and its word in two `Text`s ("2 445" and " watching") read as one.
+Iterable<String> _rowTexts(WidgetTester tester) sync* {
+  for (final element in find.byWidgetPredicate((w) => w is Flex).evaluate()) {
+    final flex = element.widget as Flex;
+    if (flex.direction != Axis.horizontal) continue;
+    final texts = <String>[];
+    void visit(Element child) {
+      if (child.widget case RichText(:final text)) {
+        texts.add(text.toPlainText());
+        return;
+      }
+      child.visitChildren(visit);
+    }
+
+    element.visitChildren(visit);
+    if (texts.length > 1) yield texts.join();
+  }
+}
+
+/// Punctuation a screen may add after a message: [shownPatterns] lets it
+/// follow.
+const _trailing = r'[\s.,;:!?…)»\u00a0\u202f]*';
 
 /// Stands for a placeholder (or a plural's `#`) in [_variants].
 const _hole = '\u{FFFC}';
 
 /// What [message] can show, as patterns matching the whole text: each
 /// combination of its plural and select branches ([_variants]), with each
-/// placeholder as any text. A variant with fewer than three letters of its
+/// placeholder as any text, and any closing punctuation added after it
+/// ("Couldn't load clips." for "Couldn't load clips"). A variant with fewer than three letters of its
 /// own around its placeholders ("{scale}x") cannot be told from the data it
 /// shows, and gives no pattern.
 List<RegExp> shownPatterns(String message) {
@@ -209,7 +245,7 @@ List<RegExp> shownPatterns(String message) {
     // Whatever the case: group labels and eyebrows are shown in capitals.
     patterns.add(
       RegExp(
-        '^${fixed.map(RegExp.escape).join('.+')}\$',
+        '^${fixed.map(RegExp.escape).join('.+')}$_trailing\$',
         caseSensitive: false,
         dotAll: true,
       ),

@@ -2504,6 +2504,22 @@
       }
     }
   },
+  "apiErrorUserNotFound": "User does not exist",
+  "@apiErrorUserNotFound": {
+    "description": "No Twitch user has the login asked for: Search › « Go to channel », and other places that open a channel by its name."
+  },
+  "apiErrorChannelNotFound": "Channel does not exist",
+  "@apiErrorChannelNotFound": {
+    "description": "The Twitch user asked for has no channel: Search › « Go to channel »."
+  },
+  "apiErrorCategoryNotFound": "Category not found",
+  "@apiErrorCategoryNotFound": {
+    "description": "A category page whose category Twitch no longer has."
+  },
+  "apiErrorTokenProxyTimeout": "Token proxy timeout",
+  "@apiErrorTokenProxyTimeout": {
+    "description": "A list could not load for a viewer not logged in: ONSET's token proxy (its server that gives the app a Twitch token) did not answer in time. French names it « le serveur d’ONSET », plainer than a token proxy."
+  },
   "streamSortViewersHigh": "Viewers (high to low)",
   "@streamSortViewersHigh": {
     "description": "A category's or a tag's live streams sorted by viewers, most first (an option of « Sorted by »)."
@@ -2702,7 +2718,7 @@
   },
   "liveFeedMuted": "Muted preview",
   "@liveFeedMuted": {
-    "description": "Home › Live: beside the viewers, the preview plays muted."
+    "description": "Home › Live: beside the viewers, the preview plays muted (« Son coupé » pairs with liveFeedSoundOn, « Son activé »)."
   },
   "liveFeedWatchWithChat": "Watch with chat",
   "@liveFeedWatchWithChat": {
@@ -2766,7 +2782,7 @@
   },
   "liveFeedBackToFirst": "Back to the first",
   "@liveFeedBackToFirst": {
-    "description": "Home › Live: the button on the last page that goes back to the first channel (« la première » chaîne)."
+    "description": "Home › Live: the button on the last page that goes back to the first channel."
   },
   "commonSeeAll": "See all",
   "@commonSeeAll": {
@@ -3498,7 +3514,7 @@
   },
   "profileWatched": "Watched",
   "@profileWatched": {
-    "description": "A channel's Home tab: the chip on a video the viewer watched to the end (« Vue » agrees with « vidéo »). Kept short."
+    "description": "A channel's Home tab: the chip on a video the viewer watched to the end (« Regardée » agrees with « vidéo »; « Vue » would read as the noun of « 1 vue »). Kept short."
   },
   "profileSubscribersOnly": "Subscribers only",
   "@profileSubscribersOnly": {
@@ -3536,7 +3552,7 @@
   },
   "startsNow": "now",
   "@startsNow": {
-    "description": "When a scheduled stream starts: now. Lower case (inside « Next stream now · 14:05 »)."
+    "description": "When a scheduled stream starts: now. Lower case (inside « Next stream now · 14:05 »; French « Prochain live imminent », agreeing with « live »)."
   },
   "startsInMinutes": "{count, plural, one{in {count} minute} other{in {count} minutes}}",
   "@startsInMinutes": {
@@ -3680,7 +3696,7 @@
   },
   "activityMostRecent": "Most Recent",
   "@activityMostRecent": {
-    "description": "Activity: the title of the latest notifications (« récentes » agrees with « notifications »)."
+    "description": "Activity: the title of the latest notifications (« Récentes » agrees with « notifications », and pairs with « Plus anciennes »)."
   },
   "activityEarlier": "Earlier",
   "@activityEarlier": {
@@ -3899,5 +3915,47 @@
   "playerShowControls": "show controls",
   "@playerShowControls": {
     "description": "What a screen reader says a tap on the player does while its controls are hidden. Lower case."
+  },
+  "channelFollow": "Follow",
+  "@channelFollow": {
+    "description": "Button that follows the channel on twitch.tv (channel profile header, the video's info bar on a tablet)."
+  },
+  "channelFollowing": "Following",
+  "@channelFollowing": {
+    "description": "The same button once the viewer follows the channel; it opens the channel on twitch.tv. « Suivie » agrees with « chaîne »."
+  },
+  "channelFollowTooltip": "Follow {name} on Twitch",
+  "@channelFollowTooltip": {
+    "description": "Tooltip of the Follow button. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "channelFollowingTooltip": "Following {name} · opens twitch.tv",
+  "@channelFollowingTooltip": {
+    "description": "Tooltip of the Following button: the viewer follows the channel; it opens twitch.tv. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "channelSubscribe": "Subscribe",
+  "@channelSubscribe": {
+    "description": "Button that opens the channel's subscription page on twitch.tv (channel profile header, the video's info bar on a tablet), and the title of that page."
+  },
+  "channelSubscribeTooltip": "Subscribe to {name} · opens twitch.tv",
+  "@channelSubscribeTooltip": {
+    "description": "Tooltip of the Subscribe button. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
   }
 }

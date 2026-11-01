@@ -385,7 +385,12 @@ class TwitchApi extends BaseApiClient {
         },
       );
     } on ApiException {
-      if (timedOut) throw const TimeoutException('Token proxy timeout');
+      if (timedOut) {
+        throw const TimeoutException(
+          'Token proxy timeout',
+          ApiErrorKind.tokenProxyTimeout,
+        );
+      }
       rethrow;
     } finally {
       deadline.cancel();
@@ -710,7 +715,11 @@ class TwitchApi extends BaseApiClient {
     if (userData.isNotEmpty) {
       return UserTwitch.fromJson(userData.first);
     } else {
-      throw NotFoundException('User does not exist');
+      throw const NotFoundException(
+        'User does not exist',
+        null,
+        ApiErrorKind.userNotFound,
+      );
     }
   }
 
@@ -764,7 +773,11 @@ class TwitchApi extends BaseApiClient {
     if (channelData.isNotEmpty) {
       return Channel.fromJson(channelData.first);
     } else {
-      throw ApiException('Channel does not exist', 404);
+      throw const NotFoundException(
+        'Channel does not exist',
+        null,
+        ApiErrorKind.channelNotFound,
+      );
     }
   }
 

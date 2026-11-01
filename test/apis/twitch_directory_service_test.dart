@@ -100,7 +100,13 @@ void main() {
       });
       await expectLater(
         service.getCategoryStreams(gameId: '1', sort: StreamSort.recent),
-        throwsA(isA<NotFoundException>()),
+        throwsA(
+          isA<NotFoundException>().having(
+            (e) => e.kind,
+            'kind',
+            ApiErrorKind.categoryNotFound,
+          ),
+        ),
       );
 
       reply({

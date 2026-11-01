@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -555,6 +557,54 @@ void main() {
       expect(e.kind, ApiErrorKind.forbidden);
       expect(e.twitchMessage, 'Missing scope');
       expect(e.message, 'Missing scope');
+    });
+
+    test('a blank explanation, or only the reason phrase, is none', () async {
+      for (final body in const [
+        {'message': ''},
+        {'message': '   '},
+        {'error': 'Not Found'},
+        {'error': 'Not Found', 'message': ''},
+      ]) {
+        final e = await failure(404, body);
+        expect(e.kind, ApiErrorKind.notFound, reason: '$body');
+        expect(e.twitchMessage, isNull, reason: '$body');
+      }
+      // The logs keep whatever Twitch said.
+      expect((await failure(404, {'error': 'Not Found'})).message, 'Not Found');
+      // An OAuth description is an explanation.
+      final oauth = await failure(400, {
+        'error': 'invalid_request',
+        'error_description': 'Missing client id',
+      });
+      expect(oauth.twitchMessage, 'Missing client id');
+    });
+
+    test('a connection dropped after it was made is a network error', () async {
+      for (final inner in [
+        const SocketException('Connection reset by peer'),
+        const HttpException('Connection closed before full header'),
+      ]) {
+        dioAdapter.onGet(
+          'https://api.test.com/dropped',
+          (server) => server.throws(
+            0,
+            DioException(
+              requestOptions: RequestOptions(
+                path: 'https://api.test.com/dropped',
+              ),
+              error: inner,
+            ),
+          ),
+        );
+        try {
+          await client.testGet('/dropped');
+          fail('no failure');
+        } on ApiException catch (e) {
+          expect(e, isA<NetworkException>(), reason: '$inner');
+          expect(e.kind, ApiErrorKind.network, reason: '$inner');
+        }
+      }
     });
 
     test('the connection failing, timing out or being cancelled', () async {

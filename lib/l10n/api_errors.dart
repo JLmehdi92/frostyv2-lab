@@ -29,19 +29,27 @@ String apiErrorKindText(
   ApiErrorKind.maintenance => l.apiErrorMaintenance,
   ApiErrorKind.serverTimeout => l.apiErrorServerTimeout,
   ApiErrorKind.http => l.apiErrorHttp(status: statusCode ?? 500),
+  ApiErrorKind.userNotFound => l.apiErrorUserNotFound,
+  ApiErrorKind.channelNotFound => l.apiErrorChannelNotFound,
+  ApiErrorKind.categoryNotFound => l.apiErrorCategoryNotFound,
+  ApiErrorKind.tokenProxyTimeout => l.apiErrorTokenProxyTimeout,
 };
 
 /// What [error], caught while loading something, says to a viewer in
 /// [l]'s language:
-/// - an [ApiException]: Twitch's own explanation when it gave one (its
-///   words, shown as they are), else its [ApiErrorKind] worded;
+/// - an [ApiException]: on an English screen, Twitch's own explanation when
+///   it gave one (its words, shown as they are); else, and in any other
+///   language (Twitch explains in English, its words stay in the logs), its
+///   [ApiErrorKind] worded;
 /// - a [SocketException] (no network under the API client): "Unable to
 ///   connect to Twitch";
 /// - anything else: [fallback] (the screen's "Something went wrong
 ///   loading …"), else "An unexpected error occurred".
 String apiErrorText(AppLocalizations l, Object error, {String? fallback}) =>
     switch (error) {
-      ApiException(:final twitchMessage?) => twitchMessage,
+      ApiException(:final twitchMessage?)
+          when l.localeName == 'en' && twitchMessage.trim().isNotEmpty =>
+        twitchMessage,
       ApiException(:final kind, :final statusCode) => apiErrorKindText(
         l,
         kind,

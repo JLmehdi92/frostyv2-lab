@@ -241,7 +241,13 @@ void main() {
     final watch = Stopwatch()..start();
     await expectLater(
       api().getDefaultToken(timeout: const Duration(milliseconds: 100)),
-      throwsA(isA<TimeoutException>()),
+      throwsA(
+        isA<TimeoutException>().having(
+          (e) => e.kind,
+          'kind',
+          ApiErrorKind.tokenProxyTimeout,
+        ),
+      ),
     );
     expect(watch.elapsed, lessThan(const Duration(seconds: 2)));
   });

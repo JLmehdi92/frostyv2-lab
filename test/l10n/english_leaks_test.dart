@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/home/stream_list/large_stream_card.dart';
 
 import '../helpers/l10n.dart';
 
@@ -128,6 +130,127 @@ void main() {
           icon: const Icon(Icons.arrow_back),
         ),
       ]),
+      isEmpty,
+    );
+  });
+
+  testWidgets('catches RollingViewers drawing "2,445 watching" in English on '
+      'a French screen (the number and its word drawn apart)', (tester) async {
+    Widget viewers({required bool english}) => Builder(
+      builder: (context) => english
+          ? Localizations.override(
+              context: context,
+              locale: en,
+              child: const RollingViewers(viewers: 2445, spelled: true),
+            )
+          : const RollingViewers(viewers: 2445, spelled: true),
+    );
+    // In English the screen shows the number beside " watching".
+    final leaks = await leaksOf(tester, [viewers(english: true)]);
+    expect(leaks, hasLength(1));
+    expect(leaks.single, endsWith(' watching'));
+    expect(await leaksOf(tester, [viewers(english: false)]), isEmpty);
+  });
+
+  testWidgets('catches a number and its word in two Text widgets of a row', (
+    tester,
+  ) async {
+    final words = english.streamWatching(count: 2445).split('2,445');
+    expect(words, ['', ' watching']);
+    Widget row(String number, String word) => Row(
+      mainAxisSize: MainAxisSize.min,
+      // As RollingNumber draws it: one Text per character, in its own row.
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [for (final c in number.split('')) Text(c)],
+        ),
+        Text(word),
+      ],
+    );
+    expect(await leaksOf(tester, [row('2 445', words.last)]), [
+      '2 445 watching',
+    ]);
+    final french = lookupAppLocalizations(fr).streamWatching(count: 2445);
+    expect(
+      await leaksOf(tester, [
+        row('2\u202f445', french.split('2\u202f445').last),
+      ]),
+      isEmpty,
+    );
+  });
+
+  testWidgets('catches an English message with punctuation added', (
+    tester,
+  ) async {
+    expect(english.clipsListFailed, "Couldn't load clips");
+    expect(
+      await leaksOf(tester, [
+        Text('${english.clipsListFailed}.'),
+        Text('${english.commonTryAgain}!'),
+        Text('${english.settingsTitle}\u00a0:'),
+      ]),
+      [
+        "Couldn't load clips.",
+        '${english.commonTryAgain}!',
+        '${english.settingsTitle}\u00a0:',
+      ],
+    );
+    expect(
+      await leaksOf(tester, [
+        Text('${french.clipsListFailed}.'),
+        Text('${french.settingsTitle}\u00a0:'),
+      ]),
+      isEmpty,
+    );
+  });
+
+  testWidgets('catches an attributed Semantics label, value and hint', (
+    tester,
+  ) async {
+    const box = SizedBox(width: 10, height: 10);
+    expect(
+      await leaksOf(tester, [
+        Semantics(
+          attributedLabel: AttributedString(english.settingsTitle),
+          child: box,
+        ),
+        Semantics(
+          attributedValue: AttributedString(english.commonNext),
+          child: box,
+        ),
+        Semantics(
+          attributedHint: AttributedString(english.commonClose),
+          child: box,
+        ),
+      ]),
+      unorderedEquals([
+        english.settingsTitle,
+        english.commonNext,
+        english.commonClose,
+      ]),
+    );
+    expect(
+      await leaksOf(tester, [
+        Semantics(
+          attributedLabel: AttributedString(french.settingsTitle),
+          child: box,
+        ),
+      ]),
+      isEmpty,
+    );
+  });
+
+  testWidgets('catches SelectableText, plain or rich', (tester) async {
+    expect(
+      await leaksOf(tester, [
+        SelectableText(english.settingsTitle),
+        SelectableText.rich(TextSpan(text: english.commonClose)),
+      ]),
+      unorderedEquals([english.settingsTitle, english.commonClose]),
+    );
+    expect(
+      await leaksOf(tester, [SelectableText(french.settingsTitle)]),
       isEmpty,
     );
   });

@@ -88,10 +88,18 @@ abstract final class OverImage {
   static const pillStrong = Color(0xBF0A0A0A);
 }
 
-/// A viewer count as the cards show it: "2.4k" ([compact]) or "2,445".
-String formatViewers(int count, {bool compact = true}) => compact
-    ? NumberFormat.compact().format(count).toLowerCase()
-    : NumberFormat.decimalPattern().format(count);
+/// A viewer count as the cards show it: "2.4k" ([compact]) or "2,445", in
+/// the language on screen (`Intl.defaultLocale`).
+///
+/// Only English is lowered ("2.4K" is drawn "2.4k"): elsewhere the case is
+/// the unit's, French « 12,6 M » (million) and « 2 Md » (milliard) would
+/// read « m » (metre) and « md » lowered.
+String formatViewers(int count, {bool compact = true}) {
+  if (!compact) return NumberFormat.decimalPattern().format(count);
+  final format = NumberFormat.compact();
+  final text = format.format(count);
+  return format.locale.startsWith('en') ? text.toLowerCase() : text;
+}
 
 /// [stream]'s channel page.
 Route<void> streamRoute(StreamTwitch stream) => MaterialPageRoute(

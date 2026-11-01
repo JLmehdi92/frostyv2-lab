@@ -37,6 +37,11 @@ void main() {
       ApiErrorKind.maintenance: 'Service maintenance. Please try again later',
       ApiErrorKind.serverTimeout: 'Server timeout. Please try again',
       ApiErrorKind.http: 'HTTP Error 418 occurred',
+      // The app's own errors, as their messages always read.
+      ApiErrorKind.userNotFound: 'User does not exist',
+      ApiErrorKind.channelNotFound: 'Channel does not exist',
+      ApiErrorKind.categoryNotFound: 'Category not found',
+      ApiErrorKind.tokenProxyTimeout: 'Token proxy timeout',
     };
     expect(said.keys.toSet(), ApiErrorKind.values.toSet());
     for (final MapEntry(key: kind, value: text) in said.entries) {
@@ -70,7 +75,8 @@ void main() {
       ApiErrorKind.forbidden,
       'Missing scope',
     );
-    expect(apiErrorText(french, forbidden), 'Missing scope');
+    expect(apiErrorText(french, forbidden), french.apiErrorForbidden);
+    expect(apiErrorText(english, forbidden), 'Missing scope');
     expect(
       apiErrorText(french, const NotFoundException('Resource not found')),
       french.apiErrorNotFound,
@@ -88,5 +94,64 @@ void main() {
       apiErrorText(english, const SocketException('down')),
       'Unable to connect to Twitch',
     );
+  });
+
+  test('Twitch\'s English stays off French screens, and in English a blank '
+      'explanation falls back to the kind', () {
+    for (final kind in ApiErrorKind.values) {
+      final withWords = ApiException(
+        'Invalid login names, emotes or ids',
+        400,
+        null,
+        kind,
+        'Invalid login names, emotes or ids',
+      );
+      // French: the kind, worded; Twitch's sentence is for the logs.
+      expect(
+        apiErrorText(french, withWords),
+        apiErrorKindText(french, kind, statusCode: 400),
+        reason: kind.name,
+      );
+      // English: Twitch's words, as before.
+      expect(
+        apiErrorText(english, withWords),
+        'Invalid login names, emotes or ids',
+        reason: kind.name,
+      );
+      for (final blank in ['', '   ', null]) {
+        final bare = ApiException('x', 404, null, kind, blank);
+        for (final l in [english, french]) {
+          final text = apiErrorText(l, bare);
+          expect(
+            text,
+            apiErrorKindText(l, kind, statusCode: 404),
+            reason: '${kind.name} "$blank" ${l.localeName}',
+          );
+          expect(text.trim(), isNotEmpty);
+        }
+      }
+    }
+  });
+
+  test('the app\'s own not-found errors say what was not found', () {
+    const cases = [
+      (ApiErrorKind.userNotFound, 'User does not exist'),
+      (ApiErrorKind.channelNotFound, 'Channel does not exist'),
+      (ApiErrorKind.categoryNotFound, 'Category not found'),
+    ];
+    for (final (kind, englishText) in cases) {
+      final error = NotFoundException(englishText, null, kind);
+      expect(apiErrorText(english, error), englishText);
+      expect(apiErrorText(french, error), apiErrorKindText(french, kind));
+      expect(apiErrorText(french, error), isNot(french.apiErrorNotFound));
+    }
+    expect(french.apiErrorUserNotFound, 'Cet utilisateur n’existe pas');
+    expect(french.apiErrorCategoryNotFound, 'Catégorie introuvable');
+    const proxy = TimeoutException(
+      'Token proxy timeout',
+      ApiErrorKind.tokenProxyTimeout,
+    );
+    expect(apiErrorText(english, proxy), 'Token proxy timeout');
+    expect(apiErrorText(french, proxy), french.apiErrorTokenProxyTimeout);
   });
 }

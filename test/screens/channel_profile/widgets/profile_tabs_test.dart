@@ -310,7 +310,7 @@ void main() {
         'in 1 day',
       );
       final french = lookupAppLocalizations(const Locale('fr'));
-      expect(formatStartsIn(now, now, french), 'maintenant');
+      expect(formatStartsIn(now, now, french), 'imminent');
       expect(
         formatStartsIn(now.add(const Duration(minutes: 1)), now, french),
         'dans 1\u00a0minute',

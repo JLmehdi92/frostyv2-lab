@@ -149,7 +149,13 @@ void main() {
 
       expect(
         () => api.getUser(userLogin: 'doesnotexist'),
-        throwsA(isA<NotFoundException>()),
+        throwsA(
+          isA<NotFoundException>().having(
+            (e) => e.kind,
+            'kind',
+            ApiErrorKind.userNotFound,
+          ),
+        ),
       );
     });
   });
@@ -717,7 +723,11 @@ void main() {
 
       expect(
         () => api.getChannel(userId: '99999'),
-        throwsA(isA<ApiException>()),
+        throwsA(
+          isA<NotFoundException>()
+              .having((e) => e.kind, 'kind', ApiErrorKind.channelNotFound)
+              .having((e) => e.statusCode, 'statusCode', 404),
+        ),
       );
     });
   });

@@ -1947,7 +1947,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get apiErrorConnectionTimeout => 'La connexion a expiré. Réessayez.';
 
   @override
-  String get apiErrorSendTimeout => 'L’envoi a expiré. Réessayez.';
+  String get apiErrorSendTimeout => 'L’envoi a pris trop de temps. Réessayez.';
 
   @override
   String get apiErrorReceiveTimeout =>
@@ -1975,7 +1975,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get apiErrorNotFound => 'Contenu introuvable';
 
   @override
-  String get apiErrorConflict => 'Conflit avec l’état actuel. Actualisez';
+  String get apiErrorConflict => 'Le contenu a changé entre-temps. Actualisez';
 
   @override
   String get apiErrorInvalid => 'Données non valides';
@@ -2001,6 +2001,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String apiErrorHttp({required int status}) {
     return 'Erreur HTTP $status';
   }
+
+  @override
+  String get apiErrorUserNotFound => 'Cet utilisateur n’existe pas';
+
+  @override
+  String get apiErrorChannelNotFound => 'Cette chaîne n’existe pas';
+
+  @override
+  String get apiErrorCategoryNotFound => 'Catégorie introuvable';
+
+  @override
+  String get apiErrorTokenProxyTimeout =>
+      'Le serveur d’ONSET n’a pas répondu à temps';
 
   @override
   String get streamSortViewersHigh => 'Spectateurs (décroissant)';
@@ -2051,7 +2064,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get streamListAllHidden =>
-      'Tous les lives ici portent une classification que vous masquez';
+      'Tous les lives de cette liste portent une classification que vous masquez';
 
   @override
   String get streamListShowHidden => 'Les afficher';
@@ -2116,7 +2129,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String liveFeedHidden({required String name}) {
-    return 'Vous ne verrez plus $name dans En direct pour le moment';
+    return 'Vous ne verrez plus $name dans l’onglet En direct pour le moment';
   }
 
   @override
@@ -2149,7 +2162,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get liveFeedSoundOn => 'Son activé';
 
   @override
-  String get liveFeedMuted => 'Aperçu sans son';
+  String get liveFeedMuted => 'Son coupé';
 
   @override
   String get liveFeedWatchWithChat => 'Regarder avec le chat';
@@ -2177,7 +2190,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get liveFeedShare => 'Partager';
 
   @override
-  String get liveFeedSwipeHint => 'BALAYEZ VERS LE HAUT POUR LE LIVE SUIVANT';
+  String get liveFeedSwipeHint => 'BALAYEZ POUR PASSER AU LIVE SUIVANT';
 
   @override
   String get liveFeedUpNext => 'À SUIVRE';
@@ -2194,7 +2207,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vous avez fait le tour des chaînes en direct pour le moment';
 
   @override
-  String get liveFeedBackToFirst => 'Revenir à la première';
+  String get liveFeedBackToFirst => 'Revenir au début';
 
   @override
   String get commonSeeAll => 'Tout voir';
@@ -2326,7 +2339,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une erreur est survenue lors du chargement des vidéos';
 
   @override
-  String get continueWatchingTitle => 'Reprendre la lecture';
+  String get continueWatchingTitle => 'Continuer à regarder';
 
   @override
   String continueWatchingResumeAt({required String time}) {
@@ -2570,8 +2583,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Voici les $count meilleurs clips',
-      one: 'Voici le meilleur clip',
+      other: 'Voici les $count premiers clips',
+      one: 'Voici le premier clip',
     );
     return '$_temp0';
   }
@@ -2680,13 +2693,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileOpenFailed =>
-      'Impossible d’ouvrir cette chaîne, vérifiez votre connexion';
+      'Impossible d’ouvrir cette chaîne. Vérifiez votre connexion Internet.';
 
   @override
   String get profileShare => 'Partager';
 
   @override
-  String get profileMore => 'Plus';
+  String get profileMore => 'Plus d’options';
 
   @override
   String get profileLoadFailed =>
@@ -2785,7 +2798,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileRecording => 'En cours';
 
   @override
-  String get profileWatched => 'Vue';
+  String get profileWatched => 'Regardée';
 
   @override
   String get profileSubscribersOnly => 'Réservé aux abonnés';
@@ -2811,7 +2824,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileRemindMe => 'Me le rappeler';
 
   @override
-  String get startsNow => 'maintenant';
+  String get startsNow => 'imminent';
 
   @override
   String startsInMinutes({required int count}) {
@@ -2848,7 +2861,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileReminderRefused =>
-      'Autorisez les notifications de cette app dans les paramètres du système.';
+      'Autorisez les notifications de cette application dans les paramètres du système.';
 
   @override
   String get profileReminderFailed => 'Impossible de programmer le rappel.';
@@ -2921,7 +2934,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get activityNote =>
-      'Les notifications publiées par ONSET sur cet appareil.';
+      'Les notifications envoyées par ONSET sur cet appareil.';
 
   @override
   String get activityRemove => 'Supprimer la notification';
@@ -2934,7 +2947,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Revenez bientôt pour voir les alertes qui vous concernent et celles des chaînes que vous suivez.';
 
   @override
-  String get activityMostRecent => 'Les plus récentes';
+  String get activityMostRecent => 'Récentes';
 
   @override
   String get activityEarlier => 'Plus anciennes';
@@ -2950,7 +2963,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get activityNoWhispers =>
-      'Aucun chuchotement pour l’instant. Ceux que vous recevez quand l’app est ouverte s’affichent ici.';
+      'Aucun chuchotement pour l’instant. Ceux que vous recevez quand l’application est ouverte s’affichent ici.';
 
   @override
   String get activityKindLive => 'En direct';
@@ -2986,11 +2999,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get whispersEmptyDetail =>
-      'Les chuchotements reçus pendant que l’app est ouverte s’affichent ici.';
+      'Les chuchotements reçus pendant que l’application est ouverte s’affichent ici.';
 
   @override
   String get whisperSessionNote =>
-      'Twitch ne conserve aucun historique que l’app puisse afficher : seuls les chuchotements de cette session apparaissent ici.';
+      'Twitch ne conserve aucun historique que l’application puisse afficher : seuls les chuchotements de cette session apparaissent ici.';
 
   @override
   String whisperHint({required String name}) {
@@ -3008,15 +3021,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get whisperStatusRefused =>
-      'Twitch refuse d’envoyer vos chuchotements à cette app. Déconnectez-vous puis reconnectez-vous pour les autoriser.';
+      'Twitch refuse d’envoyer vos chuchotements à cette application. Déconnectez-vous puis reconnectez-vous pour les autoriser.';
 
   @override
   String get whisperStatusInterrupted =>
-      'Reconnexion… les chuchotements vont bientôt arriver de nouveau.';
+      'Reconnexion… les chuchotements reviendront bientôt.';
 
   @override
   String get whisperStatusUnavailable =>
-      'Twitch n’envoie pas de chuchotements à cette app pour le moment. Une nouvelle tentative aura lieu à votre retour dans l’app.';
+      'Twitch n’envoie pas de chuchotements à cette application pour le moment. Une nouvelle tentative aura lieu à votre retour dans l’application.';
 
   @override
   String get whisperStatusOff =>
@@ -3044,7 +3057,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerLoop => 'Lire en boucle';
 
   @override
-  String get playerSettings => 'Réglages';
+  String get playerSettings => 'Paramètres';
 
   @override
   String get playerReplay => 'Revoir';
@@ -3088,7 +3101,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerCaptions => 'Sous-titres';
 
   @override
-  String get playerCaptionsDetail => 'Lorsque la diffusion en propose';
+  String get playerCaptionsDetail => 'Si la vidéo en propose';
 
   @override
   String get playerSpeedNormal => 'Normale';
@@ -3101,4 +3114,28 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get playerShowControls => 'afficher les commandes';
+
+  @override
+  String get channelFollow => 'Suivre';
+
+  @override
+  String get channelFollowing => 'Suivie';
+
+  @override
+  String channelFollowTooltip({required String name}) {
+    return 'Suivre $name sur Twitch';
+  }
+
+  @override
+  String channelFollowingTooltip({required String name}) {
+    return 'Vous suivez $name · ouvre twitch.tv';
+  }
+
+  @override
+  String get channelSubscribe => 'S’abonner';
+
+  @override
+  String channelSubscribeTooltip({required String name}) {
+    return 'S’abonner à $name · ouvre twitch.tv';
+  }
 }

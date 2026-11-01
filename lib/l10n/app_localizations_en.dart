@@ -1958,6 +1958,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get apiErrorUserNotFound => 'User does not exist';
+
+  @override
+  String get apiErrorChannelNotFound => 'Channel does not exist';
+
+  @override
+  String get apiErrorCategoryNotFound => 'Category not found';
+
+  @override
+  String get apiErrorTokenProxyTimeout => 'Token proxy timeout';
+
+  @override
   String get streamSortViewersHigh => 'Viewers (high to low)';
 
   @override
@@ -3045,4 +3057,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerShowControls => 'show controls';
+
+  @override
+  String get channelFollow => 'Follow';
+
+  @override
+  String get channelFollowing => 'Following';
+
+  @override
+  String channelFollowTooltip({required String name}) {
+    return 'Follow $name on Twitch';
+  }
+
+  @override
+  String channelFollowingTooltip({required String name}) {
+    return 'Following $name · opens twitch.tv';
+  }
+
+  @override
+  String get channelSubscribe => 'Subscribe';
+
+  @override
+  String channelSubscribeTooltip({required String name}) {
+    return 'Subscribe to $name · opens twitch.tv';
+  }
 }

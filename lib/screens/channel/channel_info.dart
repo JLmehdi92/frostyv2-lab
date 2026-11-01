@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
@@ -461,8 +462,8 @@ class FollowButton extends StatelessWidget {
         );
         return Tooltip(
           message: follows
-              ? 'Following $name · opens twitch.tv'
-              : 'Follow $name on Twitch',
+              ? context.l10n.channelFollowingTooltip(name: name)
+              : context.l10n.channelFollowTooltip(name: name),
           child: PressScale(
             child: follows
                 ? OutlinedButton(
@@ -481,7 +482,7 @@ class FollowButton extends StatelessWidget {
                       shape: const StadiumBorder(),
                       textStyle: style,
                     ),
-                    child: const OneLineLabel('Following'),
+                    child: OneLineLabel(context.l10n.channelFollowing),
                   )
                 : FilledButton(
                     onPressed: () => _open(context),
@@ -495,7 +496,7 @@ class FollowButton extends StatelessWidget {
                       shape: const StadiumBorder(),
                       textStyle: style,
                     ),
-                    child: const OneLineLabel('Follow'),
+                    child: OneLineLabel(context.l10n.channelFollow),
                   ),
           ),
         );
@@ -526,11 +527,14 @@ class SubscribeButton extends StatelessWidget {
     if (url == null) return const SizedBox.shrink();
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Tooltip(
-      message: 'Subscribe to $name · opens twitch.tv',
+      message: context.l10n.channelSubscribeTooltip(name: name),
       child: PressScale(
         child: OutlinedButton(
-          onPressed: () =>
-              TwitchWebPage.open(context, title: 'Subscribe', url: url),
+          onPressed: () => TwitchWebPage.open(
+            context,
+            title: context.l10n.channelSubscribe,
+            url: url,
+          ),
           style: OutlinedButton.styleFrom(
             foregroundColor: dark
                 ? OnsetTokens.hypeText
@@ -549,7 +553,7 @@ class SubscribeButton extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          child: const OneLineLabel('Subscribe'),
+          child: OneLineLabel(context.l10n.channelSubscribe),
         ),
       ),
     );

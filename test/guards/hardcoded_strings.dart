@@ -89,6 +89,10 @@ typedef UiHelpers = Map<String, Set<String>>;
 /// The [UiHelpers] key of a function whose result is shown as text.
 const _returns = 'return';
 
+/// The [UiHelpers] key of a name read as a property shown as text: a
+/// getter of that name returns UI text.
+const _readAsText = 'get';
+
 /// The [UiHelpers] of [sources]: a parameter that reaches a place showing
 /// text (`Text(message)`, `label: title`), directly or through another
 /// helper.
@@ -134,12 +138,86 @@ class _HelperFinder extends RecursiveAstVisitor<void> {
   /// UI text, so the literals it returns are flagged ([_returnsUi]).
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (_inUiPlace(node, helpers)) {
-      if (helpers.putIfAbsent(node.methodName.name, () => {}).add(_returns)) {
-        changed = true;
+    if (_inUiPlace(node, helpers)) _mark(node.methodName.name, _returns);
+    super.visitMethodInvocation(node);
+  }
+
+  /// A getter read as a property shown as text (`Text(caption)`,
+  /// `Text(kind.word)`, an extension's getter too): it returns UI text.
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    final parent = node.parent;
+    final AstNode read = switch (parent) {
+      PrefixedIdentifier(:final identifier) when identifier == node => parent,
+      PropertyAccess(:final propertyName) when propertyName == node => parent,
+      _ => node,
+    };
+    // Calls are seen above; a name being declared is no read.
+    if (parent is! MethodInvocation &&
+        !node.inDeclarationContext() &&
+        !_dataGetters.contains(node.name) &&
+        _inUiPlace(read, helpers)) {
+      _mark(node.name, _readAsText);
+    }
+    super.visitSimpleIdentifier(node);
+  }
+
+  /// A constructor taking a field (`A(this.title)`, positional or named)
+  /// the class shows as text (`Text(title)`, `Text(widget.title)` in its
+  /// state, in the same file): the literal passed there is UI text.
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    final className = switch (node.parent) {
+      ClassDeclaration(:final name) => name.lexeme,
+      _ => null,
+    };
+    final owner = node.parent;
+    if (className != null && owner != null) {
+      var position = 0;
+      for (final parameter in node.parameters.parameters) {
+        final key = parameter.isNamed
+            ? parameter.name?.lexeme
+            : '#${position++}';
+        final inner = parameter is DefaultFormalParameter
+            ? parameter.parameter
+            : parameter;
+        if (key == null || inner is! FieldFormalParameter) continue;
+        if (_fieldShown(owner, node.root, inner.name.lexeme)) {
+          _mark(className, key);
+        }
       }
     }
-    super.visitMethodInvocation(node);
+    super.visitConstructorDeclaration(node);
+  }
+
+  /// Whether [field] of the class [owner] is shown as text: in the class
+  /// (`Text(title)`), or anywhere in [unit] as `widget.title` (its state).
+  bool _fieldShown(AstNode owner, AstNode unit, String field) {
+    bool shownIn(AstNode scope, bool Function(SimpleIdentifier) counts) {
+      final uses = _Uses({field});
+      scope.accept(uses);
+      for (final use in uses.found) {
+        if (use.inDeclarationContext()) continue;
+        if (use.parent is FieldFormalParameter) continue;
+        if (!counts(use)) continue;
+        if (_inUiPlace(_readOf(use), helpers)) return true;
+      }
+      return false;
+    }
+
+    return shownIn(owner, (_) => true) ||
+        shownIn(
+          unit,
+          (use) => switch (use.parent) {
+            PrefixedIdentifier(:final prefix, :final identifier) =>
+              identifier == use && prefix.name == 'widget',
+            _ => false,
+          },
+        );
+  }
+
+  void _mark(String name, String key) {
+    if (helpers.putIfAbsent(name, () => {}).add(key)) changed = true;
   }
 
   void _check(String name, FormalParameterList? parameters, FunctionBody body) {
@@ -247,13 +325,58 @@ List<String> ratchetProblems(
 const _placeholder = '\u{FFFC}';
 final _letters = RegExp(r'\p{L}{2,}', unicode: true);
 final _codeToken = RegExp(r'^[\w-]+[:_/.][\w-]+(?:[:_/.][\w-]+)*$');
-final _codeChars = RegExp(r'[{};=`\\]');
+final _codeChars = RegExp(r'[=`\\]');
+
+/// Whether [text] reads as code rather than a sentence: an `=`, a backtick
+/// or a backslash anywhere, or a brace or a semicolon beside another mark of
+/// code (a bracket, a colon, a quote...) or ending it. A sentence may hold
+/// a `;` or a `{` ("Slow mode; 30s", "Press {Enter}").
+bool _looksLikeCode(String text) {
+  if (_codeChars.hasMatch(text)) return true;
+  if (!text.contains(RegExp(r'[{};]'))) return false;
+  return text.contains(RegExp(r'[()\[\]<>:"$]')) ||
+      // A block: `{ id name }` (a query, a style); a sentence's `{Enter}`
+      // hugs its word.
+      text.contains(RegExp(r'\{\s|\s\}')) ||
+      RegExp(r'[;{}]$').hasMatch(text.trimRight());
+}
+
+/// What a field or variable assigned a literal (`_error = 'Failed'`) is
+/// called when it holds text to show, beyond the UI names.
+final _uiAssignee = RegExp(
+  r'^(error|errorText|errorMessage|message|notice|warning|problemText)$',
+);
+
+/// Positional arguments of these methods are written into a text
+/// (`StringBuffer.write`).
+const _writeMethods = {'write', 'writeln', 'writeAll'};
+
+/// Closures passed as these name text a widget shows (`labelOf:`,
+/// `textBuilder:`): what they return is UI text.
+final _uiClosureName = RegExp(
+  r'^(builder|labelOf|titleOf|textOf|captionOf|tooltipOf|hintOf|\w*Builder)$',
+);
 final _host = RegExp(r'^[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:/\S*)?$');
 
 /// One token with a separator between word characters: `v5.0.5`,
 /// `chat:read`, `a/b` (not `Done.` or `Error:`, words with punctuation).
 final _snakeOrDotted = RegExp(r'^[\w-]+(?:[.:/][\w-]+)+$');
-final _kebab = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+){2,}$');
+final _kebab = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)+$');
+
+/// Getters named for data (`id`, `name`): read as text they show Twitch's
+/// data, not words of the app's, and their names are everywhere.
+const _dataGetters = {
+  'id',
+  'key',
+  'name',
+  'login',
+  'type',
+  'value',
+  'raw',
+  'code',
+  'url',
+  'slug',
+};
 
 /// Variables holding UI text by name (`themeNames`, `_notes`).
 final _uiVariable = RegExp(
@@ -485,7 +608,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   void _check(StringLiteral node, String text, {required bool multiline}) {
     if (multiline || !_letters.hasMatch(text)) return;
-    if (_textIsCode(text)) return;
+    if (_textIsCode(text) || _looksLikeCode(text)) return;
     if (_contextIsCode(node)) return;
     final String reason;
     if (_inUiPlace(node, helpers)) {
@@ -523,7 +646,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   }
 
   static bool _sentenceLike(String text) {
-    if (_codeChars.hasMatch(text)) return false;
+    if (_looksLikeCode(text)) return false;
     final words = text
         .split(RegExp(r'\s+'))
         .where((w) => _letters.hasMatch(w) && !_codeToken.hasMatch(w));
@@ -575,7 +698,14 @@ class _Visitor extends RecursiveAstVisitor<void> {
         SwitchExpressionCase(:final expression) => child == expression,
         SwitchExpression() => child is SwitchExpressionCase,
         MethodInvocation(:final target, :final methodName) =>
-          child == target && _transparentMethods.contains(methodName.name),
+          child == target &&
+              (_transparentMethods.contains(methodName.name) ||
+                  (child is ListLiteral && methodName.name == 'join')),
+        // `['Welcome'].first`: a word of the list read out.
+        PropertyAccess(:final target, :final propertyName) =>
+          child == target &&
+              child is ListLiteral &&
+              const {'first', 'last', 'single'}.contains(propertyName.name),
         MapLiteralEntry(:final value) => child == value,
         SetOrMapLiteral() => child is MapLiteralEntry,
         _ => false,
@@ -644,6 +774,11 @@ bool _inUiPlace(AstNode node, UiHelpers helpers, [int depth = 0]) {
       if (_Visitor._calleeNames(call).any(_uiPositional.contains)) {
         return true;
       }
+      if (call is MethodInvocation &&
+          call.target != null &&
+          _writeMethods.contains(call.methodName.name)) {
+        return true;
+      }
       final position = arguments
           .where((a) => a is! NamedExpression)
           .toList()
@@ -661,8 +796,85 @@ bool _inUiPlace(AstNode node, UiHelpers helpers, [int depth = 0]) {
         when initializer == child:
       return _uiVariable.hasMatch(name.lexeme) ||
           (depth < 3 && _usedInUiPlace(anchor, helpers, depth + 1));
+    // `_error = 'Failed'` (in a store, in `setState`), `t = 'Offline'`: a
+    // field or variable named for text, or one shown as text where it is
+    // declared.
+    case AssignmentExpression(
+          :final rightHandSide,
+          :final leftHandSide,
+          :final operator,
+        )
+        when rightHandSide == child &&
+            (operator.lexeme == '=' || operator.lexeme == '??='):
+      final assignee = switch (leftHandSide) {
+        SimpleIdentifier(:final name) => name,
+        PrefixedIdentifier(:final identifier) => identifier.name,
+        PropertyAccess(:final propertyName) => propertyName.name,
+        _ => null,
+      };
+      if (assignee == null) return false;
+      final bare = assignee.replaceFirst(RegExp(r'^_+'), '');
+      if ((_isUiName(bare) && bare != 'status') ||
+          _uiVariable.hasMatch(bare) ||
+          _uiAssignee.hasMatch(bare)) {
+        return true;
+      }
+      final declaration = _declarationOf(anchor, assignee);
+      return declaration != null &&
+          depth < 3 &&
+          _usedInUiPlace(declaration, helpers, depth + 1);
     default:
       return false;
+  }
+}
+
+/// The declaration of the variable or field [name] assigned at [node]: the
+/// nearest enclosing function's, else the file's.
+VariableDeclaration? _declarationOf(AstNode node, String name) {
+  VariableDeclaration? found;
+  for (
+    AstNode? scope = node.thisOrAncestorOfType<FunctionBody>();
+    scope != null && found == null;
+    scope = scope.parent?.thisOrAncestorOfType<FunctionBody>()
+  ) {
+    found = _DeclarationFinder.find(scope, name);
+  }
+  return found ?? _DeclarationFinder.find(node.root, name);
+}
+
+class _DeclarationFinder extends RecursiveAstVisitor<void> {
+  _DeclarationFinder(this.name);
+
+  final String name;
+  VariableDeclaration? found;
+
+  static VariableDeclaration? find(AstNode scope, String name) {
+    final finder = _DeclarationFinder(name);
+    scope.accept(finder);
+    return finder.found;
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    if (node.name.lexeme == name) found ??= node;
+    super.visitVariableDeclaration(node);
+  }
+}
+
+/// [use] read as a value: up through an index, `!`, `.field`.
+AstNode _readOf(SimpleIdentifier use) {
+  AstNode node = use;
+  while (true) {
+    final parent = node.parent;
+    final next = switch (parent) {
+      IndexExpression(:final target) when target == node => parent,
+      PostfixExpression(:final operator) when operator.lexeme == '!' => parent,
+      PrefixedIdentifier(:final identifier) when identifier == node => parent,
+      PropertyAccess(:final propertyName) when propertyName == node => parent,
+      _ => null,
+    };
+    if (next == null) return node;
+    node = next;
   }
 }
 
@@ -681,22 +893,7 @@ bool _usedInUiPlace(
   scope.accept(uses);
   for (final use in uses.found) {
     if (use.offset == declaration.name.offset) continue;
-    AstNode node = use;
-    // Up through what reads the value: an index, `!`, `.field`.
-    while (true) {
-      final parent = node.parent;
-      final next = switch (parent) {
-        IndexExpression(:final target) when target == node => parent,
-        PostfixExpression(:final operator) when operator.lexeme == '!' =>
-          parent,
-        PrefixedIdentifier(:final identifier) when identifier == node => parent,
-        PropertyAccess(:final propertyName) when propertyName == node => parent,
-        _ => null,
-      };
-      if (next == null) break;
-      node = next;
-    }
-    if (_inUiPlace(node, helpers, depth)) return true;
+    if (_inUiPlace(_readOf(use), helpers, depth)) return true;
   }
   return false;
 }
@@ -705,6 +902,8 @@ bool _usedInUiPlace(
 bool _helperTakes(AstNode? call, String key, UiHelpers helpers) {
   final String? name = switch (call) {
     MethodInvocation(:final methodName) => methodName.name,
+    InstanceCreationExpression(:final constructorName) =>
+      constructorName.type.name.lexeme,
     _ => null,
   };
   return name != null && (helpers[name]?.contains(key) ?? false);
@@ -716,11 +915,22 @@ bool _helperTakes(AstNode? call, String key, UiHelpers helpers) {
 bool _inUiFunction(AstNode node, UiHelpers helpers) {
   for (AstNode? up = node.parent; up != null; up = up.parent) {
     switch (up) {
+      // A closure passed as `labelOf:` or `textBuilder:` returns UI text.
+      case FunctionExpression(parent: NamedExpression(:final name)):
+        return _isUiName(name.label.name) ||
+            _uiClosureName.hasMatch(name.label.name);
       case FunctionExpression() when up.parent is! FunctionDeclaration:
         return false;
-      case FunctionDeclaration(:final name) || MethodDeclaration(:final name):
+      // A description for logs, even where a screen shows one (`Text('$n')`
+      // reads `toString`).
+      case MethodDeclaration(:final name) when name.lexeme == 'toString':
+        return false;
+      case FunctionDeclaration(:final name, :final isGetter) ||
+          MethodDeclaration(:final name, :final isGetter):
+        final marks = helpers[name.lexeme] ?? const {};
         return _isUiName(name.lexeme) ||
-            (helpers[name.lexeme]?.contains(_returns) ?? false);
+            marks.contains(_returns) ||
+            (isGetter && marks.contains(_readAsText));
       default:
         break;
     }

@@ -10,6 +10,7 @@ import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/screens/home/top/tags/tag_streams.dart';
 import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/vod/channel_videos.dart';
 import 'package:onset/screens/vod/vod_screen.dart';
 import 'package:onset/screens/whispers/whisper_conversation.dart';
@@ -185,6 +186,18 @@ void main() {
     ]) {
       expect(mentionMayClose(['Settings', kept]), isFalse, reason: '$kept');
     }
+  });
+
+  test('every settings sub-page may close, as Settings may', () {
+    for (final id in SettingsPageId.values) {
+      expect(
+        mentionMayClose([Settings.routeName, settingsRouteName(id)]),
+        isTrue,
+        reason: id.name,
+      );
+    }
+    // Only a sub-page of Settings: a name merely starting alike is kept.
+    expect(mentionMayClose(['SettingsLike']), isFalse);
   });
 
   test('its Activity entry names the message', () {

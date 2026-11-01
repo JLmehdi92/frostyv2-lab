@@ -848,8 +848,7 @@ enum ReleaseSectionKind {
   /// "Improvements and fixes" is).
   static ReleaseSectionKind of(String? title) {
     final name = title?.trim().toLowerCase() ?? '';
-    // English, as it always read: "fix" anywhere ("Bugfixes").
-    if (name.contains('fix') || _frenchFixed.hasMatch(name)) return fixed;
+    if (_fixed.hasMatch(name) || _frenchFixed.hasMatch(name)) return fixed;
     if (_added.hasMatch(name) || _frenchAdded.hasMatch(name)) return added;
     if (_improved.hasMatch(name) || _frenchImproved.hasMatch(name)) {
       return improved;
@@ -857,6 +856,12 @@ enum ReleaseSectionKind {
     return other;
   }
 
+  /// A whole English word: "Fixes", "Bugfixes", "Hotfix", "Fixed", not
+  /// "Prefixes" (nor the French « Préfixes »).
+  static final _fixed = RegExp(
+    r'(?<!\p{L})(?:bug|hot)?fix(?:es|ed)?(?!\p{L})',
+    unicode: true,
+  );
   static final _added = RegExp(r'\b(new|features?|added)\b');
   static final _improved = RegExp(r'\b(improvements?|improved|changed)\b');
 

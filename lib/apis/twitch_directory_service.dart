@@ -81,7 +81,11 @@ class TwitchDirectoryService extends BaseApiClient {
     final game = data['game'];
     if (game is! Map) {
       if (errors.isNotEmpty) throw DirectoryApiException(errors);
-      throw const NotFoundException('Category not found');
+      throw const NotFoundException(
+        'Category not found',
+        null,
+        ApiErrorKind.categoryNotFound,
+      );
     }
     return _streams(game['streams'], errors, language);
   }

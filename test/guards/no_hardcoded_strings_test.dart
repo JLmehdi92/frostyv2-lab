@@ -255,6 +255,129 @@ class A {
       );
     });
 
+    test('hole: text assigned to a field or a variable, in setState too', () {
+      expect(
+        texts('''
+class Store {
+  String? _error;
+  String? message;
+  void load() {
+    _error = 'Failed';
+    message ??= 'Try later';
+  }
+}
+class _S extends State<W> {
+  String msg = '';
+  void f() => setState(() => msg = 'Failed');
+  Widget build(BuildContext context) => Text(msg);
+}
+Widget a(bool b) {
+  var t = 'Live';
+  if (b) t = 'Offline';
+  return Text(t);
+}
+void codes() {
+  var mode = 'live';
+  mode = 'offline';
+  _status = 'connecting';
+  send(mode);
+}
+'''),
+        ['Failed', 'Try later', 'Failed', 'Live', 'Offline'],
+      );
+    });
+
+    test('hole: labelOf and builder closures returning words', () {
+      expect(
+        texts('''
+final a = SettingsListSelect(
+  labelOf: (v) => switch (v) { K.a => 'Live', K.b => 'Offline' },
+);
+final b = Thing(textBuilder: (c) => 'Welcome');
+final c = Thing(labelBuilder: (c) {
+  return 'Hello';
+});
+final d = Thing(onTap: (c) => 'tapped');
+'''),
+        ['Live', 'Offline', 'Welcome', 'Hello'],
+      );
+    });
+
+    test('hole: getters read as properties, extension getters too', () {
+      expect(
+        texts('''
+class A {
+  String get caption2 => 'Welcome';
+  String get routeId => 'home';
+  Widget build(BuildContext context) => Text(caption2);
+}
+enum K { a }
+extension on K {
+  String get word => 'Live';
+}
+Widget b(K k) => Text(k.word);
+'''),
+        ['Welcome', 'Live'],
+      );
+    });
+
+    test('hole: joined lists, a list\'s first word, StringBuffer.write', () {
+      expect(
+        texts('''
+Widget a(int n) => Column(children: [
+  Text([n, 'Live'].join(' · ')),
+  Text(['Welcome', 'Hi'].first),
+]);
+String b() {
+  final out = StringBuffer();
+  out.write('Live');
+  out.writeln('Offline');
+  return out.toString();
+}
+'''),
+        ['Live', 'Welcome', 'Hi', 'Live', 'Offline'],
+      );
+    });
+
+    test('hole: a positional constructor field shown as text', () {
+      expect(
+        texts('''
+class Chip2 extends StatelessWidget {
+  const Chip2(this.words, this.id, {super.key, this.caption2});
+  final String words;
+  final String id;
+  final String? caption2;
+  Widget build(BuildContext context) =>
+      Column(children: [Text(words), Text(caption2 ?? ''), Key2(id)]);
+}
+class _Pill extends StatefulWidget {
+  const _Pill(this.shown);
+  final String shown;
+}
+class _PillState extends State<_Pill> {
+  Widget build(BuildContext context) => Text(widget.shown);
+}
+final a = Chip2('Watch streak', 'row-id', caption2: 'Caption');
+final b = const _Pill('Shown');
+'''),
+        ['Watch streak', 'Caption', 'Shown'],
+      );
+    });
+
+    test('hole: sentences holding a semicolon or a brace, not code', () {
+      expect(
+        texts('''
+const a = 'Slow mode; then wait';
+const b = 'Press {Enter} to send';
+const c = 'query { user(login: x) { id } }';
+const d = 'body { margin: 0 }';
+const e = 'if (a) { b; }';
+const f = 'two words;';
+'''),
+        ['Slow mode; then wait', 'Press {Enter} to send'],
+      );
+    });
+
     test('says where a literal is and why', () {
       final [literal] = flaggedIn(
         "\n\nfinal t = Text('Hello');\n",
