@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/stores/caption_store.dart';
 import 'package:onset/utils/context_extensions.dart';
 
@@ -19,15 +20,15 @@ class CaptionMenu extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             SwitchListTile(
-              title: const Text('Closed Captions'),
-              subtitle: const Text('When the stream has them'),
+              title: Text(context.l10n.playerCaptions),
+              subtitle: Text(context.l10n.liveCaptionsDetail),
               value: captions.enabled,
               onChanged: captions.setEnabled,
             ),
             for (final track in captions.choices)
               ListTile(
                 contentPadding: const EdgeInsets.only(left: 32, right: 16),
-                title: Text(track.name),
+                title: Text(track.nameIn(context.l10n)),
                 trailing: captions.isSelected(track)
                     ? Icon(Icons.check_rounded, color: context.onsetColors.live)
                     : null,

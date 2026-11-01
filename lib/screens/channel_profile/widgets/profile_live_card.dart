@@ -74,7 +74,7 @@ class ProfileStreamFacts {
         count: live.viewers,
         viewers: formatViewers(live.viewers),
       ),
-      if (started != null) shortUptime(now.difference(started)),
+      if (started != null) shortUptime(now.difference(started), l),
     ].join(' · ');
   }
 

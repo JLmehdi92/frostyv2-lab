@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 
 /// The longest a caption line stays when its cue gives no sane end.
 const kCaptionMaxShown = Duration(seconds: 8);
@@ -43,15 +44,29 @@ enum CaptionBackground { black, translucent, none }
 
 /// One caption track the player offers.
 class CaptionTrack {
-  const CaptionTrack({required this.id, required this.name, this.language});
+  const CaptionTrack({
+    required this.id,
+    this.name,
+    this.language,
+    this.number = 1,
+  });
 
   final String id;
 
-  /// What the track is called in the menu: its label, else its language.
-  final String name;
+  /// What the track is called: its label, else its language (null when the
+  /// stream gives neither).
+  final String? name;
+
+  /// Its place in the list, from 1: named "Captions 2" without a [name].
+  final int number;
 
   /// Its language tag (`en`, `es-419`), when the stream gives one.
   final String? language;
+
+  /// What the menu calls it, in [l]'s language: its [name], else "Captions
+  /// [number]".
+  String nameIn(AppLocalizations l) =>
+      name ?? l.liveCaptionsTrack(number: number);
 }
 
 /// The tracks of a `textTracks` event from the native player, and the id
@@ -71,7 +86,8 @@ class CaptionTrack {
       list.add(
         CaptionTrack(
           id: id,
-          name: label ?? language ?? 'Captions ${list.length + 1}',
+          name: label ?? language,
+          number: list.length + 1,
           language: language,
         ),
       );

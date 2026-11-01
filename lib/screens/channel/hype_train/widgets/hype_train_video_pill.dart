@@ -54,22 +54,24 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
       case HtPhase.hidden:
         return null;
       case HtPhase.approaching:
-        return HtCopy.approachingShort;
+        return HtCopy.of(context).approachingShort;
       case HtPhase.ongoing || HtPhase.ending:
         if (store.step case HtStep(
           kind: HtStepKind.levelComplete,
           :final data,
         )) {
-          return HtCopy.levelComplete(data['level'] as int? ?? store.level);
+          return HtCopy.of(
+            context,
+          ).levelComplete(data['level'] as int? ?? store.level);
         }
         return null;
       case HtPhase.rewards:
-        return HtCopy.completed(
+        return HtCopy.of(context).completed(
           store.train?.variant ?? HtVariant.regular,
           shared: store.train?.shared != null,
         );
       case HtPhase.expired:
-        return HtCopy.expired;
+        return HtCopy.of(context).expired;
     }
   }
 
@@ -83,9 +85,9 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
           if (store.phase == HtPhase.hidden) return const SizedBox.shrink();
           final palette = htPaletteOf(context, store);
           final text = _text(store);
-          final label = store.semanticsSummary.isNotEmpty
-              ? store.semanticsSummary
-              : (text ?? HtCopy.title);
+          final copy = HtCopy.of(context);
+          final summary = copy.summaryLabel(store);
+          final label = summary.isNotEmpty ? summary : (text ?? copy.title);
           final Widget content;
           final double fraction;
           switch (store.phase) {
@@ -98,7 +100,7 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
                 children: [
                   const Icon(Icons.train_rounded),
                   const SizedBox(width: HtDims.marginHalf),
-                  Text(text ?? HtCopy.approachingShort),
+                  Text(text ?? HtCopy.of(context).approachingShort),
                   if (store.approaching case final approaching?)
                     HtCheckCircles(
                       filled: htFilledChecks(
@@ -120,9 +122,9 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
                   if (text != null)
                     Text(text)
                   else ...[
-                    Text(HtCopy.level(store.shownLevel)),
+                    Text(HtCopy.of(context).level(store.shownLevel)),
                     const SizedBox(width: HtDims.margin),
-                    Text(HtCopy.percent(store.shownPercent)),
+                    Text(HtCopy.of(context).percent(store.shownPercent)),
                   ],
                 ],
               );
@@ -133,7 +135,7 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
                 children: [
                   Icon(palette.icon),
                   const SizedBox(width: HtDims.marginHalf),
-                  Text(text ?? HtCopy.title),
+                  Text(text ?? HtCopy.of(context).title),
                 ],
               );
           }
@@ -144,7 +146,7 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
             fillColors: palette.pillFillColors,
             textOnFill: palette.textOnFill,
             label: label,
-            hint: HtCopy.detailsHint,
+            hint: HtCopy.of(context).detailsHint,
             onTap: widget.onTap,
             child: content,
           );

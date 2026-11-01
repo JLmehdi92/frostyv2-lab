@@ -8,6 +8,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/stream.dart';
@@ -657,7 +658,13 @@ class _VideoChatState extends State<VideoChat>
       });
       if (notice != null) {
         ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-          SnackBar(content: Text('$notice Trying the web player.')),
+          SnackBar(
+            content: Text(
+              context.l10n.channelWebFallback(
+                notice: notice.text(context.l10n),
+              ),
+            ),
+          ),
         );
       }
     }
@@ -1000,7 +1007,7 @@ class _VideoChatState extends State<VideoChat>
                           color: Colors.black.withValues(alpha: 0.4),
                           child: Center(
                             child: Text(
-                              'Swipe down to enter picture-in-picture',
+                              context.l10n.channelSwipeDownForPip,
                               textAlign: TextAlign.center,
                               style: context.textTheme.bodyLarge?.copyWith(
                                 color: context.onsetColors.overlayOnSurface,
@@ -1308,7 +1315,7 @@ class _VideoChatState extends State<VideoChat>
             ),
             actions: [
               IconButton(
-                tooltip: 'Videos',
+                tooltip: context.l10n.channelVideos,
                 icon: const Icon(Icons.video_library_outlined),
                 onPressed: () => ChannelVideosScreen.open(
                   context,

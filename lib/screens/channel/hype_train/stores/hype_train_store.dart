@@ -250,29 +250,6 @@ abstract class HypeTrainStoreBase with Store {
     return HtStyle.regular;
   }
 
-  /// One line for screen readers.
-  @computed
-  String get semanticsSummary {
-    switch (_phase) {
-      case HtPhase.hidden:
-        return '';
-      case HtPhase.approaching:
-        return 'Hype Train approaching';
-      case HtPhase.ongoing:
-        // Minutes until the last one: a label that changes every second
-        // would keep screen readers busy.
-        final seconds = _remaining.inSeconds;
-        final time = seconds >= 60
-            ? '${(seconds / 60).ceil()} min'
-            : '$seconds seconds';
-        return 'Hype Train level $level, $percent percent, $time left';
-      case HtPhase.ending || HtPhase.rewards:
-        return 'Hype Train ended at level ${_endSummary?.level ?? level}';
-      case HtPhase.expired:
-        return 'Hype Train expired';
-    }
-  }
-
   // --- Presenter and lifecycle --------------------------------------------------
 
   /// A banner is on screen. Counted: each attach needs a detach.

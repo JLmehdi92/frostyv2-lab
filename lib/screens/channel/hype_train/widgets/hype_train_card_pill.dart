@@ -14,7 +14,7 @@ class HypeTrainCardPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final neutrals = HtNeutrals.of(brightness);
-    final text = HtCopy.cardLevel(
+    final text = HtCopy.of(context).cardLevel(
       status.level,
       variant: status.variant,
       ath: status.isAllTimeHigh,

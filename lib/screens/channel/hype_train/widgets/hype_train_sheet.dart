@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/screens/channel/hype_train/hype_train_math.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
@@ -51,7 +52,7 @@ class HypeTrainSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (_variantLine(train) case final line?)
+              if (_variantLine(train, HtCopy.of(context)) case final line?)
                 _VariantCard(
                   train: train,
                   line: line,
@@ -63,8 +64,8 @@ class HypeTrainSheet extends StatelessWidget {
                 top: 16,
                 child: Text(
                   isFinalLevel(train)
-                      ? HtCopy.finalLevel
-                      : HtCopy.levelTarget(
+                      ? HtCopy.of(context).finalLevel
+                      : HtCopy.of(context).levelTarget(
                           train.level,
                           store.levelTarget.subs,
                           store.levelTarget.bits,
@@ -73,7 +74,10 @@ class HypeTrainSheet extends StatelessWidget {
                 ),
               ),
               if (train.shared case final shared?) ...[
-                _Header(HtCopy.contributionsHeader, neutrals: neutrals),
+                _Header(
+                  HtCopy.of(context).contributionsHeader,
+                  neutrals: neutrals,
+                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: SizedBox(
@@ -85,10 +89,13 @@ class HypeTrainSheet extends StatelessWidget {
                   ),
                 ),
               ],
-              _Header(HtCopy.conductorsHeader, neutrals: neutrals),
+              _Header(HtCopy.of(context).conductorsHeader, neutrals: neutrals),
               _padded(
                 top: HtDims.marginHalf,
-                child: Text(HtCopy.conductorsDescription, style: footnote),
+                child: Text(
+                  HtCopy.of(context).conductorsDescription,
+                  style: footnote,
+                ),
               ),
               _padded(
                 top: HtDims.margin,
@@ -111,20 +118,20 @@ class HypeTrainSheet extends StatelessWidget {
                   ],
                 ),
               ),
-              _Header(HtCopy.rewardsHeader, neutrals: neutrals),
+              _Header(HtCopy.of(context).rewardsHeader, neutrals: neutrals),
               _padded(
                 top: HtDims.marginHalf,
                 child: Text(
                   train.variant == HtVariant.goldenKappa
-                      ? HtCopy.goldenRewardsDescription
-                      : HtCopy.rewardsDescription,
+                      ? HtCopy.of(context).goldenRewardsDescription
+                      : HtCopy.of(context).rewardsDescription,
                   style: footnote,
                 ),
               ),
               _padded(
                 top: HtDims.margin,
                 child: Text(
-                  HtCopy.levelEmotes(train.level),
+                  HtCopy.of(context).levelEmotes(train.level),
                   textAlign: TextAlign.center,
                   style: HtType.bodySmall.copyWith(color: neutrals.textBase),
                 ),
@@ -137,7 +144,7 @@ class HypeTrainSheet extends StatelessWidget {
                 ),
               ),
               if (store.unlockedRewards.isNotEmpty) ...[
-                _Header(HtCopy.unlockedSoFar, neutrals: neutrals),
+                _Header(HtCopy.of(context).unlockedSoFar, neutrals: neutrals),
                 _padded(
                   top: HtDims.margin,
                   child: _RewardRow(
@@ -175,7 +182,7 @@ class HypeTrainSheet extends StatelessWidget {
                           ),
                         ),
                         TextSpan(
-                          text: HtCopy.channelRecord(
+                          text: HtCopy.of(context).channelRecord(
                             athPercent(train.progress.total, ath),
                             ath.level,
                           ),
@@ -198,7 +205,7 @@ class HypeTrainSheet extends StatelessWidget {
                       visualDensity: VisualDensity.compact,
                       textStyle: HtType.titleExtraSmall,
                     ),
-                    child: const Text(HtCopy.moreInfo),
+                    child: Text(HtCopy.of(context).moreInfo),
                   ),
                 ),
               ),
@@ -212,12 +219,12 @@ class HypeTrainSheet extends StatelessWidget {
   static Widget _padded({required double top, required Widget child}) =>
       Padding(padding: EdgeInsets.fromLTRB(16, top, 16, 0), child: child);
 
-  static String? _variantLine(HypeTrainExecution train) {
+  static String? _variantLine(HypeTrainExecution train, HtCopy copy) {
     switch (train.variant) {
       case HtVariant.treasure:
         final treasure = train.treasure;
         if (treasure == null) return null;
-        return HtCopy.treasureCard(
+        return copy.treasureCard(
           treasure.threshold,
           treasure.discountPercentage,
           unlocked: train.level >= treasure.threshold,
@@ -225,15 +232,15 @@ class HypeTrainSheet extends StatelessWidget {
       case HtVariant.community:
         final community = train.community;
         if (community == null) return null;
-        return HtCopy.communityCard(
+        return copy.communityCard(
           community.threshold,
           community.current,
           unlocked: train.level >= community.threshold,
         );
       case HtVariant.mythic:
-        return HtCopy.mythicCard(train.mythic?.pool.length ?? 0);
+        return copy.mythicCard(train.mythic?.pool.length ?? 0);
       case HtVariant.goldenKappa:
-        return HtCopy.goldenCard;
+        return copy.goldenCard;
       case HtVariant.regular:
         return null;
     }
@@ -331,10 +338,9 @@ class _VariantCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      HtCopy.trainTitle(
-                        train.variant,
-                        shared: train.shared != null,
-                      ),
+                      HtCopy.of(
+                        context,
+                      ).trainTitle(train.variant, shared: train.shared != null),
                       style: HtType.bodySemibold.copyWith(
                         color: neutrals.textAlt2,
                       ),
@@ -398,7 +404,7 @@ class _LinkedLineState extends State<_LinkedLine> {
       children: [
         TextSpan(text: '${widget.line} '),
         TextSpan(
-          text: HtCopy.learnMore,
+          text: HtCopy.of(context).learnMore,
           recognizer: _recognizer,
           style: TextStyle(
             color: widget.link,
@@ -431,11 +437,7 @@ class _ConductorCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final conductor = this.conductor;
     final bits = source == HtSource.bits;
-    final amount = conductor == null
-        ? ''
-        : bits
-        ? HtCopy.bitsConductor(conductor.amount)
-        : HtCopy.subsConductor(conductor.amount);
+    final copy = HtCopy.of(context);
     return Padding(
       padding: const EdgeInsetsDirectional.only(end: HtDims.margin),
       child: Row(
@@ -456,18 +458,22 @@ class _ConductorCell extends StatelessWidget {
           Expanded(
             child: conductor == null
                 ? Text(
-                    bits ? HtCopy.noBitsConductor : HtCopy.noSubsConductor,
+                    bits ? copy.noBitsConductor : copy.noSubsConductor,
                     style: style,
                   )
                 : Text.rich(
                     TextSpan(
-                      children: [
-                        TextSpan(
-                          text: conductor.user.displayName,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        TextSpan(text: ' $amount'),
-                      ],
+                      children: l10nSpans(
+                        bits
+                            ? copy.bitsConductor(l10nMark(0), conductor.amount)
+                            : copy.subsConductor(l10nMark(0), conductor.amount),
+                        [
+                          TextSpan(
+                            text: conductor.user.displayName,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
                     ),
                     style: style,
                   ),
@@ -500,9 +506,11 @@ class _RewardRow extends StatelessWidget {
       children: [
         for (final reward in emotes)
           Semantics(
-            label:
-                '${locked ? 'Locked' : 'Unlocked'} reward '
-                '${reward.token ?? reward.id}',
+            label: locked
+                ? context.l10n.htRewardLocked(name: reward.token ?? reward.id)
+                : context.l10n.htRewardUnlocked(
+                    name: reward.token ?? reward.id,
+                  ),
             excludeSemantics: true,
             child: SizedBox.square(
               key: const ValueKey('ht-reward'),
@@ -590,7 +598,7 @@ class _UpcomingRewardsState extends State<_UpcomingRewards> {
     if (levels.isEmpty) {
       return Align(
         alignment: AlignmentDirectional.centerStart,
-        child: Text(HtCopy.nothingMore, style: style),
+        child: Text(HtCopy.of(context).nothingMore, style: style),
       );
     }
     return Column(
@@ -598,7 +606,7 @@ class _UpcomingRewardsState extends State<_UpcomingRewards> {
       children: [
         for (final (level, rewards) in levels.take(10)) ...[
           Text(
-            HtCopy.levelEmotes(level),
+            HtCopy.of(context).levelEmotes(level),
             textAlign: TextAlign.center,
             style: style,
           ),
@@ -623,7 +631,7 @@ class _UpcomingRewardsState extends State<_UpcomingRewards> {
         title: Semantics(
           header: true,
           child: Text(
-            HtCopy.comingUp,
+            HtCopy.of(context).comingUp,
             style: HtType.header.copyWith(color: widget.neutrals.textBase),
           ),
         ),
@@ -670,19 +678,25 @@ class _ApproachingDetails extends StatelessWidget {
           Semantics(
             header: true,
             child: Text(
-              HtCopy.approachingQuestion(variant),
+              HtCopy.of(context).approachingQuestion(variant),
               style: HtType.header.copyWith(color: neutrals.textBase),
             ),
           ),
           const SizedBox(height: 6),
-          Text(HtCopy.approachingExplanationFirst(variant), style: body),
+          Text(
+            HtCopy.of(context).approachingExplanationFirst(variant),
+            style: body,
+          ),
           const SizedBox(height: HtDims.margin),
-          Text(HtCopy.approachingExplanationSecond(variant), style: body),
+          Text(
+            HtCopy.of(context).approachingExplanationSecond(variant),
+            style: body,
+          ),
           const SizedBox(height: 16),
           Semantics(
             header: true,
             child: Text(
-              HtCopy.levelEmotes(1),
+              HtCopy.of(context).levelEmotes(1),
               style: HtType.header.copyWith(color: neutrals.textBase),
             ),
           ),

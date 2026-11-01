@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlight_event.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
@@ -264,7 +265,7 @@ void main() {
 
   testWidgets('labels and icons cover every kind', (tester) async {
     for (final kind in HighlightKind.values) {
-      expect(highlightLabel(kind), isNotEmpty);
+      expect(highlightLabel(kind, L10n.english), isNotEmpty);
       expect(highlightIcon(kind), isA<IconData>());
     }
   });
@@ -288,7 +289,7 @@ void main() {
     expect(find.byType(GiftBombPin), findsOneWidget);
     expect(find.text('BigGifter'), findsOneWidget);
     expect(find.text(' is gifting 5 subs'), findsOneWidget);
-    expect(highlightLabel(HighlightKind.giftBomb), 'Gift Subs');
+    expect(highlightLabel(HighlightKind.giftBomb, L10n.english), 'Gift Subs');
     expect(highlightIcon(HighlightKind.giftBomb), Icons.card_giftcard_rounded);
 
     await tester.tap(find.byTooltip('Hide'));

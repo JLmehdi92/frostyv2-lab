@@ -327,6 +327,13 @@ const frenchScreenSizes = [
   ('854x1280', Size(854, 1280)),
 ];
 
+/// The windows the channel screen's French surfaces are checked in: the
+/// four above and a landscape phone.
+const frenchChannelScreenSizes = [
+  ...frenchScreenSizes,
+  ('844x390', Size(844, 390)),
+];
+
 /// The text scales every French screen is checked at.
 const frenchTextScales = [1.0, 1.3];
 

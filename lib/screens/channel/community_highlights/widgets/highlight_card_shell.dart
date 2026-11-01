@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
@@ -166,7 +167,7 @@ class HighlightCardShell extends StatelessWidget {
                           const SizedBox(height: 44),
                         if (onDismiss != null)
                           IconButton(
-                            tooltip: 'Hide',
+                            tooltip: context.l10n.commonHide,
                             style: IconButton.styleFrom(
                               fixedSize: const Size(40, 44),
                               minimumSize: const Size(40, 44),

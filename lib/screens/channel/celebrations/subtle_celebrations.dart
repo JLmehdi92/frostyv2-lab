@@ -1,20 +1,15 @@
 import 'package:mobx/mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/celebration.dart';
 
 /// The compact chat line a celebration becomes when "Celebrations on video"
-/// is Subtle: what played, never over the video.
-String celebrationChatLine(Celebration celebration) {
-  final effect = switch (celebration.effect) {
-    CelebrationEffect.fireworks => 'Fireworks',
-    CelebrationEffect.rain => 'Rain',
-    CelebrationEffect.float => 'Float',
-    CelebrationEffect.flamethrower => 'Flamethrower',
-    CelebrationEffect.extinctionEvent => 'Extinction event',
-    CelebrationEffect.unknown => 'Sparkles',
-  };
+/// is Subtle, in [l]'s language: what played, never over the video.
+String celebrationChatLine(Celebration celebration, AppLocalizations l) {
+  // Its name selects the effect's name; unknown falls to the other branch.
+  final effect = l.celebrationEffect(effect: celebration.effect.name);
   return celebration.isAutomatic
-      ? 'Gifted subs celebration: $effect'
-      : 'Celebration: $effect';
+      ? l.celebrationChatLineGiftedSubs(effect: effect)
+      : l.celebrationChatLine(effect: effect);
 }
 
 /// While [subtle] says so, every celebration [latest] brings becomes a line
@@ -30,6 +25,7 @@ ReactionDisposer feedSubtleCelebrations({
   required void Function() clear,
 }) => reaction<Celebration?>((_) => latest(), (celebration) {
   if (celebration == null || !subtle()) return;
-  post(celebrationChatLine(celebration));
+  // A line put in the chat's buffer: no widget to ask the language of.
+  post(celebrationChatLine(celebration, L10n.current));
   clear();
 });

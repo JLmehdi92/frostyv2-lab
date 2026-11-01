@@ -1369,7 +1369,7 @@ class _CaptionsCard extends StatelessWidget {
                 selected: captions.isSelected(track),
                 inMutuallyExclusiveGroup: true,
                 child: SheetRow(
-                  label: track.name,
+                  label: track.nameIn(context.l10n),
                   minHeight: 46,
                   trailing: captions.isSelected(track)
                       ? SheetGlyph(

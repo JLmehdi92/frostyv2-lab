@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/captions.dart';
 
 void main() {
@@ -65,7 +66,12 @@ void main() {
       expect(tracks.list[0].name, 'English CC');
       // Without a label: the language, else a numbered name.
       expect(tracks.list[1].name, 'es-419');
-      expect(tracks.list[2].name, 'Captions 3');
+      expect(tracks.list[2].name, isNull);
+      expect(tracks.list[2].nameIn(L10n.english), 'Captions 3');
+      expect(
+        tracks.list[2].nameIn(lookupAppLocalizations(const Locale('fr'))),
+        'Sous-titres 3',
+      );
     });
 
     test('nothing readable is no track', () {

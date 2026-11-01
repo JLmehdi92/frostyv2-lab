@@ -56,29 +56,35 @@ class IvsStatsPanel extends StatelessWidget {
               // on every sample and on reset.
               store.samplesVersion;
 
-              String ms(int? v) => v == null ? '—' : formatLatency(v);
+              final l = context.l10n;
+              String ms(int? v) =>
+                  v == null ? '—' : displayLatency(formatLatency(v), l);
 
               final rows = <(String, String)>[
-                ('Latency', latencyMs == null ? '—' : formatLatency(latencyMs)),
+                (l.latencyStatsLatency, ms(latencyMs)),
                 (
-                  'Med / p90 / max',
+                  l.latencyStatsSpread,
                   '${ms(sampler.median)} / ${ms(sampler.p90)} / '
                       '${ms(sampler.max)} (${sampler.count})',
                 ),
-                ('Buffer', ms(stats?.bufferedMs)),
+                (l.latencyStatsBuffer, ms(stats?.bufferedMs)),
                 (
-                  'Bitrate',
-                  '${formatBitrate(stats?.bitrate)} · '
-                      'net ${formatBitrate(stats?.bandwidth)}',
+                  l.latencyStatsBitrate,
+                  l.latencyStatsBitrateValue(
+                    bitrate: formatBitrate(stats?.bitrate, l),
+                    network: formatBitrate(stats?.bandwidth, l),
+                  ),
                 ),
                 (
-                  'Frames',
-                  '${stats?.fps ?? '—'} fps · '
-                      '${stats?.droppedFrames ?? '—'} dropped / '
-                      '${stats?.decodedFrames ?? '—'}',
+                  l.latencyStatsFrames,
+                  l.latencyStatsFramesValue(
+                    fps: '${stats?.fps ?? '—'}',
+                    dropped: '${stats?.droppedFrames ?? '—'}',
+                    decoded: '${stats?.decodedFrames ?? '—'}',
+                  ),
                 ),
                 (
-                  'Quality',
+                  l.playerQuality,
                   [
                     stats?.qualityName ?? store.streamQuality,
                     ?stats?.resolution,
@@ -86,30 +92,33 @@ class IvsStatsPanel extends StatelessWidget {
                   ].join(' · '),
                 ),
                 (
-                  'Low latency',
+                  l.latencyStatsLowLatency,
                   switch (stats?.lowLatency) {
-                    true => 'on',
-                    false => 'off',
+                    true => l.latencyStatsOn,
+                    false => l.latencyStatsOff,
                     null => '—',
                   },
                 ),
                 (
-                  'Speed',
+                  l.latencyStatsSpeed,
                   switch (stats?.playbackRate) {
-                    final rate? => '${rate.toStringAsFixed(2)}x',
+                    final rate? => l.latencyStatsRate(
+                      rate: localDecimal(rate.toStringAsFixed(2)),
+                    ),
                     null => '—',
                   },
                 ),
-                // English, like the rest of the panel, until it is
-                // translated.
-                ('Mode', store.playerConfig.label(L10n.untranslated)),
-                ('Auto latency', describeAutoLatency(store.autoLatencyStatus)),
-                if (describeBufferFallback(store.bufferFallbackUntil)
+                (l.latencyStatsMode, store.playerConfig.label(l)),
+                (
+                  l.latencyStatsAutoLatency,
+                  describeAutoLatency(store.autoLatencyStatus, l),
+                ),
+                if (describeBufferFallback(store.bufferFallbackUntil, l)
                     case final fallback?)
-                  ('Next streams', fallback),
-                ('Startup', ms(store.startupMs)),
-                ('Rebuffers', '${store.rebufferCount}'),
-                ('Jumps to live', '${store.liveJumps}'),
+                  (l.latencyStatsNextStreams, fallback),
+                (l.latencyStatsStartup, ms(store.startupMs)),
+                (l.latencyStatsRebuffers, '${store.rebufferCount}'),
+                (l.latencyStatsLiveJumps, '${store.liveJumps}'),
               ];
 
               return Column(

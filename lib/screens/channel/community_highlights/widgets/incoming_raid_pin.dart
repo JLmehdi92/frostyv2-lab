@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/celebrations/onset_rocket.dart';
 import 'package:onset/screens/channel/chat/incoming_raid.dart';
 import 'package:onset/screens/channel/community_highlights/raid_text.dart';
@@ -23,8 +25,9 @@ class IncomingRaidPin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = SheetColors.of(context);
-    final viewers = formatRaidViewers(raid.viewers);
-    final noun = raidViewerNoun(raid.viewers);
+    final l = context.l10n;
+    final count = raidViewerCount(raid.viewers);
+    final viewers = NumberFormat.decimalPattern().format(count);
     final reduceMotion = reduceMotionOf(context);
     final textScaler = MediaQuery.textScalerOf(
       context,
@@ -34,7 +37,11 @@ class IncomingRaidPin extends StatelessWidget {
       child: Semantics(
         container: true,
         liveRegion: true,
-        label: '${raid.raiderName} is raiding with $viewers $noun',
+        label: l.raidIncoming(
+          count: count,
+          name: raid.raiderName,
+          viewers: viewers,
+        ),
         child: Container(
           constraints: BoxConstraints(minHeight: textScaler.scale(_height)),
           padding: const EdgeInsetsDirectional.only(start: 8, end: 4),
@@ -86,22 +93,29 @@ class IncomingRaidPin extends StatelessWidget {
                       children: [
                         Text.rich(
                           TextSpan(
-                            children: [
-                              TextSpan(
-                                text: raid.raiderName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                ),
+                            children: l10nSpans(
+                              l.raidIncoming(
+                                count: count,
+                                name: l10nMark(0),
+                                viewers: l10nMark(1),
                               ),
-                              TextSpan(text: ' is raiding with '),
-                              TextSpan(
-                                text: viewers,
-                                style: const TextStyle(
-                                  fontFeatures: [FontFeature.tabularFigures()],
+                              [
+                                TextSpan(
+                                  text: raid.raiderName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
-                              ),
-                              TextSpan(text: ' $noun'),
-                            ],
+                                TextSpan(
+                                  text: viewers,
+                                  style: const TextStyle(
+                                    fontFeatures: [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -114,7 +128,7 @@ class IncomingRaidPin extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Say hi in chat',
+                          l.raidSayHi,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -131,7 +145,7 @@ class IncomingRaidPin extends StatelessWidget {
               ),
               if (onDismiss != null)
                 IconButton(
-                  tooltip: 'Hide',
+                  tooltip: l.commonHide,
                   style: IconButton.styleFrom(
                     fixedSize: const Size(40, 40),
                     minimumSize: const Size(40, 40),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/captions.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
 import 'package:onset/screens/channel/video/quality_selection.dart';
@@ -111,18 +112,18 @@ class _AudioOnlyBadge extends StatelessWidget {
         color: Colors.black.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(OnsetTokens.radiusSmall),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         spacing: 6,
         children: [
-          PlayerGlyph(
+          const PlayerGlyph(
             PlayerGlyphKind.headphones,
             color: OnsetTokens.textPrimaryDark,
             size: 15,
           ),
           Text(
-            'Audio only',
-            style: TextStyle(
+            context.l10n.livePlayerAudioOnly,
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: OnsetTokens.textPrimaryDark,

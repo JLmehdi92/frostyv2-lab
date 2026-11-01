@@ -1,3 +1,5 @@
+import 'package:onset/l10n/l10n.dart';
+
 /// Normalises a quality name so names saved by any engine compare equal
 /// (e.g. the web player's `1080p60 (source)` and IVS's `1080p60`).
 String normalizeQualityName(String name) => name
@@ -9,9 +11,13 @@ String normalizeQualityName(String name) => name
 /// Twitch's name for the sound-only rendition.
 const kAudioOnlyQuality = 'audio_only';
 
-/// How a quality is shown in the menu.
-String qualityLabel(String name) =>
-    name == kAudioOnlyQuality ? 'Audio only' : name;
+/// How a quality is shown in the menu, in [l]'s language: Twitch's names
+/// as they are ("1080p60"), Auto and audio only worded.
+String qualityLabel(String name, AppLocalizations l) => switch (name) {
+  kAudioOnlyQuality => l.livePlayerAudioOnly,
+  'Auto' => l.playerConfigAuto,
+  _ => name,
+};
 
 /// Picks the quality to apply once the stream's qualities are known.
 ///

@@ -41,10 +41,10 @@ class HypeTrainEndStrip extends StatelessWidget {
               .take(3)
               .toList();
           final title = switch ((rewards, golden)) {
-            (true, true) => HtCopy.goldenRewards,
-            (true, false) => HtCopy.rewards,
-            (false, true) => HtCopy.goldenExpired,
-            (false, false) => HtCopy.expired,
+            (true, true) => HtCopy.of(context).goldenRewards,
+            (true, false) => HtCopy.of(context).rewards,
+            (false, true) => HtCopy.of(context).goldenExpired,
+            (false, false) => HtCopy.of(context).expired,
           };
           final text = Text(
             title,

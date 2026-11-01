@@ -154,6 +154,13 @@ Future<void> saveUiLanguage(Locale locale) async {
   }
 }
 
+/// A decimal number written by code ("2.3", from `toStringAsFixed`) with
+/// the decimal separator of the language of `Intl` (« 2,3 » in French).
+String localDecimal(String number) {
+  final separator = NumberFormat.decimalPattern().symbols.DECIMAL_SEP;
+  return separator == '.' ? number : number.replaceFirst('.', separator);
+}
+
 /// The two branches of an on/off select in the ARB files
 /// (`{mentions, select, on{…} other{…}}`): pass [name], never a typed
 /// string, so a typo cannot fall into `other` unnoticed.

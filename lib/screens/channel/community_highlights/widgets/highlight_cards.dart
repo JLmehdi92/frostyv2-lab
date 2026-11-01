@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/screens/channel/community_highlights/highlight_math.dart';
+import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/highlight_countdown.dart';
 import 'package:onset/theme.dart';
@@ -18,9 +19,6 @@ Color predictionColor(PredictionOutcome outcome, ColorScheme scheme) =>
       PredictionColor.pink => kPredictionPink,
       PredictionColor.unknown => scheme.primary,
     };
-
-String _count(int value, String one, String many) =>
-    '${NumberFormat.compact().format(value)} ${value == 1 ? one : many}';
 
 /// What every card needs from the screen.
 class HighlightCardContext {
@@ -110,33 +108,39 @@ class PollCard extends StatelessWidget {
     final finished = !poll.isActive;
     final leaderIndex = top.isEmpty ? null : top.first;
     final leader = leaderIndex == null ? null : poll.choices[leaderIndex];
+    final l = context.l10n;
+    final votesText = l.highlightVotes(count: poll.totalVotes);
     final summary = [
-      'Poll',
+      l.highlightKind(kind: HighlightKind.poll.name),
       poll.title,
-      if (finished) 'final results',
+      if (finished) l.highlightFinalResultsLower,
       if (leader != null)
-        '${leader.title} leads with ${shares[leaderIndex!]} percent',
-      _count(poll.totalVotes, 'vote', 'votes'),
+        l.highlightPollLeads(
+          choice: leader.title,
+          percent: shares[leaderIndex!],
+        ),
+      votesText,
     ].join(', ');
 
     return HighlightCardShell(
       icon: Icons.poll_outlined,
       glyph: SheetGlyphKind.poll,
-      title: 'Poll',
+      title: l.highlightKind(kind: HighlightKind.poll.name),
       expanded: card.expanded,
       onToggle: card.onToggle,
       onDismiss: card.onDismiss,
       semanticsLabel: summary,
       status: finished
-          ? const Text('Final results')
+          ? Text(l.highlightFinalResults)
           : ends == null
-          ? Text(_count(poll.totalVotes, 'vote', 'votes'))
+          ? Text(votesText)
           : HighlightCountdown(
               deadline: ends,
               now: card.now,
-              builder: (context, left) => Text('${formatTimeLeft(left)} left'),
+              builder: (context, left) =>
+                  Text(l.highlightTimeLeft(time: formatTimeLeft(left))),
             ),
-      footer: _takePart(card, 'Vote on Twitch', open: !finished),
+      footer: _takePart(card, l.highlightVote, open: !finished),
       headline: Text(
         poll.title,
         maxLines: card.expanded ? 3 : 1,
@@ -151,11 +155,11 @@ class PollCard extends StatelessWidget {
               fraction: shares[i] / 100,
               fill: _pollFill(context, leader: top.contains(i)),
               label: poll.choices[i].title,
-              trailing: '${shares[i]}%',
+              trailing: l.commonPercent(value: shares[i]),
               bold: top.contains(i),
             ),
           Text(
-            _count(poll.totalVotes, 'vote', 'votes'),
+            votesText,
             style: SheetText.tabular(
               TextStyle(
                 fontFamily: OnsetTokens.bodyFamily,
@@ -183,13 +187,13 @@ class PredictionCard extends StatelessWidget {
   final Prediction prediction;
   final HighlightCardContext card;
 
-  String get _statusText => switch (prediction.status) {
-    PredictionStatus.active => 'Predictions open',
-    PredictionStatus.locked => 'Predictions closed',
+  String _statusText(AppLocalizations l) => switch (prediction.status) {
+    PredictionStatus.active => l.highlightPredictionsOpen,
+    PredictionStatus.locked => l.highlightPredictionsClosed,
     PredictionStatus.resolvePending ||
-    PredictionStatus.cancelPending => 'Waiting for the result',
-    PredictionStatus.resolved => 'Result',
-    PredictionStatus.canceled => 'Canceled · points refunded',
+    PredictionStatus.cancelPending => l.highlightPredictionWaiting,
+    PredictionStatus.resolved => l.highlightPredictionResult,
+    PredictionStatus.canceled => l.highlightPredictionCanceled,
     PredictionStatus.unknown => '',
   };
 
@@ -202,20 +206,25 @@ class PredictionCard extends StatelessWidget {
         .where((o) => o.id == prediction.winningOutcomeId)
         .firstOrNull;
     final locks = prediction.locksAt;
+    final l = context.l10n;
+    final statusText = _statusText(l);
     final summary = [
-      'Prediction',
+      l.highlightKind(kind: HighlightKind.prediction.name),
       prediction.title,
-      _statusText,
-      if (winner != null) 'winner ${winner.title}',
+      statusText,
+      if (winner != null) l.highlightWinnerLower(outcome: winner.title),
       for (var i = 0; i < prediction.outcomes.length; i++)
-        '${prediction.outcomes[i].title} ${shares[i]} percent',
+        l.highlightOutcomeShare(
+          outcome: prediction.outcomes[i].title,
+          percent: shares[i],
+        ),
     ].where((s) => s.isNotEmpty).join(', ');
 
     final dark = Theme.of(context).brightness == Brightness.dark;
     return HighlightCardShell(
       icon: Icons.emoji_events_outlined,
       glyph: SheetGlyphKind.trophy,
-      title: 'Prediction',
+      title: l.highlightKind(kind: HighlightKind.prediction.name),
       // The trophy in light blue on a blue-tinted tile.
       accent: dark ? const Color(0xFF8DB4FF) : kPredictionBlue,
       tint: kPredictionBlue.withValues(alpha: 0.18),
@@ -228,12 +237,16 @@ class PredictionCard extends StatelessWidget {
               deadline: locks,
               now: card.now,
               builder: (context, left) =>
-                  Text('${formatTimeLeft(left)} to predict'),
+                  Text(l.highlightTimeToPredict(time: formatTimeLeft(left))),
             )
-          : Text(winner == null ? _statusText : 'Winner: ${winner.title}'),
+          : Text(
+              winner == null
+                  ? statusText
+                  : l.highlightWinner(outcome: winner.title),
+            ),
       footer: _takePart(
         card,
-        'Predict on Twitch',
+        l.highlightPredict,
         open: prediction.status == PredictionStatus.active,
       ),
       headline: Text(
@@ -302,11 +315,11 @@ class _OutcomeRow extends StatelessWidget {
           fraction: share / 100,
           fill: fill,
           label: outcome.title,
-          trailing: '$share%',
+          trailing: context.l10n.commonPercent(value: share),
           bold: isWinner,
           leading: isWinner
               ? Semantics(
-                  label: 'Winner',
+                  label: context.l10n.highlightWinnerMark,
                   child: SheetGlyph(
                     SheetGlyphKind.check,
                     size: 16,
@@ -321,14 +334,20 @@ class _OutcomeRow extends StatelessWidget {
           child: Wrap(
             spacing: 10,
             children: [
-              Text(_count(outcome.points, 'point', 'points'), style: meta),
+              Text(
+                context.l10n.highlightPoints(count: outcome.points),
+                style: meta,
+              ),
               Text(formatRatio(returnRatio(prediction, outcome)), style: meta),
               Text(
-                _count(outcome.users, 'predictor', 'predictors'),
+                context.l10n.highlightPredictors(count: outcome.users),
                 style: meta,
               ),
               if (top != null && top.name.isNotEmpty)
-                Text('Top: ${top.name}', style: meta),
+                Text(
+                  context.l10n.highlightTopPredictor(name: top.name),
+                  style: meta,
+                ),
             ],
           ),
         ),
@@ -384,17 +403,25 @@ class PinnedCard extends StatelessWidget {
     return HighlightCardShell(
       icon: Icons.push_pin_outlined,
       glyph: SheetGlyphKind.pin,
-      title: 'Pinned',
+      title: context.l10n.highlightKind(kind: HighlightKind.pinned.name),
       expanded: card.expanded,
       onToggle: card.onToggle,
       onDismiss: card.onDismiss,
-      semanticsLabel: 'Pinned message from $sender: ${pin.text}',
+      semanticsLabel: context.l10n.highlightPinnedFrom(
+        sender: sender,
+        text: pin.text,
+      ),
       status: ends == null
-          ? Text(pin.pinnedBy == null ? '' : 'by ${pin.pinnedBy}')
+          ? Text(switch (pin.pinnedBy) {
+              final by? => context.l10n.highlightPinnedBy(name: by),
+              null => '',
+            })
           : HighlightCountdown(
               deadline: ends,
               now: card.now,
-              builder: (context, left) => Text('${formatTimeLeft(left)} left'),
+              builder: (context, left) => Text(
+                context.l10n.highlightTimeLeft(time: formatTimeLeft(left)),
+              ),
             ),
       headline: card.expanded
           ? null

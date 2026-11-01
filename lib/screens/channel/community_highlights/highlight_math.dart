@@ -1,3 +1,4 @@
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 
 /// Whole percentages of [counts] that add up to exactly 100 (largest
@@ -48,5 +49,6 @@ String formatRatio(double? ratio) {
       .toStringAsFixed(2)
       .replaceFirst(RegExp(r'0+$'), '')
       .replaceFirst(RegExp(r'\.$'), '');
-  return '1:$text';
+  // The language's decimal separator (« 1:1,02 » in French).
+  return '1:${localDecimal(text)}';
 }

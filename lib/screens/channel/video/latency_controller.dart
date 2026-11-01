@@ -1,4 +1,5 @@
 import 'package:clock/clock.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/latency_stats.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 
@@ -30,6 +31,49 @@ enum AutoLatencyPhase {
   catchingUp,
 }
 
+/// Why auto latency is held or stopped, worded by [autoLatencyReasonText].
+enum AutoLatencyReason {
+  /// An ad plays.
+  ad,
+
+  /// The player gave no buffer length.
+  noBufferReading,
+
+  /// A tick came without a latency.
+  noLatencyReading,
+
+  /// The latency ticks stopped coming during a catch-up.
+  noLatencyTicks,
+
+  /// The stream has no low latency.
+  notLowLatency,
+
+  /// The viewer paused (or a page covers the player).
+  paused,
+
+  /// The player reconnects (or jumps to live, or is not playing yet).
+  reconnecting,
+
+  /// The player waits for data.
+  buffering,
+
+  /// The player refused a faster rate.
+  rateRefused,
+
+  /// The player did not keep the rate asked for.
+  rateNotKept,
+
+  /// Catching up kept causing stalls.
+  stallsAfterCatchUp,
+
+  /// The player stayed fast after 1.0x was asked for
+  /// ([AutoLatencyStatus.reasonRate] says how fast).
+  stuckFast,
+
+  /// The player refused to go back to 1.0x.
+  notBackToNormal,
+}
+
 /// A snapshot of the controller for the stats panel. Compares by value so a
 /// store only notifies observers when something they show changed.
 class AutoLatencyStatus {
@@ -38,6 +82,7 @@ class AutoLatencyStatus {
     required this.rate,
     this.targetMs,
     this.reason,
+    this.reasonRate,
     this.calmLeftSeconds,
   });
 
@@ -50,7 +95,10 @@ class AutoLatencyStatus {
   final int? targetMs;
 
   /// Why it is held or stopped.
-  final String? reason;
+  final AutoLatencyReason? reason;
+
+  /// The rate the player stayed at, for [AutoLatencyReason.stuckFast].
+  final double? reasonRate;
 
   /// Seconds of calm still needed before it may act (while settling).
   final int? calmLeftSeconds;
@@ -62,11 +110,12 @@ class AutoLatencyStatus {
       other.rate == rate &&
       other.targetMs == targetMs &&
       other.reason == reason &&
+      other.reasonRate == reasonRate &&
       other.calmLeftSeconds == calmLeftSeconds;
 
   @override
   int get hashCode =>
-      Object.hash(phase, rate, targetMs, reason, calmLeftSeconds);
+      Object.hash(phase, rate, targetMs, reason, reasonRate, calmLeftSeconds);
 }
 
 /// Keeps a live stream close to live without ever reloading it, by playing
@@ -242,7 +291,8 @@ class LatencyController {
   var _strikes = 0;
   var _notHeld = 0;
   var _stopped = false;
-  String? _stopReason;
+  AutoLatencyReason? _stopReason;
+  double? _stopRate;
 
   /// Whether the SDK-like drain may run once stopped: not when a rate was
   /// refused or not kept.
@@ -250,7 +300,8 @@ class LatencyController {
   DateTime? _lastStallAt;
   var _rate = 1.0;
   late AutoLatencyPhase _phase;
-  String? _reason;
+  AutoLatencyReason? _reason;
+  double? _reasonRate;
   int? _calmLeftSeconds;
 
   /// The playback rate to apply now.
@@ -264,6 +315,7 @@ class LatencyController {
     rate: _rate,
     targetMs: enabled ? effectiveTargetMs : null,
     reason: _reason,
+    reasonRate: _reasonRate,
     calmLeftSeconds: _phase == AutoLatencyPhase.settling
         ? _calmLeftSeconds
         : null,
@@ -321,30 +373,32 @@ class LatencyController {
         ? minAdHold
         : (duration > maxAdHold ? maxAdHold : duration);
     _adUntil = _now().add(hold);
-    _holdFor('ad');
+    _holdFor(AutoLatencyReason.ad);
   }
 
   /// The viewer is about to make correcting wrong (pause, the content
   /// warning, a refresh): back to 1.0x now, without waiting for the next
   /// tick. The catch-up it ends was ended by the viewer: a stall after it (a
   /// resume often rebuffers) is not a strike.
-  void hold(String reason) {
+  void hold(AutoLatencyReason reason) {
     if (!enabled) return;
     _holdFor(reason);
     _lastCatchUpEnd = null;
   }
 
   /// The native player refused the rate: stop for the stream.
-  void onRateRejected() => stop('the player refused the rate');
+  void onRateRejected() => stop(AutoLatencyReason.rateRefused);
 
   /// Stops for the stream with [reason], without the drain: the rate itself
-  /// is in doubt (the store saw the player refuse or keep a rate).
-  void stop(String reason) => _stop(reason, drainable: false);
+  /// is in doubt (the store saw the player refuse or keep a rate). [rate] is
+  /// the rate it stayed at, for [AutoLatencyReason.stuckFast].
+  void stop(AutoLatencyReason reason, {double? rate}) =>
+      _stop(reason, drainable: false, rate: rate);
 
   /// A tick came without a usable latency: back to 1.0x and hold.
   void onMissingLatency() {
     _lastSampleAt = _now();
-    _holdFor('no latency reading');
+    _holdFor(AutoLatencyReason.noLatencyReading);
   }
 
   /// The watchdog, called between ticks: a rate above 1.0x whose ticks
@@ -354,7 +408,7 @@ class LatencyController {
     if (_rate <= 1) return false;
     final last = _lastSampleAt;
     if (last == null || _now().difference(last) <= maxSampleGap) return false;
-    _holdFor('no latency ticks');
+    _holdFor(AutoLatencyReason.noLatencyTicks);
     return true;
   }
 
@@ -364,7 +418,7 @@ class LatencyController {
     int? bufferMs,
     bool? lowLatency,
     double? nativeRate,
-    String? hold,
+    AutoLatencyReason? hold,
   }) {
     final now = _now();
     final last = _lastSampleAt;
@@ -376,8 +430,10 @@ class LatencyController {
     final adUntil = _adUntil;
     final heldBecause =
         hold ??
-        (adUntil != null && now.isBefore(adUntil) ? 'ad' : null) ??
-        (bufferMs == null ? 'no buffer reading' : null);
+        (adUntil != null && now.isBefore(adUntil)
+            ? AutoLatencyReason.ad
+            : null) ??
+        (bufferMs == null ? AutoLatencyReason.noBufferReading : null);
     if (heldBecause != null) {
       _holdFor(heldBecause);
       return _rate;
@@ -451,7 +507,10 @@ class LatencyController {
       if (_stopped) {
         _setStopped();
       } else {
-        _setPhase(AutoLatencyPhase.held, reason: 'not a low-latency stream');
+        _setPhase(
+          AutoLatencyPhase.held,
+          reason: AutoLatencyReason.notLowLatency,
+        );
       }
     }
 
@@ -480,7 +539,8 @@ class LatencyController {
       _notHeld = 0;
       _setPhase(
         AutoLatencyPhase.draining,
-        reason: _stopped ? _stopReason : 'not a low-latency stream',
+        reason: _stopped ? _stopReason : AutoLatencyReason.notLowLatency,
+        reasonRate: _stopped ? _stopRate : null,
       );
     } else {
       rest();
@@ -496,7 +556,7 @@ class LatencyController {
       return false;
     }
     if (++_notHeld < rateNotHeldTicks) return false;
-    stop('the player did not keep the rate');
+    stop(AutoLatencyReason.rateNotKept);
     return true;
   }
 
@@ -515,11 +575,11 @@ class LatencyController {
     if (!_recentCatchUp) return;
     _strikes++;
     if (_strikes >= maxStrikes) {
-      _stop('stalls after catching up', drainable: true);
+      _stop(AutoLatencyReason.stallsAfterCatchUp, drainable: true);
     }
   }
 
-  void _holdFor(String reason) {
+  void _holdFor(AutoLatencyReason reason) {
     _toNormalRate();
     _clearCalm();
     if (_stopped) {
@@ -529,19 +589,27 @@ class LatencyController {
     }
   }
 
-  void _stop(String reason, {required bool drainable}) {
+  void _stop(
+    AutoLatencyReason reason, {
+    required bool drainable,
+    double? rate,
+  }) {
     if (!enabled) return;
     _toNormalRate();
     // A doubt about the rate, once seen, keeps the drain off for the stream.
     _drainable = drainable && (!_stopped || _drainable);
     _stopped = true;
     _stopReason = reason;
+    _stopRate = rate;
     _clearCalm();
     _setStopped();
   }
 
-  void _setStopped() =>
-      _setPhase(AutoLatencyPhase.stopped, reason: _stopReason);
+  void _setStopped() => _setPhase(
+    AutoLatencyPhase.stopped,
+    reason: _stopReason,
+    reasonRate: _stopRate,
+  );
 
   bool get _catchingUp => _rate == catchUpRate;
 
@@ -565,9 +633,14 @@ class LatencyController {
     _buffers.clear();
   }
 
-  void _setPhase(AutoLatencyPhase phase, {String? reason}) {
+  void _setPhase(
+    AutoLatencyPhase phase, {
+    AutoLatencyReason? reason,
+    double? reasonRate,
+  }) {
     _phase = phase;
     _reason = reason;
+    _reasonRate = reasonRate;
   }
 
   static void _push(List<int> window, int value) {
@@ -582,35 +655,83 @@ class LatencyController {
   }
 }
 
-/// One line for the stats panel: what auto latency does and what it aims at.
-String describeAutoLatency(AutoLatencyStatus? status) {
-  if (status == null) return 'off';
-  final target = switch (status.targetMs) {
-    final ms? => ' · target ${formatLatency(ms)}',
-    null => '',
+/// One line for the stats panel: what auto latency does and what it aims
+/// at, in [l]'s language.
+String describeAutoLatency(AutoLatencyStatus? status, AppLocalizations l) {
+  if (status == null) return l.latencyAutoOff;
+  String aimed(String text) => switch (status.targetMs) {
+    final ms? => l.latencyAutoWithTarget(
+      status: text,
+      latency: displayLatency(formatLatency(ms), l),
+    ),
+    null => text,
   };
+  String reason() =>
+      autoLatencyReasonText(status.reason, l, rate: status.reasonRate);
   return switch (status.phase) {
-    AutoLatencyPhase.off => 'off',
-    AutoLatencyPhase.stopped => 'stopped: ${status.reason ?? 'gave up'}',
-    AutoLatencyPhase.held => 'held: ${status.reason ?? 'held'}$target',
-    AutoLatencyPhase.settling =>
-      'waiting for calm${switch (status.calmLeftSeconds) {
-        final s? => ' ${s}s',
-        null => '',
-      }}$target',
-    AutoLatencyPhase.steady => 'at target$target',
-    AutoLatencyPhase.catchingUp =>
-      'catching up ${status.rate.toStringAsFixed(2)}x$target',
+    AutoLatencyPhase.off => l.latencyAutoOff,
+    AutoLatencyPhase.stopped => l.latencyAutoStopped(
+      reason: status.reason == null ? l.latencyReasonGaveUp : reason(),
+    ),
+    AutoLatencyPhase.held => aimed(
+      l.latencyAutoHeld(
+        reason: status.reason == null ? l.latencyReasonHeld : reason(),
+      ),
+    ),
+    AutoLatencyPhase.settling => aimed(switch (status.calmLeftSeconds) {
+      final seconds? => l.latencyAutoSettlingSeconds(seconds: seconds),
+      null => l.latencyAutoSettling,
+    }),
+    AutoLatencyPhase.steady => aimed(l.latencyAutoSteady),
+    AutoLatencyPhase.catchingUp => aimed(
+      l.latencyAutoCatchingUp(rate: _rateText(status.rate)),
+    ),
     AutoLatencyPhase.draining =>
-      'draining ${status.rate.toStringAsFixed(2)}x'
-          '${status.reason == null ? '' : ' (${status.reason})'}',
+      status.reason == null
+          ? l.latencyAutoDraining(rate: _rateText(status.rate))
+          : l.latencyAutoDrainingBecause(
+              rate: _rateText(status.rate),
+              reason: reason(),
+            ),
   };
 }
 
+/// A playback rate as the stats panel writes it: two decimals, in the
+/// language of `Intl` ("1.05", « 1,05 »).
+String _rateText(double rate) => localDecimal(rate.toStringAsFixed(2));
+
+/// Why auto latency is held or stopped, in [l]'s language; [rate] is the
+/// rate of [AutoLatencyReason.stuckFast].
+String autoLatencyReasonText(
+  AutoLatencyReason? reason,
+  AppLocalizations l, {
+  double? rate,
+}) => switch (reason) {
+  null => '',
+  AutoLatencyReason.ad => l.latencyReasonAd,
+  AutoLatencyReason.noBufferReading => l.latencyReasonNoBufferReading,
+  AutoLatencyReason.noLatencyReading => l.latencyReasonNoLatencyReading,
+  AutoLatencyReason.noLatencyTicks => l.latencyReasonNoLatencyTicks,
+  AutoLatencyReason.notLowLatency => l.latencyReasonNotLowLatency,
+  AutoLatencyReason.paused => l.latencyReasonPaused,
+  AutoLatencyReason.reconnecting => l.latencyReasonReconnecting,
+  AutoLatencyReason.buffering => l.latencyReasonBuffering,
+  AutoLatencyReason.rateRefused => l.latencyReasonRateRefused,
+  AutoLatencyReason.rateNotKept => l.latencyReasonRateNotKept,
+  AutoLatencyReason.stallsAfterCatchUp => l.latencyReasonStalls,
+  AutoLatencyReason.stuckFast => l.latencyReasonStuckFast(
+    rate: _rateText(rate ?? 1),
+  ),
+  AutoLatencyReason.notBackToNormal => l.latencyReasonNotBackToNormal(
+    rate: localDecimal('1.0'),
+  ),
+};
+
 /// The stats panel line of an active Ultra fallback, or null.
-String? describeBufferFallback(DateTime? until) {
+String? describeBufferFallback(DateTime? until, AppLocalizations l) {
   if (until == null) return null;
   String two(int v) => v.toString().padLeft(2, '0');
-  return 'Standard until ${two(until.hour)}:${two(until.minute)} '
-      '(Ultra stalled)';
+  return l.latencyBufferFallback(
+    time: '${two(until.hour)}:${two(until.minute)}',
+  );
 }

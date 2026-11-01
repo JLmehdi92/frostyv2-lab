@@ -4816,6 +4816,1657 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subscribe to {name} · opens twitch.tv'**
   String channelSubscribeTooltip({required String name});
+
+  /// What a screen reader says for the channel's picture or name over and under the live video (opens the channel profile), and its tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel profile'**
+  String get channelProfile;
+
+  /// Tooltip of the button over the live video (and in the channel bar) that opens the channel's videos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get channelVideos;
+
+  /// Snackbar when the app's player gives up on a stream Twitch refuses and the web player takes over. notice says why (liveRefused…), a full sentence; French puts it after « Passage au lecteur web. ».
+  ///
+  /// In en, this message translates to:
+  /// **'{notice} Trying the web player.'**
+  String channelWebFallback({required String notice});
+
+  /// Over the video while the viewer drags it down: letting go enters picture-in-picture (Android's floating window, « Picture-in-picture » as Android names it in French).
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe down to enter picture-in-picture'**
+  String get channelSwipeDownForPip;
+
+  /// What a screen reader calls the handle between the video and the chat in portrait.
+  ///
+  /// In en, this message translates to:
+  /// **'Resize video'**
+  String get channelResizeVideo;
+
+  /// What a screen reader says the handle between the video and the chat does.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to change the video size, double tap for full width'**
+  String get channelResizeVideoHint;
+
+  /// How long a live has run, under an hour, in the info row under the video and on a channel profile's live card. Short unit, no plural.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String channelUptimeMinutes({required int minutes});
+
+  /// How long a live has run, from an hour (3 h 12), in the info row under the video and on a channel profile's live card. minutes is two digits.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes}'**
+  String channelUptimeHours({required int hours, required String minutes});
+
+  /// A chip under a tablet's video: how many streams in a row the viewer watched on this channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch streak {value}'**
+  String channelWatchStreak({required int value});
+
+  /// Tablet channel page, under the video: the heading of the row of other followed channels that are live. Written in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'ALSO LIVE FROM YOUR FOLLOWS'**
+  String get channelAlsoLive;
+
+  /// The title of the chat column's bar on a tablet's channel page.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get channelChat;
+
+  /// Beside « Chat » on a tablet: the chat is delayed to match the video automatically. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'synced to video'**
+  String get channelChatSynced;
+
+  /// Beside « Chat » on a tablet: the chat is held back by that many seconds (Settings › Chat).
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s delay'**
+  String channelChatDelay({required int seconds});
+
+  /// Tooltip of the button that opens the chat's settings sheet, in the chat column's bar on a tablet.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat settings'**
+  String get channelChatSettings;
+
+  /// Tooltip of the gear over the live video: opens the sheet with the quality, volume, captions and stats.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality and settings'**
+  String get livePlayerQualityAndSettings;
+
+  /// Tooltip of the live player's sound button while the sound is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get livePlayerMute;
+
+  /// Tooltip of the live player's sound button while it is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get livePlayerUnmute;
+
+  /// Tooltip of the live player's button that reloads the stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get livePlayerRefresh;
+
+  /// Tooltip of the live player's full-screen button.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter fullscreen mode'**
+  String get livePlayerEnterFullScreen;
+
+  /// Tooltip of the live player's full-screen button while in full screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit fullscreen mode'**
+  String get livePlayerExitFullScreen;
+
+  /// Tooltip of a tablet's button over the live video that brings the side chat back.
+  ///
+  /// In en, this message translates to:
+  /// **'Show chat'**
+  String get livePlayerShowChat;
+
+  /// Tooltip of a tablet's button over the live video that hides the side chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide chat'**
+  String get livePlayerHideChat;
+
+  /// Tooltip of the live player's rotate button in portrait.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter landscape mode'**
+  String get livePlayerEnterLandscape;
+
+  /// Tooltip of the live player's rotate button in landscape.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit landscape mode'**
+  String get livePlayerExitLandscape;
+
+  /// Tooltip of the live player's picture-in-picture button (Android's floating window, « Picture-in-picture » in French).
+  ///
+  /// In en, this message translates to:
+  /// **'Enter picture-in-picture'**
+  String get livePlayerEnterPip;
+
+  /// Tooltip of the same button on iOS while the video floats.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit picture-in-picture'**
+  String get livePlayerExitPip;
+
+  /// The live player's settings sheet: the heading over the list of qualities.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream quality'**
+  String get livePlayerStreamQuality;
+
+  /// The quality that plays the sound alone (in the quality list), and the badge over the video while it plays.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio only'**
+  String get livePlayerAudioOnly;
+
+  /// The live player's settings sheet: the heading over the stats entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement'**
+  String get livePlayerMeasurement;
+
+  /// The live player's settings sheet: shows or hides the stats panel over the video.
+  ///
+  /// In en, this message translates to:
+  /// **'Video stats'**
+  String get livePlayerVideoStats;
+
+  /// Under « Video stats »: what the panel shows.
+  ///
+  /// In en, this message translates to:
+  /// **'Latency, buffer, bitrate and frames over the video'**
+  String get livePlayerVideoStatsDetail;
+
+  /// The live player's settings sheet: starts the stats over.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset stats'**
+  String get livePlayerResetStats;
+
+  /// Under « Reset stats ».
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new latency measurement'**
+  String get livePlayerResetStatsDetail;
+
+  /// Over the live video, before the stream's title, while several channels share one chat. title is the stream's title (Twitch's data).
+  ///
+  /// In en, this message translates to:
+  /// **'Shared chat · {title}'**
+  String livePlayerSharedChatTitle({required String title});
+
+  /// Tooltip of how long the live has run, over the video.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream uptime'**
+  String get livePlayerUptime;
+
+  /// Tooltip of the viewer count over the video (a tap opens the chatters).
+  ///
+  /// In en, this message translates to:
+  /// **'Viewer count'**
+  String get livePlayerViewerCount;
+
+  /// The live player's settings sheet: under « Closed Captions » (playerCaptions).
+  ///
+  /// In en, this message translates to:
+  /// **'When the stream has them'**
+  String get liveCaptionsDetail;
+
+  /// A caption track the stream names neither by label nor by language, in the caption list: its place in the list.
+  ///
+  /// In en, this message translates to:
+  /// **'Captions {number}'**
+  String liveCaptionsTrack({required int number});
+
+  /// Why the app's player cannot play a stream (then the web player tries): Twitch keeps it for subscribers. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is streaming for subscribers only.'**
+  String liveRefusedSubscribersOnly({required String name});
+
+  /// Why the app's player cannot play a stream: Twitch blocks it in the viewer's country.
+  ///
+  /// In en, this message translates to:
+  /// **'This stream is not available in your region.'**
+  String get liveRefusedGeoblocked;
+
+  /// Why the app's player cannot play a stream: the viewer is banned from the channel. name is the channel's display name. French uses a noun to avoid agreeing « banni(e) ».
+  ///
+  /// In en, this message translates to:
+  /// **'You are banned from {name}\'s channel.'**
+  String liveRefusedBanned({required String name});
+
+  /// Why the app's player cannot play a stream: Twitch refused its token, without saying why.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch refused this stream to the app player.'**
+  String get liveRefusedUnauthorized;
+
+  /// Why the app's player cannot play a stream, on a screen whose language is not English: Twitch explained in English (its words stay in the logs).
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch refused this stream.'**
+  String get liveRefused;
+
+  /// Why the app's player cannot play a stream, in English only: Twitch's own explanation follows (a full stop is added when it has none).
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch refused this stream: {reason}'**
+  String liveRefusedBecause({required String reason});
+
+  /// A latency in seconds, as the latency pill and the stats panel show it (2.3s). value is the number, with its decimal separator.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}s'**
+  String latencySeconds({required String value});
+
+  /// Tooltip of the latency pill over the video (the web player).
+  ///
+  /// In en, this message translates to:
+  /// **'Latency to broadcaster'**
+  String get latencyPillTooltip;
+
+  /// Tooltip of the latency pill over the video with the app's player: a tap opens the stats panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Latency to broadcaster · tap for video stats'**
+  String get latencyPillTooltipStats;
+
+  /// What a screen reader says for the latency pill. latency is the pill's text (2.3s, or the reconnect progress ↻ 2/5).
+  ///
+  /// In en, this message translates to:
+  /// **'Latency {latency}'**
+  String latencyPillSemantics({required String latency});
+
+  /// A bitrate from a million bits per second, in the stats panel. value has one decimal.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} Mbps'**
+  String latencyMegabits({required String value});
+
+  /// A bitrate under a million bits per second, in the stats panel.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} kbps'**
+  String latencyKilobits({required int value});
+
+  /// Stats panel over the video: the row of the latency to the broadcaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Latency'**
+  String get latencyStatsLatency;
+
+  /// Stats panel: the row of the latency's median, 90th percentile and maximum over the last minutes. Kept short.
+  ///
+  /// In en, this message translates to:
+  /// **'Med / p90 / max'**
+  String get latencyStatsSpread;
+
+  /// Stats panel: the row of how much video is buffered.
+  ///
+  /// In en, this message translates to:
+  /// **'Buffer'**
+  String get latencyStatsBuffer;
+
+  /// Stats panel: the row of the video's bitrate and the network's.
+  ///
+  /// In en, this message translates to:
+  /// **'Bitrate'**
+  String get latencyStatsBitrate;
+
+  /// Stats panel, Bitrate row: the video's bitrate, then the network's measured bandwidth.
+  ///
+  /// In en, this message translates to:
+  /// **'{bitrate} · net {network}'**
+  String latencyStatsBitrateValue({
+    required String bitrate,
+    required String network,
+  });
+
+  /// Stats panel: the row of the frame rate and dropped frames.
+  ///
+  /// In en, this message translates to:
+  /// **'Frames'**
+  String get latencyStatsFrames;
+
+  /// Stats panel, Frames row: frames per second, then frames dropped out of those decoded (« i/s », images par seconde).
+  ///
+  /// In en, this message translates to:
+  /// **'{fps} fps · {dropped} dropped / {decoded}'**
+  String latencyStatsFramesValue({
+    required String fps,
+    required String dropped,
+    required String decoded,
+  });
+
+  /// Stats panel: whether the stream has Twitch's low latency.
+  ///
+  /// In en, this message translates to:
+  /// **'Low latency'**
+  String get latencyStatsLowLatency;
+
+  /// Stats panel, Low latency row: it is on (« activée » agrees with « latence »). Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'on'**
+  String get latencyStatsOn;
+
+  /// Stats panel, Low latency row: it is off. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'off'**
+  String get latencyStatsOff;
+
+  /// Stats panel: the row of the playback rate.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get latencyStatsSpeed;
+
+  /// Stats panel: a playback rate (1.05x). rate has two decimals.
+  ///
+  /// In en, this message translates to:
+  /// **'{rate}x'**
+  String latencyStatsRate({required String rate});
+
+  /// Stats panel: the row of the player's setting (Settings › Video), e.g. « Standard · Auto ».
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get latencyStatsMode;
+
+  /// Stats panel: the row of what auto latency (keeping the stream close to live) is doing.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto latency'**
+  String get latencyStatsAutoLatency;
+
+  /// Stats panel: the row of the buffer the next streams open with, while Ultra is set aside after stalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Next streams'**
+  String get latencyStatsNextStreams;
+
+  /// Stats panel: the row of how long the stream took to start.
+  ///
+  /// In en, this message translates to:
+  /// **'Startup'**
+  String get latencyStatsStartup;
+
+  /// Stats panel: the row of how many times playback stopped to buffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebuffers'**
+  String get latencyStatsRebuffers;
+
+  /// Stats panel: the row of how many times the player jumped back to live.
+  ///
+  /// In en, this message translates to:
+  /// **'Jumps to live'**
+  String get latencyStatsLiveJumps;
+
+  /// Stats panel, Auto latency row: off for this stream (« désactivée » agrees with « latence »). Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'off'**
+  String get latencyAutoOff;
+
+  /// Stats panel, Auto latency row: what it does (status, a latencyAuto… text), then the latency it aims at.
+  ///
+  /// In en, this message translates to:
+  /// **'{status} · target {latency}'**
+  String latencyAutoWithTarget({
+    required String status,
+    required String latency,
+  });
+
+  /// Stats panel, Auto latency row: it gave up for this stream, and why (latencyReason…).
+  ///
+  /// In en, this message translates to:
+  /// **'stopped: {reason}'**
+  String latencyAutoStopped({required String reason});
+
+  /// Stats panel, Auto latency row: it may not act now, and why (latencyReason…).
+  ///
+  /// In en, this message translates to:
+  /// **'held: {reason}'**
+  String latencyAutoHeld({required String reason});
+
+  /// Stats panel, Auto latency row: it waits for the connection to stay calm.
+  ///
+  /// In en, this message translates to:
+  /// **'waiting for calm'**
+  String get latencyAutoSettling;
+
+  /// Stats panel, Auto latency row: the same, with the seconds of calm still needed.
+  ///
+  /// In en, this message translates to:
+  /// **'waiting for calm {seconds}s'**
+  String latencyAutoSettlingSeconds({required int seconds});
+
+  /// Stats panel, Auto latency row: close enough to live, playing at normal speed.
+  ///
+  /// In en, this message translates to:
+  /// **'at target'**
+  String get latencyAutoSteady;
+
+  /// Stats panel, Auto latency row: playing faster to get back to the target. rate has two decimals.
+  ///
+  /// In en, this message translates to:
+  /// **'catching up {rate}x'**
+  String latencyAutoCatchingUp({required String rate});
+
+  /// Stats panel, Auto latency row: playing slightly faster to drain an excessive buffer (« résorption » du tampon). rate has two decimals.
+  ///
+  /// In en, this message translates to:
+  /// **'draining {rate}x'**
+  String latencyAutoDraining({required String rate});
+
+  /// The same, with why the normal catch-up does not run (latencyReason…).
+  ///
+  /// In en, this message translates to:
+  /// **'draining {rate}x ({reason})'**
+  String latencyAutoDrainingBecause({
+    required String rate,
+    required String reason,
+  });
+
+  /// Stats panel, Auto latency row: why it stopped, when there is no other reason.
+  ///
+  /// In en, this message translates to:
+  /// **'gave up'**
+  String get latencyReasonGaveUp;
+
+  /// Stats panel, Auto latency row: why it holds, when there is no other reason.
+  ///
+  /// In en, this message translates to:
+  /// **'held'**
+  String get latencyReasonHeld;
+
+  /// Why auto latency holds: an ad plays. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'ad'**
+  String get latencyReasonAd;
+
+  /// Why auto latency holds: the player gave no buffer length. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'no buffer reading'**
+  String get latencyReasonNoBufferReading;
+
+  /// Why auto latency holds: no latency came with the last tick. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'no latency reading'**
+  String get latencyReasonNoLatencyReading;
+
+  /// Why auto latency holds: the latency stopped coming during a catch-up. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'no latency ticks'**
+  String get latencyReasonNoLatencyTicks;
+
+  /// Why auto latency holds or drains: the stream has no low latency. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'not a low-latency stream'**
+  String get latencyReasonNotLowLatency;
+
+  /// Why auto latency holds: the viewer paused, or a page covers the player. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'paused'**
+  String get latencyReasonPaused;
+
+  /// Why auto latency holds: the player reconnects or jumps to live. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'reconnecting'**
+  String get latencyReasonReconnecting;
+
+  /// Why auto latency holds: the player waits for data. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'buffering'**
+  String get latencyReasonBuffering;
+
+  /// Why auto latency stopped: the player refused to play faster. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'the player refused the rate'**
+  String get latencyReasonRateRefused;
+
+  /// Why auto latency stopped: the player did not play at the rate asked for. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'the player did not keep the rate'**
+  String get latencyReasonRateNotKept;
+
+  /// Why auto latency stopped: playing faster kept causing stalls. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'stalls after catching up'**
+  String get latencyReasonStalls;
+
+  /// Why auto latency stopped: the player stayed fast after normal speed was asked for. rate has two decimals.
+  ///
+  /// In en, this message translates to:
+  /// **'the player stayed at {rate}x'**
+  String latencyReasonStuckFast({required String rate});
+
+  /// Why auto latency stopped: the player refused to go back to normal speed. rate is 1.0, with its decimal separator.
+  ///
+  /// In en, this message translates to:
+  /// **'the player did not return to {rate}x'**
+  String latencyReasonNotBackToNormal({required String rate});
+
+  /// Stats panel, Next streams row: the buffer profile streams open with until that time, because Ultra kept stalling (« Standard », « Ultra » are the profiles' names, Settings › Video).
+  ///
+  /// In en, this message translates to:
+  /// **'Standard until {time} (Ultra stalled)'**
+  String latencyBufferFallback({required String time});
+
+  /// The title of the sheet that makes a clip of the live stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Clip'**
+  String get clipCreateTitle;
+
+  /// Tooltip of the clip button under the live video (opens the Create clip sheet).
+  ///
+  /// In en, this message translates to:
+  /// **'Clip'**
+  String get clipCreateButton;
+
+  /// Create clip sheet: Twitch is making the clip (« Clipperino » is Twitch's playful word, kept).
+  ///
+  /// In en, this message translates to:
+  /// **'Generating Clipperino...'**
+  String get clipCreateGenerating;
+
+  /// Create clip sheet: Twitch is rendering the clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Rendering Clip'**
+  String get clipCreateRendering;
+
+  /// Create clip sheet, signed out.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to create clips.'**
+  String get clipCreateLogIn;
+
+  /// Create clip sheet, signed out: the button that opens the Twitch login.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get clipCreateLogInAction;
+
+  /// Create clip sheet: the login lacks the clips permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating clips needs a permission your Twitch login does not have yet. Reconnect to Twitch to allow it.'**
+  String get clipCreateMissingScope;
+
+  /// Create clip sheet: the button that opens the Twitch login again, to grant the clips permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect to Twitch'**
+  String get clipCreateReconnect;
+
+  /// Create clip sheet, once the clip is made: shares its link (French « Partager » alone: the button sits beside « Copier le lien », in half the sheet).
+  ///
+  /// In en, this message translates to:
+  /// **'Share Clip'**
+  String get clipCreateShare;
+
+  /// Snackbar after « Copy link » in the Create clip sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Clip link copied'**
+  String get clipCreateLinkCopied;
+
+  /// What a screen reader calls the made clip's picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Clip thumbnail'**
+  String get clipCreateThumbnail;
+
+  /// Create clip sheet: the row that opens the clip in twitch.tv's clip editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get clipCreateEdit;
+
+  /// Under « Edit »: what can be changed there.
+  ///
+  /// In en, this message translates to:
+  /// **'Title and moment, in the twitch.tv clip editor'**
+  String get clipCreateEditDetail;
+
+  /// The title of the in-app twitch.tv page of the clip editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Clip'**
+  String get clipCreateEditorTitle;
+
+  /// Create clip sheet, failed: the login lacks the permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Twitch login does not allow creating clips.'**
+  String get clipCreateFailedMissingScope;
+
+  /// Create clip sheet, failed: Twitch refused for this channel. French uses nouns to avoid agreeing « banni(e) ».
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t clip this channel right now: clips may be off, only for followers or subscribers, or you are banned or timed out here.'**
+  String get clipCreateFailedRestricted;
+
+  /// Create clip sheet, failed: the channel is offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Only live streams can be clipped.'**
+  String get clipCreateFailedOffline;
+
+  /// Create clip sheet, failed: the channel forbids clips of the current category.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel does not permit clips of this category.'**
+  String get clipCreateFailedNotClippable;
+
+  /// Create clip sheet, failed: too many clips made in a short time.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many clips at once. Try again in a moment.'**
+  String get clipCreateFailedRateLimited;
+
+  /// Create clip sheet, failed for another reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Hmm... Something went wrong'**
+  String get clipCreateFailedUnknown;
+
+  /// Tooltip of the cross that hides a card over the video or the chat (community highlights, raids, gift subs).
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get commonHide;
+
+  /// A percentage (50%): a poll's or a prediction's share, the hype train's progress. French puts a narrow no-break space before %.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}%'**
+  String commonPercent({required int value});
+
+  /// The name of a celebration's effect (Twitch's channel celebrations), in the chat line it becomes when celebrations on video are Subtle.
+  ///
+  /// In en, this message translates to:
+  /// **'{effect, select, fireworks{Fireworks} rain{Rain} float{Float} flamethrower{Flamethrower} extinctionEvent{Extinction event} other{Sparkles}}'**
+  String celebrationEffect({required String effect});
+
+  /// The chat line a celebration becomes when celebrations on video are Subtle (Settings › Chat). effect is celebrationEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'Celebration: {effect}'**
+  String celebrationChatLine({required String effect});
+
+  /// The same line for the celebration Twitch plays after gifted subs. effect is celebrationEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifted subs celebration: {effect}'**
+  String celebrationChatLineGiftedSubs({required String effect});
+
+  /// The name of a community highlight over the video or the chat: its card's title and the pill that shows the highlights.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, poll{Poll} prediction{Prediction} pinned{Pinned} raid{Raid} giftBomb{Gift Subs} incomingRaid{Incoming raid} other{Highlight}}'**
+  String highlightKind({required String kind});
+
+  /// What a screen reader says for the pill that announces a new community highlight.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, poll{New poll} prediction{New prediction} pinned{New pinned} raid{New raid} giftBomb{New gift subs} incomingRaid{New incoming raid} other{New highlight}}'**
+  String highlightNew({required String kind});
+
+  /// What a screen reader says for the pill that opens the community highlights when there are several. label is the shown one's name (highlightKind).
+  ///
+  /// In en, this message translates to:
+  /// **'{label} and {count, plural, other{{count} more}}'**
+  String highlightAndMore({required String label, required int count});
+
+  /// Tooltip of the arrow that shows the previous community highlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous highlight'**
+  String get highlightPrevious;
+
+  /// Tooltip of the arrow that shows the next community highlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Next highlight'**
+  String get highlightNext;
+
+  /// What a screen reader says for « 2 / 3 » between the arrows of the community highlights.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlight {index} of {count}'**
+  String highlightPosition({required int index, required int count});
+
+  /// The title of the in-app twitch.tv chat page opened to vote or predict.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch chat'**
+  String get highlightTwitchChat;
+
+  /// A raid card's channel when its name is not known yet.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel'**
+  String get highlightThisChannel;
+
+  /// A poll's or a pinned message's time left (time is m:ss).
+  ///
+  /// In en, this message translates to:
+  /// **'{time} left'**
+  String highlightTimeLeft({required String time});
+
+  /// A poll's total votes, the number short (1.2K).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} vote} other{{count} votes}}'**
+  String highlightVotes({required int count});
+
+  /// An ended poll's status.
+  ///
+  /// In en, this message translates to:
+  /// **'Final results'**
+  String get highlightFinalResults;
+
+  /// An ended poll, inside what a screen reader says for its card. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'final results'**
+  String get highlightFinalResultsLower;
+
+  /// What a screen reader says for a poll's leading choice. choice is Twitch's data.
+  ///
+  /// In en, this message translates to:
+  /// **'{choice} leads with {percent} percent'**
+  String highlightPollLeads({required String choice, required int percent});
+
+  /// A live poll's button: opens the channel's twitch.tv chat to vote there.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote on Twitch'**
+  String get highlightVote;
+
+  /// A prediction's status: viewers can predict.
+  ///
+  /// In en, this message translates to:
+  /// **'Predictions open'**
+  String get highlightPredictionsOpen;
+
+  /// A prediction's status: locked, waiting for the outcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Predictions closed'**
+  String get highlightPredictionsClosed;
+
+  /// A prediction's status: the broadcaster is choosing the outcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the result'**
+  String get highlightPredictionWaiting;
+
+  /// A resolved prediction's status.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get highlightPredictionResult;
+
+  /// A canceled prediction's status (« Annulée » agrees with « prédiction »).
+  ///
+  /// In en, this message translates to:
+  /// **'Canceled · points refunded'**
+  String get highlightPredictionCanceled;
+
+  /// Inside what a screen reader says for a prediction's card: the winning outcome (Twitch's data). Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'winner {outcome}'**
+  String highlightWinnerLower({required String outcome});
+
+  /// Inside what a screen reader says for a prediction's card: an outcome and its share of the points.
+  ///
+  /// In en, this message translates to:
+  /// **'{outcome} {percent} percent'**
+  String highlightOutcomeShare({required String outcome, required int percent});
+
+  /// A live prediction's time left to predict (time is m:ss).
+  ///
+  /// In en, this message translates to:
+  /// **'{time} to predict'**
+  String highlightTimeToPredict({required String time});
+
+  /// A resolved prediction's status: the winning outcome (Twitch's data).
+  ///
+  /// In en, this message translates to:
+  /// **'Winner: {outcome}'**
+  String highlightWinner({required String outcome});
+
+  /// A live prediction's button: opens the channel's twitch.tv chat to predict there.
+  ///
+  /// In en, this message translates to:
+  /// **'Predict on Twitch'**
+  String get highlightPredict;
+
+  /// What a screen reader says for the check beside a prediction's winning outcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner'**
+  String get highlightWinnerMark;
+
+  /// The channel points on a prediction's outcome, the number short (1.2K).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} point} other{{count} points}}'**
+  String highlightPoints({required int count});
+
+  /// How many viewers predicted an outcome, the number short.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} predictor} other{{count} predictors}}'**
+  String highlightPredictors({required int count});
+
+  /// The viewer who put the most points on an outcome. name is a display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Top: {name}'**
+  String highlightTopPredictor({required String name});
+
+  /// What a screen reader says for a pinned message's card. sender and text are Twitch's data.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned message from {sender}: {text}'**
+  String highlightPinnedFrom({required String sender, required String text});
+
+  /// A pinned message's card: who pinned it. name is a display name.
+  ///
+  /// In en, this message translates to:
+  /// **'by {name}'**
+  String highlightPinnedBy({required String name});
+
+  /// A raid's viewers, the number in full, on the raid cards.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} viewer} other{{count} viewers}}'**
+  String raidViewers({required int count});
+
+  /// Raid card, after « Stay here »: the viewer stays on the channel. source is its display name.
+  ///
+  /// In en, this message translates to:
+  /// **'You stay on {source}'**
+  String raidStay({required String source});
+
+  /// Raid card, after « Stay here »: under raidStay. target is the raided channel's name.
+  ///
+  /// In en, this message translates to:
+  /// **'The raid goes to {target} without you'**
+  String raidStayDetail({required String target});
+
+  /// Raid card once the raid left (the viewer stayed). target is the raided channel's name.
+  ///
+  /// In en, this message translates to:
+  /// **'The raid left for {target}'**
+  String raidLeftFor({required String target});
+
+  /// Raid card once the raid left: how many viewers went. viewers is raidViewers; count chooses the French verb's number.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{viewers} went along}}'**
+  String raidWentAlong({required int count, required String viewers});
+
+  /// Raid card when the broadcaster cancels the raid.
+  ///
+  /// In en, this message translates to:
+  /// **'Raid cancelled'**
+  String get raidCancelled;
+
+  /// Raid card when the raid is cancelled. source is the channel's name.
+  ///
+  /// In en, this message translates to:
+  /// **'{source} stays live'**
+  String raidStaysLive({required String source});
+
+  /// What a screen reader says for a raid card while it counts down. viewers is raidViewers.
+  ///
+  /// In en, this message translates to:
+  /// **'{source} is raiding {target} with {viewers}'**
+  String raidRaidingWith({
+    required String source,
+    required String target,
+    required String viewers,
+  });
+
+  /// The raid card's line while it counts down; target is drawn bold.
+  ///
+  /// In en, this message translates to:
+  /// **'{source} is raiding {target}'**
+  String raidRaiding({required String source, required String target});
+
+  /// Raid card and the overlay over the video while the viewer goes with the raid. target is the raided channel's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading to {target}'**
+  String raidHeadingTo({required String target});
+
+  /// What a screen reader says for the raid card once the raid left.
+  ///
+  /// In en, this message translates to:
+  /// **'The raid to {target} has left'**
+  String raidToHasLeft({required String target});
+
+  /// What a screen reader says for the raid card's « Watch » button.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch {target}'**
+  String raidWatchTarget({required String target});
+
+  /// The small label over a raid card's line, in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'RAID'**
+  String get raidBadge;
+
+  /// Raid card while it counts down, when the app follows raids: viewers is raidViewers.
+  ///
+  /// In en, this message translates to:
+  /// **'{viewers} · you go along automatically'**
+  String raidGoAlong({required String viewers});
+
+  /// What a screen reader says for the raid card's countdown ring (time is m:ss).
+  ///
+  /// In en, this message translates to:
+  /// **'Leaves in {time}'**
+  String raidLeavesIn({required String time});
+
+  /// Raid card: joins the raided channel at once.
+  ///
+  /// In en, this message translates to:
+  /// **'Go now'**
+  String get raidGoNow;
+
+  /// What a screen reader says for « Go now ».
+  ///
+  /// In en, this message translates to:
+  /// **'Go to {target} now'**
+  String raidGoNowTarget({required String target});
+
+  /// Raid card: stays on this channel instead of following the raid.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay here'**
+  String get raidStayHere;
+
+  /// Raid card while the app leaves for the raided channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading out…'**
+  String get raidHeadingOut;
+
+  /// The pin of an incoming raid over the chat: who raids this channel, with how many viewers (viewers is the number in full); the name is drawn bold.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{name} is raiding with {viewers} viewer} other{{name} is raiding with {viewers} viewers}}'**
+  String raidIncoming({
+    required int count,
+    required String name,
+    required String viewers,
+  });
+
+  /// The pin of an incoming raid: under who raids.
+  ///
+  /// In en, this message translates to:
+  /// **'Say hi in chat'**
+  String get raidSayHi;
+
+  /// The overlay over the video while the viewer goes with a raid: how many viewers go too.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} viewer coming with you} other{{count} viewers coming with you}}'**
+  String raidComingWithYou({required int count});
+
+  /// The gift subs pin over the chat: after the gifter's name (drawn apart, bold), what they gift to the community.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{is gifting {count} sub} other{is gifting {count} subs}}'**
+  String giftBombGifting({required int count});
+
+  /// What a screen reader says for the gift subs pin. name is the gifter's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{name} is gifting {count} sub} other{{name} is gifting {count} subs}}'**
+  String giftBombSemantics({required int count, required String name});
+
+  /// What a screen reader reads as the gift subs pin's value once every sub reached a viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{all {count} handed out}}'**
+  String giftBombAllHandedOut({required int count});
+
+  /// What a screen reader reads as the gift subs pin's value: how many subs reached a viewer so far.
+  ///
+  /// In en, this message translates to:
+  /// **'{received, plural, other{{received} of {count} handed out}}'**
+  String giftBombHandedOutSemantics({
+    required int received,
+    required int count,
+  });
+
+  /// The gift subs pin: how many subs reached a viewer so far. received is that number as shown (it rolls), receivedCount the same number choosing the form.
+  ///
+  /// In en, this message translates to:
+  /// **'{receivedCount, plural, other{{received} of {total} handed out}}'**
+  String giftBombProgress({
+    required int receivedCount,
+    required String received,
+    required int total,
+  });
+
+  /// The gift subs pin once every sub reached a viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {count} · thanks!'**
+  String giftBombDone({required int count});
+
+  /// The Hype Train (Twitch's name, kept in French too): the banner's and the sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Hype Train'**
+  String get htTitle;
+
+  /// A hype train's name by its variant (« collectif » for Community: it fits the banner's title, where « communautaire » is cut) (banner, sheet, approaching banner). variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{Golden Kappa Train} treasure{Treasure Train} community{Community Train} mythic{Mythic Train} other{Hype Train}}'**
+  String htTrainTitle({required String variant});
+
+  /// A hype train's name when several channels run it together. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{Shared Golden Kappa Train} community{Shared Community Train} mythic{Shared Mythic Train} other{Shared Hype Train}}'**
+  String htSharedTrainTitle({required String variant});
+
+  /// The hype train's level in its pill (banner, video pill). Kept short.
+  ///
+  /// In en, this message translates to:
+  /// **'LVL {level}'**
+  String htLevelShort({required int level});
+
+  /// The hype train banner's default line under its title: subs, gifted subs (« cadeaux ») or Bits. Kept to one line on a phone, as short as the English.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub, gift, or use Bits!'**
+  String get htSubtitle;
+
+  /// The hype train banner's line (and the sheet's) at the last level.
+  ///
+  /// In en, this message translates to:
+  /// **'Final level!'**
+  String get htFinalLevel;
+
+  /// The hype train banner's line when the train nears the channel's all-time record.
+  ///
+  /// In en, this message translates to:
+  /// **'About to beat your last record. Keep up the support.'**
+  String get htAthApproaching;
+
+  /// The same line where little room is left.
+  ///
+  /// In en, this message translates to:
+  /// **'About to beat your last record.'**
+  String get htAthApproachingCompact;
+
+  /// The hype train banner's line once the train beats the channel's record.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting a new record! Keep going until the clock runs out.'**
+  String get htAthReached;
+
+  /// The same line for a shared train.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting a new shared record! Keep going until the clock runs out.'**
+  String get htAthReachedShared;
+
+  /// A treasure train's banner line before its discount unlocks (the banner has room for one line: as short as the English).
+  ///
+  /// In en, this message translates to:
+  /// **'Reach Level {level} to unlock {discount}% OFF Gift Subs!'**
+  String htTreasureLocked({required int level, required int discount});
+
+  /// A treasure train's banner line once its discount is unlocked (as short as the English).
+  ///
+  /// In en, this message translates to:
+  /// **'{discount}% OFF 5+ Gift Subs for the rest of this Hype Train'**
+  String htTreasureUnlockedSubtitle({required int discount});
+
+  /// A community train's banner line (and step) before chat's emotes unlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Hit Level {level} and chat will receive emotes too!'**
+  String htCommunityLocked({required int level});
+
+  /// A community train's banner line once emotes for chat are unlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} Emote for Chat} other{{count} Emotes for Chat}}'**
+  String htCommunityUnlockedSubtitle({required int count});
+
+  /// The hype train banner's announcement when a level completes.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level} Complete!'**
+  String htLevelComplete({required int level});
+
+  /// The marquee when a hype train starts (three emotes follow it). variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{Golden Kappa Train starting!} treasure{Treasure Train Incoming!} community{Community Train Incoming!} mythic{Mythic Train Incoming!} other{Hype Train starting!}}'**
+  String htStarted({required String variant});
+
+  /// The marquee when a shared hype train starts. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{Shared Golden Kappa Train starting!} other{Shared Hype Train starting!}}'**
+  String htSharedStarted({required String variant});
+
+  /// The marquee when the hype train levels up: a cheer, the same in French.
+  ///
+  /// In en, this message translates to:
+  /// **'hyyyyypeeee'**
+  String get htLevelUp;
+
+  /// The marquee when a hype train ends with a level completed. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{Golden Kappa Train success!} treasure{Treasure Train Success!} community{Community Train Success!} mythic{Mythic Train Success!} other{Hype Train success!}}'**
+  String htCompleted({required String variant});
+
+  /// The same marquee for a shared train. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{Shared Golden Kappa Train success!} other{Shared Hype Train success!}}'**
+  String htSharedCompleted({required String variant});
+
+  /// The marquee when a treasure train's discount unlocks. Written in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'TREASURE TRAIN UNLOCKED!'**
+  String get htTreasureUnlockedMarquee;
+
+  /// The marquee when a community train's emotes for chat unlock. Written in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'COMMUNITY REWARDS UNLOCKED!'**
+  String get htCommunityUnlockedMarquee;
+
+  /// The announcement when two channels' hype trains merge into a shared one.
+  ///
+  /// In en, this message translates to:
+  /// **'Get excited! Your powers are combining and levels are getting a boost!'**
+  String get htMerging;
+
+  /// The hype train's summary at its end, after beating the channel's record: two lines (keep the line break).
+  ///
+  /// In en, this message translates to:
+  /// **'All-time record shattered!\nYou\'ve reached new levels of support!'**
+  String get htSummaryRecord;
+
+  /// The hype train's summary at its end: two lines (keep the line break), the cheer then the last level completed. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, treasure{Such strong support\nTreasure Train Level {level} completed!} community{Such strong support\nCommunity Train Level {level} completed!} mythic{Such strong support\nMythic Train Level {level} completed!} other{Such strong support\nLevel {level} completed!}}'**
+  String htSummary({required String variant, required int level});
+
+  /// The hype train banner's announcement when the channel's record is beaten.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time record shattered!'**
+  String get htAthReachedTitle;
+
+  /// Who contributed to the hype train when Twitch does not say (anonymous).
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get htSomeone;
+
+  /// The hype train banner's announcement of a cheer. name is a display name (or htSomeone).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{name} just used {count} Bit!} other{{name} just used {count} Bits!}}'**
+  String htContributionBits({required int count, required String name});
+
+  /// The hype train banner's announcement of gifted subs. tier is the sub tier (1, 2 or 3).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{name} just gifted {count} Tier {tier} Sub!} other{{name} just gifted {count} Tier {tier} Subs!}}'**
+  String htContributionGift({
+    required int count,
+    required String name,
+    required int tier,
+  });
+
+  /// The hype train banner's announcement of a sub. tier is the sub tier (1, 2 or 3).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} just subscribed with a Tier {tier} Sub!'**
+  String htContributionSub({required String name, required int tier});
+
+  /// The hype train banner's announcement of another contribution.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} just boosted the train!'**
+  String htContributionOther({required String name});
+
+  /// A number of subs: a shared train's totals, the conductor's, the level target.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} Sub} other{{count} Subs}}'**
+  String htSubs({required int count});
+
+  /// A number of Bits (Twitch's name, kept): a shared train's totals, the conductor's, the level target.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} Bit} other{{count} Bits}}'**
+  String htBits({required int count});
+
+  /// The hype train banner's first step after it starts (and the golden Kappa card of the sheet). variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{You\'ll have a limited time to earn an exclusive golden Kappa emote for 24 hrs} community{Whoa, this is a rare Community Train!} mythic{Whoa, this is a rare Mythic Train!} other{You\'ll have a limited time to earn exclusive emotes}}'**
+  String htInstructionStart({required String variant});
+
+  /// A treasure train's step: the level that unlocks its discount.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach Level {level} during this train to unlock {discount}% OFF Gift Subs!'**
+  String htInstructionTreasureReachLevel({
+    required int level,
+    required int discount,
+  });
+
+  /// A treasure train's step one level before the discount.
+  ///
+  /// In en, this message translates to:
+  /// **'One more level unlocks a discount for the rest of this train, keep going!'**
+  String get htInstructionTreasureOneAway;
+
+  /// A treasure train's step once its discount unlocks.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve unlocked {discount}% OFF on 5+ Gift Subs! Don\'t miss out!'**
+  String htInstructionTreasureUnlocked({required int discount});
+
+  /// A community train's step (and sheet card) once emotes for chat are unlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{You unlocked {count} emote for chat! Level up to give away more emotes.} other{You unlocked {count} emotes for chat! Level up to give away more emotes.}}'**
+  String htCommunityUnlocked({required int count});
+
+  /// A community train's step at its end.
+  ///
+  /// In en, this message translates to:
+  /// **'Emotes for chat are on their way!'**
+  String get htInstructionCommunityRewards;
+
+  /// A shared train's last step.
+  ///
+  /// In en, this message translates to:
+  /// **'See you next time in Shared Hype Train!'**
+  String get htInstructionSeeYouNextTime;
+
+  /// A shared train's level and progress, in its strip and pill.
+  ///
+  /// In en, this message translates to:
+  /// **'LVL {level}, {percent}%'**
+  String htSharedLevel({required int level, required int percent});
+
+  /// A shared train's strip when its level is reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared Train level reached'**
+  String get htSharedLevelReached;
+
+  /// Between two shared trains: the countdown follows (m:ss).
+  ///
+  /// In en, this message translates to:
+  /// **'LVL {level} train continues in'**
+  String htContinuesIn({required int level});
+
+  /// A shared train's strip when another channel of it beats its record. name is that channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s new all-time Shared record!'**
+  String htOtherChannelRecord({required String name});
+
+  /// A shared train's announcement when it beats its record.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared Train Record Broken!'**
+  String get htSharedRecordReached;
+
+  /// The announcement when a shared hype train starts.
+  ///
+  /// In en, this message translates to:
+  /// **'New Shared Hype Train'**
+  String get htSharedNew;
+
+  /// The approaching banner's title, before a hype train starts. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{Golden Kappa Train approaching!} treasure{A Treasure Train is close!} community{A Community Train is close!} mythic{A Mythic Train is close!} other{A Hype Train is approaching!}}'**
+  String htApproachingTitle({required String variant});
+
+  /// The approaching banner's line. train is the train's name (htTrainTitle). French words it as htSubtitle, kept as short as the English.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub, gift, or use Bits now to start a {train}'**
+  String htApproachingSubtitle({required String train});
+
+  /// The approaching banner's line once the viewer took part: how many others are needed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} more person needs to sub, gift or use Bits} other{{count} more people need to sub, gift or use Bits}}'**
+  String htApproachingMore({required int count});
+
+  /// The landscape pill of an approaching hype train (« Imminent » agrees with « Hype Train »). Kept short.
+  ///
+  /// In en, this message translates to:
+  /// **'Approaching'**
+  String get htApproachingShort;
+
+  /// The approaching sheet's heading. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{What is a Golden Kappa Train?} other{What is a Hype Train?}}'**
+  String htApproachingQuestion({required String variant});
+
+  /// The approaching sheet's first paragraph. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{A Golden Kappa Train starts when multiple people subscribe, use Bits, or gift subscriptions to the community.} other{A Hype Train starts when multiple people subscribe, use Bits, or gift subscriptions to the community.}}'**
+  String htApproachingExplanationFirst({required String variant});
+
+  /// The approaching sheet's second paragraph. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
+  ///
+  /// In en, this message translates to:
+  /// **'{variant, select, goldenKappa{Once a Golden Kappa Train is underway, the community fills up the Hype Meter with more subs, gifts or Bits. Everyone who contributes enough to be eligible for rewards will receive the Golden Kappa emote for 24 hours in addition to the regular emote rewards.} other{Once a Hype Train is underway, the community fills up the Hype Meter with more subs, gifts or Bits. Everyone who contributes receives one unique emote based on the highest level completed.}}'**
+  String htApproachingExplanationSecond({required String variant});
+
+  /// The end strip of a hype train with rewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Great work! Emotes are being delivered to supporters'**
+  String get htRewards;
+
+  /// The end strip of a golden Kappa train.
+  ///
+  /// In en, this message translates to:
+  /// **'Great work! Supporters can enjoy the exclusive Golden Kappa emote for 24 hrs'**
+  String get htGoldenRewards;
+
+  /// The end strip of a hype train that expired without completing a level.
+  ///
+  /// In en, this message translates to:
+  /// **'You missed the Train. Better luck next time!'**
+  String get htExpired;
+
+  /// The end strip of a golden Kappa train that expired.
+  ///
+  /// In en, this message translates to:
+  /// **'The Golden Kappa Train is long gone. Better luck next time!'**
+  String get htGoldenExpired;
+
+  /// The hype train sheet's heading over its top supporters. Written in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'HYPE CONDUCTORS'**
+  String get htConductorsHeader;
+
+  /// Under « Hype conductors ».
+  ///
+  /// In en, this message translates to:
+  /// **'Current Hype Train top supporters.'**
+  String get htConductorsDescription;
+
+  /// The hype train sheet's heading over the level's emotes. Written in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'AVAILABLE REWARDS'**
+  String get htRewardsHeader;
+
+  /// Under « Available rewards » (a link to learn more follows).
+  ///
+  /// In en, this message translates to:
+  /// **'You can earn one emote per train by subbing, gifting, or using more than 100 Bits in total during the event. Exclusive emotes are given out at the end of the Hype Train event and will stick around until the end of the current season.'**
+  String get htRewardsDescription;
+
+  /// Under « Available rewards » for a golden Kappa train.
+  ///
+  /// In en, this message translates to:
+  /// **'Contribute by subbing, gifting, or using more than 100 Bits in total during the event to earn an exclusive golden Kappa emote for 24 hours in addition to the regular emote rewards.'**
+  String get htGoldenRewardsDescription;
+
+  /// The shared train sheet's heading over each channel's share. Written in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTRIBUTIONS'**
+  String get htContributionsHeader;
+
+  /// The hype train sheet's heading over a level's emotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level} emotes'**
+  String htLevelEmotes({required int level});
+
+  /// The hype train sheet's button that opens Twitch's hype train guide.
+  ///
+  /// In en, this message translates to:
+  /// **'More Info'**
+  String get htMoreInfo;
+
+  /// The link after the hype train sheet's rewards description (opens Twitch's guide). English writes it in lower case after the sentence; French starts it with a capital, a new sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'learn more'**
+  String get htLearnMore;
+
+  /// The hype train sheet's heading over the emotes already unlocked (« débloquées » agrees with « emotes »).
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked so far'**
+  String get htUnlockedSoFar;
+
+  /// The hype train sheet's heading over the next trains.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up'**
+  String get htComingUp;
+
+  /// The hype train sheet when nothing more is coming.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing more to show yet'**
+  String get htNothingMore;
+
+  /// The hype train sheet's line: what the level needs.
+  ///
+  /// In en, this message translates to:
+  /// **'Completing Level {level} requires combined support events totaling {subs, plural, one{{subs} Tier 1 Sub} other{{subs} Tier 1 Subs}} or {bits, plural, one{{bits} Bit} other{{bits} Bits}}'**
+  String htLevelTarget({
+    required int level,
+    required int subs,
+    required int bits,
+  });
+
+  /// The hype train sheet: the top subs supporter (name drawn bold) and their subs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{name} has contributed {count} Sub!} other{{name} has contributed {count} Subs!}}'**
+  String htSubsConductor({required int count, required String name});
+
+  /// The hype train sheet: the top Bits supporter (name drawn bold) and their Bits.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{name} has used {count} Bit} other{{name} has used {count} Bits}}'**
+  String htBitsConductor({required int count, required String name});
+
+  /// The hype train sheet when no one has subbed yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub or Gift to take over this spot!'**
+  String get htNoSubsConductor;
+
+  /// The hype train sheet when no one has used Bits yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Bits to take over this spot!'**
+  String get htNoBitsConductor;
+
+  /// The hype train sheet, after a trophy: the channel's all-time record.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel all-time record! {percent}% Level {level}'**
+  String htChannelRecord({required int percent, required int level});
+
+  /// The hype train sheet's treasure card once the discount is unlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {discount}% on 5 or more Gift Subs exclusively during this train. All Aboard!'**
+  String htTreasureCardUnlocked({required int discount});
+
+  /// The hype train sheet's treasure card before the discount unlocks.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock a limited-time {discount}% OFF Gift Subs at Level {level} during this train!'**
+  String htTreasureCardLocked({required int level, required int discount});
+
+  /// A mythic train's step and sheet card: one emote out of its pool.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Unlock 1 of {count} exclusive emote for 24 hours!} other{Unlock 1 of {count} exclusive emotes for 24 hours!}}'**
+  String htMythicCard({required int count});
+
+  /// The pill on a followed stream's card while its hype train beats the channel's record.
+  ///
+  /// In en, this message translates to:
+  /// **'All-Time High Train Level {level}'**
+  String htCardLevelRecord({required int level});
+
+  /// The pill on a followed stream's card while a hype train runs. train is its name (htTrainTitle).
+  ///
+  /// In en, this message translates to:
+  /// **'{train} Level {level}'**
+  String htCardLevel({required String train, required int level});
+
+  /// What a screen reader offers on the expanded hype train banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse Hype Train'**
+  String get htCollapse;
+
+  /// What a screen reader says a tap on the collapsed hype train pill does.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Hype Train'**
+  String get htExpand;
+
+  /// What a screen reader says a tap on the hype train banner does (opens its sheet).
+  ///
+  /// In en, this message translates to:
+  /// **'Double tap to show details'**
+  String get htDetailsHint;
+
+  /// What a screen reader says for the approaching hype train.
+  ///
+  /// In en, this message translates to:
+  /// **'Hype Train approaching'**
+  String get htSemanticsApproaching;
+
+  /// Inside htSemanticsOngoing: the minutes left (short unit).
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String htSemanticsMinutes({required int minutes});
+
+  /// Inside htSemanticsOngoing: the seconds left, under a minute.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} second} other{{count} seconds}}'**
+  String htSemanticsSeconds({required int count});
+
+  /// What a screen reader says for the running hype train. time is htSemanticsMinutes or htSemanticsSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Hype Train level {level}, {percent} percent, {time} left'**
+  String htSemanticsOngoing({
+    required int level,
+    required int percent,
+    required String time,
+  });
+
+  /// What a screen reader says for the hype train once it ended.
+  ///
+  /// In en, this message translates to:
+  /// **'Hype Train ended at level {level}'**
+  String htSemanticsEnded({required int level});
+
+  /// What a screen reader says for a hype train that expired.
+  ///
+  /// In en, this message translates to:
+  /// **'Hype Train expired'**
+  String get htSemanticsExpired;
+
+  /// What a screen reader says for a level's emote not unlocked yet. name is the emote's code (Twitch's data).
+  ///
+  /// In en, this message translates to:
+  /// **'Locked reward {name}'**
+  String htRewardLocked({required String name});
+
+  /// What a screen reader says for an unlocked emote. name is the emote's code (Twitch's data).
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked reward {name}'**
+  String htRewardUnlocked({required String name});
 }
 
 class _AppLocalizationsDelegate

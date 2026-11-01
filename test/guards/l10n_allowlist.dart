@@ -34,6 +34,23 @@ const l10nAllowlist = <String, Map<String, String>>{
   'lib/models/clip.dart': {
     'TRENDING': 'A GQL sort value sent to Twitch (ClipSort.gqlName): code.',
   },
+  'lib/models/community_highlight_event.dart': {
+    'polls':
+        'A Hermes topic name sent to Twitch (HighlightTopic.prefix): code.',
+    'raid': 'A Hermes topic name sent to Twitch (HighlightTopic.prefix): code.',
+  },
+  'lib/screens/channel/hype_train/hype_train_reducer.dart': {
+    'duplicate start': _ignoredEvent,
+    'not applicable': _ignoredEvent,
+    'level mismatch': _ignoredEvent,
+  },
+  'lib/screens/channel/hype_train/widgets/hype_train_palette.dart': {
+    'Hype Train': _paletteName,
+    'Treasure Train': _paletteName,
+    'Community Train': _paletteName,
+    'Mythic Train': _paletteName,
+    'Golden Kappa Train': _paletteName,
+  },
   'lib/screens/home/live_feed/live_preview.dart': {
     'ONSET preview':
         'The preview player\'s internal media title (media_kit), never '
@@ -105,3 +122,11 @@ const l10nAllowlist = <String, Map<String, String>>{
 const _apiLog =
     'ApiException.message, English for logs and crash reports; screens '
     'show apiErrorText (lib/l10n/api_errors.dart) instead.';
+
+const _ignoredEvent =
+    'Why the hype train reducer ignored an event (HtApplyResult.reason): '
+    'for logs and tests, never shown.';
+
+const _paletteName =
+    'HtPalette.a11yName: tells the palettes apart in tests, never shown '
+    '(screen readers hear the train\'s name from the ARB files).';

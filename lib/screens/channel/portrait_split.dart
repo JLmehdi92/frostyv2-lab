@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 
 /// The smallest share of the width the portrait video can take.
 const kMinPortraitVideoScale = 0.4;
@@ -94,8 +95,8 @@ class _PortraitSplitHandleState extends State<PortraitSplitHandle> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Semantics(
-      label: 'Resize video',
-      hint: 'Drag to change the video size, double tap for full width',
+      label: context.l10n.channelResizeVideo,
+      hint: context.l10n.channelResizeVideoHint,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onVerticalDragStart: _start,

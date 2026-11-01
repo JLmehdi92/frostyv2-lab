@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/latency_controller.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 
@@ -24,7 +25,7 @@ void main() {
     int latencyMs,
     int seconds, {
     int? bufferMs = 1800,
-    String? hold,
+    AutoLatencyReason? hold,
     bool? lowLatency,
     double? nativeRate,
   }) {
@@ -239,7 +240,7 @@ void main() {
       expect(controller.rate, LatencyController.catchUpRate);
 
       // Resuming a pause often rebuffers: that is the pause, not the rate.
-      controller.hold('paused');
+      controller.hold(AutoLatencyReason.paused);
       feed(2200, 2);
       controller.onStall();
 
@@ -269,8 +270,12 @@ void main() {
   });
 
   group('holds', () {
-    for (final reason in ['paused', 'reconnecting', 'buffering']) {
-      test('never corrects while $reason', () {
+    for (final reason in [
+      AutoLatencyReason.paused,
+      AutoLatencyReason.reconnecting,
+      AutoLatencyReason.buffering,
+    ]) {
+      test('never corrects while ${reason.name}', () {
         expect(feed(3000, 60, hold: reason), everyElement(1.0));
         expect(controller.status.phase, AutoLatencyPhase.held);
         expect(controller.status.reason, reason);
@@ -281,17 +286,17 @@ void main() {
       feed(2200, 8);
       expect(controller.rate, LatencyController.catchUpRate);
 
-      expect(feed(2200, 1, hold: 'paused'), [1.0]);
+      expect(feed(2200, 1, hold: AutoLatencyReason.paused), [1.0]);
     });
 
     test('hold() drops back to 1.0x without a sample', () {
       feed(2200, 8);
-      controller.hold('picture-in-picture');
+      controller.hold(AutoLatencyReason.paused);
       expect(controller.rate, 1.0);
     });
 
     test('after a hold the calm starts over', () {
-      feed(2200, 8, hold: 'paused');
+      feed(2200, 8, hold: AutoLatencyReason.paused);
       expect(feed(2200, 5), everyElement(1.0));
       expect(feed(2200, 2).last, LatencyController.catchUpRate);
     });
@@ -302,7 +307,7 @@ void main() {
 
       final during = feed(3000, LatencyController.minAdHold.inSeconds - 1);
       expect(during, everyElement(1.0));
-      expect(controller.status.reason, 'ad');
+      expect(controller.status.reason, AutoLatencyReason.ad);
     });
 
     test('a stream without low latency is left alone', () {
@@ -384,7 +389,7 @@ void main() {
 
       expect(rates.last, LatencyController.drainRate);
       expect(controller.status.phase, AutoLatencyPhase.draining);
-      expect(controller.status.reason, 'stalls after catching up');
+      expect(controller.status.reason, AutoLatencyReason.stallsAfterCatchUp);
     });
 
     test('the drain stops at the buffer floor and goes back to stopped', () {
@@ -417,7 +422,7 @@ void main() {
     });
 
     test('never drains a stream the store stopped', () {
-      controller.stop('the player stayed at 1.05x');
+      controller.stop(AutoLatencyReason.stuckFast, rate: 1.05);
       expect(feed(6000, 60), everyElement(1.0));
     });
 
@@ -429,7 +434,7 @@ void main() {
 
     test('never drains while paused', () {
       strikeOut();
-      expect(feed(6000, 60, hold: 'paused'), everyElement(1.0));
+      expect(feed(6000, 60, hold: AutoLatencyReason.paused), everyElement(1.0));
     });
 
     test('drain stalls on a stream without low latency are never strikes', () {
@@ -479,7 +484,7 @@ void main() {
 
       feed(6000, 5, lowLatency: false, bufferMs: 1900);
       expect(controller.rate, 1.0);
-      expect(controller.status.reason, 'not a low-latency stream');
+      expect(controller.status.reason, AutoLatencyReason.notLowLatency);
 
       expect(
         feed(6000, 30, lowLatency: false, bufferMs: 2200),
@@ -499,7 +504,7 @@ void main() {
 
       expect(controller.rate, 1.0);
       expect(controller.status.phase, AutoLatencyPhase.held);
-      expect(controller.status.reason, 'no latency reading');
+      expect(controller.status.reason, AutoLatencyReason.noLatencyReading);
     });
 
     test('the watchdog ends a catch-up whose ticks stopped', () {
@@ -511,7 +516,7 @@ void main() {
       now = now.add(const Duration(milliseconds: 1));
       expect(controller.checkTicks(), isTrue);
       expect(controller.rate, 1.0);
-      expect(controller.status.reason, 'no latency ticks');
+      expect(controller.status.reason, AutoLatencyReason.noLatencyTicks);
     });
 
     test('the watchdog leaves a stream at 1.0x alone', () {
@@ -533,11 +538,12 @@ void main() {
 
     test('the store can stop it with a reason', () {
       feed(2200, 8);
-      controller.stop('the player stayed at 1.05x');
+      controller.stop(AutoLatencyReason.stuckFast, rate: 1.05);
 
       expect(controller.rate, 1.0);
       expect(controller.status.phase, AutoLatencyPhase.stopped);
-      expect(controller.status.reason, 'the player stayed at 1.05x');
+      expect(controller.status.reason, AutoLatencyReason.stuckFast);
+      expect(controller.status.reasonRate, 1.05);
     });
   });
 
@@ -574,10 +580,11 @@ void main() {
 
   group('describeAutoLatency', () {
     test('off', () {
-      expect(describeAutoLatency(null), 'off');
+      expect(describeAutoLatency(null, L10n.english), 'off');
       expect(
         describeAutoLatency(
           const AutoLatencyStatus(phase: AutoLatencyPhase.off, rate: 1.0),
+          L10n.english,
         ),
         'off',
       );
@@ -591,6 +598,7 @@ void main() {
             rate: 1.05,
             targetMs: 1300,
           ),
+          L10n.english,
         ),
         'catching up 1.05x · target 1.3s',
       );
@@ -604,6 +612,7 @@ void main() {
             rate: 1.0,
             targetMs: 1300,
           ),
+          L10n.english,
         ),
         'at target · target 1.3s',
       );
@@ -615,6 +624,7 @@ void main() {
             targetMs: 1800,
             calmLeftSeconds: 12,
           ),
+          L10n.english,
         ),
         'waiting for calm 12s · target 1.8s',
       );
@@ -624,8 +634,9 @@ void main() {
             phase: AutoLatencyPhase.held,
             rate: 1.0,
             targetMs: 1300,
-            reason: 'paused',
+            reason: AutoLatencyReason.paused,
           ),
+          L10n.english,
         ),
         'held: paused · target 1.3s',
       );
@@ -635,8 +646,9 @@ void main() {
             phase: AutoLatencyPhase.stopped,
             rate: 1.0,
             targetMs: 2800,
-            reason: 'stalls after catching up',
+            reason: AutoLatencyReason.stallsAfterCatchUp,
           ),
+          L10n.english,
         ),
         'stopped: stalls after catching up',
       );
@@ -650,17 +662,18 @@ void main() {
           phase: AutoLatencyPhase.draining,
           rate: 1.03,
           targetMs: 2800,
-          reason: 'stalls after catching up',
+          reason: AutoLatencyReason.stallsAfterCatchUp,
         ),
+        L10n.english,
       ),
       'draining 1.03x (stalls after catching up)',
     );
   });
 
   test('describeBufferFallback says until when', () {
-    expect(describeBufferFallback(null), isNull);
+    expect(describeBufferFallback(null, L10n.english), isNull);
     expect(
-      describeBufferFallback(DateTime(2026, 10, 30, 9, 5)),
+      describeBufferFallback(DateTime(2026, 10, 30, 9, 5), L10n.english),
       'Standard until 09:05 (Ultra stalled)',
     );
   });

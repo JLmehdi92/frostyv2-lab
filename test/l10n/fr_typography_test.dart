@@ -130,6 +130,7 @@ const _properNouns = {
   'Trains',
   'Kappa',
   'Bits',
+  'Bit',
   'Prime',
   'Gaming',
   'Turbo',
@@ -150,8 +151,11 @@ const _properNouns = {
   'WebView',
   // Android's French name for the floating video window.
   'Picture-in-picture',
-  // The megabyte's symbol (« 38,0 Mo »).
+  // The megabyte's symbol (« 38,0 Mo »), the megabit per second's.
   'Mo',
+  'Mbit/s',
+  // Twitch's own playful word for a clip being made.
+  'Clipperino',
 };
 
 /// The app's screens and sections, named as their titles read (« dans

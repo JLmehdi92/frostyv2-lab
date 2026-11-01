@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/latency_pill.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
@@ -21,8 +22,8 @@ void main() {
 
   group('playerLatencyLabel', () {
     test('the latency, or a dash while unknown', () {
-      expect(playerLatencyLabel(FakePlayer()), '2.1s');
-      expect(playerLatencyLabel(FakePlayer(latency: null)), '—');
+      expect(playerLatencyLabel(FakePlayer(), L10n.english), '2.1s');
+      expect(playerLatencyLabel(FakePlayer(latency: null), L10n.english), '—');
     });
 
     test('the reconnect attempts while the native player recovers', () {
@@ -30,11 +31,11 @@ void main() {
       when(() => ivs.status).thenReturn(IvsPlaybackStatus.reconnecting);
       when(() => ivs.retryAttempt).thenReturn(2);
       when(() => ivs.maxRetryAttempts).thenReturn(5);
-      expect(playerLatencyLabel(ivs), '↻ 2/5');
+      expect(playerLatencyLabel(ivs, L10n.english), '↻ 2/5');
 
       when(() => ivs.status).thenReturn(IvsPlaybackStatus.playing);
       when(() => ivs.latency).thenReturn('1.9s');
-      expect(playerLatencyLabel(ivs), '1.9s');
+      expect(playerLatencyLabel(ivs, L10n.english), '1.9s');
     });
   });
 
@@ -58,19 +59,22 @@ void main() {
 
     await tester.tap(find.text('2.0s'));
     verify(ivs.toggleStats).called(1);
-    expect(find.byTooltip(LatencyPill.tooltipIvs), findsOneWidget);
+    expect(
+      find.byTooltip(L10n.english.latencyPillTooltipStats),
+      findsOneWidget,
+    );
   });
 
   testWidgets('other engines only say what it measures', (tester) async {
     final player = FakePlayer();
     await pump(tester, player);
-    expect(find.byTooltip(LatencyPill.tooltipOther), findsOneWidget);
-    expect(find.text(LatencyPill.tooltipOther), findsNothing);
+    expect(find.byTooltip(L10n.english.latencyPillTooltip), findsOneWidget);
+    expect(find.text(L10n.english.latencyPillTooltip), findsNothing);
 
     // A tap explains it (no stats to open on this engine)…
     await tester.tap(find.text('2.1s'));
     await tester.pump(const Duration(milliseconds: 200));
-    expect(find.text(LatencyPill.tooltipOther), findsOneWidget);
+    expect(find.text(L10n.english.latencyPillTooltip), findsOneWidget);
     // …and asks nothing of the player.
     expect(player.calls, isEmpty);
     await tester.pumpAndSettle(const Duration(seconds: 2));

@@ -400,6 +400,8 @@ const _exemptClasses = {
   'BasicMessageChannel',
   'OptionalMethodChannel',
   'FlutterErrorDetails',
+  // Built for a crash report, never shown (unlike an API error).
+  'StateError',
   'ErrorDescription',
   'ErrorSummary',
   'ErrorHint',
@@ -419,6 +421,10 @@ const _exemptClasses = {
 const _exemptMethods = {
   'debugPrint',
   'debugPrintStack',
+  // The stores' own debug log and crash report helpers.
+  '_log',
+  '_reportUnexpected',
+  '_reportRateTrouble',
   'print',
   'log',
   'recordError',

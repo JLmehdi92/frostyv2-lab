@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/screens/channel/community_highlights/raid_text.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/raid_avatar.dart';
@@ -135,7 +136,7 @@ class _RaidHeadingOverlayState extends State<RaidHeadingOverlay>
       child: RepaintBoundary(
         child: Semantics(
           liveRegion: true,
-          label: 'Heading to ${arrival.targetName}',
+          label: context.l10n.raidHeadingTo(target: arrival.targetName),
           child: AnimatedBuilder(
             animation: _controller,
             builder: (context, _) {
@@ -199,7 +200,9 @@ class _RaidHeadingOverlayState extends State<RaidHeadingOverlay>
                                     spacing: 3,
                                     children: [
                                       Text(
-                                        'Heading to ${arrival.targetName}',
+                                        context.l10n.raidHeadingTo(
+                                          target: arrival.targetName,
+                                        ),
                                         style: const TextStyle(
                                           fontFamily: OnsetTokens.bodyFamily,
                                           fontSize: 16,
@@ -208,7 +211,11 @@ class _RaidHeadingOverlayState extends State<RaidHeadingOverlay>
                                         ),
                                       ),
                                       Text(
-                                        '${raidViewers(arrival.viewers)} coming with you',
+                                        context.l10n.raidComingWithYou(
+                                          count: raidViewerCount(
+                                            arrival.viewers,
+                                          ),
+                                        ),
                                         style: const TextStyle(
                                           fontFamily: OnsetTokens.bodyFamily,
                                           fontSize: 12.5,

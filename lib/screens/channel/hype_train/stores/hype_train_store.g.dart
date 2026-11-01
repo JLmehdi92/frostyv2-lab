@@ -52,14 +52,6 @@ mixin _$HypeTrainStore on HypeTrainStoreBase, Store {
     () => super.style,
     name: 'HypeTrainStoreBase.style',
   )).value;
-  Computed<String>? _$semanticsSummaryComputed;
-
-  @override
-  String get semanticsSummary =>
-      (_$semanticsSummaryComputed ??= Computed<String>(
-        () => super.semanticsSummary,
-        name: 'HypeTrainStoreBase.semanticsSummary',
-      )).value;
 
   late final _$_phaseAtom = Atom(
     name: 'HypeTrainStoreBase._phase',
@@ -620,8 +612,7 @@ level: ${level},
 visible: ${visible},
 isFinalLevel: ${isFinalLevel},
 levelTarget: ${levelTarget},
-style: ${style},
-semanticsSummary: ${semanticsSummary}
+style: ${style}
     ''';
   }
 }

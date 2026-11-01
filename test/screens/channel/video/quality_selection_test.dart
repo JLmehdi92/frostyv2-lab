@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/quality_selection.dart';
 
 void main() {
@@ -71,8 +72,8 @@ void main() {
 
   group('audio only', () {
     test('is shown with a readable name', () {
-      expect(qualityLabel('audio_only'), 'Audio only');
-      expect(qualityLabel('1080p60'), '1080p60');
+      expect(qualityLabel('audio_only', L10n.english), 'Audio only');
+      expect(qualityLabel('1080p60', L10n.english), '1080p60');
     });
 
     test('a saved audio only opens the next stream on Auto', () {

@@ -79,30 +79,27 @@ HtPalette htAnnouncementPalette(HtPalette palette, HtStep? step, int percent) {
 
 /// The resting subtitle: the record, the final level, the treasure or
 /// community unlock, or the default prompt.
-String htSubtitle(HypeTrainStore store, HypeTrainExecution train) {
+String htSubtitle(HypeTrainStore store, HypeTrainExecution train, HtCopy copy) {
   final shared = train.shared != null;
   switch (store.style) {
     case HtStyle.athApproaching:
-      return HtCopy.athApproaching;
+      return copy.athApproaching;
     case HtStyle.athReached:
-      return HtCopy.athReached(shared: shared);
+      return copy.athReached(shared: shared);
     case _:
   }
-  if (store.isFinalLevel) return HtCopy.finalLevel;
+  if (store.isFinalLevel) return copy.finalLevel;
   if (train.treasure case final treasure?) {
     return train.level >= treasure.threshold
-        ? HtCopy.treasureUnlockedSubtitle(treasure.discountPercentage)
-        : HtCopy.treasureLocked(
-            treasure.threshold,
-            treasure.discountPercentage,
-          );
+        ? copy.treasureUnlockedSubtitle(treasure.discountPercentage)
+        : copy.treasureLocked(treasure.threshold, treasure.discountPercentage);
   }
   if (train.community case final community?) {
     return train.level >= community.threshold
-        ? HtCopy.communityUnlockedSubtitle(community.current)
-        : HtCopy.communityLocked(community.threshold);
+        ? copy.communityUnlockedSubtitle(community.current)
+        : copy.communityLocked(community.threshold);
   }
-  return HtCopy.subtitle;
+  return copy.subtitle;
 }
 
 /// The running train, laid out like Twitch's default banner: the level's
@@ -193,6 +190,7 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
                     store,
                     palette,
                     compact,
+                    HtCopy.of(context),
                     // An announced level change counts up on its own pill.
                     animatePill: resting && !store.reduceMotion,
                     pillColorDuration: morph,
@@ -384,16 +382,17 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
 Widget _restColumn(
   HypeTrainStore store,
   HtPalette palette,
-  bool compact, {
+  bool compact,
+  HtCopy copy, {
   bool animatePill = true,
   Duration pillColorDuration = Duration.zero,
 }) {
   final train = store.train;
   if (train == null) return const SizedBox.shrink();
   if (store.style == HtStyle.athApproaching) {
-    return _athApproaching(palette, compact);
+    return _athApproaching(palette, compact, copy);
   }
-  final title = HtCopy.trainTitle(train.variant, shared: train.shared != null);
+  final title = copy.trainTitle(train.variant, shared: train.shared != null);
   final subtitle = Padding(
     padding: const EdgeInsetsDirectional.fromSTEB(
       HtDims.margin,
@@ -404,7 +403,7 @@ Widget _restColumn(
     child: htSplit(
       palette,
       Text(
-        compact ? title : htSubtitle(store, train),
+        compact ? title : htSubtitle(store, train, copy),
         key: const ValueKey('ht-subtitle'),
         maxLines: compact ? 1 : 2,
         overflow: TextOverflow.ellipsis,
@@ -479,7 +478,7 @@ Widget _restColumn(
 
 /// A record in sight: a large trophy (cropped by the banner) and the
 /// subtitle, no pill or title.
-Widget _athApproaching(HtPalette palette, bool compact) {
+Widget _athApproaching(HtPalette palette, bool compact, HtCopy copy) {
   final trophy = Icon(
     Icons.emoji_events_rounded,
     key: const ValueKey('ht-ath-trophy'),
@@ -511,7 +510,7 @@ Widget _athApproaching(HtPalette palette, bool compact) {
             child: Padding(
               padding: const EdgeInsets.all(HtDims.margin),
               child: Text(
-                compact ? HtCopy.athApproachingCompact : HtCopy.athApproaching,
+                compact ? copy.athApproachingCompact : copy.athApproaching,
                 key: const ValueKey('ht-subtitle'),
                 maxLines: compact ? 1 : 2,
                 overflow: TextOverflow.ellipsis,
@@ -549,7 +548,7 @@ class _Numbers extends StatelessWidget {
       ),
       ExcludeSemantics(
         child: Text(
-          HtCopy.percent(percent),
+          HtCopy.of(context).percent(percent),
           key: const ValueKey('ht-percent'),
           maxLines: 1,
           style: palette
@@ -575,10 +574,10 @@ class _BannerSemantics extends StatelessWidget {
     builder: (context) => Semantics(
       container: true,
       button: true,
-      label: store.semanticsSummary,
-      hint: HtCopy.detailsHint,
+      label: HtCopy.of(context).summaryLabel(store),
+      hint: HtCopy.of(context).detailsHint,
       customSemanticsActions: {
-        const CustomSemanticsAction(label: HtCopy.collapse): () =>
+        CustomSemanticsAction(label: HtCopy.of(context).collapse): () =>
             store.setCollapsed(true),
       },
       child: child,
@@ -607,17 +606,17 @@ class HypeTrainPill extends StatelessWidget {
               fraction: store.shownPercent / 100,
               fillColors: palette.pillFillColors,
               textOnFill: palette.textOnFill,
-              label: store.semanticsSummary,
-              hint: HtCopy.expand,
+              label: HtCopy.of(context).summaryLabel(store),
+              hint: HtCopy.of(context).expand,
               onTap: () => store.setCollapsed(false),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(palette.icon),
                   const SizedBox(width: HtDims.marginHalf),
-                  Text(HtCopy.level(store.shownLevel)),
+                  Text(HtCopy.of(context).level(store.shownLevel)),
                   const SizedBox(width: HtDims.margin),
-                  Text(HtCopy.percent(store.shownPercent)),
+                  Text(HtCopy.of(context).percent(store.shownPercent)),
                   const Icon(Icons.expand_more_rounded),
                 ],
               ),
@@ -817,17 +816,17 @@ class HypeTrainStepContent extends StatelessWidget {
         final shared = train?.shared != null;
         final String text;
         if (data.containsKey('fromLevel')) {
-          text = HtCopy.merging;
+          text = HtCopy.of(context).merging;
         } else if (data.containsKey('treasure')) {
-          text = HtCopy.treasureUnlockedMarquee;
+          text = HtCopy.of(context).treasureUnlockedMarquee;
         } else if (data.containsKey('community')) {
-          text = HtCopy.communityUnlockedMarquee;
+          text = HtCopy.of(context).communityUnlockedMarquee;
         } else if (data.containsKey('level')) {
-          text = HtCopy.levelUp;
+          text = HtCopy.of(context).levelUp;
         } else if (store.phase == HtPhase.ending) {
-          text = HtCopy.completed(variant, shared: shared);
+          text = HtCopy.of(context).completed(variant, shared: shared);
         } else {
-          text = HtCopy.started(variant, shared: shared);
+          text = HtCopy.of(context).started(variant, shared: shared);
         }
         return ExcludeSemantics(
           child: HypeTrainMarquee(
@@ -844,7 +843,7 @@ class HypeTrainStepContent extends StatelessWidget {
       case HtStepKind.instruction:
         final key = data['text'] as String? ?? '';
         return _smallAnnouncement(
-          HtCopy.instruction(
+          HtCopy.of(context).instruction(
             key,
             data,
             variant: train?.variant ?? HtVariant.regular,
@@ -857,14 +856,18 @@ class HypeTrainStepContent extends StatelessWidget {
         );
       case HtStepKind.levelComplete:
         return _centred(
-          HtCopy.levelComplete(data['level'] as int? ?? store.shownLevel),
+          HtCopy.of(
+            context,
+          ).levelComplete(data['level'] as int? ?? store.shownLevel),
         );
       case HtStepKind.largeContribution:
         final event = data['event'];
         if (event is! HtProgressionEvent) return const SizedBox.shrink();
         final action = event.action;
         return _smallAnnouncement(
-          HtCopy.contribution(event.displayName, action, event.quantity),
+          HtCopy.of(
+            context,
+          ).contribution(event.displayName, action, event.quantity),
           icon: action.isCheer
               ? Icons.diamond_rounded
               : action.isGift
@@ -877,11 +880,13 @@ class HypeTrainStepContent extends StatelessWidget {
         if (totals is! ({int bits, int subs})) return const SizedBox.shrink();
         return _Totals(subs: totals.subs, bits: totals.bits, style: _small);
       case HtStepKind.summary:
-        final lines = HtCopy.summary(
-          data['level'] as int? ?? store.shownLevel,
-          ath: data['ath'] == true,
-          variant: train?.variant ?? HtVariant.regular,
-        ).split('\n');
+        final lines = HtCopy.of(context)
+            .summary(
+              data['level'] as int? ?? store.shownLevel,
+              ath: data['ath'] == true,
+              variant: train?.variant ?? HtVariant.regular,
+            )
+            .split('\n');
         return _smallAnnouncement(
           lines.first,
           secondary: lines.length > 1 ? lines.last : null,
@@ -900,7 +905,7 @@ class HypeTrainStepContent extends StatelessWidget {
                   HypeTrainAvatarStack(users: users, plusColor: palette.text),
                   const SizedBox(width: HtDims.margin),
                   Text(
-                    HtCopy.sharedNew,
+                    HtCopy.of(context).sharedNew,
                     maxLines: 1,
                     style: palette.textStyle(HtType.titleDefault),
                   ),
@@ -936,7 +941,7 @@ class HypeTrainStepContent extends StatelessWidget {
                 child: Center(
                   child: _live(
                     Text(
-                      HtCopy.treasureUnlockedMarquee,
+                      HtCopy.of(context).treasureUnlockedMarquee,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
@@ -963,7 +968,7 @@ class HypeTrainStepContent extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: HtDims.margin),
                 child: _live(
                   Text(
-                    HtCopy.communityUnlockedMarquee,
+                    HtCopy.of(context).communityUnlockedMarquee,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -1010,7 +1015,7 @@ class HypeTrainStepContent extends StatelessWidget {
             emote: emote is HtReward ? emote : null,
             reduceMotion: store.reduceMotion,
           ),
-          HtCopy.completed(HtVariant.mythic),
+          HtCopy.of(context).completed(HtVariant.mythic),
         );
       case HtStepKind.athReached:
         return _effectRow(
@@ -1019,8 +1024,8 @@ class HypeTrainStepContent extends StatelessWidget {
             reduceMotion: store.reduceMotion,
           ),
           train?.shared != null
-              ? HtCopy.sharedRecordReached
-              : HtCopy.athReachedTitle,
+              ? HtCopy.of(context).sharedRecordReached
+              : HtCopy.of(context).athReachedTitle,
         );
       case HtStepKind.athOtherChannel:
         final channel = data['channel'];
@@ -1064,7 +1069,7 @@ class HypeTrainStepContent extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    HtCopy.continuesIn(store.shownLevel),
+                    HtCopy.of(context).continuesIn(store.shownLevel),
                     maxLines: 1,
                     style: palette.textStyle(HtType.titleDefault),
                   ),
@@ -1108,15 +1113,16 @@ class _Totals extends StatelessWidget {
     );
     return Semantics(
       container: true,
-      label: '${HtCopy.subsTotal(subs)}, ${HtCopy.bitsTotal(bits)}',
+      label:
+          '${HtCopy.of(context).subsTotal(subs)}, ${HtCopy.of(context).bitsTotal(bits)}',
       excludeSemantics: true,
       child: Center(
         child: Column(
           key: const ValueKey('ht-small-announcement'),
           mainAxisSize: MainAxisSize.min,
           children: [
-            line(Icons.star_rounded, HtCopy.subsTotal(subs)),
-            line(Icons.diamond_rounded, HtCopy.bitsTotal(bits)),
+            line(Icons.star_rounded, HtCopy.of(context).subsTotal(subs)),
+            line(Icons.diamond_rounded, HtCopy.of(context).bitsTotal(bits)),
           ],
         ),
       ),
@@ -1151,7 +1157,7 @@ class HypeTrainContributions extends StatelessWidget {
               HtAvatar(user: channel.user, size: HtDims.avatar),
               const SizedBox(width: HtDims.marginHalf),
               Text(
-                HtCopy.percent(share),
+                HtCopy.of(context).percent(share),
                 maxLines: 1,
                 style: i == 0
                     ? HtType.titleLarge.copyWith(
@@ -1207,7 +1213,7 @@ class _OtherChannelRecord extends StatelessWidget {
     return Semantics(
       container: true,
       liveRegion: true,
-      label: HtCopy.otherChannelRecord(channel?.displayName ?? ''),
+      label: HtCopy.of(context).otherChannelRecord(channel?.displayName ?? ''),
       excludeSemantics: true,
       child: Stack(
         fit: StackFit.expand,
@@ -1250,7 +1256,9 @@ class _OtherChannelRecord extends StatelessWidget {
                 const SizedBox(width: HtDims.margin),
                 Flexible(
                   child: Text(
-                    HtCopy.otherChannelRecord(channel?.displayName ?? ''),
+                    HtCopy.of(
+                      context,
+                    ).otherChannelRecord(channel?.displayName ?? ''),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: style,
@@ -1286,8 +1294,8 @@ class _LeavingCollaborator extends StatelessWidget {
     return Semantics(
       container: true,
       label:
-          '${HtCopy.sharedLevelReached}. '
-          '${HtCopy.sharedLevel(level, percent)}',
+          '${HtCopy.of(context).sharedLevelReached}. '
+          '${HtCopy.of(context).sharedLevel(level, percent)}',
       excludeSemantics: true,
       child: Padding(
         padding: const EdgeInsetsDirectional.only(
@@ -1306,7 +1314,7 @@ class _LeavingCollaborator extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      HtCopy.sharedLevelReached,
+                      HtCopy.of(context).sharedLevelReached,
                       style: palette.textStyle(HtType.titleExtraSmall),
                     ),
                     if (channels.isNotEmpty) ...[
@@ -1320,7 +1328,7 @@ class _LeavingCollaborator extends StatelessWidget {
                 ),
                 const SizedBox(width: HtDims.margin),
                 Text(
-                  HtCopy.sharedLevel(level, percent),
+                  HtCopy.of(context).sharedLevel(level, percent),
                   style: palette.textStyle(HtType.titleDefault),
                 ),
               ],

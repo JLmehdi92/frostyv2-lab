@@ -9,6 +9,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/models/ivs_stats.dart';
 import 'package:onset/models/playback_access_token.dart';
@@ -135,9 +136,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   String? _url;
 
   /// Why Twitch refused the stream, set when the player gives up on it for
-  /// that reason (the channel shows it on falling back); null otherwise.
+  /// that reason (the channel says it on falling back); null otherwise.
   @readonly
-  String? _refusalNotice;
+  StreamRefusalNotice? _refusalNotice;
 
   /// Whether the last player error was a rejected token (401 or 403); each
   /// new load attempt clears it, so a failure of its own (no network, a
@@ -675,7 +676,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (gate == _contentGate.value) return;
     runInAction(() => _contentGate.value = gate);
     if (gate == ContentGate.covering) {
-      _holdAutoLatency('paused');
+      _holdAutoLatency(AutoLatencyReason.paused);
       // An explicit pause, only of a stream that plays: a toggle would
       // start one still loading (that one is held when it starts).
       if (_isPlaying) {
@@ -1009,12 +1010,12 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   }
 
   /// Why auto latency must not correct now, if it must not.
-  String? get _autoLatencyHold {
-    if (_paused || _covered) return 'paused';
+  AutoLatencyReason? get _autoLatencyHold {
+    if (_paused || _covered) return AutoLatencyReason.paused;
     if (_recovering || _jumping || _status != IvsPlaybackStatus.playing) {
-      return 'reconnecting';
+      return AutoLatencyReason.reconnecting;
     }
-    if (!_isPlaying) return 'buffering';
+    if (!_isPlaying) return AutoLatencyReason.buffering;
     return null;
   }
 
@@ -1027,7 +1028,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   }
 
   /// Back to 1.0x now, without waiting for the next tick.
-  void _holdAutoLatency(String reason) {
+  void _holdAutoLatency(AutoLatencyReason reason) {
     _markDisturbed();
     if (!playerConfig.autoLatency) return;
     _autoLatency.hold(reason);
@@ -1073,9 +1074,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       // Already asked for: a resend, quick at first, then slow.
       if (_normalResends >= _quickResends) {
         if (fast && _autoLatency.status.phase != AutoLatencyPhase.stopped) {
-          _autoLatency.stop(
-            'the player stayed at ${nativeRate.toStringAsFixed(2)}x',
-          );
+          _autoLatency.stop(AutoLatencyReason.stuckFast, rate: nativeRate);
           _reportRateTrouble(
             StateError('live rate stayed at $nativeRate after 1.0x'),
             StackTrace.current,
@@ -1119,7 +1118,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       _autoLatency.onRateRejected();
     } else {
       _sentRate = double.nan;
-      _autoLatency.stop('the player did not return to 1.0x');
+      _autoLatency.stop(AutoLatencyReason.notBackToNormal);
     }
     // Retried on the next tick, not in a loop here.
     _publishAutoLatencyStatus();
@@ -1177,11 +1176,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _retryTimer?.cancel();
     final epoch = _recoveryEpoch;
     final name = _streamInfo?.userName ?? _offlineChannelInfo?.broadcasterName;
+    final shownName = name == null || name.isEmpty ? userLogin : name;
     var notice = switch (_streamService.refusalFor(userLogin)) {
-      final refusal? => playbackRefusalNotice(
-        refusal,
-        name == null || name.isEmpty ? userLogin : name,
-      ),
+      final refusal? => StreamRefusalNotice(refusal: refusal, name: shownName),
       null => null,
     };
     final url = _url;
@@ -1198,9 +1195,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         _reportUnexpected(e, stack, 'usher reason');
       }
       if (reason != null) {
-        notice =
-            'Twitch refused this stream: $reason'
-            '${reason.endsWith('.') ? '' : '.'}';
+        notice = StreamRefusalNotice(name: shownName, usherReason: reason);
       }
     }
     if (_disposed || epoch != _recoveryEpoch) return;
@@ -1368,7 +1363,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (_paused) {
       _markDisturbed();
     } else {
-      _holdAutoLatency('paused');
+      _holdAutoLatency(AutoLatencyReason.paused);
     }
     if (_paused && _resumesAtLive) {
       unawaited(_jumpToLive(resume: true));
@@ -1521,7 +1516,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     // 1.0x while the new one is fetched (blind until it plays).
     _liveEdge.reset();
     if (playerConfig.autoLatency && !_rateRefused) _autoLatency.reset();
-    _holdAutoLatency('reconnecting');
+    _holdAutoLatency(AutoLatencyReason.reconnecting);
     _latency = null;
     _latencyMs = null;
     _lastLatencySecond = null;
@@ -1653,14 +1648,54 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   }
 }
 
-/// What the viewer is told when Twitch refuses [name]'s stream.
+/// What the viewer is told when Twitch refuses [name]'s stream, in [l]'s
+/// language.
 String playbackRefusalNotice(
   PlaybackRefusal refusal,
   String name,
+  AppLocalizations l,
 ) => switch (refusal) {
-  PlaybackRefusal.subscribersOnly => '$name is streaming for subscribers only.',
-  PlaybackRefusal.geoblocked => 'This stream is not available in your region.',
-  PlaybackRefusal.bannedFromChannel => "You are banned from $name's channel.",
-  PlaybackRefusal.unauthorized =>
-    'Twitch refused this stream to the app player.',
+  PlaybackRefusal.subscribersOnly => l.liveRefusedSubscribersOnly(name: name),
+  PlaybackRefusal.geoblocked => l.liveRefusedGeoblocked,
+  PlaybackRefusal.bannedFromChannel => l.liveRefusedBanned(name: name),
+  PlaybackRefusal.unauthorized => l.liveRefusedUnauthorized,
 };
+
+/// Why Twitch refused [name]'s stream: the [refusal] its token carried, or
+/// else usher's own explanation ([usherReason], Twitch's English words).
+@immutable
+class StreamRefusalNotice {
+  const StreamRefusalNotice({
+    this.refusal,
+    required this.name,
+    this.usherReason,
+  });
+
+  final PlaybackRefusal? refusal;
+  final String name;
+  final String? usherReason;
+
+  /// What the viewer is told, in [l]'s language. Usher's English words are
+  /// shown on an English screen only; other languages say Twitch refused.
+  String text(AppLocalizations l) {
+    if (refusal case final refusal?) {
+      return playbackRefusalNotice(refusal, name, l);
+    }
+    final reason = usherReason;
+    if (reason == null || reason.trim().isEmpty || l.localeName != 'en') {
+      return l.liveRefused;
+    }
+    return '${l.liveRefusedBecause(reason: reason)}'
+        '${reason.endsWith('.') ? '' : '.'}';
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is StreamRefusalNotice &&
+      other.refusal == refusal &&
+      other.name == name &&
+      other.usherReason == usherReason;
+
+  @override
+  int get hashCode => Object.hash(refusal, name, usherReason);
+}

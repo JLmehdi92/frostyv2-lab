@@ -3957,5 +3957,1946 @@
         "example": "xQc"
       }
     }
+  },
+  "channelProfile": "Channel profile",
+  "@channelProfile": {
+    "description": "What a screen reader says for the channel's picture or name over and under the live video (opens the channel profile), and its tooltip."
+  },
+  "channelVideos": "Videos",
+  "@channelVideos": {
+    "description": "Tooltip of the button over the live video (and in the channel bar) that opens the channel's videos."
+  },
+  "channelWebFallback": "{notice} Trying the web player.",
+  "@channelWebFallback": {
+    "description": "Snackbar when the app's player gives up on a stream Twitch refuses and the web player takes over. notice says why (liveRefused…), a full sentence; French puts it after « Passage au lecteur web. ».",
+    "placeholders": {
+      "notice": {
+        "type": "String",
+        "example": "This stream is not available in your region."
+      }
+    }
+  },
+  "channelSwipeDownForPip": "Swipe down to enter picture-in-picture",
+  "@channelSwipeDownForPip": {
+    "description": "Over the video while the viewer drags it down: letting go enters picture-in-picture (Android's floating window, « Picture-in-picture » as Android names it in French)."
+  },
+  "channelResizeVideo": "Resize video",
+  "@channelResizeVideo": {
+    "description": "What a screen reader calls the handle between the video and the chat in portrait."
+  },
+  "channelResizeVideoHint": "Drag to change the video size, double tap for full width",
+  "@channelResizeVideoHint": {
+    "description": "What a screen reader says the handle between the video and the chat does."
+  },
+  "channelUptimeMinutes": "{minutes} min",
+  "@channelUptimeMinutes": {
+    "description": "How long a live has run, under an hour, in the info row under the video and on a channel profile's live card. Short unit, no plural.",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "45"
+      }
+    }
+  },
+  "channelUptimeHours": "{hours} h {minutes}",
+  "@channelUptimeHours": {
+    "description": "How long a live has run, from an hour (3 h 12), in the info row under the video and on a channel profile's live card. minutes is two digits.",
+    "placeholders": {
+      "hours": {
+        "type": "int",
+        "example": "3"
+      },
+      "minutes": {
+        "type": "String",
+        "example": "05"
+      }
+    }
+  },
+  "channelWatchStreak": "Watch streak {value}",
+  "@channelWatchStreak": {
+    "description": "A chip under a tablet's video: how many streams in a row the viewer watched on this channel.",
+    "placeholders": {
+      "value": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "channelAlsoLive": "ALSO LIVE FROM YOUR FOLLOWS",
+  "@channelAlsoLive": {
+    "description": "Tablet channel page, under the video: the heading of the row of other followed channels that are live. Written in capitals."
+  },
+  "channelChat": "Chat",
+  "@channelChat": {
+    "description": "The title of the chat column's bar on a tablet's channel page."
+  },
+  "channelChatSynced": "synced to video",
+  "@channelChatSynced": {
+    "description": "Beside « Chat » on a tablet: the chat is delayed to match the video automatically. Lower case."
+  },
+  "channelChatDelay": "{seconds}s delay",
+  "@channelChatDelay": {
+    "description": "Beside « Chat » on a tablet: the chat is held back by that many seconds (Settings › Chat).",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "channelChatSettings": "Chat settings",
+  "@channelChatSettings": {
+    "description": "Tooltip of the button that opens the chat's settings sheet, in the chat column's bar on a tablet."
+  },
+  "livePlayerQualityAndSettings": "Quality and settings",
+  "@livePlayerQualityAndSettings": {
+    "description": "Tooltip of the gear over the live video: opens the sheet with the quality, volume, captions and stats."
+  },
+  "livePlayerMute": "Mute",
+  "@livePlayerMute": {
+    "description": "Tooltip of the live player's sound button while the sound is on."
+  },
+  "livePlayerUnmute": "Unmute",
+  "@livePlayerUnmute": {
+    "description": "Tooltip of the live player's sound button while it is muted."
+  },
+  "livePlayerRefresh": "Refresh",
+  "@livePlayerRefresh": {
+    "description": "Tooltip of the live player's button that reloads the stream."
+  },
+  "livePlayerEnterFullScreen": "Enter fullscreen mode",
+  "@livePlayerEnterFullScreen": {
+    "description": "Tooltip of the live player's full-screen button."
+  },
+  "livePlayerExitFullScreen": "Exit fullscreen mode",
+  "@livePlayerExitFullScreen": {
+    "description": "Tooltip of the live player's full-screen button while in full screen."
+  },
+  "livePlayerShowChat": "Show chat",
+  "@livePlayerShowChat": {
+    "description": "Tooltip of a tablet's button over the live video that brings the side chat back."
+  },
+  "livePlayerHideChat": "Hide chat",
+  "@livePlayerHideChat": {
+    "description": "Tooltip of a tablet's button over the live video that hides the side chat."
+  },
+  "livePlayerEnterLandscape": "Enter landscape mode",
+  "@livePlayerEnterLandscape": {
+    "description": "Tooltip of the live player's rotate button in portrait."
+  },
+  "livePlayerExitLandscape": "Exit landscape mode",
+  "@livePlayerExitLandscape": {
+    "description": "Tooltip of the live player's rotate button in landscape."
+  },
+  "livePlayerEnterPip": "Enter picture-in-picture",
+  "@livePlayerEnterPip": {
+    "description": "Tooltip of the live player's picture-in-picture button (Android's floating window, « Picture-in-picture » in French)."
+  },
+  "livePlayerExitPip": "Exit picture-in-picture",
+  "@livePlayerExitPip": {
+    "description": "Tooltip of the same button on iOS while the video floats."
+  },
+  "livePlayerStreamQuality": "Stream quality",
+  "@livePlayerStreamQuality": {
+    "description": "The live player's settings sheet: the heading over the list of qualities."
+  },
+  "livePlayerAudioOnly": "Audio only",
+  "@livePlayerAudioOnly": {
+    "description": "The quality that plays the sound alone (in the quality list), and the badge over the video while it plays."
+  },
+  "livePlayerMeasurement": "Measurement",
+  "@livePlayerMeasurement": {
+    "description": "The live player's settings sheet: the heading over the stats entries."
+  },
+  "livePlayerVideoStats": "Video stats",
+  "@livePlayerVideoStats": {
+    "description": "The live player's settings sheet: shows or hides the stats panel over the video."
+  },
+  "livePlayerVideoStatsDetail": "Latency, buffer, bitrate and frames over the video",
+  "@livePlayerVideoStatsDetail": {
+    "description": "Under « Video stats »: what the panel shows."
+  },
+  "livePlayerResetStats": "Reset stats",
+  "@livePlayerResetStats": {
+    "description": "The live player's settings sheet: starts the stats over."
+  },
+  "livePlayerResetStatsDetail": "Start a new latency measurement",
+  "@livePlayerResetStatsDetail": {
+    "description": "Under « Reset stats »."
+  },
+  "livePlayerSharedChatTitle": "Shared chat · {title}",
+  "@livePlayerSharedChatTitle": {
+    "description": "Over the live video, before the stream's title, while several channels share one chat. title is the stream's title (Twitch's data).",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Duo night"
+      }
+    }
+  },
+  "livePlayerUptime": "Stream uptime",
+  "@livePlayerUptime": {
+    "description": "Tooltip of how long the live has run, over the video."
+  },
+  "livePlayerViewerCount": "Viewer count",
+  "@livePlayerViewerCount": {
+    "description": "Tooltip of the viewer count over the video (a tap opens the chatters)."
+  },
+  "liveCaptionsDetail": "When the stream has them",
+  "@liveCaptionsDetail": {
+    "description": "The live player's settings sheet: under « Closed Captions » (playerCaptions)."
+  },
+  "liveCaptionsTrack": "Captions {number}",
+  "@liveCaptionsTrack": {
+    "description": "A caption track the stream names neither by label nor by language, in the caption list: its place in the list.",
+    "placeholders": {
+      "number": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "liveRefusedSubscribersOnly": "{name} is streaming for subscribers only.",
+  "@liveRefusedSubscribersOnly": {
+    "description": "Why the app's player cannot play a stream (then the web player tries): Twitch keeps it for subscribers. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "liveRefusedGeoblocked": "This stream is not available in your region.",
+  "@liveRefusedGeoblocked": {
+    "description": "Why the app's player cannot play a stream: Twitch blocks it in the viewer's country."
+  },
+  "liveRefusedBanned": "You are banned from {name}'s channel.",
+  "@liveRefusedBanned": {
+    "description": "Why the app's player cannot play a stream: the viewer is banned from the channel. name is the channel's display name. French uses a noun to avoid agreeing « banni(e) ».",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "liveRefusedUnauthorized": "Twitch refused this stream to the app player.",
+  "@liveRefusedUnauthorized": {
+    "description": "Why the app's player cannot play a stream: Twitch refused its token, without saying why."
+  },
+  "liveRefused": "Twitch refused this stream.",
+  "@liveRefused": {
+    "description": "Why the app's player cannot play a stream, on a screen whose language is not English: Twitch explained in English (its words stay in the logs)."
+  },
+  "liveRefusedBecause": "Twitch refused this stream: {reason}",
+  "@liveRefusedBecause": {
+    "description": "Why the app's player cannot play a stream, in English only: Twitch's own explanation follows (a full stop is added when it has none).",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "Content Restricted In Region"
+      }
+    }
+  },
+  "latencySeconds": "{value}s",
+  "@latencySeconds": {
+    "description": "A latency in seconds, as the latency pill and the stats panel show it (2.3s). value is the number, with its decimal separator.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "2.3"
+      }
+    }
+  },
+  "latencyPillTooltip": "Latency to broadcaster",
+  "@latencyPillTooltip": {
+    "description": "Tooltip of the latency pill over the video (the web player)."
+  },
+  "latencyPillTooltipStats": "Latency to broadcaster · tap for video stats",
+  "@latencyPillTooltipStats": {
+    "description": "Tooltip of the latency pill over the video with the app's player: a tap opens the stats panel."
+  },
+  "latencyPillSemantics": "Latency {latency}",
+  "@latencyPillSemantics": {
+    "description": "What a screen reader says for the latency pill. latency is the pill's text (2.3s, or the reconnect progress ↻ 2/5).",
+    "placeholders": {
+      "latency": {
+        "type": "String",
+        "example": "2.3s"
+      }
+    }
+  },
+  "latencyMegabits": "{value} Mbps",
+  "@latencyMegabits": {
+    "description": "A bitrate from a million bits per second, in the stats panel. value has one decimal.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "6.2"
+      }
+    }
+  },
+  "latencyKilobits": "{value} kbps",
+  "@latencyKilobits": {
+    "description": "A bitrate under a million bits per second, in the stats panel.",
+    "placeholders": {
+      "value": {
+        "type": "int",
+        "example": "850"
+      }
+    }
+  },
+  "latencyStatsLatency": "Latency",
+  "@latencyStatsLatency": {
+    "description": "Stats panel over the video: the row of the latency to the broadcaster."
+  },
+  "latencyStatsSpread": "Med / p90 / max",
+  "@latencyStatsSpread": {
+    "description": "Stats panel: the row of the latency's median, 90th percentile and maximum over the last minutes. Kept short."
+  },
+  "latencyStatsBuffer": "Buffer",
+  "@latencyStatsBuffer": {
+    "description": "Stats panel: the row of how much video is buffered."
+  },
+  "latencyStatsBitrate": "Bitrate",
+  "@latencyStatsBitrate": {
+    "description": "Stats panel: the row of the video's bitrate and the network's."
+  },
+  "latencyStatsBitrateValue": "{bitrate} · net {network}",
+  "@latencyStatsBitrateValue": {
+    "description": "Stats panel, Bitrate row: the video's bitrate, then the network's measured bandwidth.",
+    "placeholders": {
+      "bitrate": {
+        "type": "String",
+        "example": "6.2 Mbps"
+      },
+      "network": {
+        "type": "String",
+        "example": "24.1 Mbps"
+      }
+    }
+  },
+  "latencyStatsFrames": "Frames",
+  "@latencyStatsFrames": {
+    "description": "Stats panel: the row of the frame rate and dropped frames."
+  },
+  "latencyStatsFramesValue": "{fps} fps · {dropped} dropped / {decoded}",
+  "@latencyStatsFramesValue": {
+    "description": "Stats panel, Frames row: frames per second, then frames dropped out of those decoded (« i/s », images par seconde).",
+    "placeholders": {
+      "fps": {
+        "type": "String",
+        "example": "60"
+      },
+      "dropped": {
+        "type": "String",
+        "example": "3"
+      },
+      "decoded": {
+        "type": "String",
+        "example": "18000"
+      }
+    }
+  },
+  "latencyStatsLowLatency": "Low latency",
+  "@latencyStatsLowLatency": {
+    "description": "Stats panel: whether the stream has Twitch's low latency."
+  },
+  "latencyStatsOn": "on",
+  "@latencyStatsOn": {
+    "description": "Stats panel, Low latency row: it is on (« activée » agrees with « latence »). Lower case."
+  },
+  "latencyStatsOff": "off",
+  "@latencyStatsOff": {
+    "description": "Stats panel, Low latency row: it is off. Lower case."
+  },
+  "latencyStatsSpeed": "Speed",
+  "@latencyStatsSpeed": {
+    "description": "Stats panel: the row of the playback rate."
+  },
+  "latencyStatsRate": "{rate}x",
+  "@latencyStatsRate": {
+    "description": "Stats panel: a playback rate (1.05x). rate has two decimals.",
+    "placeholders": {
+      "rate": {
+        "type": "String",
+        "example": "1.05"
+      }
+    }
+  },
+  "latencyStatsMode": "Mode",
+  "@latencyStatsMode": {
+    "description": "Stats panel: the row of the player's setting (Settings › Video), e.g. « Standard · Auto »."
+  },
+  "latencyStatsAutoLatency": "Auto latency",
+  "@latencyStatsAutoLatency": {
+    "description": "Stats panel: the row of what auto latency (keeping the stream close to live) is doing."
+  },
+  "latencyStatsNextStreams": "Next streams",
+  "@latencyStatsNextStreams": {
+    "description": "Stats panel: the row of the buffer the next streams open with, while Ultra is set aside after stalls."
+  },
+  "latencyStatsStartup": "Startup",
+  "@latencyStatsStartup": {
+    "description": "Stats panel: the row of how long the stream took to start."
+  },
+  "latencyStatsRebuffers": "Rebuffers",
+  "@latencyStatsRebuffers": {
+    "description": "Stats panel: the row of how many times playback stopped to buffer."
+  },
+  "latencyStatsLiveJumps": "Jumps to live",
+  "@latencyStatsLiveJumps": {
+    "description": "Stats panel: the row of how many times the player jumped back to live."
+  },
+  "latencyAutoOff": "off",
+  "@latencyAutoOff": {
+    "description": "Stats panel, Auto latency row: off for this stream (« désactivée » agrees with « latence »). Lower case."
+  },
+  "latencyAutoWithTarget": "{status} · target {latency}",
+  "@latencyAutoWithTarget": {
+    "description": "Stats panel, Auto latency row: what it does (status, a latencyAuto… text), then the latency it aims at.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "at target"
+      },
+      "latency": {
+        "type": "String",
+        "example": "2.0s"
+      }
+    }
+  },
+  "latencyAutoStopped": "stopped: {reason}",
+  "@latencyAutoStopped": {
+    "description": "Stats panel, Auto latency row: it gave up for this stream, and why (latencyReason…).",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "the player refused the rate"
+      }
+    }
+  },
+  "latencyAutoHeld": "held: {reason}",
+  "@latencyAutoHeld": {
+    "description": "Stats panel, Auto latency row: it may not act now, and why (latencyReason…).",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "paused"
+      }
+    }
+  },
+  "latencyAutoSettling": "waiting for calm",
+  "@latencyAutoSettling": {
+    "description": "Stats panel, Auto latency row: it waits for the connection to stay calm."
+  },
+  "latencyAutoSettlingSeconds": "waiting for calm {seconds}s",
+  "@latencyAutoSettlingSeconds": {
+    "description": "Stats panel, Auto latency row: the same, with the seconds of calm still needed.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "8"
+      }
+    }
+  },
+  "latencyAutoSteady": "at target",
+  "@latencyAutoSteady": {
+    "description": "Stats panel, Auto latency row: close enough to live, playing at normal speed."
+  },
+  "latencyAutoCatchingUp": "catching up {rate}x",
+  "@latencyAutoCatchingUp": {
+    "description": "Stats panel, Auto latency row: playing faster to get back to the target. rate has two decimals.",
+    "placeholders": {
+      "rate": {
+        "type": "String",
+        "example": "1.05"
+      }
+    }
+  },
+  "latencyAutoDraining": "draining {rate}x",
+  "@latencyAutoDraining": {
+    "description": "Stats panel, Auto latency row: playing slightly faster to drain an excessive buffer (« résorption » du tampon). rate has two decimals.",
+    "placeholders": {
+      "rate": {
+        "type": "String",
+        "example": "1.03"
+      }
+    }
+  },
+  "latencyAutoDrainingBecause": "draining {rate}x ({reason})",
+  "@latencyAutoDrainingBecause": {
+    "description": "The same, with why the normal catch-up does not run (latencyReason…).",
+    "placeholders": {
+      "rate": {
+        "type": "String",
+        "example": "1.03"
+      },
+      "reason": {
+        "type": "String",
+        "example": "not a low-latency stream"
+      }
+    }
+  },
+  "latencyReasonGaveUp": "gave up",
+  "@latencyReasonGaveUp": {
+    "description": "Stats panel, Auto latency row: why it stopped, when there is no other reason."
+  },
+  "latencyReasonHeld": "held",
+  "@latencyReasonHeld": {
+    "description": "Stats panel, Auto latency row: why it holds, when there is no other reason."
+  },
+  "latencyReasonAd": "ad",
+  "@latencyReasonAd": {
+    "description": "Why auto latency holds: an ad plays. Lower case."
+  },
+  "latencyReasonNoBufferReading": "no buffer reading",
+  "@latencyReasonNoBufferReading": {
+    "description": "Why auto latency holds: the player gave no buffer length. Lower case."
+  },
+  "latencyReasonNoLatencyReading": "no latency reading",
+  "@latencyReasonNoLatencyReading": {
+    "description": "Why auto latency holds: no latency came with the last tick. Lower case."
+  },
+  "latencyReasonNoLatencyTicks": "no latency ticks",
+  "@latencyReasonNoLatencyTicks": {
+    "description": "Why auto latency holds: the latency stopped coming during a catch-up. Lower case."
+  },
+  "latencyReasonNotLowLatency": "not a low-latency stream",
+  "@latencyReasonNotLowLatency": {
+    "description": "Why auto latency holds or drains: the stream has no low latency. Lower case."
+  },
+  "latencyReasonPaused": "paused",
+  "@latencyReasonPaused": {
+    "description": "Why auto latency holds: the viewer paused, or a page covers the player. Lower case."
+  },
+  "latencyReasonReconnecting": "reconnecting",
+  "@latencyReasonReconnecting": {
+    "description": "Why auto latency holds: the player reconnects or jumps to live. Lower case."
+  },
+  "latencyReasonBuffering": "buffering",
+  "@latencyReasonBuffering": {
+    "description": "Why auto latency holds: the player waits for data. Lower case."
+  },
+  "latencyReasonRateRefused": "the player refused the rate",
+  "@latencyReasonRateRefused": {
+    "description": "Why auto latency stopped: the player refused to play faster. Lower case."
+  },
+  "latencyReasonRateNotKept": "the player did not keep the rate",
+  "@latencyReasonRateNotKept": {
+    "description": "Why auto latency stopped: the player did not play at the rate asked for. Lower case."
+  },
+  "latencyReasonStalls": "stalls after catching up",
+  "@latencyReasonStalls": {
+    "description": "Why auto latency stopped: playing faster kept causing stalls. Lower case."
+  },
+  "latencyReasonStuckFast": "the player stayed at {rate}x",
+  "@latencyReasonStuckFast": {
+    "description": "Why auto latency stopped: the player stayed fast after normal speed was asked for. rate has two decimals.",
+    "placeholders": {
+      "rate": {
+        "type": "String",
+        "example": "1.05"
+      }
+    }
+  },
+  "latencyReasonNotBackToNormal": "the player did not return to {rate}x",
+  "@latencyReasonNotBackToNormal": {
+    "description": "Why auto latency stopped: the player refused to go back to normal speed. rate is 1.0, with its decimal separator.",
+    "placeholders": {
+      "rate": {
+        "type": "String",
+        "example": "1.0"
+      }
+    }
+  },
+  "latencyBufferFallback": "Standard until {time} (Ultra stalled)",
+  "@latencyBufferFallback": {
+    "description": "Stats panel, Next streams row: the buffer profile streams open with until that time, because Ultra kept stalling (« Standard », « Ultra » are the profiles' names, Settings › Video).",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "14:05"
+      }
+    }
+  },
+  "clipCreateTitle": "Create Clip",
+  "@clipCreateTitle": {
+    "description": "The title of the sheet that makes a clip of the live stream."
+  },
+  "clipCreateButton": "Clip",
+  "@clipCreateButton": {
+    "description": "Tooltip of the clip button under the live video (opens the Create clip sheet)."
+  },
+  "clipCreateGenerating": "Generating Clipperino...",
+  "@clipCreateGenerating": {
+    "description": "Create clip sheet: Twitch is making the clip (« Clipperino » is Twitch's playful word, kept)."
+  },
+  "clipCreateRendering": "Rendering Clip",
+  "@clipCreateRendering": {
+    "description": "Create clip sheet: Twitch is rendering the clip."
+  },
+  "clipCreateLogIn": "Log in to create clips.",
+  "@clipCreateLogIn": {
+    "description": "Create clip sheet, signed out."
+  },
+  "clipCreateLogInAction": "Log in",
+  "@clipCreateLogInAction": {
+    "description": "Create clip sheet, signed out: the button that opens the Twitch login."
+  },
+  "clipCreateMissingScope": "Creating clips needs a permission your Twitch login does not have yet. Reconnect to Twitch to allow it.",
+  "@clipCreateMissingScope": {
+    "description": "Create clip sheet: the login lacks the clips permission."
+  },
+  "clipCreateReconnect": "Reconnect to Twitch",
+  "@clipCreateReconnect": {
+    "description": "Create clip sheet: the button that opens the Twitch login again, to grant the clips permission."
+  },
+  "clipCreateShare": "Share Clip",
+  "@clipCreateShare": {
+    "description": "Create clip sheet, once the clip is made: shares its link (French « Partager » alone: the button sits beside « Copier le lien », in half the sheet)."
+  },
+  "clipCreateLinkCopied": "Clip link copied",
+  "@clipCreateLinkCopied": {
+    "description": "Snackbar after « Copy link » in the Create clip sheet."
+  },
+  "clipCreateThumbnail": "Clip thumbnail",
+  "@clipCreateThumbnail": {
+    "description": "What a screen reader calls the made clip's picture."
+  },
+  "clipCreateEdit": "Edit",
+  "@clipCreateEdit": {
+    "description": "Create clip sheet: the row that opens the clip in twitch.tv's clip editor."
+  },
+  "clipCreateEditDetail": "Title and moment, in the twitch.tv clip editor",
+  "@clipCreateEditDetail": {
+    "description": "Under « Edit »: what can be changed there."
+  },
+  "clipCreateEditorTitle": "Edit Clip",
+  "@clipCreateEditorTitle": {
+    "description": "The title of the in-app twitch.tv page of the clip editor."
+  },
+  "clipCreateFailedMissingScope": "Your Twitch login does not allow creating clips.",
+  "@clipCreateFailedMissingScope": {
+    "description": "Create clip sheet, failed: the login lacks the permission."
+  },
+  "clipCreateFailedRestricted": "You can't clip this channel right now: clips may be off, only for followers or subscribers, or you are banned or timed out here.",
+  "@clipCreateFailedRestricted": {
+    "description": "Create clip sheet, failed: Twitch refused for this channel. French uses nouns to avoid agreeing « banni(e) »."
+  },
+  "clipCreateFailedOffline": "Only live streams can be clipped.",
+  "@clipCreateFailedOffline": {
+    "description": "Create clip sheet, failed: the channel is offline."
+  },
+  "clipCreateFailedNotClippable": "This channel does not permit clips of this category.",
+  "@clipCreateFailedNotClippable": {
+    "description": "Create clip sheet, failed: the channel forbids clips of the current category."
+  },
+  "clipCreateFailedRateLimited": "Too many clips at once. Try again in a moment.",
+  "@clipCreateFailedRateLimited": {
+    "description": "Create clip sheet, failed: too many clips made in a short time."
+  },
+  "clipCreateFailedUnknown": "Hmm... Something went wrong",
+  "@clipCreateFailedUnknown": {
+    "description": "Create clip sheet, failed for another reason."
+  },
+  "commonHide": "Hide",
+  "@commonHide": {
+    "description": "Tooltip of the cross that hides a card over the video or the chat (community highlights, raids, gift subs)."
+  },
+  "commonPercent": "{value}%",
+  "@commonPercent": {
+    "description": "A percentage (50%): a poll's or a prediction's share, the hype train's progress. French puts a narrow no-break space before %.",
+    "placeholders": {
+      "value": {
+        "type": "int",
+        "example": "50"
+      }
+    }
+  },
+  "celebrationEffect": "{effect, select, fireworks{Fireworks} rain{Rain} float{Float} flamethrower{Flamethrower} extinctionEvent{Extinction event} other{Sparkles}}",
+  "@celebrationEffect": {
+    "description": "The name of a celebration's effect (Twitch's channel celebrations), in the chat line it becomes when celebrations on video are Subtle.",
+    "placeholders": {
+      "effect": {
+        "type": "String",
+        "example": "fireworks"
+      }
+    }
+  },
+  "celebrationChatLine": "Celebration: {effect}",
+  "@celebrationChatLine": {
+    "description": "The chat line a celebration becomes when celebrations on video are Subtle (Settings › Chat). effect is celebrationEffect.",
+    "placeholders": {
+      "effect": {
+        "type": "String",
+        "example": "Fireworks"
+      }
+    }
+  },
+  "celebrationChatLineGiftedSubs": "Gifted subs celebration: {effect}",
+  "@celebrationChatLineGiftedSubs": {
+    "description": "The same line for the celebration Twitch plays after gifted subs. effect is celebrationEffect.",
+    "placeholders": {
+      "effect": {
+        "type": "String",
+        "example": "Fireworks"
+      }
+    }
+  },
+  "highlightKind": "{kind, select, poll{Poll} prediction{Prediction} pinned{Pinned} raid{Raid} giftBomb{Gift Subs} incomingRaid{Incoming raid} other{Highlight}}",
+  "@highlightKind": {
+    "description": "The name of a community highlight over the video or the chat: its card's title and the pill that shows the highlights.",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "poll"
+      }
+    }
+  },
+  "highlightNew": "{kind, select, poll{New poll} prediction{New prediction} pinned{New pinned} raid{New raid} giftBomb{New gift subs} incomingRaid{New incoming raid} other{New highlight}}",
+  "@highlightNew": {
+    "description": "What a screen reader says for the pill that announces a new community highlight.",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "poll"
+      }
+    }
+  },
+  "highlightAndMore": "{label} and {count, plural, other{{count} more}}",
+  "@highlightAndMore": {
+    "description": "What a screen reader says for the pill that opens the community highlights when there are several. label is the shown one's name (highlightKind).",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Poll"
+      },
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "highlightPrevious": "Previous highlight",
+  "@highlightPrevious": {
+    "description": "Tooltip of the arrow that shows the previous community highlight."
+  },
+  "highlightNext": "Next highlight",
+  "@highlightNext": {
+    "description": "Tooltip of the arrow that shows the next community highlight."
+  },
+  "highlightPosition": "Highlight {index} of {count}",
+  "@highlightPosition": {
+    "description": "What a screen reader says for « 2 / 3 » between the arrows of the community highlights.",
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "example": "2"
+      },
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "highlightTwitchChat": "Twitch chat",
+  "@highlightTwitchChat": {
+    "description": "The title of the in-app twitch.tv chat page opened to vote or predict."
+  },
+  "highlightThisChannel": "This channel",
+  "@highlightThisChannel": {
+    "description": "A raid card's channel when its name is not known yet."
+  },
+  "highlightTimeLeft": "{time} left",
+  "@highlightTimeLeft": {
+    "description": "A poll's or a pinned message's time left (time is m:ss).",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "1:23"
+      }
+    }
+  },
+  "highlightVotes": "{count, plural, one{{count} vote} other{{count} votes}}",
+  "@highlightVotes": {
+    "description": "A poll's total votes, the number short (1.2K).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "compact",
+        "example": "1200"
+      }
+    }
+  },
+  "highlightFinalResults": "Final results",
+  "@highlightFinalResults": {
+    "description": "An ended poll's status."
+  },
+  "highlightFinalResultsLower": "final results",
+  "@highlightFinalResultsLower": {
+    "description": "An ended poll, inside what a screen reader says for its card. Lower case."
+  },
+  "highlightPollLeads": "{choice} leads with {percent} percent",
+  "@highlightPollLeads": {
+    "description": "What a screen reader says for a poll's leading choice. choice is Twitch's data.",
+    "placeholders": {
+      "choice": {
+        "type": "String",
+        "example": "Yes"
+      },
+      "percent": {
+        "type": "int",
+        "example": "62"
+      }
+    }
+  },
+  "highlightVote": "Vote on Twitch",
+  "@highlightVote": {
+    "description": "A live poll's button: opens the channel's twitch.tv chat to vote there."
+  },
+  "highlightPredictionsOpen": "Predictions open",
+  "@highlightPredictionsOpen": {
+    "description": "A prediction's status: viewers can predict."
+  },
+  "highlightPredictionsClosed": "Predictions closed",
+  "@highlightPredictionsClosed": {
+    "description": "A prediction's status: locked, waiting for the outcome."
+  },
+  "highlightPredictionWaiting": "Waiting for the result",
+  "@highlightPredictionWaiting": {
+    "description": "A prediction's status: the broadcaster is choosing the outcome."
+  },
+  "highlightPredictionResult": "Result",
+  "@highlightPredictionResult": {
+    "description": "A resolved prediction's status."
+  },
+  "highlightPredictionCanceled": "Canceled · points refunded",
+  "@highlightPredictionCanceled": {
+    "description": "A canceled prediction's status (« Annulée » agrees with « prédiction »)."
+  },
+  "highlightWinnerLower": "winner {outcome}",
+  "@highlightWinnerLower": {
+    "description": "Inside what a screen reader says for a prediction's card: the winning outcome (Twitch's data). Lower case.",
+    "placeholders": {
+      "outcome": {
+        "type": "String",
+        "example": "Yes"
+      }
+    }
+  },
+  "highlightOutcomeShare": "{outcome} {percent} percent",
+  "@highlightOutcomeShare": {
+    "description": "Inside what a screen reader says for a prediction's card: an outcome and its share of the points.",
+    "placeholders": {
+      "outcome": {
+        "type": "String",
+        "example": "Yes"
+      },
+      "percent": {
+        "type": "int",
+        "example": "62"
+      }
+    }
+  },
+  "highlightTimeToPredict": "{time} to predict",
+  "@highlightTimeToPredict": {
+    "description": "A live prediction's time left to predict (time is m:ss).",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "1:23"
+      }
+    }
+  },
+  "highlightWinner": "Winner: {outcome}",
+  "@highlightWinner": {
+    "description": "A resolved prediction's status: the winning outcome (Twitch's data).",
+    "placeholders": {
+      "outcome": {
+        "type": "String",
+        "example": "Yes"
+      }
+    }
+  },
+  "highlightPredict": "Predict on Twitch",
+  "@highlightPredict": {
+    "description": "A live prediction's button: opens the channel's twitch.tv chat to predict there."
+  },
+  "highlightWinnerMark": "Winner",
+  "@highlightWinnerMark": {
+    "description": "What a screen reader says for the check beside a prediction's winning outcome."
+  },
+  "highlightPoints": "{count, plural, one{{count} point} other{{count} points}}",
+  "@highlightPoints": {
+    "description": "The channel points on a prediction's outcome, the number short (1.2K).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "compact",
+        "example": "12000"
+      }
+    }
+  },
+  "highlightPredictors": "{count, plural, one{{count} predictor} other{{count} predictors}}",
+  "@highlightPredictors": {
+    "description": "How many viewers predicted an outcome, the number short.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "compact",
+        "example": "340"
+      }
+    }
+  },
+  "highlightTopPredictor": "Top: {name}",
+  "@highlightTopPredictor": {
+    "description": "The viewer who put the most points on an outcome. name is a display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      }
+    }
+  },
+  "highlightPinnedFrom": "Pinned message from {sender}: {text}",
+  "@highlightPinnedFrom": {
+    "description": "What a screen reader says for a pinned message's card. sender and text are Twitch's data.",
+    "placeholders": {
+      "sender": {
+        "type": "String",
+        "example": "Mod"
+      },
+      "text": {
+        "type": "String",
+        "example": "Welcome!"
+      }
+    }
+  },
+  "highlightPinnedBy": "by {name}",
+  "@highlightPinnedBy": {
+    "description": "A pinned message's card: who pinned it. name is a display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Mod"
+      }
+    }
+  },
+  "raidViewers": "{count, plural, one{{count} viewer} other{{count} viewers}}",
+  "@raidViewers": {
+    "description": "A raid's viewers, the number in full, on the raid cards.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "1204"
+      }
+    }
+  },
+  "raidStay": "You stay on {source}",
+  "@raidStay": {
+    "description": "Raid card, after « Stay here »: the viewer stays on the channel. source is its display name.",
+    "placeholders": {
+      "source": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "raidStayDetail": "The raid goes to {target} without you",
+  "@raidStayDetail": {
+    "description": "Raid card, after « Stay here »: under raidStay. target is the raided channel's name.",
+    "placeholders": {
+      "target": {
+        "type": "String",
+        "example": "Pokimane"
+      }
+    }
+  },
+  "raidLeftFor": "The raid left for {target}",
+  "@raidLeftFor": {
+    "description": "Raid card once the raid left (the viewer stayed). target is the raided channel's name.",
+    "placeholders": {
+      "target": {
+        "type": "String",
+        "example": "Pokimane"
+      }
+    }
+  },
+  "raidWentAlong": "{count, plural, other{{viewers} went along}}",
+  "@raidWentAlong": {
+    "description": "Raid card once the raid left: how many viewers went. viewers is raidViewers; count chooses the French verb's number.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1204"
+      },
+      "viewers": {
+        "type": "String",
+        "example": "1,204 viewers"
+      }
+    }
+  },
+  "raidCancelled": "Raid cancelled",
+  "@raidCancelled": {
+    "description": "Raid card when the broadcaster cancels the raid."
+  },
+  "raidStaysLive": "{source} stays live",
+  "@raidStaysLive": {
+    "description": "Raid card when the raid is cancelled. source is the channel's name.",
+    "placeholders": {
+      "source": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "raidRaidingWith": "{source} is raiding {target} with {viewers}",
+  "@raidRaidingWith": {
+    "description": "What a screen reader says for a raid card while it counts down. viewers is raidViewers.",
+    "placeholders": {
+      "source": {
+        "type": "String",
+        "example": "xQc"
+      },
+      "target": {
+        "type": "String",
+        "example": "Pokimane"
+      },
+      "viewers": {
+        "type": "String",
+        "example": "1,204 viewers"
+      }
+    }
+  },
+  "raidRaiding": "{source} is raiding {target}",
+  "@raidRaiding": {
+    "description": "The raid card's line while it counts down; target is drawn bold.",
+    "placeholders": {
+      "source": {
+        "type": "String",
+        "example": "xQc"
+      },
+      "target": {
+        "type": "String",
+        "example": "Pokimane"
+      }
+    }
+  },
+  "raidHeadingTo": "Heading to {target}",
+  "@raidHeadingTo": {
+    "description": "Raid card and the overlay over the video while the viewer goes with the raid. target is the raided channel's name.",
+    "placeholders": {
+      "target": {
+        "type": "String",
+        "example": "Pokimane"
+      }
+    }
+  },
+  "raidToHasLeft": "The raid to {target} has left",
+  "@raidToHasLeft": {
+    "description": "What a screen reader says for the raid card once the raid left.",
+    "placeholders": {
+      "target": {
+        "type": "String",
+        "example": "Pokimane"
+      }
+    }
+  },
+  "raidWatchTarget": "Watch {target}",
+  "@raidWatchTarget": {
+    "description": "What a screen reader says for the raid card's « Watch » button.",
+    "placeholders": {
+      "target": {
+        "type": "String",
+        "example": "Pokimane"
+      }
+    }
+  },
+  "raidBadge": "RAID",
+  "@raidBadge": {
+    "description": "The small label over a raid card's line, in capitals."
+  },
+  "raidGoAlong": "{viewers} · you go along automatically",
+  "@raidGoAlong": {
+    "description": "Raid card while it counts down, when the app follows raids: viewers is raidViewers.",
+    "placeholders": {
+      "viewers": {
+        "type": "String",
+        "example": "1,204 viewers"
+      }
+    }
+  },
+  "raidLeavesIn": "Leaves in {time}",
+  "@raidLeavesIn": {
+    "description": "What a screen reader says for the raid card's countdown ring (time is m:ss).",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "0:42"
+      }
+    }
+  },
+  "raidGoNow": "Go now",
+  "@raidGoNow": {
+    "description": "Raid card: joins the raided channel at once."
+  },
+  "raidGoNowTarget": "Go to {target} now",
+  "@raidGoNowTarget": {
+    "description": "What a screen reader says for « Go now ».",
+    "placeholders": {
+      "target": {
+        "type": "String",
+        "example": "Pokimane"
+      }
+    }
+  },
+  "raidStayHere": "Stay here",
+  "@raidStayHere": {
+    "description": "Raid card: stays on this channel instead of following the raid."
+  },
+  "raidHeadingOut": "Heading out…",
+  "@raidHeadingOut": {
+    "description": "Raid card while the app leaves for the raided channel."
+  },
+  "raidIncoming": "{count, plural, one{{name} is raiding with {viewers} viewer} other{{name} is raiding with {viewers} viewers}}",
+  "@raidIncoming": {
+    "description": "The pin of an incoming raid over the chat: who raids this channel, with how many viewers (viewers is the number in full); the name is drawn bold.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1204"
+      },
+      "name": {
+        "type": "String",
+        "example": "Pokimane"
+      },
+      "viewers": {
+        "type": "String",
+        "example": "1,204"
+      }
+    }
+  },
+  "raidSayHi": "Say hi in chat",
+  "@raidSayHi": {
+    "description": "The pin of an incoming raid: under who raids."
+  },
+  "raidComingWithYou": "{count, plural, one{{count} viewer coming with you} other{{count} viewers coming with you}}",
+  "@raidComingWithYou": {
+    "description": "The overlay over the video while the viewer goes with a raid: how many viewers go too.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "1204"
+      }
+    }
+  },
+  "giftBombGifting": "{count, plural, one{is gifting {count} sub} other{is gifting {count} subs}}",
+  "@giftBombGifting": {
+    "description": "The gift subs pin over the chat: after the gifter's name (drawn apart, bold), what they gift to the community.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "giftBombSemantics": "{count, plural, one{{name} is gifting {count} sub} other{{name} is gifting {count} subs}}",
+  "@giftBombSemantics": {
+    "description": "What a screen reader says for the gift subs pin. name is the gifter's display name.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      },
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      }
+    }
+  },
+  "giftBombAllHandedOut": "{count, plural, other{all {count} handed out}}",
+  "@giftBombAllHandedOut": {
+    "description": "What a screen reader reads as the gift subs pin's value once every sub reached a viewer.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "giftBombHandedOutSemantics": "{received, plural, other{{received} of {count} handed out}}",
+  "@giftBombHandedOutSemantics": {
+    "description": "What a screen reader reads as the gift subs pin's value: how many subs reached a viewer so far.",
+    "placeholders": {
+      "received": {
+        "type": "int",
+        "example": "3"
+      },
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "giftBombProgress": "{receivedCount, plural, other{{received} of {total} handed out}}",
+  "@giftBombProgress": {
+    "description": "The gift subs pin: how many subs reached a viewer so far. received is that number as shown (it rolls), receivedCount the same number choosing the form.",
+    "placeholders": {
+      "receivedCount": {
+        "type": "int",
+        "example": "3"
+      },
+      "received": {
+        "type": "String",
+        "example": "3"
+      },
+      "total": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "giftBombDone": "{count} of {count} · thanks!",
+  "@giftBombDone": {
+    "description": "The gift subs pin once every sub reached a viewer.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "htTitle": "Hype Train",
+  "@htTitle": {
+    "description": "The Hype Train (Twitch's name, kept in French too): the banner's and the sheet's title."
+  },
+  "htTrainTitle": "{variant, select, goldenKappa{Golden Kappa Train} treasure{Treasure Train} community{Community Train} mythic{Mythic Train} other{Hype Train}}",
+  "@htTrainTitle": {
+    "description": "A hype train's name by its variant (« collectif » for Community: it fits the banner's title, where « communautaire » is cut) (banner, sheet, approaching banner). variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htSharedTrainTitle": "{variant, select, goldenKappa{Shared Golden Kappa Train} community{Shared Community Train} mythic{Shared Mythic Train} other{Shared Hype Train}}",
+  "@htSharedTrainTitle": {
+    "description": "A hype train's name when several channels run it together. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htLevelShort": "LVL {level}",
+  "@htLevelShort": {
+    "description": "The hype train's level in its pill (banner, video pill). Kept short.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "htSubtitle": "Sub, gift, or use Bits!",
+  "@htSubtitle": {
+    "description": "The hype train banner's default line under its title: subs, gifted subs (« cadeaux ») or Bits. Kept to one line on a phone, as short as the English."
+  },
+  "htFinalLevel": "Final level!",
+  "@htFinalLevel": {
+    "description": "The hype train banner's line (and the sheet's) at the last level."
+  },
+  "htAthApproaching": "About to beat your last record. Keep up the support.",
+  "@htAthApproaching": {
+    "description": "The hype train banner's line when the train nears the channel's all-time record."
+  },
+  "htAthApproachingCompact": "About to beat your last record.",
+  "@htAthApproachingCompact": {
+    "description": "The same line where little room is left."
+  },
+  "htAthReached": "Setting a new record! Keep going until the clock runs out.",
+  "@htAthReached": {
+    "description": "The hype train banner's line once the train beats the channel's record."
+  },
+  "htAthReachedShared": "Setting a new shared record! Keep going until the clock runs out.",
+  "@htAthReachedShared": {
+    "description": "The same line for a shared train."
+  },
+  "htTreasureLocked": "Reach Level {level} to unlock {discount}% OFF Gift Subs!",
+  "@htTreasureLocked": {
+    "description": "A treasure train's banner line before its discount unlocks (the banner has room for one line: as short as the English).",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      },
+      "discount": {
+        "type": "int",
+        "example": "35"
+      }
+    }
+  },
+  "htTreasureUnlockedSubtitle": "{discount}% OFF 5+ Gift Subs for the rest of this Hype Train",
+  "@htTreasureUnlockedSubtitle": {
+    "description": "A treasure train's banner line once its discount is unlocked (as short as the English).",
+    "placeholders": {
+      "discount": {
+        "type": "int",
+        "example": "35"
+      }
+    }
+  },
+  "htCommunityLocked": "Hit Level {level} and chat will receive emotes too!",
+  "@htCommunityLocked": {
+    "description": "A community train's banner line (and step) before chat's emotes unlock.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "htCommunityUnlockedSubtitle": "{count, plural, one{{count} Emote for Chat} other{{count} Emotes for Chat}}",
+  "@htCommunityUnlockedSubtitle": {
+    "description": "A community train's banner line once emotes for chat are unlocked.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "12"
+      }
+    }
+  },
+  "htLevelComplete": "Level {level} Complete!",
+  "@htLevelComplete": {
+    "description": "The hype train banner's announcement when a level completes.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "htStarted": "{variant, select, goldenKappa{Golden Kappa Train starting!} treasure{Treasure Train Incoming!} community{Community Train Incoming!} mythic{Mythic Train Incoming!} other{Hype Train starting!}}",
+  "@htStarted": {
+    "description": "The marquee when a hype train starts (three emotes follow it). variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htSharedStarted": "{variant, select, goldenKappa{Shared Golden Kappa Train starting!} other{Shared Hype Train starting!}}",
+  "@htSharedStarted": {
+    "description": "The marquee when a shared hype train starts. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htLevelUp": "hyyyyypeeee",
+  "@htLevelUp": {
+    "description": "The marquee when the hype train levels up: a cheer, the same in French."
+  },
+  "htCompleted": "{variant, select, goldenKappa{Golden Kappa Train success!} treasure{Treasure Train Success!} community{Community Train Success!} mythic{Mythic Train Success!} other{Hype Train success!}}",
+  "@htCompleted": {
+    "description": "The marquee when a hype train ends with a level completed. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htSharedCompleted": "{variant, select, goldenKappa{Shared Golden Kappa Train success!} other{Shared Hype Train success!}}",
+  "@htSharedCompleted": {
+    "description": "The same marquee for a shared train. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htTreasureUnlockedMarquee": "TREASURE TRAIN UNLOCKED!",
+  "@htTreasureUnlockedMarquee": {
+    "description": "The marquee when a treasure train's discount unlocks. Written in capitals."
+  },
+  "htCommunityUnlockedMarquee": "COMMUNITY REWARDS UNLOCKED!",
+  "@htCommunityUnlockedMarquee": {
+    "description": "The marquee when a community train's emotes for chat unlock. Written in capitals."
+  },
+  "htMerging": "Get excited! Your powers are combining and levels are getting a boost!",
+  "@htMerging": {
+    "description": "The announcement when two channels' hype trains merge into a shared one."
+  },
+  "htSummaryRecord": "All-time record shattered!\nYou've reached new levels of support!",
+  "@htSummaryRecord": {
+    "description": "The hype train's summary at its end, after beating the channel's record: two lines (keep the line break)."
+  },
+  "htSummary": "{variant, select, treasure{Such strong support\nTreasure Train Level {level} completed!} community{Such strong support\nCommunity Train Level {level} completed!} mythic{Such strong support\nMythic Train Level {level} completed!} other{Such strong support\nLevel {level} completed!}}",
+  "@htSummary": {
+    "description": "The hype train's summary at its end: two lines (keep the line break), the cheer then the last level completed. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      },
+      "level": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "htAthReachedTitle": "All-time record shattered!",
+  "@htAthReachedTitle": {
+    "description": "The hype train banner's announcement when the channel's record is beaten."
+  },
+  "htSomeone": "Someone",
+  "@htSomeone": {
+    "description": "Who contributed to the hype train when Twitch does not say (anonymous)."
+  },
+  "htContributionBits": "{count, plural, one{{name} just used {count} Bit!} other{{name} just used {count} Bits!}}",
+  "@htContributionBits": {
+    "description": "The hype train banner's announcement of a cheer. name is a display name (or htSomeone).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "500"
+      },
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      }
+    }
+  },
+  "htContributionGift": "{count, plural, one{{name} just gifted {count} Tier {tier} Sub!} other{{name} just gifted {count} Tier {tier} Subs!}}",
+  "@htContributionGift": {
+    "description": "The hype train banner's announcement of gifted subs. tier is the sub tier (1, 2 or 3).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "5"
+      },
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "tier": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "htContributionSub": "{name} just subscribed with a Tier {tier} Sub!",
+  "@htContributionSub": {
+    "description": "The hype train banner's announcement of a sub. tier is the sub tier (1, 2 or 3).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "tier": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "htContributionOther": "{name} just boosted the train!",
+  "@htContributionOther": {
+    "description": "The hype train banner's announcement of another contribution.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      }
+    }
+  },
+  "htSubs": "{count, plural, one{{count} Sub} other{{count} Subs}}",
+  "@htSubs": {
+    "description": "A number of subs: a shared train's totals, the conductor's, the level target.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "12"
+      }
+    }
+  },
+  "htBits": "{count, plural, one{{count} Bit} other{{count} Bits}}",
+  "@htBits": {
+    "description": "A number of Bits (Twitch's name, kept): a shared train's totals, the conductor's, the level target.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "1200"
+      }
+    }
+  },
+  "htInstructionStart": "{variant, select, goldenKappa{You'll have a limited time to earn an exclusive golden Kappa emote for 24 hrs} community{Whoa, this is a rare Community Train!} mythic{Whoa, this is a rare Mythic Train!} other{You'll have a limited time to earn exclusive emotes}}",
+  "@htInstructionStart": {
+    "description": "The hype train banner's first step after it starts (and the golden Kappa card of the sheet). variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htInstructionTreasureReachLevel": "Reach Level {level} during this train to unlock {discount}% OFF Gift Subs!",
+  "@htInstructionTreasureReachLevel": {
+    "description": "A treasure train's step: the level that unlocks its discount.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      },
+      "discount": {
+        "type": "int",
+        "example": "35"
+      }
+    }
+  },
+  "htInstructionTreasureOneAway": "One more level unlocks a discount for the rest of this train, keep going!",
+  "@htInstructionTreasureOneAway": {
+    "description": "A treasure train's step one level before the discount."
+  },
+  "htInstructionTreasureUnlocked": "You've unlocked {discount}% OFF on 5+ Gift Subs! Don't miss out!",
+  "@htInstructionTreasureUnlocked": {
+    "description": "A treasure train's step once its discount unlocks.",
+    "placeholders": {
+      "discount": {
+        "type": "int",
+        "example": "35"
+      }
+    }
+  },
+  "htCommunityUnlocked": "{count, plural, one{You unlocked {count} emote for chat! Level up to give away more emotes.} other{You unlocked {count} emotes for chat! Level up to give away more emotes.}}",
+  "@htCommunityUnlocked": {
+    "description": "A community train's step (and sheet card) once emotes for chat are unlocked.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "12"
+      }
+    }
+  },
+  "htInstructionCommunityRewards": "Emotes for chat are on their way!",
+  "@htInstructionCommunityRewards": {
+    "description": "A community train's step at its end."
+  },
+  "htInstructionSeeYouNextTime": "See you next time in Shared Hype Train!",
+  "@htInstructionSeeYouNextTime": {
+    "description": "A shared train's last step."
+  },
+  "htSharedLevel": "LVL {level}, {percent}%",
+  "@htSharedLevel": {
+    "description": "A shared train's level and progress, in its strip and pill.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      },
+      "percent": {
+        "type": "int",
+        "example": "40"
+      }
+    }
+  },
+  "htSharedLevelReached": "Shared Train level reached",
+  "@htSharedLevelReached": {
+    "description": "A shared train's strip when its level is reached."
+  },
+  "htContinuesIn": "LVL {level} train continues in",
+  "@htContinuesIn": {
+    "description": "Between two shared trains: the countdown follows (m:ss).",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "htOtherChannelRecord": "{name}'s new all-time Shared record!",
+  "@htOtherChannelRecord": {
+    "description": "A shared train's strip when another channel of it beats its record. name is that channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pokimane"
+      }
+    }
+  },
+  "htSharedRecordReached": "Shared Train Record Broken!",
+  "@htSharedRecordReached": {
+    "description": "A shared train's announcement when it beats its record."
+  },
+  "htSharedNew": "New Shared Hype Train",
+  "@htSharedNew": {
+    "description": "The announcement when a shared hype train starts."
+  },
+  "htApproachingTitle": "{variant, select, goldenKappa{Golden Kappa Train approaching!} treasure{A Treasure Train is close!} community{A Community Train is close!} mythic{A Mythic Train is close!} other{A Hype Train is approaching!}}",
+  "@htApproachingTitle": {
+    "description": "The approaching banner's title, before a hype train starts. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htApproachingSubtitle": "Sub, gift, or use Bits now to start a {train}",
+  "@htApproachingSubtitle": {
+    "description": "The approaching banner's line. train is the train's name (htTrainTitle). French words it as htSubtitle, kept as short as the English.",
+    "placeholders": {
+      "train": {
+        "type": "String",
+        "example": "Hype Train"
+      }
+    }
+  },
+  "htApproachingMore": "{count, plural, one{{count} more person needs to sub, gift or use Bits} other{{count} more people need to sub, gift or use Bits}}",
+  "@htApproachingMore": {
+    "description": "The approaching banner's line once the viewer took part: how many others are needed.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "htApproachingShort": "Approaching",
+  "@htApproachingShort": {
+    "description": "The landscape pill of an approaching hype train (« Imminent » agrees with « Hype Train »). Kept short."
+  },
+  "htApproachingQuestion": "{variant, select, goldenKappa{What is a Golden Kappa Train?} other{What is a Hype Train?}}",
+  "@htApproachingQuestion": {
+    "description": "The approaching sheet's heading. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htApproachingExplanationFirst": "{variant, select, goldenKappa{A Golden Kappa Train starts when multiple people subscribe, use Bits, or gift subscriptions to the community.} other{A Hype Train starts when multiple people subscribe, use Bits, or gift subscriptions to the community.}}",
+  "@htApproachingExplanationFirst": {
+    "description": "The approaching sheet's first paragraph. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htApproachingExplanationSecond": "{variant, select, goldenKappa{Once a Golden Kappa Train is underway, the community fills up the Hype Meter with more subs, gifts or Bits. Everyone who contributes enough to be eligible for rewards will receive the Golden Kappa emote for 24 hours in addition to the regular emote rewards.} other{Once a Hype Train is underway, the community fills up the Hype Meter with more subs, gifts or Bits. Everyone who contributes receives one unique emote based on the highest level completed.}}",
+  "@htApproachingExplanationSecond": {
+    "description": "The approaching sheet's second paragraph. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
+    "placeholders": {
+      "variant": {
+        "type": "String",
+        "example": "regular"
+      }
+    }
+  },
+  "htRewards": "Great work! Emotes are being delivered to supporters",
+  "@htRewards": {
+    "description": "The end strip of a hype train with rewards."
+  },
+  "htGoldenRewards": "Great work! Supporters can enjoy the exclusive Golden Kappa emote for 24 hrs",
+  "@htGoldenRewards": {
+    "description": "The end strip of a golden Kappa train."
+  },
+  "htExpired": "You missed the Train. Better luck next time!",
+  "@htExpired": {
+    "description": "The end strip of a hype train that expired without completing a level."
+  },
+  "htGoldenExpired": "The Golden Kappa Train is long gone. Better luck next time!",
+  "@htGoldenExpired": {
+    "description": "The end strip of a golden Kappa train that expired."
+  },
+  "htConductorsHeader": "HYPE CONDUCTORS",
+  "@htConductorsHeader": {
+    "description": "The hype train sheet's heading over its top supporters. Written in capitals."
+  },
+  "htConductorsDescription": "Current Hype Train top supporters.",
+  "@htConductorsDescription": {
+    "description": "Under « Hype conductors »."
+  },
+  "htRewardsHeader": "AVAILABLE REWARDS",
+  "@htRewardsHeader": {
+    "description": "The hype train sheet's heading over the level's emotes. Written in capitals."
+  },
+  "htRewardsDescription": "You can earn one emote per train by subbing, gifting, or using more than 100 Bits in total during the event. Exclusive emotes are given out at the end of the Hype Train event and will stick around until the end of the current season.",
+  "@htRewardsDescription": {
+    "description": "Under « Available rewards » (a link to learn more follows)."
+  },
+  "htGoldenRewardsDescription": "Contribute by subbing, gifting, or using more than 100 Bits in total during the event to earn an exclusive golden Kappa emote for 24 hours in addition to the regular emote rewards.",
+  "@htGoldenRewardsDescription": {
+    "description": "Under « Available rewards » for a golden Kappa train."
+  },
+  "htContributionsHeader": "CONTRIBUTIONS",
+  "@htContributionsHeader": {
+    "description": "The shared train sheet's heading over each channel's share. Written in capitals."
+  },
+  "htLevelEmotes": "Level {level} emotes",
+  "@htLevelEmotes": {
+    "description": "The hype train sheet's heading over a level's emotes.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "htMoreInfo": "More Info",
+  "@htMoreInfo": {
+    "description": "The hype train sheet's button that opens Twitch's hype train guide."
+  },
+  "htLearnMore": "learn more",
+  "@htLearnMore": {
+    "description": "The link after the hype train sheet's rewards description (opens Twitch's guide). English writes it in lower case after the sentence; French starts it with a capital, a new sentence."
+  },
+  "htUnlockedSoFar": "Unlocked so far",
+  "@htUnlockedSoFar": {
+    "description": "The hype train sheet's heading over the emotes already unlocked (« débloquées » agrees with « emotes »)."
+  },
+  "htComingUp": "Coming up",
+  "@htComingUp": {
+    "description": "The hype train sheet's heading over the next trains."
+  },
+  "htNothingMore": "Nothing more to show yet",
+  "@htNothingMore": {
+    "description": "The hype train sheet when nothing more is coming."
+  },
+  "htLevelTarget": "Completing Level {level} requires combined support events totaling {subs, plural, one{{subs} Tier 1 Sub} other{{subs} Tier 1 Subs}} or {bits, plural, one{{bits} Bit} other{{bits} Bits}}",
+  "@htLevelTarget": {
+    "description": "The hype train sheet's line: what the level needs.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      },
+      "subs": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "10"
+      },
+      "bits": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "5000"
+      }
+    }
+  },
+  "htSubsConductor": "{count, plural, one{{name} has contributed {count} Sub!} other{{name} has contributed {count} Subs!}}",
+  "@htSubsConductor": {
+    "description": "The hype train sheet: the top subs supporter (name drawn bold) and their subs.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "5"
+      },
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      }
+    }
+  },
+  "htBitsConductor": "{count, plural, one{{name} has used {count} Bit} other{{name} has used {count} Bits}}",
+  "@htBitsConductor": {
+    "description": "The hype train sheet: the top Bits supporter (name drawn bold) and their Bits.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "500"
+      },
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      }
+    }
+  },
+  "htNoSubsConductor": "Sub or Gift to take over this spot!",
+  "@htNoSubsConductor": {
+    "description": "The hype train sheet when no one has subbed yet."
+  },
+  "htNoBitsConductor": "Use Bits to take over this spot!",
+  "@htNoBitsConductor": {
+    "description": "The hype train sheet when no one has used Bits yet."
+  },
+  "htChannelRecord": "Channel all-time record! {percent}% Level {level}",
+  "@htChannelRecord": {
+    "description": "The hype train sheet, after a trophy: the channel's all-time record.",
+    "placeholders": {
+      "percent": {
+        "type": "int",
+        "example": "40"
+      },
+      "level": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "htTreasureCardUnlocked": "Save {discount}% on 5 or more Gift Subs exclusively during this train. All Aboard!",
+  "@htTreasureCardUnlocked": {
+    "description": "The hype train sheet's treasure card once the discount is unlocked.",
+    "placeholders": {
+      "discount": {
+        "type": "int",
+        "example": "35"
+      }
+    }
+  },
+  "htTreasureCardLocked": "Unlock a limited-time {discount}% OFF Gift Subs at Level {level} during this train!",
+  "@htTreasureCardLocked": {
+    "description": "The hype train sheet's treasure card before the discount unlocks.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      },
+      "discount": {
+        "type": "int",
+        "example": "35"
+      }
+    }
+  },
+  "htMythicCard": "{count, plural, one{Unlock 1 of {count} exclusive emote for 24 hours!} other{Unlock 1 of {count} exclusive emotes for 24 hours!}}",
+  "@htMythicCard": {
+    "description": "A mythic train's step and sheet card: one emote out of its pool.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "8"
+      }
+    }
+  },
+  "htCardLevelRecord": "All-Time High Train Level {level}",
+  "@htCardLevelRecord": {
+    "description": "The pill on a followed stream's card while its hype train beats the channel's record.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "htCardLevel": "{train} Level {level}",
+  "@htCardLevel": {
+    "description": "The pill on a followed stream's card while a hype train runs. train is its name (htTrainTitle).",
+    "placeholders": {
+      "train": {
+        "type": "String",
+        "example": "Hype Train"
+      },
+      "level": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "htCollapse": "Collapse Hype Train",
+  "@htCollapse": {
+    "description": "What a screen reader offers on the expanded hype train banner."
+  },
+  "htExpand": "Show Hype Train",
+  "@htExpand": {
+    "description": "What a screen reader says a tap on the collapsed hype train pill does."
+  },
+  "htDetailsHint": "Double tap to show details",
+  "@htDetailsHint": {
+    "description": "What a screen reader says a tap on the hype train banner does (opens its sheet)."
+  },
+  "htSemanticsApproaching": "Hype Train approaching",
+  "@htSemanticsApproaching": {
+    "description": "What a screen reader says for the approaching hype train."
+  },
+  "htSemanticsMinutes": "{minutes} min",
+  "@htSemanticsMinutes": {
+    "description": "Inside htSemanticsOngoing: the minutes left (short unit).",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "htSemanticsSeconds": "{count, plural, one{{count} second} other{{count} seconds}}",
+  "@htSemanticsSeconds": {
+    "description": "Inside htSemanticsOngoing: the seconds left, under a minute.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "42"
+      }
+    }
+  },
+  "htSemanticsOngoing": "Hype Train level {level}, {percent} percent, {time} left",
+  "@htSemanticsOngoing": {
+    "description": "What a screen reader says for the running hype train. time is htSemanticsMinutes or htSemanticsSeconds.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "3"
+      },
+      "percent": {
+        "type": "int",
+        "example": "40"
+      },
+      "time": {
+        "type": "String",
+        "example": "3 min"
+      }
+    }
+  },
+  "htSemanticsEnded": "Hype Train ended at level {level}",
+  "@htSemanticsEnded": {
+    "description": "What a screen reader says for the hype train once it ended.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "htSemanticsExpired": "Hype Train expired",
+  "@htSemanticsExpired": {
+    "description": "What a screen reader says for a hype train that expired."
+  },
+  "htRewardLocked": "Locked reward {name}",
+  "@htRewardLocked": {
+    "description": "What a screen reader says for a level's emote not unlocked yet. name is the emote's code (Twitch's data).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "HypeKappa"
+      }
+    }
+  },
+  "htRewardUnlocked": "Unlocked reward {name}",
+  "@htRewardUnlocked": {
+    "description": "What a screen reader says for an unlocked emote. name is the emote's code (Twitch's data).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "HypeKappa"
+      }
+    }
   }
 }

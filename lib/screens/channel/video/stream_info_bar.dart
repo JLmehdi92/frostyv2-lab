@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
@@ -56,9 +57,9 @@ class StreamInfoBar extends StatelessWidget {
     if (onTap == null) return avatar;
     return Semantics(
       button: true,
-      label: 'Channel profile',
+      label: context.l10n.channelProfile,
       child: Tooltip(
-        message: 'Channel profile',
+        message: context.l10n.channelProfile,
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: onTap,
@@ -210,7 +211,7 @@ class StreamInfoBar extends StatelessWidget {
                     children: [
                       if (isOffline && showOfflineIndicator) ...[
                         Text(
-                          'Offline',
+                          context.l10n.streamOffline,
                           style: _getSecondaryTextStyle(
                             context,
                             secondLineSize,

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/celebration.dart';
 import 'package:onset/screens/channel/celebrations/subtle_celebrations.dart';
 
@@ -16,18 +17,25 @@ Celebration _celebration({
 
 void main() {
   test('the chat line names the effect, and a community gift', () {
-    expect(celebrationChatLine(_celebration()), 'Celebration: Fireworks');
+    expect(
+      celebrationChatLine(_celebration(), L10n.english),
+      'Celebration: Fireworks',
+    );
     expect(
       celebrationChatLine(
         _celebration(
           effect: CelebrationEffect.extinctionEvent,
           source: 'system_gifting',
         ),
+        L10n.english,
       ),
       'Gifted subs celebration: Extinction event',
     );
     for (final effect in CelebrationEffect.values) {
-      expect(celebrationChatLine(_celebration(effect: effect)), isNotEmpty);
+      expect(
+        celebrationChatLine(_celebration(effect: effect), L10n.english),
+        isNotEmpty,
+      );
     }
   });
 

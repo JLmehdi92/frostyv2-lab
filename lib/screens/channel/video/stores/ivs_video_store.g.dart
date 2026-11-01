@@ -116,16 +116,16 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     context: context,
   );
 
-  String? get refusalNotice {
+  StreamRefusalNotice? get refusalNotice {
     _$_refusalNoticeAtom.reportRead();
     return super._refusalNotice;
   }
 
   @override
-  String? get _refusalNotice => refusalNotice;
+  StreamRefusalNotice? get _refusalNotice => refusalNotice;
 
   @override
-  set _refusalNotice(String? value) {
+  set _refusalNotice(StreamRefusalNotice? value) {
     _$_refusalNoticeAtom.reportWrite(value, super._refusalNotice, () {
       super._refusalNotice = value;
     });

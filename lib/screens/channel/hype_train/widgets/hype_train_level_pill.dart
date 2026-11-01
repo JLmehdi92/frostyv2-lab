@@ -66,7 +66,7 @@ class HypeTrainLevelPill extends StatelessWidget {
                 vertical: HtDims.marginQuarter,
               ),
               child: Text(
-                HtCopy.level(value),
+                HtCopy.of(context).level(value),
                 maxLines: 1,
                 style: HtType.titleExtraSmall.copyWith(
                   color: foreground,

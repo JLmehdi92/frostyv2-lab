@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show Observable, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/channel/channel_info.dart';
@@ -61,10 +62,16 @@ void main() {
       tester.pumpWidget(const SizedBox.shrink());
 
   test('shortUptime reads short', () {
-    expect(shortUptime(const Duration(hours: 3, minutes: 12)), '3 h 12');
-    expect(shortUptime(const Duration(hours: 1, minutes: 5)), '1 h 05');
-    expect(shortUptime(const Duration(minutes: 45)), '45 min');
-    expect(shortUptime(const Duration(minutes: -3)), '0 min');
+    expect(
+      shortUptime(const Duration(hours: 3, minutes: 12), L10n.english),
+      '3 h 12',
+    );
+    expect(
+      shortUptime(const Duration(hours: 1, minutes: 5), L10n.english),
+      '1 h 05',
+    );
+    expect(shortUptime(const Duration(minutes: 45), L10n.english), '45 min');
+    expect(shortUptime(const Duration(minutes: -3), L10n.english), '0 min');
   });
 
   group('ChannelInfoRow', () {

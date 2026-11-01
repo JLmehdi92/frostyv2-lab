@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/latency_stats.dart';
 
 void main() {
@@ -51,15 +52,15 @@ void main() {
 
   group('formatBitrate', () {
     test('formats megabits and kilobits', () {
-      expect(formatBitrate(6200000), '6.2 Mbps');
-      expect(formatBitrate(850000), '850 kbps');
-      expect(formatBitrate(999), '1 kbps');
+      expect(formatBitrate(6200000, L10n.english), '6.2 Mbps');
+      expect(formatBitrate(850000, L10n.english), '850 kbps');
+      expect(formatBitrate(999, L10n.english), '1 kbps');
     });
 
     test('returns a dash for unknown values', () {
-      expect(formatBitrate(null), '—');
-      expect(formatBitrate(0), '—');
-      expect(formatBitrate(-1), '—');
+      expect(formatBitrate(null, L10n.english), '—');
+      expect(formatBitrate(0, L10n.english), '—');
+      expect(formatBitrate(-1, L10n.english), '—');
     });
   });
 

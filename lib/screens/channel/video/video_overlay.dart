@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/details/chat_users_list.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/tablet_video_column.dart';
@@ -165,9 +166,10 @@ class VideoOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metrics = PlayerChromeMetrics.of(context);
+    final l = context.l10n;
 
     final backButton = _PlayerButton(
-      tooltip: 'Back',
+      tooltip: l.commonBack,
       glyph: PlayerGlyphKind.back,
       glyphSize: 22,
       onPressed: Navigator.of(context).pop,
@@ -180,7 +182,7 @@ class VideoOverlay extends StatelessWidget {
     );
 
     final videosButton = _PlayerButton(
-      tooltip: 'Videos',
+      tooltip: l.channelVideos,
       glyph: PlayerGlyphKind.videos,
       onPressed: openVideos,
     );
@@ -189,7 +191,7 @@ class VideoOverlay extends StatelessWidget {
       builder: (_) {
         final on = videoStore.settingsStore.fullScreenChatOverlay;
         return _PlayerButton(
-          tooltip: on ? 'Hide chat overlay' : 'Show chat overlay',
+          tooltip: on ? l.playerHideChatOverlay : l.playerShowChatOverlay,
           glyph: PlayerGlyphKind.chatBubble,
           // Shown: one of the active states the signal is reserved for.
           color: on ? OnsetTokens.accent : _Over.text,
@@ -208,7 +210,9 @@ class VideoOverlay extends StatelessWidget {
             builder: (context) {
               final ivs = videoStore as IvsVideoStore;
               return _PlayerButton(
-                tooltip: ivs.fillScreen ? 'Fit to screen' : 'Fill screen',
+                tooltip: ivs.fillScreen
+                    ? l.playerFitScreen
+                    : l.playerFillScreen,
                 glyph: PlayerGlyphKind.fillScreen,
                 color: ivs.fillScreen ? OnsetTokens.accent : _Over.text,
                 selected: ivs.fillScreen,
@@ -219,7 +223,7 @@ class VideoOverlay extends StatelessWidget {
         : const SizedBox.shrink();
 
     final videoSettingsButton = _PlayerButton(
-      tooltip: 'Quality and settings',
+      tooltip: l.livePlayerQualityAndSettings,
       glyph: PlayerGlyphKind.settings,
       onPressed: () => _openSettings(context),
     );
@@ -231,7 +235,7 @@ class VideoOverlay extends StatelessWidget {
             builder: (context) {
               final ivs = videoStore as IvsVideoStore;
               return _PlayerButton(
-                tooltip: ivs.muted ? 'Unmute' : 'Mute',
+                tooltip: ivs.muted ? l.livePlayerUnmute : l.livePlayerMute,
                 glyph: _isSilent(ivs)
                     ? PlayerGlyphKind.muted
                     : PlayerGlyphKind.volume,
@@ -243,7 +247,7 @@ class VideoOverlay extends StatelessWidget {
         : const SizedBox.shrink();
 
     final refreshButton = _PlayerButton(
-      tooltip: 'Refresh',
+      tooltip: l.livePlayerRefresh,
       glyph: PlayerGlyphKind.refresh,
       below: false,
       onPressed: videoStore.handleRefresh,
@@ -252,8 +256,8 @@ class VideoOverlay extends StatelessWidget {
     final fullScreenButton = Observer(
       builder: (_) => _PlayerButton(
         tooltip: videoStore.settingsStore.fullScreen
-            ? 'Exit fullscreen mode'
-            : 'Enter fullscreen mode',
+            ? l.livePlayerExitFullScreen
+            : l.livePlayerEnterFullScreen,
         glyph: PlayerGlyphKind.fullscreen,
         below: false,
         onPressed: () async {
@@ -279,7 +283,7 @@ class VideoOverlay extends StatelessWidget {
         final settingsStore = videoStore.settingsStore;
         final hidden = settingsStore.fullScreen;
         return _PlayerButton(
-          tooltip: hidden ? 'Show chat' : 'Hide chat',
+          tooltip: hidden ? l.livePlayerShowChat : l.livePlayerHideChat,
           glyph: PlayerGlyphKind.sidebar,
           below: false,
           onPressed: () {
@@ -296,8 +300,8 @@ class VideoOverlay extends StatelessWidget {
 
     final rotateButton = _PlayerButton(
       tooltip: context.isPortrait
-          ? 'Enter landscape mode'
-          : 'Exit landscape mode',
+          ? l.livePlayerEnterLandscape
+          : l.livePlayerExitLandscape,
       glyph: PlayerGlyphKind.rotate,
       below: false,
       onPressed: () async {
@@ -314,9 +318,7 @@ class VideoOverlay extends StatelessWidget {
         // On iOS, show toggle behavior. On Android, always show enter PiP.
         final showExitState = Platform.isIOS && videoStore.isInPipMode;
         return _PlayerButton(
-          tooltip: showExitState
-              ? 'Exit picture-in-picture'
-              : 'Enter picture-in-picture',
+          tooltip: showExitState ? l.livePlayerExitPip : l.livePlayerEnterPip,
           glyph: PlayerGlyphKind.pip,
           below: false,
           onPressed: videoStore.togglePictureInPicture,
@@ -373,7 +375,7 @@ class VideoOverlay extends StatelessWidget {
                         child: _ChannelIdentity(
                           login: login,
                           name: name,
-                          title: 'Offline',
+                          title: l.streamOffline,
                           // In portrait the info under the video has it.
                           category: landscape
                               ? offlineChannelInfo!.gameName
@@ -400,7 +402,7 @@ class VideoOverlay extends StatelessWidget {
                 child: FilledButton.tonalIcon(
                   onPressed: openVideos,
                   icon: const Icon(Icons.video_library_outlined),
-                  label: const Text('Past broadcasts'),
+                  label: Text(l.profilePastBroadcasts),
                 ),
               ),
               Positioned(
@@ -584,9 +586,9 @@ class VideoOverlay extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SheetSectionLabel(
-              'Stream quality',
-              padding: EdgeInsets.fromLTRB(16, 6, 16, 4),
+            SheetSectionLabel(
+              context.l10n.livePlayerStreamQuality,
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
             ),
             // One scrollable list holds the qualities and the IVS
             // measurement entries so the sheet never overflows in landscape.
@@ -603,7 +605,7 @@ class VideoOverlay extends StatelessWidget {
                         selected: selected,
                         inMutuallyExclusiveGroup: true,
                         child: SheetRow(
-                          label: qualityLabel(quality),
+                          label: qualityLabel(quality, context.l10n),
                           minHeight: 46,
                           trailing: AnimatedOpacity(
                             opacity: selected ? 1 : 0,
@@ -630,9 +632,9 @@ class VideoOverlay extends StatelessWidget {
                       );
                     }),
                     if (videoStore case final IvsVideoStore ivs) ...[
-                      const SheetSectionLabel(
-                        'Volume',
-                        padding: EdgeInsets.fromLTRB(16, 14, 16, 4),
+                      SheetSectionLabel(
+                        context.l10n.playerVolume,
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
                       ),
                       // Own Observer so dragging the slider does not rebuild
                       // the whole quality list.
@@ -645,18 +647,16 @@ class VideoOverlay extends StatelessWidget {
                         ),
                       ),
                       CaptionMenu(captions: ivs.captions),
-                      const SheetSectionLabel(
-                        'Measurement',
-                        padding: EdgeInsets.fromLTRB(16, 14, 16, 4),
+                      SheetSectionLabel(
+                        context.l10n.livePlayerMeasurement,
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
                       ),
                       Semantics(
                         toggled: ivs.statsVisible,
                         child: SheetRow(
                           glyph: SheetGlyphKind.poll,
-                          label: 'Video stats',
-                          detail:
-                              'Latency, buffer, bitrate and frames over the '
-                              'video',
+                          label: context.l10n.livePlayerVideoStats,
+                          detail: context.l10n.livePlayerVideoStatsDetail,
                           trailing: ivs.statsVisible
                               ? SheetGlyph(
                                   SheetGlyphKind.check,
@@ -672,8 +672,8 @@ class VideoOverlay extends StatelessWidget {
                       ),
                       SheetRow(
                         glyph: SheetGlyphKind.refresh,
-                        label: 'Reset stats',
-                        detail: 'Start a new latency measurement',
+                        label: context.l10n.livePlayerResetStats,
+                        detail: context.l10n.livePlayerResetStatsDetail,
                         onTap: () {
                           ivs.resetStats();
                           Navigator.pop(context);
@@ -750,7 +750,7 @@ class _PlayPauseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: paused ? 'Play' : 'Pause',
+      message: paused ? context.l10n.playerPlay : context.l10n.playerPause,
       preferBelow: false,
       child: SizedBox.square(
         dimension: 64,
@@ -824,7 +824,7 @@ class _ChannelIdentity extends StatelessWidget {
     // The avatar ring used to be the only sign of a shared chat session;
     // every live channel wears the signal ring now, so it is said.
     final shownTitle = sharedChat && title.isNotEmpty
-        ? 'Shared chat · $title'
+        ? context.l10n.livePlayerSharedChatTitle(title: title)
         : title;
     final line = [
       if (shownTitle.isNotEmpty)
@@ -877,9 +877,9 @@ class _ChannelIdentity extends StatelessWidget {
           children: [
             Semantics(
               button: true,
-              label: 'Channel profile',
+              label: context.l10n.channelProfile,
               child: Tooltip(
-                message: 'Channel profile',
+                message: context.l10n.channelProfile,
                 child: InkWell(
                   customBorder: const CircleBorder(),
                   onTap: onTap,
@@ -994,7 +994,7 @@ class _LiveStats extends StatelessWidget {
               ),
             ),
           Text(
-            'LIVE',
+            context.l10n.commonLiveBadge,
             style: OnsetType.badge.copyWith(
               fontSize: large ? 11 : 10,
               fontWeight: FontWeight.w800,
@@ -1007,7 +1007,7 @@ class _LiveStats extends StatelessWidget {
       ),
     );
     final uptime = Tooltip(
-      message: 'Stream uptime',
+      message: context.l10n.livePlayerUptime,
       preferBelow: false,
       triggerMode: TooltipTriggerMode.tap,
       child: Uptime(
@@ -1017,7 +1017,7 @@ class _LiveStats extends StatelessWidget {
       ),
     );
     final count = Tooltip(
-      message: 'Viewer count',
+      message: context.l10n.livePlayerViewerCount,
       preferBelow: false,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -1034,7 +1034,7 @@ class _LiveStats extends StatelessWidget {
                 shadow: true,
               ),
             Semantics(
-              label: '${NumberFormat().format(viewers)} viewers',
+              label: context.l10n.streamViewers(count: viewers),
               child: ExcludeSemantics(
                 child: RollingNumber(
                   NumberFormat().format(viewers),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/stores/create_clip_store.dart';
 import 'package:onset/screens/channel/video/create_clip_sheet.dart';
 
@@ -145,7 +146,7 @@ void main() {
   test('each refusal has its own wording', () {
     final messages = {
       for (final failure in ClipCreateFailure.values)
-        failure: clipFailureMessage(failure),
+        failure: clipFailureMessage(failure, L10n.english),
     };
     expect(messages.values.toSet(), hasLength(messages.length));
     expect(

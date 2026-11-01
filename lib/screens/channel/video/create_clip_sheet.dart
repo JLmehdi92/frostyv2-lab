@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/stores/create_clip_store.dart';
 import 'package:onset/screens/onboarding/login_webview.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -21,20 +22,17 @@ import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 
-/// What to tell the viewer when Twitch would not make the clip.
-String clipFailureMessage(ClipCreateFailure failure) => switch (failure) {
-  ClipCreateFailure.missingScope =>
-    'Your Twitch login does not allow creating clips.',
-  ClipCreateFailure.restricted =>
-    "You can't clip this channel right now: clips may be off, only for "
-        'followers or subscribers, or you are banned or timed out here.',
-  ClipCreateFailure.offline => 'Only live streams can be clipped.',
-  ClipCreateFailure.notClippable =>
-    'This channel does not permit clips of this category.',
-  ClipCreateFailure.rateLimited =>
-    'Too many clips at once. Try again in a moment.',
-  ClipCreateFailure.unknown => 'Hmm... Something went wrong',
-};
+/// What to tell the viewer when Twitch would not make the clip, in [l]'s
+/// language.
+String clipFailureMessage(ClipCreateFailure failure, AppLocalizations l) =>
+    switch (failure) {
+      ClipCreateFailure.missingScope => l.clipCreateFailedMissingScope,
+      ClipCreateFailure.restricted => l.clipCreateFailedRestricted,
+      ClipCreateFailure.offline => l.clipCreateFailedOffline,
+      ClipCreateFailure.notClippable => l.clipCreateFailedNotClippable,
+      ClipCreateFailure.rateLimited => l.clipCreateFailedRateLimited,
+      ClipCreateFailure.unknown => l.clipCreateFailedUnknown,
+    };
 
 /// The live frame of [login]'s stream behind the clip being made (null
 /// for a login that is not Twitch's).
@@ -117,8 +115,11 @@ class CreateClipSheet extends StatelessWidget {
               ),
             );
           },
-          onOpenEditor: (url) =>
-              TwitchWebPage.open(sheetContext, title: 'Edit Clip', url: url),
+          onOpenEditor: (url) => TwitchWebPage.open(
+            sheetContext,
+            title: sheetContext.l10n.clipCreateEditorTitle,
+            url: url,
+          ),
           onShare: (link) => shareLink(sheetContext, link),
         ),
       );
@@ -131,8 +132,11 @@ class CreateClipSheet extends StatelessWidget {
     await Clipboard.setData(ClipboardData(text: link));
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: AlertMessage(message: 'Clip link copied', centered: false),
+      SnackBar(
+        content: AlertMessage(
+          message: context.l10n.clipCreateLinkCopied,
+          centered: false,
+        ),
       ),
     );
   }
@@ -146,31 +150,29 @@ class CreateClipSheet extends StatelessWidget {
       case CreateClipStatus.creating:
         return _Working(
           key: const ValueKey('working'),
-          label: 'Generating Clipperino...',
+          label: context.l10n.clipCreateGenerating,
           frameUrl: framePreviewUrl,
           frameOpacity: 0.28,
         );
       case CreateClipStatus.rendering:
         return _Working(
           key: const ValueKey('working'),
-          label: 'Rendering Clip',
+          label: context.l10n.clipCreateRendering,
           frameUrl: framePreviewUrl,
           frameOpacity: 0.55,
         );
       case CreateClipStatus.needsLogin:
         return _Prompt(
           key: const ValueKey('login'),
-          message: 'Log in to create clips.',
-          action: 'Log in',
+          message: context.l10n.clipCreateLogIn,
+          action: context.l10n.clipCreateLogInAction,
           onPressed: onLogIn,
         );
       case CreateClipStatus.missingScope:
         return _Prompt(
           key: const ValueKey('scope'),
-          message:
-              'Creating clips needs a permission your Twitch login does not '
-              'have yet. Reconnect to Twitch to allow it.',
-          action: 'Reconnect to Twitch',
+          message: context.l10n.clipCreateMissingScope,
+          action: context.l10n.clipCreateReconnect,
           onPressed: onLogIn,
         );
       case CreateClipStatus.failed:
@@ -201,6 +203,7 @@ class CreateClipSheet extends StatelessWidget {
                 child: Text(
                   clipFailureMessage(
                     store.failure ?? ClipCreateFailure.unknown,
+                    context.l10n,
                   ),
                   textAlign: TextAlign.center,
                   style: SheetText.body.copyWith(
@@ -209,7 +212,10 @@ class CreateClipSheet extends StatelessWidget {
                   ),
                 ),
               ),
-              _QuietPill(label: 'Retry', onPressed: store.start),
+              _QuietPill(
+                label: context.l10n.commonRetry,
+                onPressed: store.start,
+              ),
             ],
           ),
         );
@@ -238,7 +244,7 @@ class CreateClipSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: SheetButton(
-                    label: 'Share Clip',
+                    label: context.l10n.clipCreateShare,
                     large: true,
                     expand: true,
                     icon: VideoGlyph(
@@ -252,7 +258,7 @@ class CreateClipSheet extends StatelessWidget {
                 ),
                 Expanded(
                   child: _QuietPill(
-                    label: 'Copy link',
+                    label: context.l10n.clipCopyLink,
                     glyph: VideoGlyphKind.link,
                     large: true,
                     onPressed: () => _copy(context, creation.link),
@@ -299,7 +305,7 @@ class CreateClipSheet extends StatelessWidget {
                 child: Semantics(
                   header: true,
                   child: Text(
-                    'Create Clip',
+                    context.l10n.clipCreateTitle,
                     style: SheetText.subtitle.copyWith(color: colors.text),
                   ),
                 ),
@@ -307,7 +313,7 @@ class CreateClipSheet extends StatelessWidget {
               Transform.translate(
                 offset: const Offset(10, 0),
                 child: Tooltip(
-                  message: 'Close',
+                  message: context.l10n.commonClose,
                   child: IconButton(
                     onPressed: () => Navigator.maybePop(context),
                     padding: EdgeInsets.zero,
@@ -515,7 +521,7 @@ class _ClipPicture extends StatelessWidget {
             if (url != null)
               Semantics(
                 image: true,
-                label: 'Clip thumbnail',
+                label: context.l10n.clipCreateThumbnail,
                 child: OnsetCachedNetworkImage(
                   imageUrl: url,
                   fit: BoxFit.cover,
@@ -625,7 +631,9 @@ class _EditRow extends StatelessWidget {
     final colors = SheetColors.of(context);
     return Semantics(
       button: true,
-      label: 'Edit, Title and moment, in the twitch.tv clip editor',
+      label:
+          '${context.l10n.clipCreateEdit}, '
+          '${context.l10n.clipCreateEditDetail}',
       onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
@@ -656,7 +664,7 @@ class _EditRow extends StatelessWidget {
                         spacing: 1,
                         children: [
                           Text(
-                            'Edit',
+                            context.l10n.clipCreateEdit,
                             style: SheetText.row.copyWith(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -664,7 +672,7 @@ class _EditRow extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Title and moment, in the twitch.tv clip editor',
+                            context.l10n.clipCreateEditDetail,
                             style: SheetText.rowDetail.copyWith(
                               fontSize: 12,
                               color: colors.secondary,
@@ -843,7 +851,7 @@ class _CreateClipButtonState extends State<CreateClipButton> {
     return Semantics(
       selected: _open,
       child: IconButton(
-        tooltip: 'Clip',
+        tooltip: context.l10n.clipCreateButton,
         padding: icon == null ? null : EdgeInsets.zero,
         constraints: icon == null
             ? null

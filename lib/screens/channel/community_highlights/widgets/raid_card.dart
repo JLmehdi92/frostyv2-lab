@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/screens/channel/celebrations/onset_rocket.dart';
 import 'package:onset/screens/channel/community_highlights/highlight_reducers.dart';
@@ -111,7 +112,8 @@ class RaidCard extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final target = raid.raid;
     final phase = raidCardPhase(raid, staying: staying, leaving: leaving);
-    final viewers = raidViewers(target.viewerCount);
+    final l = context.l10n;
+    final viewers = raidViewers(target.viewerCount, l);
     final duration = motionDuration(context, const Duration(milliseconds: 280));
 
     final Widget content = switch (phase) {
@@ -123,35 +125,43 @@ class RaidCard extends StatelessWidget {
       RaidCardPhase.staying => _Line(
         glyph: SheetGlyphKind.check,
         glyphColor: colors.text,
-        title: 'You stay on $sourceName',
-        detail: 'The raid goes to ${target.targetDisplayName} without you',
+        title: l.raidStay(source: sourceName),
+        detail: l.raidStayDetail(target: target.targetDisplayName),
         action: _watchButton(context, target),
         onDismiss: onDismiss,
       ),
       RaidCardPhase.gone => _Line(
         rocket: true,
-        title: 'The raid left for ${target.targetDisplayName}',
-        detail: '$viewers went along',
+        title: l.raidLeftFor(target: target.targetDisplayName),
+        detail: l.raidWentAlong(
+          count: raidViewerCount(target.viewerCount),
+          viewers: viewers,
+        ),
         action: _watchButton(context, target),
         onDismiss: onDismiss,
       ),
       RaidCardPhase.cancelled => _Line(
         glyph: SheetGlyphKind.close,
         glyphColor: colors.secondary,
-        title: 'Raid cancelled',
-        detail: '$sourceName stays live',
+        title: l.raidCancelled,
+        detail: l.raidStaysLive(source: sourceName),
       ),
     };
 
     final semantics = switch (phase) {
-      RaidCardPhase.counting =>
-        '$sourceName is raiding ${target.targetDisplayName} with $viewers',
-      RaidCardPhase.leaving => 'Heading to ${target.targetDisplayName}',
+      RaidCardPhase.counting => l.raidRaidingWith(
+        source: sourceName,
+        target: target.targetDisplayName,
+        viewers: viewers,
+      ),
+      RaidCardPhase.leaving => l.raidHeadingTo(
+        target: target.targetDisplayName,
+      ),
       RaidCardPhase.staying =>
-        'You stay on $sourceName. The raid goes to '
-            '${target.targetDisplayName} without you',
-      RaidCardPhase.gone => 'The raid to ${target.targetDisplayName} has left',
-      RaidCardPhase.cancelled => 'Raid cancelled',
+        '${l.raidStay(source: sourceName)}. '
+            '${l.raidStayDetail(target: target.targetDisplayName)}',
+      RaidCardPhase.gone => l.raidToHasLeft(target: target.targetDisplayName),
+      RaidCardPhase.cancelled => l.raidCancelled,
     };
 
     return MediaQuery.withClampedTextScaling(
@@ -233,7 +243,12 @@ class RaidCard extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      child: Text('Watch', semanticsLabel: 'Watch ${target.targetDisplayName}'),
+      child: Text(
+        context.l10n.streamWatch,
+        semanticsLabel: context.l10n.raidWatchTarget(
+          target: target.targetDisplayName,
+        ),
+      ),
     );
   }
 }
@@ -313,7 +328,7 @@ class _Header extends StatelessWidget {
               spacing: 2,
               children: [
                 Text(
-                  'RAID',
+                  context.l10n.raidBadge,
                   style: TextStyle(
                     fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 10.5,
@@ -325,13 +340,18 @@ class _Header extends StatelessWidget {
                 ),
                 Text.rich(
                   TextSpan(
-                    children: [
-                      TextSpan(text: '${card.sourceName} is raiding '),
-                      TextSpan(
-                        text: target.targetDisplayName,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
+                    children: l10nSpans(
+                      context.l10n.raidRaiding(
+                        source: card.sourceName,
+                        target: l10nMark(0),
                       ),
-                    ],
+                      [
+                        TextSpan(
+                          text: target.targetDisplayName,
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                    ),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -346,7 +366,7 @@ class _Header extends StatelessWidget {
                 Text(
                   card.onStay == null
                       ? viewers
-                      : '$viewers · you go along automatically',
+                      : context.l10n.raidGoAlong(viewers: viewers),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: SheetText.tabular(
@@ -364,7 +384,7 @@ class _Header extends StatelessWidget {
         ),
         if (left != null)
           Semantics(
-            label: 'Leaves in ${formatTimeLeft(left)}',
+            label: context.l10n.raidLeavesIn(time: formatTimeLeft(left)),
             child: _Ring(progress: progress, label: formatTimeLeft(left)),
           ),
         if (card.onDismiss case final onDismiss?)
@@ -720,10 +740,12 @@ class _Buttons extends StatelessWidget {
         ),
       ),
       child: Text(
-        'Go now',
+        context.l10n.raidGoNow,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        semanticsLabel: 'Go to ${target.targetDisplayName} now',
+        semanticsLabel: context.l10n.raidGoNowTarget(
+          target: target.targetDisplayName,
+        ),
       ),
     );
     final onStay = card.onStay;
@@ -752,8 +774,8 @@ class _Buttons extends StatelessWidget {
                 ),
               ),
             ),
-            child: const Text(
-              'Stay here',
+            child: Text(
+              context.l10n.raidStayHere,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -775,7 +797,7 @@ class _HeadingOut extends StatelessWidget {
       child: ExcludeSemantics(
         child: Center(
           child: Text(
-            'Heading out…',
+            context.l10n.raidHeadingOut,
             style: TextStyle(
               fontFamily: OnsetTokens.bodyFamily,
               fontSize: 13,
@@ -884,7 +906,7 @@ class _HideButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip: 'Hide',
+      tooltip: context.l10n.commonHide,
       style: IconButton.styleFrom(
         fixedSize: const Size(32, 44),
         minimumSize: const Size(32, 44),

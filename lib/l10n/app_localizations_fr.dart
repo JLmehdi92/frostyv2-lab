@@ -3138,4 +3138,1446 @@ class AppLocalizationsFr extends AppLocalizations {
   String channelSubscribeTooltip({required String name}) {
     return 'S’abonner à $name · ouvre twitch.tv';
   }
+
+  @override
+  String get channelProfile => 'Profil de la chaîne';
+
+  @override
+  String get channelVideos => 'Vidéos';
+
+  @override
+  String channelWebFallback({required String notice}) {
+    return 'Passage au lecteur web. $notice';
+  }
+
+  @override
+  String get channelSwipeDownForPip =>
+      'Balayez vers le bas pour passer en Picture-in-picture';
+
+  @override
+  String get channelResizeVideo => 'Redimensionner la vidéo';
+
+  @override
+  String get channelResizeVideoHint =>
+      'Faites glisser pour changer la taille de la vidéo, appuyez deux fois pour revenir à la pleine largeur';
+
+  @override
+  String channelUptimeMinutes({required int minutes}) {
+    return '$minutes min';
+  }
+
+  @override
+  String channelUptimeHours({required int hours, required String minutes}) {
+    return '$hours h $minutes';
+  }
+
+  @override
+  String channelWatchStreak({required int value}) {
+    return 'Série de visionnage : $value';
+  }
+
+  @override
+  String get channelAlsoLive => 'AUTRES CHAÎNES SUIVIES EN DIRECT';
+
+  @override
+  String get channelChat => 'Chat';
+
+  @override
+  String get channelChatSynced => 'synchronisé avec la vidéo';
+
+  @override
+  String channelChatDelay({required int seconds}) {
+    return '$seconds s de décalage';
+  }
+
+  @override
+  String get channelChatSettings => 'Paramètres du chat';
+
+  @override
+  String get livePlayerQualityAndSettings => 'Qualité et paramètres';
+
+  @override
+  String get livePlayerMute => 'Couper le son';
+
+  @override
+  String get livePlayerUnmute => 'Réactiver le son';
+
+  @override
+  String get livePlayerRefresh => 'Actualiser';
+
+  @override
+  String get livePlayerEnterFullScreen => 'Passer en plein écran';
+
+  @override
+  String get livePlayerExitFullScreen => 'Quitter le plein écran';
+
+  @override
+  String get livePlayerShowChat => 'Afficher le chat';
+
+  @override
+  String get livePlayerHideChat => 'Masquer le chat';
+
+  @override
+  String get livePlayerEnterLandscape => 'Passer en mode paysage';
+
+  @override
+  String get livePlayerExitLandscape => 'Quitter le mode paysage';
+
+  @override
+  String get livePlayerEnterPip => 'Passer en Picture-in-picture';
+
+  @override
+  String get livePlayerExitPip => 'Quitter le Picture-in-picture';
+
+  @override
+  String get livePlayerStreamQuality => 'Qualité du live';
+
+  @override
+  String get livePlayerAudioOnly => 'Audio uniquement';
+
+  @override
+  String get livePlayerMeasurement => 'Mesure';
+
+  @override
+  String get livePlayerVideoStats => 'Statistiques vidéo';
+
+  @override
+  String get livePlayerVideoStatsDetail =>
+      'Latence, mémoire tampon, débit et images par-dessus la vidéo';
+
+  @override
+  String get livePlayerResetStats => 'Réinitialiser les statistiques';
+
+  @override
+  String get livePlayerResetStatsDetail =>
+      'Lancer une nouvelle mesure de la latence';
+
+  @override
+  String livePlayerSharedChatTitle({required String title}) {
+    return 'Chat partagé · $title';
+  }
+
+  @override
+  String get livePlayerUptime => 'Durée du live';
+
+  @override
+  String get livePlayerViewerCount => 'Nombre de spectateurs';
+
+  @override
+  String get liveCaptionsDetail => 'Si le live en propose';
+
+  @override
+  String liveCaptionsTrack({required int number}) {
+    return 'Sous-titres $number';
+  }
+
+  @override
+  String liveRefusedSubscribersOnly({required String name}) {
+    return 'Ce live de la chaîne $name est réservé aux abonnés.';
+  }
+
+  @override
+  String get liveRefusedGeoblocked =>
+      'Ce live n’est pas disponible dans votre région.';
+
+  @override
+  String liveRefusedBanned({required String name}) {
+    return 'Vous faites l’objet d’un bannissement sur la chaîne $name.';
+  }
+
+  @override
+  String get liveRefusedUnauthorized =>
+      'Twitch refuse ce live au lecteur de l’application.';
+
+  @override
+  String get liveRefused => 'Twitch refuse ce live.';
+
+  @override
+  String liveRefusedBecause({required String reason}) {
+    return 'Twitch refuse ce live : $reason';
+  }
+
+  @override
+  String latencySeconds({required String value}) {
+    return '$value s';
+  }
+
+  @override
+  String get latencyPillTooltip => 'Latence avec le diffuseur';
+
+  @override
+  String get latencyPillTooltipStats =>
+      'Latence avec le diffuseur · appuyez pour les statistiques vidéo';
+
+  @override
+  String latencyPillSemantics({required String latency}) {
+    return 'Latence : $latency';
+  }
+
+  @override
+  String latencyMegabits({required String value}) {
+    return '$value Mbit/s';
+  }
+
+  @override
+  String latencyKilobits({required int value}) {
+    return '$value kbit/s';
+  }
+
+  @override
+  String get latencyStatsLatency => 'Latence';
+
+  @override
+  String get latencyStatsSpread => 'Méd. / p90 / max';
+
+  @override
+  String get latencyStatsBuffer => 'Tampon';
+
+  @override
+  String get latencyStatsBitrate => 'Débit';
+
+  @override
+  String latencyStatsBitrateValue({
+    required String bitrate,
+    required String network,
+  }) {
+    return '$bitrate · réseau $network';
+  }
+
+  @override
+  String get latencyStatsFrames => 'Images';
+
+  @override
+  String latencyStatsFramesValue({
+    required String fps,
+    required String dropped,
+    required String decoded,
+  }) {
+    return '$fps i/s · $dropped perdues / $decoded';
+  }
+
+  @override
+  String get latencyStatsLowLatency => 'Faible latence';
+
+  @override
+  String get latencyStatsOn => 'activée';
+
+  @override
+  String get latencyStatsOff => 'désactivée';
+
+  @override
+  String get latencyStatsSpeed => 'Vitesse';
+
+  @override
+  String latencyStatsRate({required String rate}) {
+    return '$rate×';
+  }
+
+  @override
+  String get latencyStatsMode => 'Mode';
+
+  @override
+  String get latencyStatsAutoLatency => 'Latence auto';
+
+  @override
+  String get latencyStatsNextStreams => 'Lives suivants';
+
+  @override
+  String get latencyStatsStartup => 'Démarrage';
+
+  @override
+  String get latencyStatsRebuffers => 'Mises en tampon';
+
+  @override
+  String get latencyStatsLiveJumps => 'Retours au direct';
+
+  @override
+  String get latencyAutoOff => 'désactivée';
+
+  @override
+  String latencyAutoWithTarget({
+    required String status,
+    required String latency,
+  }) {
+    return '$status · cible $latency';
+  }
+
+  @override
+  String latencyAutoStopped({required String reason}) {
+    return 'arrêtée : $reason';
+  }
+
+  @override
+  String latencyAutoHeld({required String reason}) {
+    return 'suspendue : $reason';
+  }
+
+  @override
+  String get latencyAutoSettling => 'attente du calme';
+
+  @override
+  String latencyAutoSettlingSeconds({required int seconds}) {
+    return 'attente du calme $seconds s';
+  }
+
+  @override
+  String get latencyAutoSteady => 'à la cible';
+
+  @override
+  String latencyAutoCatchingUp({required String rate}) {
+    return 'rattrapage $rate×';
+  }
+
+  @override
+  String latencyAutoDraining({required String rate}) {
+    return 'résorption $rate×';
+  }
+
+  @override
+  String latencyAutoDrainingBecause({
+    required String rate,
+    required String reason,
+  }) {
+    return 'résorption $rate× ($reason)';
+  }
+
+  @override
+  String get latencyReasonGaveUp => 'abandon';
+
+  @override
+  String get latencyReasonHeld => 'pause';
+
+  @override
+  String get latencyReasonAd => 'publicité';
+
+  @override
+  String get latencyReasonNoBufferReading => 'aucune mesure du tampon';
+
+  @override
+  String get latencyReasonNoLatencyReading => 'aucune mesure de la latence';
+
+  @override
+  String get latencyReasonNoLatencyTicks =>
+      'mesures de la latence interrompues';
+
+  @override
+  String get latencyReasonNotLowLatency => 'live sans faible latence';
+
+  @override
+  String get latencyReasonPaused => 'en pause';
+
+  @override
+  String get latencyReasonReconnecting => 'reconnexion';
+
+  @override
+  String get latencyReasonBuffering => 'chargement';
+
+  @override
+  String get latencyReasonRateRefused => 'le lecteur a refusé la vitesse';
+
+  @override
+  String get latencyReasonRateNotKept => 'le lecteur n’a pas tenu la vitesse';
+
+  @override
+  String get latencyReasonStalls => 'blocages après le rattrapage';
+
+  @override
+  String latencyReasonStuckFast({required String rate}) {
+    return 'le lecteur est resté à $rate×';
+  }
+
+  @override
+  String latencyReasonNotBackToNormal({required String rate}) {
+    return 'le lecteur n’est pas revenu à $rate×';
+  }
+
+  @override
+  String latencyBufferFallback({required String time}) {
+    return 'Standard jusqu’à $time (blocages en « Ultra »)';
+  }
+
+  @override
+  String get clipCreateTitle => 'Créer un clip';
+
+  @override
+  String get clipCreateButton => 'Clip';
+
+  @override
+  String get clipCreateGenerating => 'Génération du Clipperino…';
+
+  @override
+  String get clipCreateRendering => 'Rendu du clip';
+
+  @override
+  String get clipCreateLogIn => 'Connectez-vous pour créer des clips.';
+
+  @override
+  String get clipCreateLogInAction => 'Se connecter';
+
+  @override
+  String get clipCreateMissingScope =>
+      'Pour créer des clips, votre connexion Twitch doit disposer d’une autorisation qu’elle n’a pas encore. Reconnectez-vous à Twitch pour l’accorder.';
+
+  @override
+  String get clipCreateReconnect => 'Se reconnecter à Twitch';
+
+  @override
+  String get clipCreateShare => 'Partager';
+
+  @override
+  String get clipCreateLinkCopied => 'Lien du clip copié';
+
+  @override
+  String get clipCreateThumbnail => 'Miniature du clip';
+
+  @override
+  String get clipCreateEdit => 'Modifier';
+
+  @override
+  String get clipCreateEditDetail =>
+      'Titre et moment, dans l’éditeur de clips de twitch.tv';
+
+  @override
+  String get clipCreateEditorTitle => 'Modifier le clip';
+
+  @override
+  String get clipCreateFailedMissingScope =>
+      'Votre connexion Twitch ne permet pas de créer des clips.';
+
+  @override
+  String get clipCreateFailedRestricted =>
+      'Impossible de créer un clip de cette chaîne pour le moment : les clips sont peut-être désactivés ou réservés aux followers ou aux abonnés, ou bien vous faites l’objet d’un bannissement ou d’une exclusion temporaire sur cette chaîne.';
+
+  @override
+  String get clipCreateFailedOffline =>
+      'Seuls les lives en cours peuvent faire l’objet d’un clip.';
+
+  @override
+  String get clipCreateFailedNotClippable =>
+      'Cette chaîne n’autorise pas les clips dans cette catégorie.';
+
+  @override
+  String get clipCreateFailedRateLimited =>
+      'Trop de clips en même temps. Réessayez dans un instant.';
+
+  @override
+  String get clipCreateFailedUnknown => 'Hum… Une erreur est survenue';
+
+  @override
+  String get commonHide => 'Masquer';
+
+  @override
+  String commonPercent({required int value}) {
+    return '$value %';
+  }
+
+  @override
+  String celebrationEffect({required String effect}) {
+    String _temp0 = intl.Intl.selectLogic(effect, {
+      'fireworks': 'Feu d’artifice',
+      'rain': 'Pluie',
+      'float': 'Envolée',
+      'flamethrower': 'Lance-flammes',
+      'extinctionEvent': 'Extinction de masse',
+      'other': 'Étincelles',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String celebrationChatLine({required String effect}) {
+    return 'Célébration : $effect';
+  }
+
+  @override
+  String celebrationChatLineGiftedSubs({required String effect}) {
+    return 'Célébration des abonnements offerts : $effect';
+  }
+
+  @override
+  String highlightKind({required String kind}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'poll': 'Sondage',
+      'prediction': 'Prédiction',
+      'pinned': 'Épinglé',
+      'raid': 'Raid',
+      'giftBomb': 'Abonnements offerts',
+      'incomingRaid': 'Raid entrant',
+      'other': 'Temps fort',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String highlightNew({required String kind}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'poll': 'Nouveau sondage',
+      'prediction': 'Nouvelle prédiction',
+      'pinned': 'Nouveau message épinglé',
+      'raid': 'Nouveau raid',
+      'giftBomb': 'Nouveaux abonnements offerts',
+      'incomingRaid': 'Nouveau raid entrant',
+      'other': 'Nouveau temps fort',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String highlightAndMore({required String label, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'et $count autres',
+      one: 'et $count autre',
+    );
+    return '$label $_temp0';
+  }
+
+  @override
+  String get highlightPrevious => 'Temps fort précédent';
+
+  @override
+  String get highlightNext => 'Temps fort suivant';
+
+  @override
+  String highlightPosition({required int index, required int count}) {
+    return 'Temps fort $index sur $count';
+  }
+
+  @override
+  String get highlightTwitchChat => 'Chat Twitch';
+
+  @override
+  String get highlightThisChannel => 'Cette chaîne';
+
+  @override
+  String highlightTimeLeft({required String time}) {
+    return 'Encore $time';
+  }
+
+  @override
+  String highlightVotes({required int count}) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString votes',
+      one: '$countString vote',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get highlightFinalResults => 'Résultats finaux';
+
+  @override
+  String get highlightFinalResultsLower => 'résultats finaux';
+
+  @override
+  String highlightPollLeads({required String choice, required int percent}) {
+    return '$choice est en tête avec $percent pour cent';
+  }
+
+  @override
+  String get highlightVote => 'Voter sur Twitch';
+
+  @override
+  String get highlightPredictionsOpen => 'Prédictions ouvertes';
+
+  @override
+  String get highlightPredictionsClosed => 'Prédictions fermées';
+
+  @override
+  String get highlightPredictionWaiting => 'En attente du résultat';
+
+  @override
+  String get highlightPredictionResult => 'Résultat';
+
+  @override
+  String get highlightPredictionCanceled => 'Annulée · points remboursés';
+
+  @override
+  String highlightWinnerLower({required String outcome}) {
+    return 'gagnant : $outcome';
+  }
+
+  @override
+  String highlightOutcomeShare({
+    required String outcome,
+    required int percent,
+  }) {
+    return '$outcome $percent pour cent';
+  }
+
+  @override
+  String highlightTimeToPredict({required String time}) {
+    return 'Encore $time pour prédire';
+  }
+
+  @override
+  String highlightWinner({required String outcome}) {
+    return 'Gagnant : $outcome';
+  }
+
+  @override
+  String get highlightPredict => 'Prédire sur Twitch';
+
+  @override
+  String get highlightWinnerMark => 'Gagnant';
+
+  @override
+  String highlightPoints({required int count}) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString points',
+      one: '$countString point',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String highlightPredictors({required int count}) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString participants',
+      one: '$countString participant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String highlightTopPredictor({required String name}) {
+    return 'Plus grosse mise : $name';
+  }
+
+  @override
+  String highlightPinnedFrom({required String sender, required String text}) {
+    return 'Message épinglé, envoyé par $sender : $text';
+  }
+
+  @override
+  String highlightPinnedBy({required String name}) {
+    return 'par $name';
+  }
+
+  @override
+  String raidViewers({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString spectateurs',
+      one: '$countString spectateur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String raidStay({required String source}) {
+    return 'Vous restez sur $source';
+  }
+
+  @override
+  String raidStayDetail({required String target}) {
+    return 'Le raid part sans vous vers $target';
+  }
+
+  @override
+  String raidLeftFor({required String target}) {
+    return 'Le raid est parti vers $target';
+  }
+
+  @override
+  String raidWentAlong({required int count, required String viewers}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$viewers l’ont suivi',
+      one: '$viewers l’a suivi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get raidCancelled => 'Raid annulé';
+
+  @override
+  String raidStaysLive({required String source}) {
+    return '$source reste en direct';
+  }
+
+  @override
+  String raidRaidingWith({
+    required String source,
+    required String target,
+    required String viewers,
+  }) {
+    return '$source lance un raid sur $target avec $viewers';
+  }
+
+  @override
+  String raidRaiding({required String source, required String target}) {
+    return '$source lance un raid sur $target';
+  }
+
+  @override
+  String raidHeadingTo({required String target}) {
+    return 'En route vers $target';
+  }
+
+  @override
+  String raidToHasLeft({required String target}) {
+    return 'Le raid vers $target est parti';
+  }
+
+  @override
+  String raidWatchTarget({required String target}) {
+    return 'Regarder $target';
+  }
+
+  @override
+  String get raidBadge => 'RAID';
+
+  @override
+  String raidGoAlong({required String viewers}) {
+    return '$viewers · suivi automatique';
+  }
+
+  @override
+  String raidLeavesIn({required String time}) {
+    return 'Départ dans $time';
+  }
+
+  @override
+  String get raidGoNow => 'Y aller';
+
+  @override
+  String raidGoNowTarget({required String target}) {
+    return 'Aller sur $target maintenant';
+  }
+
+  @override
+  String get raidStayHere => 'Rester ici';
+
+  @override
+  String get raidHeadingOut => 'Départ…';
+
+  @override
+  String raidIncoming({
+    required int count,
+    required String name,
+    required String viewers,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name lance un raid avec $viewers spectateurs',
+      one: '$name lance un raid avec $viewers spectateur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get raidSayHi => 'Dites bonjour dans le chat';
+
+  @override
+  String raidComingWithYou({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString spectateurs vous accompagnent',
+      one: '$countString spectateur vous accompagne',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String giftBombGifting({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'offre $count abonnements',
+      one: 'offre $count abonnement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String giftBombSemantics({required int count, required String name}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name offre $count abonnements',
+      one: '$name offre $count abonnement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String giftBombAllHandedOut({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'les $count abonnements ont été distribués',
+      one: 'abonnement distribué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String giftBombHandedOutSemantics({
+    required int received,
+    required int count,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      received,
+      locale: localeName,
+      other: '$received sur $count distribués',
+      one: '$received sur $count distribué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String giftBombProgress({
+    required int receivedCount,
+    required String received,
+    required int total,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      receivedCount,
+      locale: localeName,
+      other: '$received sur $total distribués',
+      one: '$received sur $total distribué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String giftBombDone({required int count}) {
+    return '$count sur $count · merci !';
+  }
+
+  @override
+  String get htTitle => 'Hype Train';
+
+  @override
+  String htTrainTitle({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa': 'Hype Train Kappa doré',
+      'treasure': 'Hype Train trésor',
+      'community': 'Hype Train collectif',
+      'mythic': 'Hype Train mythique',
+      'other': 'Hype Train',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String htSharedTrainTitle({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa': 'Hype Train Kappa doré partagé',
+      'community': 'Hype Train collectif partagé',
+      'mythic': 'Hype Train mythique partagé',
+      'other': 'Hype Train partagé',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String htLevelShort({required int level}) {
+    return 'NIV. $level';
+  }
+
+  @override
+  String get htSubtitle => 'Abonnements, cadeaux ou Bits !';
+
+  @override
+  String get htFinalLevel => 'Dernier niveau !';
+
+  @override
+  String get htAthApproaching =>
+      'Le record de la chaîne est presque battu. Continuez à la soutenir.';
+
+  @override
+  String get htAthApproachingCompact =>
+      'Le record de la chaîne est presque battu.';
+
+  @override
+  String get htAthReached =>
+      'Nouveau record en cours ! Continuez jusqu’à la fin du compte à rebours.';
+
+  @override
+  String get htAthReachedShared =>
+      'Nouveau record partagé en cours ! Continuez jusqu’à la fin du compte à rebours.';
+
+  @override
+  String htTreasureLocked({required int level, required int discount}) {
+    return 'Niveau $level : −$discount % sur les abonnements offerts !';
+  }
+
+  @override
+  String htTreasureUnlockedSubtitle({required int discount}) {
+    return '−$discount % dès 5 abonnements offerts jusqu’à la fin du train';
+  }
+
+  @override
+  String htCommunityLocked({required int level}) {
+    return 'Atteignez le niveau $level et le chat recevra aussi des emotes !';
+  }
+
+  @override
+  String htCommunityUnlockedSubtitle({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString emotes pour le chat',
+      one: '$countString emote pour le chat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String htLevelComplete({required int level}) {
+    return 'Niveau $level terminé !';
+  }
+
+  @override
+  String htStarted({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa': 'Le Hype Train Kappa doré démarre !',
+      'treasure': 'Un Hype Train trésor arrive !',
+      'community': 'Un Hype Train collectif arrive !',
+      'mythic': 'Un Hype Train mythique arrive !',
+      'other': 'Le Hype Train démarre !',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String htSharedStarted({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa': 'Le Hype Train Kappa doré partagé démarre !',
+      'other': 'Le Hype Train partagé démarre !',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get htLevelUp => 'hyyyyypeeee';
+
+  @override
+  String htCompleted({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa': 'Hype Train Kappa doré réussi !',
+      'treasure': 'Hype Train trésor réussi !',
+      'community': 'Hype Train collectif réussi !',
+      'mythic': 'Hype Train mythique réussi !',
+      'other': 'Hype Train réussi !',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String htSharedCompleted({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa': 'Hype Train Kappa doré partagé réussi !',
+      'other': 'Hype Train partagé réussi !',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get htTreasureUnlockedMarquee => 'HYPE TRAIN TRÉSOR DÉBLOQUÉ !';
+
+  @override
+  String get htCommunityUnlockedMarquee =>
+      'RÉCOMPENSES COLLECTIVES DÉBLOQUÉES !';
+
+  @override
+  String get htMerging =>
+      'Préparez-vous ! Vos forces s’unissent et les niveaux grimpent !';
+
+  @override
+  String get htSummaryRecord =>
+      'Record absolu pulvérisé !\nVous avez atteint de nouveaux sommets de soutien !';
+
+  @override
+  String htSummary({required String variant, required int level}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'treasure':
+          'Quel soutien !\nNiveau $level du Hype Train trésor terminé !',
+      'community':
+          'Quel soutien !\nNiveau $level du Hype Train collectif terminé !',
+      'mythic':
+          'Quel soutien !\nNiveau $level du Hype Train mythique terminé !',
+      'other': 'Quel soutien !\nNiveau $level terminé !',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get htAthReachedTitle => 'Record absolu pulvérisé !';
+
+  @override
+  String get htSomeone => 'Quelqu’un';
+
+  @override
+  String htContributionBits({required int count, required String name}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name vient d’utiliser $countString Bits !',
+      one: '$name vient d’utiliser $countString Bit !',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String htContributionGift({
+    required int count,
+    required String name,
+    required int tier,
+  }) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name vient d’offrir $countString abonnements de niveau $tier !',
+      one: '$name vient d’offrir $countString abonnement de niveau $tier !',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String htContributionSub({required String name, required int tier}) {
+    return '$name vient de s’abonner avec un abonnement de niveau $tier !';
+  }
+
+  @override
+  String htContributionOther({required String name}) {
+    return '$name vient de faire avancer le train !';
+  }
+
+  @override
+  String htSubs({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString abonnements',
+      one: '$countString abonnement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String htBits({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString Bits',
+      one: '$countString Bit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String htInstructionStart({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa':
+          'Vous avez peu de temps pour obtenir une emote Kappa dorée exclusive pendant 24 h',
+      'community': 'Waouh, un Hype Train collectif, c’est rare !',
+      'mythic': 'Waouh, un Hype Train mythique, c’est rare !',
+      'other': 'Vous avez peu de temps pour obtenir des emotes exclusives',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String htInstructionTreasureReachLevel({
+    required int level,
+    required int discount,
+  }) {
+    return 'Atteignez le niveau $level pendant ce train pour obtenir $discount % de réduction sur les abonnements offerts !';
+  }
+
+  @override
+  String get htInstructionTreasureOneAway =>
+      'Encore un niveau pour débloquer une réduction jusqu’à la fin de ce train, continuez !';
+
+  @override
+  String htInstructionTreasureUnlocked({required int discount}) {
+    return 'Réduction de $discount % débloquée dès 5 abonnements offerts ! Profitez-en !';
+  }
+
+  @override
+  String htCommunityUnlocked({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Vous avez débloqué $countString emotes pour le chat ! Passez au niveau suivant pour en offrir davantage.',
+      one:
+          'Vous avez débloqué $countString emote pour le chat ! Passez au niveau suivant pour en offrir davantage.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get htInstructionCommunityRewards =>
+      'Les emotes pour le chat arrivent !';
+
+  @override
+  String get htInstructionSeeYouNextTime =>
+      'Rendez-vous au prochain Hype Train partagé !';
+
+  @override
+  String htSharedLevel({required int level, required int percent}) {
+    return 'NIV. $level, $percent %';
+  }
+
+  @override
+  String get htSharedLevelReached => 'Niveau du train partagé atteint';
+
+  @override
+  String htContinuesIn({required int level}) {
+    return 'Le train de niveau $level reprend dans';
+  }
+
+  @override
+  String htOtherChannelRecord({required String name}) {
+    return 'Nouveau record partagé absolu pour la chaîne $name !';
+  }
+
+  @override
+  String get htSharedRecordReached => 'Record du train partagé battu !';
+
+  @override
+  String get htSharedNew => 'Nouveau Hype Train partagé';
+
+  @override
+  String htApproachingTitle({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa': 'Un Hype Train Kappa doré approche !',
+      'treasure': 'Un Hype Train trésor est tout proche !',
+      'community': 'Un Hype Train collectif est tout proche !',
+      'mythic': 'Un Hype Train mythique est tout proche !',
+      'other': 'Un Hype Train approche !',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String htApproachingSubtitle({required String train}) {
+    return 'Lancez un $train : abonnements, cadeaux ou Bits';
+  }
+
+  @override
+  String htApproachingMore({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Encore $count personnes doivent s’abonner, offrir des abonnements ou utiliser des Bits',
+      one:
+          'Encore $count personne doit s’abonner, offrir des abonnements ou utiliser des Bits',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get htApproachingShort => 'Imminent';
+
+  @override
+  String htApproachingQuestion({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa': 'Qu’est-ce qu’un Hype Train Kappa doré ?',
+      'other': 'Qu’est-ce qu’un Hype Train ?',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String htApproachingExplanationFirst({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa':
+          'Un Hype Train Kappa doré démarre lorsque plusieurs personnes s’abonnent, utilisent des Bits ou offrent des abonnements à la communauté.',
+      'other':
+          'Un Hype Train démarre lorsque plusieurs personnes s’abonnent, utilisent des Bits ou offrent des abonnements à la communauté.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String htApproachingExplanationSecond({required String variant}) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'goldenKappa':
+          'Une fois le Hype Train Kappa doré lancé, la communauté remplit la jauge de hype avec d’autres abonnements, abonnements offerts ou Bits. Toutes les personnes dont la contribution donne droit aux récompenses reçoivent l’emote Kappa dorée pendant 24 heures, en plus des emotes habituelles.',
+      'other':
+          'Une fois le Hype Train lancé, la communauté remplit la jauge de hype avec d’autres abonnements, abonnements offerts ou Bits. Chaque personne qui contribue reçoit une emote unique selon le plus haut niveau terminé.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get htRewards =>
+      'Bravo ! Les emotes sont en cours d’envoi aux soutiens';
+
+  @override
+  String get htGoldenRewards =>
+      'Bravo ! Les soutiens profitent de l’emote Kappa dorée exclusive pendant 24 h';
+
+  @override
+  String get htExpired =>
+      'Vous avez raté le train. Ce sera pour la prochaine fois !';
+
+  @override
+  String get htGoldenExpired =>
+      'Le Hype Train Kappa doré est passé depuis longtemps. Ce sera pour la prochaine fois !';
+
+  @override
+  String get htConductorsHeader => 'CONDUCTEURS DE LA HYPE';
+
+  @override
+  String get htConductorsDescription =>
+      'Les plus grands soutiens de ce Hype Train.';
+
+  @override
+  String get htRewardsHeader => 'RÉCOMPENSES DISPONIBLES';
+
+  @override
+  String get htRewardsDescription =>
+      'Vous pouvez obtenir une emote par train en vous abonnant, en offrant des abonnements ou en utilisant plus de 100 Bits au total pendant l’événement. Les emotes exclusives sont distribuées à la fin du Hype Train et restent disponibles jusqu’à la fin de la saison en cours.';
+
+  @override
+  String get htGoldenRewardsDescription =>
+      'Contribuez en vous abonnant, en offrant des abonnements ou en utilisant plus de 100 Bits au total pendant l’événement pour obtenir une emote Kappa dorée exclusive pendant 24 heures, en plus des emotes habituelles.';
+
+  @override
+  String get htContributionsHeader => 'CONTRIBUTIONS';
+
+  @override
+  String htLevelEmotes({required int level}) {
+    return 'Emotes du niveau $level';
+  }
+
+  @override
+  String get htMoreInfo => 'Plus d’infos';
+
+  @override
+  String get htLearnMore => 'En savoir plus';
+
+  @override
+  String get htUnlockedSoFar => 'Déjà débloquées';
+
+  @override
+  String get htComingUp => 'À venir';
+
+  @override
+  String get htNothingMore => 'Rien d’autre à afficher pour l’instant';
+
+  @override
+  String htLevelTarget({
+    required int level,
+    required int subs,
+    required int bits,
+  }) {
+    final intl.NumberFormat subsNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String subsString = subsNumberFormat.format(subs);
+    final intl.NumberFormat bitsNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String bitsString = bitsNumberFormat.format(bits);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      subs,
+      locale: localeName,
+      other: '$subsString abonnements de niveau 1',
+      one: '$subsString abonnement de niveau 1',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      bits,
+      locale: localeName,
+      other: '$bitsString Bits',
+      one: '$bitsString Bit',
+    );
+    return 'Pour terminer le niveau $level, il faut un soutien total équivalent à $_temp0 ou $_temp1';
+  }
+
+  @override
+  String htSubsConductor({required int count, required String name}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name a apporté $countString abonnements !',
+      one: '$name a apporté $countString abonnement !',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String htBitsConductor({required int count, required String name}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name a utilisé $countString Bits',
+      one: '$name a utilisé $countString Bit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get htNoSubsConductor =>
+      'Abonnez-vous ou offrez un abonnement pour prendre cette place !';
+
+  @override
+  String get htNoBitsConductor =>
+      'Utilisez des Bits pour prendre cette place !';
+
+  @override
+  String htChannelRecord({required int percent, required int level}) {
+    return 'Record absolu de la chaîne ! $percent % au niveau $level';
+  }
+
+  @override
+  String htTreasureCardUnlocked({required int discount}) {
+    return 'Économisez $discount % dès 5 abonnements offerts, uniquement pendant ce train. Tout le monde à bord !';
+  }
+
+  @override
+  String htTreasureCardLocked({required int level, required int discount}) {
+    return 'Débloquez $discount % de réduction temporaire sur les abonnements offerts au niveau $level de ce train !';
+  }
+
+  @override
+  String htMythicCard({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Débloquez 1 emote exclusive parmi $count pendant 24 heures !',
+      one: 'Débloquez 1 emote exclusive parmi $count pendant 24 heures !',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String htCardLevelRecord({required int level}) {
+    return 'Record absolu · Niveau $level';
+  }
+
+  @override
+  String htCardLevel({required String train, required int level}) {
+    return '$train · Niveau $level';
+  }
+
+  @override
+  String get htCollapse => 'Réduire le Hype Train';
+
+  @override
+  String get htExpand => 'Afficher le Hype Train';
+
+  @override
+  String get htDetailsHint => 'Appuyez deux fois pour afficher les détails';
+
+  @override
+  String get htSemanticsApproaching => 'Hype Train imminent';
+
+  @override
+  String htSemanticsMinutes({required int minutes}) {
+    return '$minutes min';
+  }
+
+  @override
+  String htSemanticsSeconds({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count secondes',
+      one: '$count seconde',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String htSemanticsOngoing({
+    required int level,
+    required int percent,
+    required String time,
+  }) {
+    return 'Hype Train niveau $level, $percent pour cent, encore $time';
+  }
+
+  @override
+  String htSemanticsEnded({required int level}) {
+    return 'Hype Train terminé au niveau $level';
+  }
+
+  @override
+  String get htSemanticsExpired => 'Hype Train expiré';
+
+  @override
+  String htRewardLocked({required String name}) {
+    return 'Récompense verrouillée : $name';
+  }
+
+  @override
+  String htRewardUnlocked({required String name}) {
+    return 'Récompense débloquée : $name';
+  }
 }

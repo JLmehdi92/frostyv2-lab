@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:intl/intl.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
@@ -23,13 +22,17 @@ import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 
-/// "3 h 12" (or "45 min") since [startedAt]: the info row's short uptime.
-String shortUptime(Duration elapsed) {
-  if (elapsed.isNegative) return '0 min';
+/// "3 h 12" (or "45 min") since [startedAt]: the info row's short uptime,
+/// in [l]'s language.
+String shortUptime(Duration elapsed, AppLocalizations l) {
+  if (elapsed.isNegative) return l.channelUptimeMinutes(minutes: 0);
   final hours = elapsed.inHours;
   final minutes = elapsed.inMinutes % 60;
-  if (hours == 0) return '$minutes min';
-  return '$hours h ${minutes.toString().padLeft(2, '0')}';
+  if (hours == 0) return l.channelUptimeMinutes(minutes: minutes);
+  return l.channelUptimeHours(
+    hours: hours,
+    minutes: minutes.toString().padLeft(2, '0'),
+  );
 }
 
 /// Whether the viewer can follow or subscribe to [login] (signed in, not
@@ -110,7 +113,9 @@ class ChannelInfoRow extends StatelessWidget {
           );
           Widget metaLine;
           if (large) {
-            final title = live ? stream.title.trim() : 'Offline';
+            final title = live
+                ? stream.title.trim()
+                : context.l10n.streamOffline;
             metaLine = Row(
               children: [
                 Flexible(
@@ -141,7 +146,9 @@ class ChannelInfoRow extends StatelessWidget {
                           style: meta,
                         )
                       : Text(
-                          category.isEmpty ? 'Offline' : ' · Offline',
+                          category.isEmpty
+                              ? context.l10n.streamOffline
+                              : ' · ${context.l10n.streamOffline}',
                           maxLines: 1,
                           style: meta,
                         ),
@@ -170,7 +177,7 @@ class ChannelInfoRow extends StatelessWidget {
                 Expanded(
                   child: Semantics(
                     button: true,
-                    label: 'Channel profile',
+                    label: context.l10n.channelProfile,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: onOpenProfile,
@@ -368,8 +375,9 @@ class _LiveFactsState extends State<_LiveFacts> {
     final minutes = _minutes;
     return Text(
       [
-        '${widget.prefix}${NumberFormat.decimalPattern().format(widget.viewers)} watching',
-        if (minutes != null) shortUptime(Duration(minutes: minutes)),
+        '${widget.prefix}${context.l10n.streamWatching(count: widget.viewers)}',
+        if (minutes != null)
+          shortUptime(Duration(minutes: minutes), context.l10n),
       ].join(' · '),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -662,7 +670,12 @@ class _TabletChannelPanelState extends State<TabletChannelPanel> {
                               ),
                             if (language != null) _Chip(label: language),
                             if (streak != null && streak > 0)
-                              _Chip(label: 'Watch streak $streak', green: true),
+                              _Chip(
+                                label: context.l10n.channelWatchStreak(
+                                  value: streak,
+                                ),
+                                green: true,
+                              ),
                           ],
                         ),
                       ],
@@ -762,7 +775,7 @@ class _AlsoLive extends StatelessWidget {
       spacing: 10,
       children: [
         Text(
-          'ALSO LIVE FROM YOUR FOLLOWS',
+          context.l10n.channelAlsoLive,
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
@@ -897,7 +910,7 @@ class TabletChatHeader extends StatelessWidget {
         spacing: 10,
         children: [
           Text(
-            'Chat',
+            context.l10n.channelChat,
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
@@ -908,9 +921,9 @@ class TabletChatHeader extends StatelessWidget {
             builder: (context) {
               final delay = settings.chatDelay.round();
               final label = settings.autoSyncChatDelay
-                  ? 'synced to video'
+                  ? context.l10n.channelChatSynced
                   : delay > 0
-                  ? '${delay}s delay'
+                  ? context.l10n.channelChatDelay(seconds: delay)
                   : null;
               if (label == null) return const SizedBox.shrink();
               return Container(
@@ -948,7 +961,7 @@ class TabletChatHeader extends StatelessWidget {
           ),
           const Spacer(),
           IconButton(
-            tooltip: 'Chat settings',
+            tooltip: context.l10n.channelChatSettings,
             onPressed: onMore,
             icon: PlayerGlyph(PlayerGlyphKind.more, color: colors.secondary),
           ),

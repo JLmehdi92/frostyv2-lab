@@ -1,45 +1,39 @@
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/hype_train.dart';
+import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
 
-/// The hype train's English copy.
-abstract final class HtCopy {
-  static final _number = NumberFormat.decimalPattern();
+/// The hype train's words, in [l]'s language (the ARB files' `ht…`
+/// messages): what turns its variants, levels and steps into text.
+@immutable
+final class HtCopy {
+  const HtCopy(this.l);
 
-  static String number(int value) => _number.format(value);
+  /// The words of the language [context] shows.
+  factory HtCopy.of(BuildContext context) => HtCopy(context.l10n);
 
-  static String _plural(int n, String one, String other) =>
-      n == 1 ? one : other;
+  final AppLocalizations l;
+
+  /// [value] with the grouping of the language of `Intl` (« 1 200 »).
+  String number(int value) => NumberFormat.decimalPattern().format(value);
 
   // --- Names -----------------------------------------------------------------
 
-  static const title = 'Hype Train';
+  String get title => l.htTitle;
 
   /// The train's name: its variant, "Shared" when several channels run it.
-  static String trainTitle(HtVariant variant, {bool shared = false}) {
-    if (shared) {
-      return switch (variant) {
-        HtVariant.goldenKappa => 'Shared Golden Kappa Train',
-        HtVariant.community => 'Shared Community Train',
-        HtVariant.mythic => 'Shared Mythic Train',
-        HtVariant.regular || HtVariant.treasure => 'Shared Hype Train',
-      };
-    }
-    return switch (variant) {
-      HtVariant.goldenKappa => 'Golden Kappa Train',
-      HtVariant.treasure => 'Treasure Train',
-      HtVariant.community => 'Community Train',
-      HtVariant.mythic => 'Mythic Train',
-      HtVariant.regular => title,
-    };
-  }
+  String trainTitle(HtVariant variant, {bool shared = false}) => shared
+      ? l.htSharedTrainTitle(variant: variant.name)
+      : l.htTrainTitle(variant: variant.name);
 
   // --- Banner ----------------------------------------------------------------
 
-  static String level(int level) => 'LVL $level';
+  String level(int level) => l.htLevelShort(level: level);
 
-  static String percent(int value) => '$value%';
+  String percent(int value) => l.commonPercent(value: value);
 
-  /// `m:ss`, or `h:mm:ss` from an hour.
+  /// `m:ss`, or `h:mm:ss` from an hour (figures only, in every language).
   static String countdown(Duration remaining) {
     final total = remaining.isNegative ? 0 : remaining.inSeconds;
     final hours = total ~/ 3600;
@@ -51,117 +45,78 @@ abstract final class HtCopy {
     return '$minutes:$seconds';
   }
 
-  static const subtitle = 'Sub, gift, or use Bits!';
-  static const finalLevel = 'Final level!';
-  static const athApproaching =
-      'About to beat your last record. Keep up the support.';
-  static const athApproachingCompact = 'About to beat your last record.';
+  String get subtitle => l.htSubtitle;
+  String get finalLevel => l.htFinalLevel;
+  String get athApproaching => l.htAthApproaching;
+  String get athApproachingCompact => l.htAthApproachingCompact;
 
-  static String athReached({bool shared = false}) => shared
-      ? 'Setting a new shared record! Keep going until the clock runs out.'
-      : 'Setting a new record! Keep going until the clock runs out.';
+  String athReached({bool shared = false}) =>
+      shared ? l.htAthReachedShared : l.htAthReached;
 
-  static String treasureLocked(int level, int discount) =>
-      'Reach Level $level to unlock $discount% OFF Gift Subs!';
+  String treasureLocked(int level, int discount) =>
+      l.htTreasureLocked(level: level, discount: discount);
 
-  static String treasureUnlockedSubtitle(int discount) =>
-      '$discount% OFF 5+ Gift Subs for the rest of this Hype Train';
+  String treasureUnlockedSubtitle(int discount) =>
+      l.htTreasureUnlockedSubtitle(discount: discount);
 
-  static String communityLocked(int level) =>
-      'Hit Level $level and chat will receive emotes too!';
+  String communityLocked(int level) => l.htCommunityLocked(level: level);
 
-  static String communityUnlockedSubtitle(int emotes) =>
-      '${number(emotes)} ${_plural(emotes, 'Emote', 'Emotes')} for Chat';
+  String communityUnlockedSubtitle(int emotes) =>
+      l.htCommunityUnlockedSubtitle(count: emotes);
 
   // --- Announcements ---------------------------------------------------------
 
-  static String levelComplete(int level) => 'Level $level Complete!';
+  String levelComplete(int level) => l.htLevelComplete(level: level);
 
   /// The start marquee (three callout emotes follow it).
-  static String started(HtVariant variant, {bool shared = false}) {
-    if (shared) {
-      return variant == HtVariant.goldenKappa
-          ? 'Shared Golden Kappa Train starting!'
-          : 'Shared Hype Train starting!';
-    }
-    return switch (variant) {
-      HtVariant.regular => 'Hype Train starting!',
-      HtVariant.goldenKappa => 'Golden Kappa Train starting!',
-      HtVariant.treasure => 'Treasure Train Incoming!',
-      HtVariant.community => 'Community Train Incoming!',
-      HtVariant.mythic => 'Mythic Train Incoming!',
-    };
-  }
+  String started(HtVariant variant, {bool shared = false}) => shared
+      ? l.htSharedStarted(variant: variant.name)
+      : l.htStarted(variant: variant.name);
 
   /// The level-up marquee.
-  static const levelUp = 'hyyyyypeeee';
+  String get levelUp => l.htLevelUp;
 
   /// The completed marquee.
-  static String completed(HtVariant variant, {bool shared = false}) {
-    if (shared) {
-      return variant == HtVariant.goldenKappa
-          ? 'Shared Golden Kappa Train success!'
-          : 'Shared Hype Train success!';
-    }
-    return switch (variant) {
-      HtVariant.regular => 'Hype Train success!',
-      HtVariant.goldenKappa => 'Golden Kappa Train success!',
-      HtVariant.treasure => 'Treasure Train Success!',
-      HtVariant.community => 'Community Train Success!',
-      HtVariant.mythic => 'Mythic Train Success!',
-    };
-  }
+  String completed(HtVariant variant, {bool shared = false}) => shared
+      ? l.htSharedCompleted(variant: variant.name)
+      : l.htCompleted(variant: variant.name);
 
-  static const treasureUnlockedMarquee = 'TREASURE TRAIN UNLOCKED!';
-  static const communityUnlockedMarquee = 'COMMUNITY REWARDS UNLOCKED!';
-  static const merging =
-      'Get excited! Your powers are combining and levels are getting a boost!';
+  String get treasureUnlockedMarquee => l.htTreasureUnlockedMarquee;
+  String get communityUnlockedMarquee => l.htCommunityUnlockedMarquee;
+  String get merging => l.htMerging;
 
-  static String summary(
+  /// Two lines: a cheer, then the level completed (or the record).
+  String summary(
     int level, {
     bool ath = false,
     HtVariant variant = HtVariant.regular,
-  }) {
-    if (ath) {
-      return "All-time record shattered!\nYou've reached new levels of "
-          'support!';
-    }
-    final name = switch (variant) {
-      HtVariant.treasure => 'Treasure Train ',
-      HtVariant.community => 'Community Train ',
-      HtVariant.mythic => 'Mythic Train ',
-      HtVariant.regular || HtVariant.goldenKappa => '',
-    };
-    return 'Such strong support\n${name}Level $level completed!';
-  }
+  }) => ath
+      ? l.htSummaryRecord
+      : l.htSummary(variant: variant.name, level: level);
 
-  static const athReachedTitle = 'All-time record shattered!';
+  String get athReachedTitle => l.htAthReachedTitle;
 
-  static String contribution(String? name, HtAction action, int quantity) {
-    final who = name ?? 'Someone';
-    final amount = number(quantity);
+  String contribution(String? name, HtAction action, int quantity) {
+    final who = name ?? l.htSomeone;
     if (action.isCheer) {
-      return '$who just used $amount ${_plural(quantity, 'Bit', 'Bits')}!';
+      return l.htContributionBits(name: who, count: quantity);
     }
     if (action.subTier case final tier?) {
       if (action.isGift) {
-        return '$who just gifted $amount Tier $tier '
-            '${_plural(quantity, 'Sub', 'Subs')}!';
+        return l.htContributionGift(name: who, count: quantity, tier: tier);
       }
-      return '$who just subscribed with a Tier $tier Sub!';
+      return l.htContributionSub(name: who, tier: tier);
     }
-    return '$who just boosted the train!';
+    return l.htContributionOther(name: who);
   }
 
-  static String subsTotal(int subs) =>
-      '${number(subs)} ${_plural(subs, 'Sub', 'Subs')}';
+  String subsTotal(int subs) => l.htSubs(count: subs);
 
-  static String bitsTotal(int bits) =>
-      '${number(bits)} ${_plural(bits, 'Bit', 'Bits')}';
+  String bitsTotal(int bits) => l.htBits(count: bits);
 
   /// An instruction step's text; [discount] for treasure trains, [amount]
   /// for community emotes or the mythic pool.
-  static String instruction(
+  String instruction(
     String key,
     Map<String, Object?> data, {
     HtVariant variant = HtVariant.regular,
@@ -170,180 +125,150 @@ abstract final class HtCopy {
   }) {
     final level = data['level'];
     return switch (key) {
-      'start' => switch (variant) {
-        HtVariant.goldenKappa =>
-          "You'll have a limited time to earn an exclusive golden Kappa "
-              'emote for 24 hrs',
-        HtVariant.community => 'Whoa, this is a rare Community Train!',
-        HtVariant.mythic => 'Whoa, this is a rare Mythic Train!',
-        HtVariant.regular || HtVariant.treasure =>
-          "You'll have a limited time to earn exclusive emotes",
-      },
-      'treasureReachLevel' =>
-        'Reach Level $level during this train to unlock $discount% OFF Gift '
-            'Subs!',
-      'treasureOneAway' =>
-        'One more level unlocks a discount for the rest of this train, keep '
-            'going!',
-      'treasureUnlocked' =>
-        "You've unlocked $discount% OFF on 5+ Gift Subs! Don't miss out!",
+      'start' => l.htInstructionStart(variant: variant.name),
+      'treasureReachLevel' => l.htInstructionTreasureReachLevel(
+        level: level is int ? level : 0,
+        discount: discount,
+      ),
+      'treasureOneAway' => l.htInstructionTreasureOneAway,
+      'treasureUnlocked' => l.htInstructionTreasureUnlocked(discount: discount),
       'communityReachLevel' => communityLocked(level is int ? level : 0),
-      'communityUnlocked' =>
-        'You unlocked ${number(amount)} '
-            '${_plural(amount, 'emote', 'emotes')} for chat! Level up to give '
-            'away more emotes.',
-      'communityRewards' => 'Emotes for chat are on their way!',
+      'communityUnlocked' => l.htCommunityUnlocked(count: amount),
+      'communityRewards' => l.htInstructionCommunityRewards,
       'mythicPool' => mythicCard(amount),
-      'seeYouNextTime' => 'See you next time in Shared Hype Train!',
+      'seeYouNextTime' => l.htInstructionSeeYouNextTime,
       _ => title,
     };
   }
 
   // --- Shared trains ---------------------------------------------------------
 
-  static String sharedLevel(int level, int percent) => 'LVL $level, $percent%';
-  static const sharedLevelReached = 'Shared Train level reached';
-  static String continuesIn(Object? level) => 'LVL $level train continues in';
-  static String otherChannelRecord(String name) =>
-      "$name's new all-time Shared record!";
-  static const sharedRecordReached = 'Shared Train Record Broken!';
-  static const sharedNew = 'New Shared Hype Train';
+  String sharedLevel(int level, int percent) =>
+      l.htSharedLevel(level: level, percent: percent);
+  String get sharedLevelReached => l.htSharedLevelReached;
+  String continuesIn(int level) => l.htContinuesIn(level: level);
+  String otherChannelRecord(String name) => l.htOtherChannelRecord(name: name);
+  String get sharedRecordReached => l.htSharedRecordReached;
+  String get sharedNew => l.htSharedNew;
 
   // --- Approaching -----------------------------------------------------------
 
-  static String approachingTitle(HtVariant variant) => switch (variant) {
-    HtVariant.regular => 'A Hype Train is approaching!',
-    HtVariant.goldenKappa => 'Golden Kappa Train approaching!',
-    HtVariant.treasure => 'A Treasure Train is close!',
-    HtVariant.community => 'A Community Train is close!',
-    HtVariant.mythic => 'A Mythic Train is close!',
-  };
+  String approachingTitle(HtVariant variant) =>
+      l.htApproachingTitle(variant: variant.name);
 
-  static String approachingSubtitle(HtVariant variant) =>
-      'Sub, gift, or use Bits now to start a ${trainTitle(variant)}';
+  String approachingSubtitle(HtVariant variant) =>
+      l.htApproachingSubtitle(train: trainTitle(variant));
 
   /// The viewer already took part: how many others are needed.
-  static String approachingMore(int people) => people == 1
-      ? '1 more person needs to sub, gift or use Bits'
-      : '$people more people need to sub, gift or use Bits';
+  String approachingMore(int people) => l.htApproachingMore(count: people);
 
   /// The landscape pill.
-  static const approachingShort = 'Approaching';
+  String get approachingShort => l.htApproachingShort;
 
-  static String approachingQuestion(HtVariant variant) =>
-      variant == HtVariant.goldenKappa
-      ? 'What is a Golden Kappa Train?'
-      : 'What is a Hype Train?';
+  String approachingQuestion(HtVariant variant) =>
+      l.htApproachingQuestion(variant: variant.name);
 
-  static String approachingExplanationFirst(HtVariant variant) =>
-      'A ${variant == HtVariant.goldenKappa ? 'Golden Kappa Train' : title} '
-      'starts when multiple people subscribe, use Bits, or gift '
-      'subscriptions to the community.';
+  String approachingExplanationFirst(HtVariant variant) =>
+      l.htApproachingExplanationFirst(variant: variant.name);
 
-  static String approachingExplanationSecond(HtVariant variant) =>
-      variant == HtVariant.goldenKappa
-      ? 'Once a Golden Kappa Train is underway, the community fills up the '
-            'Hype Meter with more subs, gifts or Bits. Everyone who '
-            'contributes enough to be eligible for rewards will receive the '
-            'Golden Kappa emote for 24 hours in addition to the regular emote '
-            'rewards.'
-      : 'Once a Hype Train is underway, the community fills up the Hype '
-            'Meter with more subs, gifts or Bits. Everyone who contributes '
-            'receives one unique emote based on the highest level completed.';
+  String approachingExplanationSecond(HtVariant variant) =>
+      l.htApproachingExplanationSecond(variant: variant.name);
 
   // --- End strips ------------------------------------------------------------
 
-  static const rewards = 'Great work! Emotes are being delivered to supporters';
-  static const goldenRewards =
-      'Great work! Supporters can enjoy the exclusive Golden Kappa emote for '
-      '24 hrs';
-  static const expired = 'You missed the Train. Better luck next time!';
-  static const goldenExpired =
-      'The Golden Kappa Train is long gone. Better luck next time!';
+  String get rewards => l.htRewards;
+  String get goldenRewards => l.htGoldenRewards;
+  String get expired => l.htExpired;
+  String get goldenExpired => l.htGoldenExpired;
 
   // --- Details ---------------------------------------------------------------
 
-  static const conductorsHeader = 'HYPE CONDUCTORS';
-  static const conductorsDescription = 'Current Hype Train top supporters.';
-  static const rewardsHeader = 'AVAILABLE REWARDS';
-  static const rewardsDescription =
-      'You can earn one emote per train by subbing, gifting, or using more '
-      'than 100 Bits in total during the event. Exclusive emotes are given '
-      'out at the end of the Hype Train event and will stick around until '
-      'the end of the current season.';
-  static const goldenRewardsDescription =
-      'Contribute by subbing, gifting, or using more than 100 Bits in total '
-      'during the event to earn an exclusive golden Kappa emote for 24 hours '
-      'in addition to the regular emote rewards.';
-  static const contributionsHeader = 'CONTRIBUTIONS';
-  static String levelEmotes(int level) => 'Level $level emotes';
-  static const moreInfo = 'More Info';
-  static const learnMore = 'learn more';
-  static const unlockedSoFar = 'Unlocked so far';
-  static const comingUp = 'Coming up';
-  static const nothingMore = 'Nothing more to show yet';
+  String get conductorsHeader => l.htConductorsHeader;
+  String get conductorsDescription => l.htConductorsDescription;
+  String get rewardsHeader => l.htRewardsHeader;
+  String get rewardsDescription => l.htRewardsDescription;
+  String get goldenRewardsDescription => l.htGoldenRewardsDescription;
+  String get contributionsHeader => l.htContributionsHeader;
+  String levelEmotes(int level) => l.htLevelEmotes(level: level);
+  String get moreInfo => l.htMoreInfo;
+  String get learnMore => l.htLearnMore;
+  String get unlockedSoFar => l.htUnlockedSoFar;
+  String get comingUp => l.htComingUp;
+  String get nothingMore => l.htNothingMore;
 
-  static String levelTarget(int level, int subs, int bits) =>
-      'Completing Level $level requires combined support events totaling '
-      '${number(subs)} Tier 1 ${_plural(subs, 'Sub', 'Subs')} or '
-      '${bitsTotal(bits)}';
+  String levelTarget(int level, int subs, int bits) =>
+      l.htLevelTarget(level: level, subs: subs, bits: bits);
 
-  /// After the conductor's name (drawn bold).
-  static String subsConductor(int subs) =>
-      'has contributed ${number(subs)} ${_plural(subs, 'Sub', 'Subs')}!';
+  /// The conductor's line: [name] (drawn bold by the caller, who passes a
+  /// mark of [l10nSpans]) and their subs.
+  String subsConductor(String name, int subs) =>
+      l.htSubsConductor(name: name, count: subs);
 
-  /// After the conductor's name (drawn bold).
-  static String bitsConductor(int bits) => 'has used ${bitsTotal(bits)}';
+  /// The conductor's line: [name] (see [subsConductor]) and their Bits.
+  String bitsConductor(String name, int bits) =>
+      l.htBitsConductor(name: name, count: bits);
 
-  static const noSubsConductor = 'Sub or Gift to take over this spot!';
-  static const noBitsConductor = 'Use Bits to take over this spot!';
+  String get noSubsConductor => l.htNoSubsConductor;
+  String get noBitsConductor => l.htNoBitsConductor;
 
   /// After a trophy.
-  static String channelRecord(Object? percent, Object? level) =>
-      'Channel all-time record! $percent% Level $level';
+  String channelRecord(int percent, int level) =>
+      l.htChannelRecord(percent: percent, level: level);
 
-  static String treasureCard(
-    int level,
-    int discount, {
-    required bool unlocked,
-  }) => unlocked
-      ? 'Save $discount% on 5 or more Gift Subs exclusively during this '
-            'train. All Aboard!'
-      : 'Unlock a limited-time $discount% OFF Gift Subs at Level $level '
-            'during this train!';
+  String treasureCard(int level, int discount, {required bool unlocked}) =>
+      unlocked
+      ? l.htTreasureCardUnlocked(discount: discount)
+      : l.htTreasureCardLocked(level: level, discount: discount);
 
-  static String communityCard(
-    int level,
-    int emotes, {
-    required bool unlocked,
-  }) => unlocked
-      ? 'You unlocked ${number(emotes)} ${_plural(emotes, 'emote', 'emotes')} '
-            'for chat! Level up to give away more emotes.'
-      : communityLocked(level);
+  String communityCard(int level, int emotes, {required bool unlocked}) =>
+      unlocked ? l.htCommunityUnlocked(count: emotes) : communityLocked(level);
 
-  static String mythicCard(int pool) =>
-      'Unlock 1 of $pool exclusive ${_plural(pool, 'emote', 'emotes')} for 24 '
-      'hours!';
+  String mythicCard(int pool) => l.htMythicCard(count: pool);
 
-  static const goldenCard =
-      "You'll have a limited time to earn an exclusive golden Kappa emote for "
-      '24 hrs';
+  String get goldenCard => l.htInstructionStart(variant: 'goldenKappa');
 
   // --- Followed streams ------------------------------------------------------
 
   /// The indicator on a followed stream's card.
-  static String cardLevel(
+  String cardLevel(
     int level, {
     HtVariant variant = HtVariant.regular,
     bool ath = false,
-  }) {
-    if (ath) return 'All-Time High Train Level $level';
-    return '${trainTitle(variant)} Level $level';
-  }
+  }) => ath
+      ? l.htCardLevelRecord(level: level)
+      : l.htCardLevel(train: trainTitle(variant), level: level);
 
   // --- Accessibility ---------------------------------------------------------
 
-  static const collapse = 'Collapse Hype Train';
-  static const expand = 'Show Hype Train';
-  static const detailsHint = 'Double tap to show details';
+  String get collapse => l.htCollapse;
+  String get expand => l.htExpand;
+  String get detailsHint => l.htDetailsHint;
+
+  /// What a screen reader says for [store]'s train, in one line. Minutes
+  /// until the last one: a label that changes every second would keep
+  /// screen readers busy.
+  String summaryLabel(HypeTrainStore store) {
+    switch (store.phase) {
+      case HtPhase.hidden:
+        return '';
+      case HtPhase.approaching:
+        return l.htSemanticsApproaching;
+      case HtPhase.ongoing:
+        final seconds = store.remaining.inSeconds;
+        final time = seconds >= 60
+            ? l.htSemanticsMinutes(minutes: (seconds / 60).ceil())
+            : l.htSemanticsSeconds(count: seconds);
+        return l.htSemanticsOngoing(
+          level: store.level,
+          percent: store.percent,
+          time: time,
+        );
+      case HtPhase.ending || HtPhase.rewards:
+        return l.htSemanticsEnded(
+          level: store.endSummary?.level ?? store.level,
+        );
+      case HtPhase.expired:
+        return l.htSemanticsExpired;
+    }
+  }
 }

@@ -8,6 +8,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/playback_access_token.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/channel/video/buffer_fallback.dart';
@@ -535,7 +536,7 @@ void main() {
       await native.emit({'type': 'state', 'state': 'IDLE'});
       await tick(9000, 30);
       expect(rates().last, 1.0);
-      expect(store.autoLatencyStatus?.reason, 'paused');
+      expect(store.autoLatencyStatus?.reason, AutoLatencyReason.paused);
     });
 
     // A 1.05x rate is invisible and inaudible: picture-in-picture and the
@@ -570,7 +571,7 @@ void main() {
       await tick(3000, 30);
 
       expect(native.callsNamed('setPlaybackRate'), isEmpty);
-      expect(store.autoLatencyStatus?.reason, 'ad');
+      expect(store.autoLatencyStatus?.reason, AutoLatencyReason.ad);
     });
 
     test('a refused rate stops it for the stream', () async {
@@ -598,7 +599,7 @@ void main() {
       expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.stopped);
       expect(
         store.autoLatencyStatus?.reason,
-        'the player did not return to 1.0x',
+        AutoLatencyReason.notBackToNormal,
       );
 
       // Retried on the next tick while the player still plays fast...
@@ -632,7 +633,8 @@ void main() {
       expect(rates(), hasLength(4), reason: 'two quick resends');
       await tick(1300, 1, rate: 1.05);
       expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.stopped);
-      expect(store.autoLatencyStatus?.reason, 'the player stayed at 1.05x');
+      expect(store.autoLatencyStatus?.reason, AutoLatencyReason.stuckFast);
+      expect(store.autoLatencyStatus?.reasonRate, 1.05);
 
       // Then every 10 s, never every second.
       final before = rates().length;
@@ -664,7 +666,7 @@ void main() {
 
       expect(rates().last, 1.0);
       expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.held);
-      expect(store.autoLatencyStatus?.reason, 'reconnecting');
+      expect(store.autoLatencyStatus?.reason, AutoLatencyReason.reconnecting);
       url.complete(_usherUrl);
       await refresh;
     });
@@ -678,7 +680,10 @@ void main() {
       await settle();
 
       expect(rates().last, 1.0);
-      expect(store.autoLatencyStatus?.reason, 'no latency reading');
+      expect(
+        store.autoLatencyStatus?.reason,
+        AutoLatencyReason.noLatencyReading,
+      );
     });
 
     test('a catch-up whose ticks stop is ended by the watchdog', () async {
@@ -695,7 +700,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 60));
 
       expect(rates().last, 1.0);
-      expect(store.autoLatencyStatus?.reason, 'no latency ticks');
+      expect(store.autoLatencyStatus?.reason, AutoLatencyReason.noLatencyTicks);
     });
 
     group('a quality switch', () {
@@ -817,7 +822,8 @@ void main() {
       // visibly and only nudges every 10 s.
       await tick(1300, 10, rate: 1.03);
       expect(rates(), [1.0, 1.0]);
-      expect(store.autoLatencyStatus?.reason, 'the player stayed at 1.03x');
+      expect(store.autoLatencyStatus?.reason, AutoLatencyReason.stuckFast);
+      expect(store.autoLatencyStatus?.reasonRate, 1.03);
     });
 
     test('each load starts back at 1.0x', () async {
@@ -1657,7 +1663,7 @@ void main() {
 
       expect(fatal, 1);
       expect(store.status, IvsPlaybackStatus.failed);
-      expect(store.refusalNotice, contains('subscribers'));
+      expect(store.refusalNotice?.text(L10n.english), contains('subscribers'));
       verifyNever(
         () => streamService.getUsherUrl(
           userLogin: 'streamer',
@@ -1684,7 +1690,15 @@ void main() {
       }
 
       expect(fatal, 1);
-      expect(store.refusalNotice, contains('Content Restricted In Region'));
+      expect(
+        store.refusalNotice?.text(L10n.english),
+        contains('Content Restricted In Region'),
+      );
+      // French says Twitch refused; its English words stay in the logs.
+      expect(
+        store.refusalNotice?.text(lookupAppLocalizations(const Locale('fr'))),
+        'Twitch refuse ce live.',
+      );
     });
 
     test('the player still gives up when usher cannot be asked', () async {
@@ -1744,19 +1758,35 @@ void main() {
 
     test('a refusal message names each reason', () {
       expect(
-        playbackRefusalNotice(PlaybackRefusal.subscribersOnly, 'Streamer'),
+        playbackRefusalNotice(
+          PlaybackRefusal.subscribersOnly,
+          'Streamer',
+          L10n.english,
+        ),
         'Streamer is streaming for subscribers only.',
       );
       expect(
-        playbackRefusalNotice(PlaybackRefusal.geoblocked, 'Streamer'),
+        playbackRefusalNotice(
+          PlaybackRefusal.geoblocked,
+          'Streamer',
+          L10n.english,
+        ),
         'This stream is not available in your region.',
       );
       expect(
-        playbackRefusalNotice(PlaybackRefusal.bannedFromChannel, 'Streamer'),
+        playbackRefusalNotice(
+          PlaybackRefusal.bannedFromChannel,
+          'Streamer',
+          L10n.english,
+        ),
         'You are banned from Streamer\'s channel.',
       );
       expect(
-        playbackRefusalNotice(PlaybackRefusal.unauthorized, 'Streamer'),
+        playbackRefusalNotice(
+          PlaybackRefusal.unauthorized,
+          'Streamer',
+          L10n.english,
+        ),
         'Twitch refused this stream to the app player.',
       );
     });

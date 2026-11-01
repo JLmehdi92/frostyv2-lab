@@ -39,6 +39,16 @@ const _sameInBothLanguages = {
   'activityOptions': '"Options" is spelled the same.',
   'playerPictureInPicture': 'Android\'s French name for the floating window.',
   'playerVolume': '"Volume" is spelled the same.',
+  'channelChat': '"Chat" is also the French word for it.',
+  'latencyStatsMode': '"Mode" is spelled the same.',
+  'clipCreateButton': 'Twitch calls it a "clip" in French.',
+  'highlightVotes': '"vote(s)" is the French word too; a number leads.',
+  'highlightPoints': '"point(s)" is the French word too; a number leads.',
+  'raidBadge': '"Raid" is Twitch\'s French word too, in capitals.',
+  'htTitle': 'Twitch\'s name for the feature, kept in French.',
+  'htLevelUp': 'A cheer, the same in both languages.',
+  'htBits': 'Bits are Twitch\'s currency, named the same in French.',
+  'htContributionsHeader': '"Contributions" is spelled the same.',
 };
 
 void main() {

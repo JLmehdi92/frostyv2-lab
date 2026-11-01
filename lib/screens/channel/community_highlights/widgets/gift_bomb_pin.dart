@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/celebrations/celebration_art.dart';
 import 'package:onset/screens/channel/celebrations/signal_pill.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
@@ -277,14 +278,12 @@ class _GiftBombPinState extends State<GiftBombPin>
     super.dispose();
   }
 
-  String get _subs => _bomb.count == 1 ? 'sub' : 'subs';
-
-  String get _semanticsValue {
+  String _semanticsValue(AppLocalizations l) {
     final count = _bomb.count;
     final received = math.min(_bomb.received, count);
     return _bomb.complete
-        ? 'all $count handed out'
-        : '$received of $count handed out';
+        ? l.giftBombAllHandedOut(count: count)
+        : l.giftBombHandedOutSemantics(received: received, count: count);
   }
 
   @override
@@ -328,7 +327,7 @@ class _GiftBombPinState extends State<GiftBombPin>
     final close = onDismiss == null
         ? SizedBox(width: compact ? 8 : 12)
         : IconButton(
-            tooltip: 'Hide',
+            tooltip: context.l10n.commonHide,
             onPressed: () => _leave(then: onDismiss),
             style: IconButton.styleFrom(
               fixedSize: const Size(44, 44),
@@ -384,7 +383,7 @@ class _GiftBombPinState extends State<GiftBombPin>
             child: _NameThenTail(
               name: name,
               tail: Text(
-                ' is gifting ${bomb.count} $_subs',
+                ' ${context.l10n.giftBombGifting(count: bomb.count)}',
                 key: GiftBombPin.countKey,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -449,8 +448,11 @@ class _GiftBombPinState extends State<GiftBombPin>
       child: Semantics(
         container: true,
         liveRegion: true,
-        label: '${bomb.gifterName} is gifting ${bomb.count} $_subs',
-        value: _semanticsValue,
+        label: context.l10n.giftBombSemantics(
+          count: bomb.count,
+          name: bomb.gifterName,
+        ),
+        value: _semanticsValue(context.l10n),
         child: RepaintBoundary(
           // Unclipped: the sparks may fly past the card's edge. Only the
           // drain bar follows the rounded corners.
@@ -487,7 +489,7 @@ class _GiftBombPinState extends State<GiftBombPin>
     final count = _bomb.count;
     if (_bomb.complete) {
       final done = Text(
-        '$count of $count · thanks!',
+        context.l10n.giftBombDone(count: count),
         style: TextStyle(fontWeight: FontWeight.w600, color: accentText),
       );
       return TweenAnimationBuilder<double>(
@@ -506,19 +508,28 @@ class _GiftBombPinState extends State<GiftBombPin>
         child: done,
       );
     }
+    // "3 of 5 handed out": the number rolls, the words around it stay, in
+    // the order the language puts them.
+    final received = math.min(_bomb.received, count);
+    final words = context.l10n
+        .giftBombProgress(
+          receivedCount: received,
+          received: l10nMark(0),
+          total: count,
+        )
+        .split(l10nMark(0));
     return Row(
       children: [
-        RollingNumber(
-          '${math.min(_bomb.received, count)}',
-          duration: const Duration(milliseconds: 260),
-        ),
-        Flexible(
-          child: Text(
-            ' of $count handed out',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+        if (words.first.isNotEmpty) Text(words.first, maxLines: 1),
+        RollingNumber('$received', duration: const Duration(milliseconds: 260)),
+        if (words.length > 1 && words.last.isNotEmpty)
+          Flexible(
+            child: Text(
+              words.last,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
       ],
     );
   }

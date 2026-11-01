@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
@@ -146,7 +147,7 @@ void main() {
 
     expect(stepKey('marquee'), findsOneWidget);
     expect(find.byKey(const ValueKey('ht-marquee')), findsNothing);
-    expect(find.textContaining(HtCopy.levelUp), findsWidgets);
+    expect(find.textContaining(HtCopy(L10n.english).levelUp), findsWidgets);
     await h.close(tester);
   });
 
@@ -439,7 +440,7 @@ void main() {
       );
       expect(find.byType(HypeTrainLevelPill), findsNothing);
       expect(find.byKey(const ValueKey('ht-title')), findsNothing);
-      expect(find.text(HtCopy.athApproaching), findsOneWidget);
+      expect(find.text(HtCopy(L10n.english).athApproaching), findsOneWidget);
       expect(tester.getSize(_banner).height, 74);
       await h.close(tester);
     });
@@ -531,7 +532,7 @@ void main() {
       final banner = tester.getRect(_banner);
 
       expect(marqueeX(tester), closeTo(banner.width, 40));
-      final text = tester.widget<Text>(find.text(HtCopy.levelUp));
+      final text = tester.widget<Text>(find.text(HtCopy(L10n.english).levelUp));
       expect(text.style?.fontSize, 24);
       expect(text.style?.fontWeight, FontWeight.w700);
       await h.close(tester);

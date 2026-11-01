@@ -1,5 +1,7 @@
 import 'dart:collection';
 
+import 'package:onset/l10n/l10n.dart';
+
 /// Formats a latency in milliseconds with 0.1 s precision (e.g. `2.3s`).
 ///
 /// Uses integer tenths so the output never depends on floating point
@@ -8,6 +10,17 @@ String formatLatency(int ms) {
   final tenths = (ms.clamp(0, 1 << 31) / 100).round();
   return '${tenths ~/ 10}.${tenths % 10}s';
 }
+
+/// A latency as the players hold it ("2.3s" from [formatLatency], "2s"
+/// from the web player) written in [l]'s language: "2.3s", « 2,3 s ». Any
+/// other text (a placeholder, a reconnect count) stays as it is.
+String displayLatency(String latency, AppLocalizations l) {
+  final match = _seconds.firstMatch(latency);
+  if (match == null) return latency;
+  return l.latencySeconds(value: localDecimal(match[1]!));
+}
+
+final _seconds = RegExp(r'^(\d+(?:\.\d+)?)s$');
 
 /// Whole-second chat delay derived from the measured stream latency.
 ///
@@ -27,11 +40,16 @@ int chatDelaySecondsWithHysteresis(int ms, int? current, {int marginMs = 150}) {
   return (ms - current * 1000).abs() >= 500 + marginMs ? rounded : current;
 }
 
-/// Formats a bitrate in bits per second, or `—` when unknown.
-String formatBitrate(int? bps) {
+/// Formats a bitrate in bits per second in [l]'s language ("4.2 Mbps",
+/// « 4,2 Mbit/s »), or `—` when unknown.
+String formatBitrate(int? bps, AppLocalizations l) {
   if (bps == null || bps <= 0) return '—';
-  if (bps >= 1000000) return '${(bps / 1000000).toStringAsFixed(1)} Mbps';
-  return '${(bps / 1000).ceil()} kbps';
+  if (bps >= 1000000) {
+    return l.latencyMegabits(
+      value: localDecimal((bps / 1000000).toStringAsFixed(1)),
+    );
+  }
+  return l.latencyKilobits(value: (bps / 1000).ceil());
 }
 
 /// Rolling window of latency samples (one per second from the native player)

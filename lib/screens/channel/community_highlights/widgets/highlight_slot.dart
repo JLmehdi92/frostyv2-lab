@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:onset/screens/channel/community_highlights/stores/community_highlights_store.dart';
@@ -20,15 +21,9 @@ import 'package:onset/widgets/twitch_web_page.dart';
 typedef PinnedMessageBuilder =
     Widget? Function(BuildContext context, PinnedChatMessage pin);
 
-/// What the viewer calls each kind.
-String highlightLabel(HighlightKind kind) => switch (kind) {
-  HighlightKind.poll => 'Poll',
-  HighlightKind.prediction => 'Prediction',
-  HighlightKind.pinned => 'Pinned',
-  HighlightKind.raid => 'Raid',
-  HighlightKind.giftBomb => 'Gift Subs',
-  HighlightKind.incomingRaid => 'Incoming raid',
-};
+/// What the viewer calls each kind, in [l]'s language.
+String highlightLabel(HighlightKind kind, AppLocalizations l) =>
+    l.highlightKind(kind: kind.name);
 
 IconData highlightIcon(HighlightKind kind) => switch (kind) {
   HighlightKind.poll => Icons.poll_outlined,
@@ -60,7 +55,7 @@ Widget buildHighlightCard(
         ? null
         : () => TwitchWebPage.open(
             context,
-            title: 'Twitch chat',
+            title: context.l10n.highlightTwitchChat,
             url: Uri.https('www.twitch.tv', '/popout/$login/chat'),
           ),
   );
@@ -89,7 +84,8 @@ Widget buildHighlightCard(
       HighlightKind.raid => switch (store.raid) {
         final raid? => RaidCard(
           raid: raid,
-          sourceName: store.channelName ?? login ?? 'This channel',
+          sourceName:
+              store.channelName ?? login ?? context.l10n.highlightThisChannel,
           sourceLogin: login,
           now: store.serverNow,
           onWatch: () => onWatchRaid(raid.raid),
@@ -236,13 +232,16 @@ class HighlightPager extends StatelessWidget {
             spacing: 2,
             children: [
               arrow(
-                tooltip: 'Previous highlight',
+                tooltip: context.l10n.highlightPrevious,
                 glyph: SheetGlyphKind.chevronLeft,
                 onPressed: index > 0 ? () => store.select(index - 1) : null,
               ),
               Text(
                 '${index + 1} / $count',
-                semanticsLabel: 'Highlight ${index + 1} of $count',
+                semanticsLabel: context.l10n.highlightPosition(
+                  index: index + 1,
+                  count: count,
+                ),
                 style: SheetText.tabular(
                   TextStyle(
                     fontFamily: OnsetTokens.bodyFamily,
@@ -253,7 +252,7 @@ class HighlightPager extends StatelessWidget {
                 ),
               ),
               arrow(
-                tooltip: 'Next highlight',
+                tooltip: context.l10n.highlightNext,
                 glyph: SheetGlyphKind.chevronRight,
                 onPressed: index + 1 < count
                     ? () => store.select(index + 1)
@@ -328,7 +327,7 @@ class _HighlightNewPillState extends State<HighlightNewPill>
     final accent = SheetColors.accentOf(context);
     final onAccent = SheetColors.onAccentOf(context);
     final curved = _curved;
-    final label = 'New ${highlightLabel(widget.kind).toLowerCase()}';
+    final label = context.l10n.highlightNew(kind: widget.kind.name);
     Widget pill = Semantics(
       button: true,
       label: label,
@@ -396,10 +395,12 @@ class HighlightVideoPill extends StatelessWidget {
         final item = store.current;
         if (item == null) return const SizedBox.shrink();
         final count = store.stack.items.length;
-        final label = highlightLabel(item.kind);
+        final label = highlightLabel(item.kind, context.l10n);
         return Semantics(
           button: true,
-          label: count > 1 ? '$label and ${count - 1} more' : label,
+          label: count > 1
+              ? context.l10n.highlightAndMore(label: label, count: count - 1)
+              : label,
           child: Material(
             color: Colors.black.withValues(alpha: 0.6),
             shape: const StadiumBorder(),

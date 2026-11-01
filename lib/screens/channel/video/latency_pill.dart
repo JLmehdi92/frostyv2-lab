@@ -2,17 +2,24 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/channel/video/latency_stats.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:onset/theme.dart';
 
-/// The latency text of the pill, or the reconnect progress while the IVS
-/// engine is recovering from an error ("↻ 2/5").
-String playerLatencyLabel(PlayerController store) => switch (store) {
-  IvsVideoStore(status: IvsPlaybackStatus.reconnecting) =>
-    '↻ ${store.retryAttempt}/${store.maxRetryAttempts}',
-  _ => store.latency ?? '—',
-};
+/// The latency text of the pill in [l]'s language ("2.3s", « 2,3 s »), or
+/// the reconnect progress while the IVS engine is recovering from an error
+/// ("↻ 2/5").
+String playerLatencyLabel(PlayerController store, AppLocalizations l) =>
+    switch (store) {
+      IvsVideoStore(status: IvsPlaybackStatus.reconnecting) =>
+        '↻ ${store.retryAttempt}/${store.maxRetryAttempts}',
+      _ => switch (store.latency) {
+        final latency? => displayLatency(latency, l),
+        null => '—',
+      },
+    };
 
 /// The latency to the broadcaster, in a pill over the top-right corner of
 /// the video.
@@ -28,9 +35,6 @@ class LatencyPill extends StatelessWidget {
   /// The tablet size (28 high instead of 26).
   final bool large;
 
-  static const tooltipIvs = 'Latency to broadcaster · tap for video stats';
-  static const tooltipOther = 'Latency to broadcaster';
-
   static final _label = OnsetType.tabular(
     const TextStyle(
       fontFamily: OnsetTokens.bodyFamily,
@@ -41,8 +45,8 @@ class LatencyPill extends StatelessWidget {
     ),
   );
 
-  /// The widest the pill gets ("188.8s", "↻ 9/9"), so the controls' top row
-  /// can keep its place without drawing a second pill.
+  /// The widest the pill gets ("188.8s", « 188,8 s », "↻ 9/9"), so the
+  /// controls' top row can keep its place without drawing a second pill.
   static double slotWidth(BuildContext context, {bool large = false}) {
     final scaler = MediaQuery.textScalerOf(context);
     double measure(String text) {
@@ -57,7 +61,10 @@ class LatencyPill extends StatelessWidget {
       return width;
     }
 
-    final text = math.max(measure('188.8s'), measure('↻ 9/9'));
+    final text = math.max(
+      measure(displayLatency('188.8s', context.l10n)),
+      measure('↻ 9/9'),
+    );
     // Padding, the dot and its gap, the hairline.
     return (large ? 10 : 9) * 2 + 6 + 6 + text + 1;
   }
@@ -71,7 +78,9 @@ class LatencyPill extends StatelessWidget {
     // repaint for that.
     return RepaintBoundary(
       child: Tooltip(
-        message: ivs != null ? tooltipIvs : tooltipOther,
+        message: ivs != null
+            ? context.l10n.latencyPillTooltipStats
+            : context.l10n.latencyPillTooltip,
         preferBelow: true,
         triggerMode: ivs != null
             ? TooltipTriggerMode.longPress
@@ -81,10 +90,10 @@ class LatencyPill extends StatelessWidget {
           onTap: ivs?.toggleStats,
           child: Observer(
             builder: (context) {
-              final label = playerLatencyLabel(store);
+              final label = playerLatencyLabel(store, context.l10n);
               return Semantics(
                 button: ivs != null,
-                label: 'Latency $label',
+                label: context.l10n.latencyPillSemantics(latency: label),
                 excludeSemantics: true,
                 child: Container(
                   height: height,
