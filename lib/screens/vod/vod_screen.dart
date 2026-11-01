@@ -311,7 +311,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
           .getContentLabels(vod.id)
           .timeout(_labelsTimeout);
       // English, like the rest of the warning, until it is translated.
-      return contentLabelNames(ids, L10n.english);
+      return contentLabelNames(ids, L10n.untranslated);
     } catch (e) {
       debugPrint('VodScreen content labels failed: ${e.runtimeType}');
       return const [];

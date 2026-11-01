@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:intl/intl.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
@@ -785,7 +786,7 @@ class _VersionLines extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: tablet ? 4 : 3,
       children: [
-        if (tablet)
+        if (tablet) ...[
           Row(
             spacing: 8,
             children: [
@@ -809,18 +810,22 @@ class _VersionLines extends StatelessWidget {
                     ),
                   ),
                 ),
-              Expanded(
-                child: Text(
-                  entry.date ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: _inter(12.5, color: colors.secondary),
-                ),
-              ),
             ],
-          )
-        else
+          ),
+          if (entry.date case final written?)
+            Text(
+              // Short ("Oct 29, 2026", « 29 oct. 2026 ») on a line of its
+              // own: beside the version and its badge the long one was cut
+              // in this narrow list. The details show it whole.
+              switch (entry.day) {
+                final day? => _shortDate(day, context.l10n.localeName, written),
+                null => written,
+              },
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _inter(12.5, color: colors.secondary),
+            ),
+        ] else
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
@@ -838,6 +843,17 @@ class _VersionLines extends StatelessWidget {
           ),
       ],
     );
+  }
+}
+
+/// [day] short, in [locale]'s way ("Oct 29, 2026", « 29 oct. 2026 »); the
+/// date as [written] when no date format is loaded (an app without the
+/// localization delegates, which load them, as in some tests).
+String _shortDate(DateTime day, String locale, String written) {
+  try {
+    return DateFormat.yMMMd(locale).format(day);
+  } on Exception {
+    return written;
   }
 }
 

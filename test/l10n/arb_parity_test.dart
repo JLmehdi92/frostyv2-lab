@@ -4,6 +4,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 
 import 'arb.dart';
 
@@ -138,6 +139,27 @@ void main() {
         }
       }
     }
+  });
+
+  test('on/off selects use the OnOff names, so code passes OnOff.name', () {
+    final onOff = {for (final value in OnOff.values) value.name};
+    var found = 0;
+    for (final key in enKeys) {
+      for (final MapEntry(key: name, value: choice) in IcuMessage.parse(
+        en[key]! as String,
+      ).choices.entries) {
+        if (choice.kind != 'select') continue;
+        final selectors = choice.selectors.toSet()..remove('other');
+        if (selectors.intersection(onOff).isEmpty) continue;
+        found++;
+        expect(
+          selectors.difference(onOff),
+          isEmpty,
+          reason: '$key {$name}: a branch the OnOff enum does not name',
+        );
+      }
+    }
+    expect(found, greaterThan(0), reason: 'no on/off select looked at');
   });
 
   test('French differs from English, except where it is the same word', () {

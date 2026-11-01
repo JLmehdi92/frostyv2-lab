@@ -91,98 +91,192 @@ Future<void> pumpLocalized(
 }
 
 /// The English texts the screen shows while it should be in French: every
-/// drawn text (and text field) equal to an English message that French
-/// words differently. Placeholder messages are matched on their fixed
-/// text around the placeholders; a message that is one plural or select
-/// on each of its branches, in any case (labels shown in capitals too). A
-/// text that the French of the same message also gives is no leak.
-List<String> englishLeaks(WidgetTester tester) {
+/// drawn text, and every label a screen reader reads (`Semantics` labels,
+/// values and hints, `Tooltip` messages), equal to an English message that
+/// French words differently.
+///
+/// A message matches on its fixed text around its placeholders, in any case
+/// (labels are also shown in capitals); a message with plurals or selects
+/// matches on each combination of its branches, wherever they sit in it.
+///
+/// A text is no leak when the French of the same message also gives it (in
+/// any case), or when it is exactly, case included, a French text of any
+/// message ("LIVE", the badge, is no leak of "Live", the tab). An English
+/// message that French also uses as is, case included (the endonym
+/// "English"), is not looked for.
+List<String> englishLeaks(WidgetTester tester) => [
+  for (final text in shownTexts(tester))
+    if (_isEnglishLeak(text)) text,
+];
+
+/// Whether [text], shown on a French screen, is English (see
+/// [englishLeaks]). Worked out once per text: the screens show the same
+/// texts at every scroll step.
+bool _isEnglishLeak(String text) =>
+    _leakVerdicts.putIfAbsent(text, () => _findsEnglish(text));
+
+final _leakVerdicts = <String, bool>{};
+
+bool _findsEnglish(String text) {
+  final (:checks, :frenchValues, :anyEnglish) = _leakChecks;
+  if (frenchValues.contains(text)) return false;
+  // Most texts match no English message: one pass over all of them first.
+  if (!anyEnglish.hasMatch(text)) return false;
+  return checks.any(
+    (check) =>
+        check.english.any((pattern) => pattern.hasMatch(text)) &&
+        !check.french.any((pattern) => pattern.hasMatch(text)),
+  );
+}
+
+typedef _LeakCheck = ({List<RegExp> english, List<RegExp> french});
+
+/// The messages [englishLeaks] looks for, read once from the ARB files, and
+/// all their English patterns in one ([anyEnglish]).
+final ({List<_LeakCheck> checks, Set<String> frenchValues, RegExp anyEnglish})
+_leakChecks = () {
   final english =
       jsonDecode(File('lib/l10n/app_en.arb').readAsStringSync())
           as Map<String, Object?>;
   final french =
       jsonDecode(File('lib/l10n/app_fr.arb').readAsStringSync())
           as Map<String, Object?>;
-  // A word French also shows as is (the endonym "English") is no leak.
-  final frenchValues = french.values.toSet();
-  final checks = <({List<RegExp> english, List<RegExp> french})>[];
+  final frenchValues = {
+    for (final MapEntry(:key, :value) in french.entries)
+      if (!key.startsWith('@') && value is String) ...[
+        value,
+        // A select's branches, each shown whole ("Activés").
+        ..._variants(value).where((v) => !v.contains(_hole)),
+      ],
+  };
+  final checks = <_LeakCheck>[];
   for (final MapEntry(:key, :value) in english.entries) {
-    if (key.startsWith('@') ||
-        value is! String ||
-        frenchValues.contains(value)) {
-      continue;
-    }
-    final englishPatterns = _shownPatterns(value);
+    if (key.startsWith('@') || value is! String) continue;
+    // Shown as is in French too (an endonym): it cannot be told apart.
+    if (frenchValues.contains(value)) continue;
+    final englishPatterns = shownPatterns(value);
     if (englishPatterns.isEmpty) continue;
     checks.add((
       english: englishPatterns,
-      french: _shownPatterns(french[key]! as String),
+      french: shownPatterns(french[key]! as String),
     ));
   }
-  final shown = <String>{
-    for (final widget in tester.widgetList<RichText>(find.byType(RichText)))
-      widget.text.toPlainText(),
-  };
-  // A text French shows as is, in any case ("LIVE"), is no leak either.
-  final frenchTexts = {
-    for (final value in frenchValues)
-      if (value is String) value.toLowerCase(),
-  };
-  bool leaks(String text) =>
-      !frenchTexts.contains(text.toLowerCase()) &&
-      checks.any(
-        (check) =>
-            check.english.any((pattern) => pattern.hasMatch(text)) &&
-            !check.french.any((pattern) => pattern.hasMatch(text)),
-      );
-  return [
-    for (final text in shown)
-      if (leaks(text)) text,
-  ];
-}
+  final anyEnglish = RegExp(
+    [
+      for (final check in checks)
+        for (final pattern in check.english) '(?:${pattern.pattern})',
+    ].join('|'),
+    caseSensitive: false,
+    dotAll: true,
+  );
+  return (checks: checks, frenchValues: frenchValues, anyEnglish: anyEnglish);
+}();
 
-/// What [message] can show, as patterns: the message itself with each
-/// placeholder as any text, or for a message that is one plural or select,
-/// each of its branches. Empty for a choice inside other text (no branch is
-/// shown whole), and for text with fewer than three letters of its own
-/// around its placeholders.
-List<RegExp> _shownPatterns(String message) {
-  RegExp? pattern(String text) {
-    final fixed = text.split(RegExp(r'\{\w+\}|#'));
-    // Next to no words of its own ("{scale}x", "{pixels}px"): it cannot be
-    // told from the data it shows.
-    if (RegExp(r'\p{L}', unicode: true).allMatches(fixed.join()).length < 3 &&
-        fixed.length > 1) {
-      return null;
+/// Every text [tester]'s screen shows a viewer: drawn text (with its
+/// spans' screen-reader labels), and what a screen reader reads from
+/// `Semantics` (label, value, hint, tooltip) and `Tooltip` (message).
+Set<String> shownTexts(WidgetTester tester) => {
+  for (final widget in tester.widgetList<RichText>(find.byType(RichText)))
+    widget.text.toPlainText(),
+  for (final widget in tester.widgetList<Semantics>(find.byType(Semantics)))
+    ...[
+      widget.properties.label,
+      widget.properties.value,
+      widget.properties.hint,
+      widget.properties.tooltip,
+    ].nonNulls.where((text) => text.trim().isNotEmpty),
+  for (final widget in tester.widgetList<Tooltip>(find.byType(Tooltip)))
+    ?(widget.message ?? widget.richMessage?.toPlainText()),
+};
+
+/// Stands for a placeholder (or a plural's `#`) in [_variants].
+const _hole = '\u{FFFC}';
+
+/// What [message] can show, as patterns matching the whole text: each
+/// combination of its plural and select branches ([_variants]), with each
+/// placeholder as any text. A variant with fewer than three letters of its
+/// own around its placeholders ("{scale}x") cannot be told from the data it
+/// shows, and gives no pattern.
+List<RegExp> shownPatterns(String message) {
+  final patterns = <RegExp>[];
+  for (final variant in _variants(message)) {
+    final fixed = variant.split(_hole);
+    if (fixed.length > 1 &&
+        RegExp(r'\p{L}', unicode: true).allMatches(fixed.join()).length < 3) {
+      continue;
     }
     // Whatever the case: group labels and eyebrows are shown in capitals.
-    return RegExp(
-      '^${fixed.map(RegExp.escape).join('.+')}\$',
-      caseSensitive: false,
+    patterns.add(
+      RegExp(
+        '^${fixed.map(RegExp.escape).join('.+')}\$',
+        caseSensitive: false,
+        dotAll: true,
+      ),
     );
   }
+  return patterns;
+}
 
-  final choice = RegExp(r'^\{\w+, ?(plural|select), ?').firstMatch(message);
-  if (choice == null) {
-    if (RegExp(r'\{\w+,').hasMatch(message)) return const [];
-    return [?pattern(message)];
-  }
-  // The branches: "selector{text}" up to the closing brace.
-  final branches = <RegExp>[];
-  var i = choice.end;
-  while (i < message.length - 1) {
-    final open = message.indexOf('{', i);
-    if (open < 0) break;
-    var depth = 0;
-    var end = open;
-    for (; end < message.length; end++) {
-      if (message[end] == '{') depth++;
-      if (message[end] == '}' && --depth == 0) break;
+/// The texts an ICU [message] can give: one per combination of the branches
+/// of its plurals and selects, each placeholder and plural `#` written as
+/// [_hole]. At most [limit] (a message is never near it).
+List<String> _variants(String message, {int limit = 512}) {
+  var results = <String>[''];
+  void append(List<String> pieces) {
+    results = [
+      for (final head in results)
+        for (final piece in pieces) head + piece,
+    ];
+    if (results.length > limit) {
+      throw StateError('Too many variants in: $message');
     }
-    final text = message.substring(open + 1, end);
-    if (RegExp(r'\{\w+,').hasMatch(text)) return const [];
-    if (pattern(text) case final branch?) branches.add(branch);
+  }
+
+  final text = StringBuffer();
+  var i = 0;
+  while (i < message.length) {
+    final char = message[i];
+    if (char != '{') {
+      text.write(char);
+      i++;
+      continue;
+    }
+    final end = _closing(message, i);
+    append([text.toString()]);
+    text.clear();
+    final inner = message.substring(i + 1, end);
+    final choice = RegExp(
+      r'^\s*\w+\s*,\s*(plural|select|selectordinal)\s*,',
+    ).firstMatch(inner);
+    if (choice == null) {
+      append([_hole]);
+    } else {
+      final isPlural = choice.group(1) != 'select';
+      final branches = <String>[];
+      var j = choice.end;
+      while (true) {
+        final open = inner.indexOf('{', j);
+        if (open < 0) break;
+        final close = _closing(inner, open);
+        var branch = inner.substring(open + 1, close);
+        if (isPlural) branch = branch.replaceAll('#', _hole);
+        branches.addAll(_variants(branch, limit: limit));
+        j = close + 1;
+      }
+      append(branches);
+    }
     i = end + 1;
   }
-  return branches;
+  append([text.toString()]);
+  return results;
+}
+
+/// The index of the brace closing the one at [open] in [text].
+int _closing(String text, int open) {
+  var depth = 0;
+  for (var i = open; i < text.length; i++) {
+    if (text[i] == '{') depth++;
+    if (text[i] == '}' && --depth == 0) return i;
+  }
+  throw FormatException('Unclosed brace', text, open);
 }

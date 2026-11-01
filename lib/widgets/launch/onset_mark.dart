@@ -296,6 +296,34 @@ class OnsetWordmark extends StatelessWidget {
   /// Letter size.
   static double letterSize({required bool tablet}) => tablet ? 40 : 34;
 
+  /// How wide the name is drawn with text scaled by [textScaler] (its
+  /// letters; the underline is narrower).
+  static double widthFor(TextScaler textScaler, {required bool tablet}) {
+    final size = letterSize(tablet: tablet);
+    var width = 0.0;
+    for (final letter in name.split('')) {
+      final painter = TextPainter(
+        text: TextSpan(text: letter, style: _letterStyle(size)),
+        textDirection: TextDirection.ltr,
+        textScaler: textScaler,
+      )..layout();
+      width += painter.width;
+      painter.dispose();
+    }
+    return width;
+  }
+
+  /// A letter's type at [size] (its colour aside).
+  static TextStyle _letterStyle(double size) => TextStyle(
+    fontFamily: OnsetTokens.displayFamily,
+    fontSize: size,
+    fontWeight: FontWeight.w800,
+    fontStyle: FontStyle.normal,
+    decoration: TextDecoration.none,
+    letterSpacing: -0.035 * size,
+    height: 1.2,
+  );
+
   @override
   Widget build(BuildContext context) {
     final size = letterSize(tablet: tablet);
@@ -365,14 +393,7 @@ class _Letter extends StatelessWidget {
       offset: Offset(0, rise * (1 - progress)),
       child: Text(
         letter,
-        style: TextStyle(
-          fontFamily: OnsetTokens.displayFamily,
-          fontSize: size,
-          fontWeight: FontWeight.w800,
-          fontStyle: FontStyle.normal,
-          decoration: TextDecoration.none,
-          letterSpacing: -0.035 * size,
-          height: 1.2,
+        style: OnsetWordmark._letterStyle(size).copyWith(
           color: OnsetTokens.textPrimaryDark.withValues(
             alpha: (progress * opacity).clamp(0.0, 1.0),
           ),

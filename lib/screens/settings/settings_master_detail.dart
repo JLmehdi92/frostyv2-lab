@@ -20,13 +20,13 @@ import 'package:onset/widgets/motion/reduce_motion.dart';
 class SettingsSubPage {
   const SettingsSubPage({
     required this.id,
-    required this.title,
     required this.parent,
     required this.builder,
   });
 
+  /// The page; its title is read from it when the pane builds, so it
+  /// follows the language.
   final SettingsPageId id;
-  final String title;
   final SettingsPageId parent;
   final WidgetBuilder builder;
 }
@@ -437,17 +437,12 @@ class _Pane extends StatelessWidget {
   final int columns;
   final double bottom;
 
-  void _open(SettingsPageId id, String title, WidgetBuilder builder) {
+  void _open(SettingsPageId id, WidgetBuilder builder) {
     if (id.isSection) {
       selection.select(id);
     } else {
       selection.open(
-        SettingsSubPage(
-          id: id,
-          title: title,
-          parent: selection.page,
-          builder: builder,
-        ),
+        SettingsSubPage(id: id, parent: selection.page, builder: builder),
       );
     }
   }
@@ -521,7 +516,7 @@ class _Pane extends StatelessWidget {
                           child: SettingsPaneScope(
                             onOpen: _open,
                             columns: 1,
-                            title: sub.title,
+                            title: sub.id.title(context.l10n),
                             backLabel: sub.parent.title(context.l10n),
                             onBack: selection.closeSub,
                             child: Builder(builder: sub.builder),

@@ -102,7 +102,7 @@ class IvsStatsPanel extends StatelessWidget {
                 ),
                 // English, like the rest of the panel, until it is
                 // translated.
-                ('Mode', store.playerConfig.label(L10n.english)),
+                ('Mode', store.playerConfig.label(L10n.untranslated)),
                 ('Auto latency', describeAutoLatency(store.autoLatencyStatus)),
                 if (describeBufferFallback(store.bufferFallbackUntil)
                     case final fallback?)

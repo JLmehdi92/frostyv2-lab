@@ -253,6 +253,104 @@ October 29, 2026
       }
     });
 
+    test('dates with French no-break spaces, or a decomposed accent', () {
+      for (final (written, read) in const [
+        ('29\u00a0octobre\u00a02026', '29\u00a0octobre\u00a02026'),
+        ('1er\u202fmai\u202f2026', '1er\u202fmai\u202f2026'),
+        // "août" and "février" typed as a letter then a combining accent
+        // (NFD), read as the letters the screen expects.
+        ('15 aou\u0302t 2026', '15 août 2026'),
+        ('9 fe\u0301vrier 2026', '9 février 2026'),
+        ('3 de\u0301cembre 2026', '3 décembre 2026'),
+      ]) {
+        final entry = parseReleaseEntries(
+          '## v1.0.0\n\n$written\n\n- Un.\n',
+        ).entries.single;
+        expect(entry.date, read, reason: written);
+        expect(entry.notes, isEmpty, reason: written);
+      }
+    });
+
+    test('the day a date names, in either language', () {
+      for (final (date, day) in [
+        ('October 29, 2026', DateTime(2026, 10, 29)),
+        ('January 9, 2026', DateTime(2026, 1, 9)),
+        ('29 octobre 2026', DateTime(2026, 10, 29)),
+        ('1er janvier 2027', DateTime(2027)),
+        ('15\u00a0août\u00a02026', DateTime(2026, 8, 15)),
+        ('15 aou\u0302t 2026', DateTime(2026, 8, 15)),
+      ]) {
+        expect(releaseDay(date), day, reason: date);
+      }
+      for (final date in const [
+        'February 31, 2026',
+        '31 février 2026',
+        'Octember 29, 2026',
+        '29 brumaire 2026',
+        'soon',
+      ]) {
+        expect(releaseDay(date), isNull, reason: date);
+      }
+    });
+
+    test('a French heading reads as the English it translates', () {
+      ReleaseSectionKind kind(String title) => parseReleaseEntries(
+        '## v1.0.0\n\n### $title\n\n- Un.\n',
+      ).entries.single.sections.single.kind;
+
+      // English heading, French heading, and the kind both must read as.
+      const pairs = [
+        ('New', 'Nouveautés', ReleaseSectionKind.added),
+        ('NEW', 'NOUVEAUTÉS', ReleaseSectionKind.added),
+        ('Features', 'Fonctionnalités', ReleaseSectionKind.added),
+        ('New features', 'Nouvelles fonctionnalités', ReleaseSectionKind.added),
+        ('Added', 'Ajouts', ReleaseSectionKind.added),
+        ('Added', 'Ajouté', ReleaseSectionKind.added),
+        ('Improvements', 'Améliorations', ReleaseSectionKind.improved),
+        ('Improved', 'Améliorés', ReleaseSectionKind.improved),
+        ('Changed', 'Changements', ReleaseSectionKind.improved),
+        ('Changed', 'Modifications', ReleaseSectionKind.improved),
+        ('Changed', 'Modifié', ReleaseSectionKind.improved),
+        ('Fixes', 'Corrections', ReleaseSectionKind.fixed),
+        ('Fixes', 'Correctifs', ReleaseSectionKind.fixed),
+        ('Bug fixes', 'Bogues corrigés', ReleaseSectionKind.fixed),
+        ('Bugfixes', 'Corrections de bogues', ReleaseSectionKind.fixed),
+        (
+          'Fixes for the new player',
+          'Corrections du nouveau lecteur',
+          ReleaseSectionKind.fixed,
+        ),
+        (
+          'Improvements and fixes',
+          'Améliorations et corrections',
+          ReleaseSectionKind.fixed,
+        ),
+        (
+          'New and fixed',
+          'Nouveautés et corrections',
+          ReleaseSectionKind.fixed,
+        ),
+        (
+          'Incorrect behaviours',
+          'Comportements incorrects',
+          ReleaseSectionKind.other,
+        ),
+        ('Misc', 'Divers', ReleaseSectionKind.other),
+        // "fix" anywhere is a fix in English, as it always was.
+        (
+          'Command prefixes',
+          'Préfixes des commandes',
+          ReleaseSectionKind.fixed,
+        ),
+      ];
+      for (final (english, french, expected) in pairs) {
+        expect(kind(english), expected, reason: english);
+        expect(kind(french), expected, reason: french);
+      }
+      // A decomposed accent still reads.
+      expect(kind('Ame\u0301liorations'), ReleaseSectionKind.improved);
+    });
+
     test('a line that only looks like a date stays a paragraph', () {
       for (final line in const [
         '29 Octobre 2026',

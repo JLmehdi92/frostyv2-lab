@@ -337,7 +337,7 @@ class _Legend extends StatelessWidget {
                 ? 'Up Next at the end'
                 // English, like the rest of the panel, until it is
                 // translated.
-                : 'Up Next at the end · ${upNext.label(L10n.english)}',
+                : 'Up Next at the end · ${upNext.label(L10n.untranslated)}',
             style: style,
           ),
       ],

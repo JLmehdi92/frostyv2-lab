@@ -117,7 +117,7 @@ class _ContentWarningGateState extends State<ContentWarningGate> {
       // English, like the rest of the warning, until it is translated.
       labels = contentLabelNames(
         channel.contentClassificationLabels,
-        L10n.english,
+        L10n.untranslated,
       );
     } catch (_) {
       // Fail open: a channel we cannot read is not blocked.

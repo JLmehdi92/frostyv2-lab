@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
 import 'package:onset/screens/settings/widgets/release_notes_parts.dart';
@@ -487,6 +488,21 @@ void main() {
       expect(find.text('ONSET 1.0.0'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+
+    for (final size in [_landscape, _portrait]) {
+      testWidgets('the version list shows each date short, never cut '
+          '(${size.width.toInt()})', (tester) async {
+        // As the app's localization delegates do.
+        await initializeDateFormatting('en');
+        await open(tester, size: size);
+        for (final short in const ['Nov 12, 2026', 'Oct 20, 2026']) {
+          final date = tester.renderObject<RenderParagraph>(find.text(short));
+          expect(date.didExceedMaxLines, isFalse, reason: short);
+        }
+        // The details keep the whole date.
+        expect(find.text('November 12, 2026'), findsOneWidget);
+      });
+    }
 
     testWidgets('the chosen version survives rotation and resizing', (
       tester,

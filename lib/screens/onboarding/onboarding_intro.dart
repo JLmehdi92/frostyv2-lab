@@ -24,6 +24,11 @@ import 'package:onset/widgets/onset_cached_network_image.dart';
 /// The language pill is the screen's key choice, so it is always shown
 /// whole, above "Next": the description is the only part that scrolls,
 /// when even the tightest [fit] leaves it too little room.
+///
+/// A phone held sideways (a landscape window: split screen, a freeform or
+/// desktop window) has too little height for one column: [column] then
+/// places the description, the pill, the version and "Next" in a column
+/// beside the tile and the name.
 class OnboardingIntroPhone extends StatelessWidget {
   const OnboardingIntroPhone({
     super.key,
@@ -35,10 +40,15 @@ class OnboardingIntroPhone extends StatelessWidget {
     required this.language,
     required this.onLanguage,
     required this.onNext,
+    this.column,
   });
 
   final double nameBottom;
   final IntroPhoneFit fit;
+
+  /// On a landscape window, the column beside the tile and the name; null
+  /// on a portrait one (the parts under the name, the window wide).
+  final IntroColumn? column;
   final String? version;
   final Color accent;
   final double bottomInset;
@@ -56,7 +66,10 @@ class OnboardingIntroPhone extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textScaler = MediaQuery.textScalerOf(context);
-    final width = MediaQuery.sizeOf(context).width;
+    final column = this.column;
+    final width = column?.width ?? MediaQuery.sizeOf(context).width;
+    final left = column?.left ?? 0.0;
+    final right = column?.right ?? 0.0;
     return Stack(
       children: [
         // The description from the top, the pill and the version from the
@@ -66,7 +79,9 @@ class OnboardingIntroPhone extends StatelessWidget {
         Positioned.fill(
           child: Padding(
             padding: EdgeInsets.only(
-              top: nameBottom + fit.descriptionGap,
+              left: left,
+              right: right,
+              top: column?.top ?? nameBottom + fit.descriptionGap,
               bottom: bottomInset + aboveNext,
             ),
             child: Column(
@@ -76,8 +91,10 @@ class OnboardingIntroPhone extends StatelessWidget {
                     alignment: Alignment.topCenter,
                     child: SingleChildScrollView(
                       physics: const ClampingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: descriptionSide,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: column == null
+                            ? descriptionSide
+                            : IntroColumn.descriptionSide,
                       ),
                       child: StepRise(
                         order: 2,
@@ -116,8 +133,8 @@ class OnboardingIntroPhone extends StatelessWidget {
           ),
         ),
         Positioned(
-          left: 16,
-          right: 16,
+          left: left + 16,
+          right: right + 16,
           bottom: bottomInset + 24,
           child: StepRise(
             order: 4,
@@ -142,9 +159,10 @@ class OnboardingIntroPhone extends StatelessWidget {
   );
 
   /// The room the description [text] takes in [width], in [body] (the
-  /// style it inherits) scaled by [textScaler]: three lines at least, so
-  /// the tile does not move when the language changes, more when the
-  /// language or large text needs them.
+  /// style it inherits) scaled by [textScaler]: three lines at least, more
+  /// when the language or large text needs them. The flow measures it in
+  /// every language and keeps the tallest, so a tap on the language pill
+  /// never moves the tile.
   static double descriptionRoom(
     String text, {
     required TextStyle? body,
@@ -165,6 +183,40 @@ class OnboardingIntroPhone extends StatelessWidget {
     final threeLines = textScaler.scale(70);
     return height > threeLines ? height : threeLines;
   }
+}
+
+/// Where the phone's Intro puts its description, pill, version and "Next"
+/// on a landscape window: a column [left] from the window's left edge to
+/// [right] from its right edge, from [top] down.
+@immutable
+class IntroColumn {
+  const IntroColumn({
+    required this.left,
+    required this.right,
+    required this.top,
+    required this.width,
+  });
+
+  final double left;
+  final double right;
+  final double top;
+
+  /// Its width: the window's, less [left] and [right].
+  final double width;
+
+  /// The description's margins inside the column.
+  static const descriptionSide = 8.0;
+
+  @override
+  bool operator ==(Object other) =>
+      other is IntroColumn &&
+      other.left == left &&
+      other.right == right &&
+      other.top == top &&
+      other.width == width;
+
+  @override
+  int get hashCode => Object.hash(left, right, top, width);
 }
 
 /// How the phone's Intro fits its window: the tile's size and the gaps
@@ -298,6 +350,42 @@ class IntroPhoneFit {
     // No version line; and the description scrolls if it still lacks room.
     return shrunk(tight._copyWith(showVersion: false));
   }
+
+  /// The roomiest fit for the column of a landscape window ([IntroColumn]),
+  /// [room] tall from its top to "Next"'s area, the description needing
+  /// [descriptionRoom]: the design's gaps, else the tight ones, else no
+  /// version line, the description scrolling as a last resort. The tile
+  /// (beside the column) keeps [tileScale] and [tileGap].
+  static IntroPhoneFit ofColumn({
+    required double room,
+    required double descriptionRoom,
+    required TextScaler textScaler,
+    required double tileScale,
+    required double tileGap,
+  }) {
+    for (final fit in [
+      roomy._copyWith(tileScale: tileScale),
+      tight._copyWith(tileScale: tileScale),
+    ]) {
+      final column = fit._inColumn(tileGap);
+      if (column.belowName(descriptionRoom, textScaler) <= room) return column;
+    }
+    return tight
+        ._copyWith(tileScale: tileScale, showVersion: false)
+        ._inColumn(tileGap);
+  }
+
+  /// This fit in a landscape column: the description at the column's top
+  /// (no gap under the name, which is beside it), the tile [tileGap] above
+  /// the name.
+  IntroPhoneFit _inColumn(double tileGap) => IntroPhoneFit(
+    tileScale: tileScale,
+    tileGap: tileGap,
+    descriptionGap: 0,
+    pillGap: pillGap,
+    versionGap: versionGap,
+    showVersion: showVersion,
+  );
 
   @override
   bool operator ==(Object other) =>

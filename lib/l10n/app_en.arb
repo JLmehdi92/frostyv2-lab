@@ -2061,7 +2061,7 @@
   },
   "releaseNotesUpdatedTo": "Updated to {version}",
   "@releaseNotesUpdatedTo": {
-    "description": "Release notes opened after an update: the title. The version is a number such as 1.1.0 (« la » stands for « la version »).",
+    "description": "Release notes opened after an update: the title, a fact (the version now installed), never an action. The version is a number such as 1.1.0.",
     "placeholders": {
       "version": {
         "type": "String",

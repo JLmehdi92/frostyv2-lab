@@ -29,6 +29,13 @@ abstract final class L10n {
     const Locale('en'),
   );
 
+  /// English on purpose, in a screen not translated yet (a label shown next
+  /// to its English text). Each use is listed in
+  /// test/guards/l10n_untranslated_test.dart, a ratchet that only goes down
+  /// and is empty once every screen is in French: translating a screen
+  /// means replacing its uses with `context.l10n` (or [current]).
+  static AppLocalizations get untranslated => english;
+
   static final _current = Observable<AppLocalizations>(
     english,
     name: 'L10n.current',
@@ -145,6 +152,17 @@ Future<void> saveUiLanguage(Locale locale) async {
   } catch (e) {
     debugPrint('Language not saved for the background: ${e.runtimeType}');
   }
+}
+
+/// The two branches of an on/off select in the ARB files
+/// (`{mentions, select, on{…} other{…}}`): pass [name], never a typed
+/// string, so a typo cannot fall into `other` unnoticed.
+enum OnOff {
+  on,
+  off;
+
+  /// [on] when [value] is true.
+  static OnOff of(bool value) => value ? on : off;
 }
 
 /// The first private-use code point of [l10nMark].

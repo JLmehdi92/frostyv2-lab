@@ -99,19 +99,16 @@ class _ProfileTabState extends State<ProfileTab> {
 
   String _notificationsSummary(AppLocalizations l, bool loggedIn) {
     if (!loggedIn) return l.settingsSummaryNotificationsLoggedOut;
-    final mentions = _onOff(widget.settingsStore.mentionNotifications);
+    final mentions = OnOff.of(widget.settingsStore.mentionNotifications).name;
     final goLive = _goLive;
     if (!widget.goLivePlatform.supported || goLive == null) {
       return l.settingsSummaryMentions(mentions: mentions);
     }
     return l.settingsSummaryGoLiveMentions(
-      goLive: _onOff(goLive),
+      goLive: OnOff.of(goLive).name,
       mentions: mentions,
     );
   }
-
-  /// The select value of the summary messages.
-  static String _onOff(bool on) => on ? 'on' : 'off';
 }
 
 class _PhoneProfile extends StatelessWidget {

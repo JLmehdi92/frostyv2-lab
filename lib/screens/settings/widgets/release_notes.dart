@@ -656,19 +656,129 @@ final class ReleaseParagraph extends ReleaseNotesBlock {
 
 final _platformTag = RegExp(r'^\[(iOS|Android)\]\s*');
 
+/// The spaces a date may be written with: a space, or the no-break ones
+/// French typography puts there.
+const _dateSpace = '[ \u00a0\u202f]';
+
 /// "January 9, 2026", or in French "9 janvier 2026" (and "1er janvier
 /// 2026"): the date under a version.
 final _date = RegExp(
-  r'^(?:[A-Z][a-z]+ \d{1,2}, \d{4}'
-  r'|(?:1er|\d{1,2}) (?:janvier|février|mars|avril|mai|juin|juillet|août'
-  r'|septembre|octobre|novembre|décembre) \d{4})$',
+  '^(?:[A-Z][a-z]+ \\d{1,2}, \\d{4}'
+  '|(?:1er|\\d{1,2})$_dateSpace(?:${_frenchMonths.join('|')})$_dateSpace'
+  '\\d{4})\$',
 );
+
+/// The French months, as written in dates, January first.
+const _frenchMonths = [
+  'janvier',
+  'février',
+  'mars',
+  'avril',
+  'mai',
+  'juin',
+  'juillet',
+  'août',
+  'septembre',
+  'octobre',
+  'novembre',
+  'décembre',
+];
+
+/// The English months, as written in dates, January first.
+const _englishMonths = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+/// The day a version's [date] names ("October 29, 2026", "29 octobre
+/// 2026"), or null when it does not read as one.
+DateTime? releaseDay(String date) {
+  final english = RegExp(
+    r'^([A-Z][a-z]+) (\d{1,2}), (\d{4})$',
+  ).firstMatch(date);
+  final french = RegExp(
+    '^(1er|\\d{1,2})$_dateSpace(\\p{L}+)$_dateSpace(\\d{4})\$',
+    unicode: true,
+  ).firstMatch(_composed(date));
+  final (int? day, int month, int? year) = switch ((english, french)) {
+    (final m?, _) => (
+      int.tryParse(m[2]!),
+      _englishMonths.indexOf(m[1]!) + 1,
+      int.tryParse(m[3]!),
+    ),
+    (_, final m?) => (
+      m[1] == '1er' ? 1 : int.tryParse(m[1]!),
+      _frenchMonths.indexOf(m[2]!) + 1,
+      int.tryParse(m[3]!),
+    ),
+    _ => (null, 0, null),
+  };
+  if (day == null || year == null || month == 0) return null;
+  final result = DateTime(year, month, day);
+  // "February 31" is no day.
+  return result.month == month && result.day == day ? result : null;
+}
+
+/// [text] with the French letters an editor may write decomposed (an "e"
+/// then a combining accent, as some keyboards and macOS file names do)
+/// written as one character: what the parser and the screen expect.
+String _composed(String text) {
+  if (!text.contains(_combining)) return text;
+  return text.replaceAllMapped(
+    RegExp('([aeiouyAEIOUYcC])([\u0300\u0301\u0302\u0308\u0327])'),
+    (match) => _composedLetters[match[0]] ?? match[0]!,
+  );
+}
+
+final _combining = RegExp('[\u0300\u0301\u0302\u0308\u0327]');
+
+/// The letters French writes with an accent, decomposed to composed.
+const _composedLetters = {
+  'a\u0300': 'à',
+  'a\u0302': 'â',
+  'e\u0300': 'è',
+  'e\u0301': 'é',
+  'e\u0302': 'ê',
+  'e\u0308': 'ë',
+  'i\u0302': 'î',
+  'i\u0308': 'ï',
+  'o\u0302': 'ô',
+  'u\u0300': 'ù',
+  'u\u0302': 'û',
+  'u\u0308': 'ü',
+  'y\u0308': 'ÿ',
+  'c\u0327': 'ç',
+  'A\u0300': 'À',
+  'A\u0302': 'Â',
+  'E\u0300': 'È',
+  'E\u0301': 'É',
+  'E\u0302': 'Ê',
+  'E\u0308': 'Ë',
+  'I\u0302': 'Î',
+  'I\u0308': 'Ï',
+  'O\u0302': 'Ô',
+  'U\u0300': 'Ù',
+  'U\u0302': 'Û',
+  'U\u0308': 'Ü',
+  'Y\u0308': 'Ÿ',
+  'C\u0327': 'Ç',
+};
 
 /// Reads the release notes' Markdown (assets/release-notes.md): versions,
 /// their dates, sections, points, rules; anything else stays a paragraph.
 List<ReleaseNotesBlock> parseReleaseNotes(String markdown) {
   final blocks = <ReleaseNotesBlock>[];
-  final lines = markdown.split(RegExp(r'\r?\n'));
+  final lines = _composed(markdown).split(RegExp(r'\r?\n'));
   for (var i = 0; i < lines.length; i++) {
     final raw = lines[i];
     final line = raw.trim();
@@ -730,25 +840,40 @@ enum ReleaseSectionKind {
 
   /// "Bug Fixes", "Bugfixes", "New", "Features", "Improvements",
   /// "Changed"…, in any case (a fix first: "Fixes for the new player");
-  /// in French "Corrections", "Nouveautés", "Améliorations"…; any other
-  /// name (or none) is [other].
+  /// any other name (or none) is [other]. A French name reads as the
+  /// English it translates: "Corrections", "Bogues corrigés" (fixed),
+  /// "Nouveautés", "Fonctionnalités", "Ajouts" (added), "Améliorations",
+  /// "Changements", "Modifications" (improved, as "Changed" is), a
+  /// correction first too ("Améliorations et corrections" is fixed, as
+  /// "Improvements and fixes" is).
   static ReleaseSectionKind of(String? title) {
     final name = title?.trim().toLowerCase() ?? '';
-    if (name.contains('fix') || name.contains('correct')) return fixed;
-    if (_added.hasMatch(name)) return added;
-    if (_improved.hasMatch(name)) return improved;
+    // English, as it always read: "fix" anywhere ("Bugfixes").
+    if (name.contains('fix') || _frenchFixed.hasMatch(name)) return fixed;
+    if (_added.hasMatch(name) || _frenchAdded.hasMatch(name)) return added;
+    if (_improved.hasMatch(name) || _frenchImproved.hasMatch(name)) {
+      return improved;
+    }
     return other;
   }
 
-  static final _added = RegExp(
-    r'(?<![\p{L}\p{N}])(new|features?|added|nouveautés?|nouveaux?|nouvelles?'
-    r'|ajouts?|ajouté(?:e|s|es)?)(?![\p{L}\p{N}])',
-    unicode: true,
+  static final _added = RegExp(r'\b(new|features?|added)\b');
+  static final _improved = RegExp(r'\b(improvements?|improved|changed)\b');
+
+  /// A whole French word: "Correctifs", not "Incorrects".
+  static RegExp _frenchWords(String words) =>
+      RegExp('(?<![\\p{L}\\p{N}])($words)(?![\\p{L}\\p{N}])', unicode: true);
+
+  static final _frenchFixed = _frenchWords(
+    r'corrections?|correctifs?|corrigé(?:e|s|es)?',
   );
-  static final _improved = RegExp(
-    r'(?<![\p{L}\p{N}])(improvements?|improved|changed|améliorations?'
-    r'|amélioré(?:e|s|es)?)(?![\p{L}\p{N}])',
-    unicode: true,
+  static final _frenchAdded = _frenchWords(
+    r'nouveautés?|nouveaux?|nouvelles?|fonctionnalités?|ajouts?'
+    r'|ajouté(?:e|s|es)?',
+  );
+  static final _frenchImproved = _frenchWords(
+    r'améliorations?|amélioré(?:e|s|es)?|changements?|modifications?'
+    r'|modifié(?:e|s|es)?',
   );
 }
 
@@ -780,7 +905,15 @@ final class ReleaseEntry {
 
   /// As written after "## ", without its "v": "1.1.0".
   final String version;
+
+  /// As written under the version: "October 29, 2026".
   final String? date;
+
+  /// The day [date] names, null when it reads as none.
+  late final DateTime? day = switch (date) {
+    final date? => releaseDay(date),
+    null => null,
+  };
 
   /// The paragraphs before its first section.
   final List<String> notes;

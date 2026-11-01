@@ -3,9 +3,11 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/general_settings.dart';
+import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/language_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 
@@ -26,8 +28,11 @@ void main() {
   Future<void> pump(
     WidgetTester tester, {
     List<Locale> device = const [Locale('en', 'US')],
+    Widget? home,
+    Size size = const Size(390, 844),
+    List<NavigatorObserver> observers = const [],
   }) async {
-    useWindow(tester, const Size(390, 844));
+    useWindow(tester, size);
     tester.platformDispatcher.localesTestValue = device;
     addTearDown(tester.platformDispatcher.clearLocalesTestValue);
     final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
@@ -47,7 +52,10 @@ void main() {
             theme: themes.light,
             darkTheme: themes.dark,
             themeMode: ThemeMode.dark,
-            home: Scaffold(body: GeneralSettings(settingsStore: settings)),
+            navigatorObservers: observers,
+            home:
+                home ??
+                Scaffold(body: GeneralSettings(settingsStore: settings)),
           ),
         ),
       ),
@@ -186,4 +194,72 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('a phone\'s pushed General page renames itself when Français '
+      'is picked on it, and its route keeps one name', (tester) async {
+    final routes = <String?>[];
+    await pump(
+      tester,
+      observers: [_RouteNames(routes)],
+      home: Builder(
+        builder: (context) => TextButton(
+          onPressed: () => openSettingsPage(
+            context,
+            id: SettingsPageId.general,
+            builder: (context) => GeneralSettings(settingsStore: settings),
+          ),
+          child: const Text('open'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text(english.settingsPageGeneral), findsOneWidget);
+
+    await tester.tap(find.text('Français'));
+    await tester.pumpAndSettle();
+    expect(settings.appLanguage, AppLanguage.fr);
+    expect(find.text(french.settingsPageGeneral), findsOneWidget);
+    expect(find.text(english.settingsPageGeneral), findsNothing);
+    // Named by the page, not by its title in one language.
+    expect(routes.last, settingsRouteName(SettingsPageId.general));
+    expect(routes.last, 'Settings/general');
+  });
+
+  testWidgets('a tablet\'s page inside a section renames itself when the '
+      'device language changes under System', (tester) async {
+    await pump(
+      tester,
+      size: const Size(1280, 854),
+      home: Scaffold(
+        body: Settings(
+          settingsStore: settings,
+          initialPage: SettingsPageId.chat,
+        ),
+      ),
+    );
+    final row = find.text(english.settingsPageChatFilters);
+    await tester.ensureVisible(row.first);
+    await tester.pumpAndSettle();
+    await tester.tap(row.first);
+    await tester.pumpAndSettle();
+    // The row under the page, and the page's title.
+    expect(find.text(english.settingsPageChatFilters), findsNWidgets(2));
+
+    tester.platformDispatcher.localesTestValue = const [Locale('fr', 'FR')];
+    await tester.pumpAndSettle();
+    expect(find.text(french.settingsPageChatFilters), findsNWidgets(2));
+    expect(find.text(english.settingsPageChatFilters), findsNothing);
+  });
+}
+
+/// Writes down the name of each route pushed.
+class _RouteNames extends NavigatorObserver {
+  _RouteNames(this.names);
+
+  final List<String?> names;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      names.add(route.settings.name);
 }

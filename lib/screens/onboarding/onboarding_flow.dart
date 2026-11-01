@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
@@ -447,12 +448,21 @@ class _OnboardingFlowState extends State<OnboardingFlow>
               ) *
               1.2 +
           14,
-      descriptionHeight: OnboardingIntroPhone.descriptionRoom(
-        context.l10n.onboardingIntroDescription,
-        body: body,
-        textScaler: textScaler,
-        width: size.width - 2 * OnboardingIntroPhone.descriptionSide,
+      nameWidth: OnsetWordmark.widthFor(
+        textScaler,
+        tablet: isLargeScreenSize(size),
       ),
+      // The tallest of the languages: a tap on the language pill changes
+      // the description, and must not move the tile.
+      descriptionRoom: (width) => [
+        for (final locale in AppLocalizations.supportedLocales)
+          OnboardingIntroPhone.descriptionRoom(
+            lookupAppLocalizations(locale).onboardingIntroDescription,
+            body: body,
+            textScaler: textScaler,
+            width: width,
+          ),
+      ].reduce(math.max),
       textScaler: textScaler,
     );
     final tablet = geometry.tablet;
@@ -726,6 +736,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         return OnboardingIntroPhone(
           nameBottom: geometry.nameBottom,
           fit: geometry.introFit,
+          column: geometry.introColumn,
           version: _version,
           accent: accent,
           bottomInset: geometry.bottomInset,
@@ -811,23 +822,40 @@ class _Geometry {
     required this.tileScale,
     required this.tileGap,
     required this.introFit,
+    this.introColumn,
     required this.nameBottom,
     required this.webTop,
     required this.bottomInset,
   });
 
+  /// [descriptionRoom] is the room the phone Intro's description needs in
+  /// a given width (OnboardingIntroPhone.descriptionRoom).
   factory _Geometry.of(
     Size size,
     EdgeInsets padding, {
     required double nameHeight,
-    required double descriptionHeight,
+    required double nameWidth,
+    required double Function(double width) descriptionRoom,
     required TextScaler textScaler,
   }) {
     final w = size.width;
     final h = size.height;
     final tablet = isLargeScreenSize(size);
     const half = OnsetMark.designSize / 2;
+    if (!tablet && w > h) {
+      return _Geometry._phoneLandscape(
+        size,
+        padding,
+        nameHeight: nameHeight,
+        nameWidth: nameWidth,
+        descriptionRoom: descriptionRoom,
+        textScaler: textScaler,
+      );
+    }
     if (!tablet) {
+      final descriptionHeight = descriptionRoom(
+        w - 2 * OnboardingIntroPhone.descriptionSide,
+      );
       // The tile in the middle (where the launch intro left it), raised on
       // a short window so the description, the language pill, the version
       // and "Next" fit; on a shorter one still, the parts draw closer and
@@ -928,6 +956,91 @@ class _Geometry {
     );
   }
 
+  /// A phone held sideways (split screen, a freeform or desktop window):
+  /// one column cannot hold the Intro, so the tile and the name sit in the
+  /// middle of the left part and the description, the language pill, the
+  /// version and "Next" in a column on the right ([introColumn]). The tile
+  /// shrinks only if the left part is too short for it and the name; the
+  /// column loses its decoration as the portrait one does
+  /// ([IntroPhoneFit.ofColumn]), the description scrolling last.
+  factory _Geometry._phoneLandscape(
+    Size size,
+    EdgeInsets padding, {
+    required double nameHeight,
+    required double nameWidth,
+    required double Function(double width) descriptionRoom,
+    required TextScaler textScaler,
+  }) {
+    final w = size.width;
+    final h = size.height;
+    final top = padding.top + 56 + 8;
+    final usable = w - padding.left - padding.right;
+    // Wide enough for the name, but never more than half the window.
+    final brandWidth = math.min(
+      math.max(usable * 0.42, nameWidth + 48),
+      usable * 0.5,
+    );
+    final columnLeft = padding.left + brandWidth;
+    final columnRight = padding.right + 16;
+    final columnWidth = w - columnLeft - columnRight;
+
+    // The tile and the name, centred in the left part under the bar.
+    final room = h - padding.bottom - 16 - top;
+    const tileSize = IntroPhoneFit.tileSize;
+    final gap = tileSize + IntroPhoneFit.roomy.tileGap + nameHeight <= room
+        ? IntroPhoneFit.roomy.tileGap
+        : IntroPhoneFit.tight.tileGap;
+    final tileScale = ((room - gap - nameHeight) / tileSize).clamp(
+      IntroPhoneFit.minTileScale,
+      1.0,
+    );
+    final tileHalf = tileSize * tileScale / 2;
+    final group = 2 * tileHalf + gap + nameHeight;
+    final groupTop = top + math.max(0.0, (room - group) / 2);
+    final cy = groupTop + tileHalf;
+
+    final fit = IntroPhoneFit.ofColumn(
+      room: h - padding.bottom - OnboardingIntroPhone.aboveNext - top,
+      descriptionRoom: descriptionRoom(
+        columnWidth - 2 * IntroColumn.descriptionSide,
+      ),
+      textScaler: textScaler,
+      tileScale: tileScale,
+      tileGap: gap,
+    );
+    final full = Offset.zero & size;
+    return _Geometry(
+      tablet: false,
+      // (A tablet's landscape panes; a phone keeps its one brand area.)
+      landscape: false,
+      brand: full,
+      mosaic: Rect.fromLTWH(0, 0, w, h * 0.52 < 440 ? h * 0.52 : 440),
+      divider: Rect.zero,
+      steps: full,
+      bar: Rect.fromLTWH(0, padding.top, w, 56),
+      barSide: 6,
+      stepPadding: EdgeInsets.fromLTRB(
+        24,
+        padding.top + 68,
+        24,
+        padding.bottom + 20,
+      ),
+      tileCenter: Offset(padding.left + brandWidth / 2, cy),
+      tileScale: tileScale,
+      tileGap: gap,
+      introFit: fit,
+      introColumn: IntroColumn(
+        left: columnLeft,
+        right: columnRight,
+        top: top,
+        width: columnWidth,
+      ),
+      nameBottom: cy + tileHalf + gap + nameHeight,
+      webTop: padding.top + 56,
+      bottomInset: padding.bottom,
+    );
+  }
+
   final bool tablet;
   final bool landscape;
 
@@ -955,6 +1068,10 @@ class _Geometry {
 
   /// A phone's: how its Intro fits the window.
   final IntroPhoneFit introFit;
+
+  /// A phone's on a landscape window: the column of its Intro beside the
+  /// tile and the name (null in portrait).
+  final IntroColumn? introColumn;
 
   /// A phone's: where the name's underline ends.
   final double nameBottom;

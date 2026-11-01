@@ -2732,7 +2732,7 @@ abstract class AppLocalizations {
   /// **'WHAT\'S NEW IN {version}'**
   String releaseNotesWhatsNewIn({required String version});
 
-  /// Release notes opened after an update: the title. The version is a number such as 1.1.0 (« la » stands for « la version »).
+  /// Release notes opened after an update: the title, a fact (the version now installed), never an action. The version is a number such as 1.1.0.
   ///
   /// In en, this message translates to:
   /// **'Updated to {version}'**

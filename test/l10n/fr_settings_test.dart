@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -455,8 +456,15 @@ void main() {
             size: size,
             scale: scale,
           );
-          // The bundled French notes, read in French.
+          // The bundled French notes, read in French: on a tablet, the
+          // version list's date short, never cut.
           expect(find.text('29 octobre 2026'), findsWidgets);
+          if (size.shortestSide >= 600) {
+            final date = tester.renderObject<RenderParagraph>(
+              find.text('29 oct. 2026'),
+            );
+            expect(date.didExceedMaxLines, isFalse);
+          }
           await expectFrenchThroughout(tester, 'release notes');
         });
 

@@ -81,8 +81,13 @@ List<FlaggedLiteral> flaggedIn(
 
 /// Functions and methods that show one of their parameters as text, by
 /// name: each with the parameters that do (`#0` for the first positional
-/// one, the name for a named one). A literal passed there is UI text.
+/// one, the name for a named one). A literal passed there is UI text. A
+/// function whose result is shown as text somewhere has [_returns] too:
+/// the literals it returns are UI text.
 typedef UiHelpers = Map<String, Set<String>>;
+
+/// The [UiHelpers] key of a function whose result is shown as text.
+const _returns = 'return';
 
 /// The [UiHelpers] of [sources]: a parameter that reaches a place showing
 /// text (`Text(message)`, `label: title`), directly or through another
@@ -123,6 +128,18 @@ class _HelperFinder extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     _check(node.name.lexeme, node.parameters, node.body);
     super.visitMethodDeclaration(node);
+  }
+
+  /// A call shown as text (`Text(viewersText(n))`): the function returns
+  /// UI text, so the literals it returns are flagged ([_returnsUi]).
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (_inUiPlace(node, helpers)) {
+      if (helpers.putIfAbsent(node.methodName.name, () => {}).add(_returns)) {
+        changed = true;
+      }
+    }
+    super.visitMethodInvocation(node);
   }
 
   void _check(String name, FormalParameterList? parameters, FunctionBody body) {
@@ -608,7 +625,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
 /// Whether [node] (a literal, or a parameter in a helper) lands in a place
 /// that shows text, the [helpers] included.
-bool _inUiPlace(AstNode node, UiHelpers helpers) {
+bool _inUiPlace(AstNode node, UiHelpers helpers, [int depth = 0]) {
   final (child, anchor) = _Visitor._anchor(node);
   switch (anchor) {
     case NamedExpression(:final name):
@@ -640,10 +657,46 @@ bool _inUiPlace(AstNode node, UiHelpers helpers) {
       return name != null && _isUiName(name);
     case VariableDeclaration(:final initializer, :final name)
         when initializer == child:
-      return _uiVariable.hasMatch(name.lexeme);
+      return _uiVariable.hasMatch(name.lexeme) ||
+          (depth < 3 && _usedInUiPlace(anchor, helpers, depth + 1));
     default:
       return false;
   }
+}
+
+/// Whether the variable [declaration] is shown as text where it is in
+/// scope: `const w = 'Welcome'; … Text(w)`, a label map read by index
+/// (`Text(names[kind]!)`), a field read as `widget.title`.
+bool _usedInUiPlace(
+  VariableDeclaration declaration,
+  UiHelpers helpers,
+  int depth,
+) {
+  final name = declaration.name.lexeme;
+  final AstNode scope =
+      declaration.thisOrAncestorOfType<FunctionBody>() ?? declaration.root;
+  final uses = _Uses({name});
+  scope.accept(uses);
+  for (final use in uses.found) {
+    if (use.offset == declaration.name.offset) continue;
+    AstNode node = use;
+    // Up through what reads the value: an index, `!`, `.field`.
+    while (true) {
+      final parent = node.parent;
+      final next = switch (parent) {
+        IndexExpression(:final target) when target == node => parent,
+        PostfixExpression(:final operator) when operator.lexeme == '!' =>
+          parent,
+        PrefixedIdentifier(:final identifier) when identifier == node => parent,
+        PropertyAccess(:final propertyName) when propertyName == node => parent,
+        _ => null,
+      };
+      if (next == null) break;
+      node = next;
+    }
+    if (_inUiPlace(node, helpers, depth)) return true;
+  }
+  return false;
 }
 
 /// Whether [call] is a helper showing its parameter [key] as text.
@@ -656,14 +709,16 @@ bool _helperTakes(AstNode? call, String key, UiHelpers helpers) {
 }
 
 /// Whether [node] (a function body's expression, or a return) returns from
-/// a getter or function named like UI text (`label`, `title`).
+/// a getter or function named like UI text (`label`, `title`), or from one
+/// whose result is shown as text ([_returns]).
 bool _inUiFunction(AstNode node, UiHelpers helpers) {
   for (AstNode? up = node.parent; up != null; up = up.parent) {
     switch (up) {
       case FunctionExpression() when up.parent is! FunctionDeclaration:
         return false;
       case FunctionDeclaration(:final name) || MethodDeclaration(:final name):
-        return _isUiName(name.lexeme);
+        return _isUiName(name.lexeme) ||
+            (helpers[name.lexeme]?.contains(_returns) ?? false);
       default:
         break;
     }

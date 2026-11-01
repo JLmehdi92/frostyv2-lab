@@ -165,7 +165,7 @@ abstract class LiveFeedStoreBase with Store {
             // translated.
             final channel? => contentLabelNames(
               channel.contentClassificationLabels,
-              L10n.english,
+              L10n.untranslated,
             ),
             // Not in Twitch's answer: unknown, so not previewed unasked.
             null => null,

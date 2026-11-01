@@ -168,7 +168,7 @@ class FollowedSortButton extends StatelessWidget {
                 checked: option == sort,
                 // English, like the rest of the button, until it is
                 // translated.
-                child: Text(option.label(L10n.english)),
+                child: Text(option.label(L10n.untranslated)),
               ),
           ],
           child: Container(
@@ -190,7 +190,7 @@ class FollowedSortButton extends StatelessWidget {
                 Icon(Icons.sort_rounded, size: 14, color: colors.body),
                 Flexible(
                   child: Text(
-                    'Sorted by ${sort.label(L10n.english)}',
+                    'Sorted by ${sort.label(L10n.untranslated)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

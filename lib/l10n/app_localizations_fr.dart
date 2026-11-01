@@ -542,7 +542,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsPageOtherDescription =>
-      'Les mises à jour, le stockage, la confidentialité et les informations sur ONSET';
+      'Les mises à jour, le stockage, la confidentialité et la rubrique À propos';
 
   @override
   String get settingsPageAccount => 'Compte';
@@ -637,7 +637,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsTokenLoginTip =>
-      'Vous avez copié un jeton ? Appuyez de manière prolongée sur cette carte pour l’utiliser et vous connecter.';
+      'Vous avez copié un jeton ? Appuyez de manière prolongée sur cette carte pour vous connecter avec ce jeton.';
 
   @override
   String get settingsTokenLoginHint => 'se connecter avec un jeton copié';
@@ -729,7 +729,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get authForeignTokenNotice =>
-      'Ce jeton a été créé pour une autre application – certaines fonctionnalités risquent de ne pas fonctionner.';
+      'Ce jeton a été créé pour une autre application – certaines fonctionnalités risquent d’être indisponibles.';
 
   @override
   String get authSessionEndedNotice =>
@@ -743,7 +743,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsAccentColorLive =>
-      'S’applique partout dès que vous choisissez';
+      'S’applique partout dès que vous la choisissez';
 
   @override
   String get settingsStreamCard => 'Carte de live';
@@ -777,7 +777,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get streamLanguageOther => 'Autre';
 
   @override
-  String get settingsHideLabeled => 'Masquer les lives classifiés';
+  String get settingsHideLabeled =>
+      'Masquer les lives selon leur classification';
 
   @override
   String settingsHideLabeledValue({required int count}) {
@@ -793,7 +794,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsHideLabeledNote =>
-      'Les lives qui portent ces classifications n’apparaissent pas dans les lives populaires, les catégories et les tags. Les chaînes suivies s’affichent toujours.';
+      'Les lives qui portent ces classifications sont exclus des onglets En direct et Chaînes en direct, des catégories et des tags. Les chaînes suivies s’affichent toujours.';
 
   @override
   String get contentLabelDrugs =>
@@ -828,34 +829,34 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsLowLatencyPlayerDetail =>
-      'Lit le live avec le lecteur Amazon IVS, conçu sur la même technologie vidéo que Twitch, pour une faible latence. Désactivez cette option pour utiliser le lecteur web d’origine de Twitch.';
+      'Lit le live avec le lecteur Amazon IVS, qui repose sur la même technologie vidéo que Twitch, pour une faible latence. Désactivez cette option pour utiliser le lecteur web d’origine de Twitch.';
 
   @override
   String get settingsAutoLatency => 'Latence automatique';
 
   @override
   String get settingsAutoLatencyDetail =>
-      'Garde le live au plus près du direct en le lisant très légèrement plus vite quand il prend du retard, sans le recharger. Si le profil « Ultra » se bloque trop souvent, les lives suivants passent en « Standard » pendant un moment. S’applique à la prochaine ouverture d’un live.';
+      'Garde le live au plus près du direct en le lisant très légèrement plus vite quand il prend du retard, sans le recharger. Si la lecture se bloque trop souvent en « Ultra », les lives suivants passent en « Standard » pendant un moment. S’applique à la prochaine ouverture d’un live.';
 
   @override
   String get settingsLiveCatchUp => 'Rattrapage du direct';
 
   @override
   String get settingsLiveCatchUpDetail =>
-      '« Accélérer » lit un peu plus vite jusqu’à revenir au direct (la latence automatique le fait quand elle est activée). « Retour au direct » rejoint le direct d’un coup après un blocage. S’applique à la prochaine ouverture d’un live.';
+      '« Accélérer » lit un peu plus vite jusqu’à rattraper le direct (la latence automatique le fait quand elle est activée). « Revenir au direct » rejoint le direct d’un coup après un blocage. S’applique à la prochaine ouverture d’un live.';
 
   @override
   String get liveCatchUpSpeedUp => 'Accélérer';
 
   @override
-  String get liveCatchUpJumpToLive => 'Retour au direct';
+  String get liveCatchUpJumpToLive => 'Revenir au direct';
 
   @override
   String get settingsBufferProfile => 'Profil de mémoire tampon';
 
   @override
   String get settingsBufferProfileDetail =>
-      '« Ultra » garde une mémoire tampon encore plus réduite pour baisser la latence, mais la lecture peut s’interrompre plus souvent pour charger sur une connexion Internet faible. S’applique à la prochaine ouverture d’un live.';
+      '« Ultra » garde une mémoire tampon encore plus réduite pour baisser la latence, mais la lecture risque de s’interrompre plus souvent sur une connexion Internet faible. S’applique à la prochaine ouverture d’un live.';
 
   @override
   String get bufferProfileStandard => 'Standard';
@@ -867,14 +868,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerConfigAuto => 'Auto';
 
   @override
-  String get playerConfigJumpToLiveAuto => 'Retour au direct + auto';
+  String get playerConfigJumpToLiveAuto => 'Revenir au direct + auto';
 
   @override
   String playerConfigUltraStalled({
     required String mode,
     required String buffer,
   }) {
-    return '$mode · $buffer (profil « Ultra » instable)';
+    return '$mode · $buffer (blocages en « Ultra »)';
   }
 
   @override
@@ -964,7 +965,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsCaptions => 'Sous-titres';
 
   @override
-  String get settingsClosedCaptions => 'Sous-titres codés';
+  String get settingsClosedCaptions => 'Afficher les sous-titres';
 
   @override
   String get settingsClosedCaptionsDetail =>
@@ -1131,7 +1132,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsModerationNotices =>
-      'Afficher les exclusions et les bannissements';
+      'Afficher les exclusions temporaires et les bannissements';
 
   @override
   String get settingsModerationNoticesDetail =>
@@ -1161,7 +1162,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsSyncDelayDetail =>
-      'Retient chaque message aussi longtemps que la vidéo a de retard sur le direct, pour que le chat corresponde à ce que vous voyez. Vos propres messages s’affichent immédiatement.';
+      'Retient chaque message le temps du retard de la vidéo sur le direct, pour que le chat corresponde à ce que vous voyez. Vos propres messages s’affichent immédiatement.';
 
   @override
   String get settingsMessageDelay => 'Délai des messages';
@@ -1243,14 +1244,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsCelebrationsDetail =>
-      'Joue une animation sur la chaîne quand quelqu’un offre des abonnements.';
+      'Lance une animation sur la chaîne quand quelqu’un offre des abonnements.';
 
   @override
   String get settingsCelebrationsOnVideo => 'Célébrations sur la vidéo';
 
   @override
   String get settingsCelebrationsOnVideoDetail =>
-      '« Complètes » : l’animation se joue sur la vidéo. « Discrètes » : la vidéo reste dégagée et une ligne l’annonce dans le chat.';
+      '« Complètes » : l’animation s’affiche par-dessus la vidéo. « Discrètes » : la vidéo reste dégagée et une ligne l’annonce dans le chat.';
 
   @override
   String get celebrationsFull => 'Complètes';
@@ -1283,7 +1284,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Conçu pour les tablettes et les autres grands écrans.';
 
   @override
-  String get settingsNotchSide => 'Remplir le côté de l’encoche';
+  String get settingsNotchSide => 'Occuper le côté de l’encoche';
 
   @override
   String get settingsNotchSideDetail =>
@@ -1371,7 +1372,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatFilterDiscriminationDetail =>
-      'Propos négatifs sur l’origine, le genre, l’orientation ou autre';
+      'Propos négatifs sur l’origine, le genre, l’orientation sexuelle ou d’autres caractéristiques';
 
   @override
   String get chatFilterSexual => 'Langage sexuellement explicite';
@@ -1385,7 +1386,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatFilterHarassmentDetail =>
-      'Propos agressifs ou harcèlement sexuel envers d’autres personnes';
+      'Propos agressifs ou de harcèlement sexuel envers d’autres personnes';
 
   @override
   String get chatFilterProfanity => 'Grossièretés';
@@ -1396,7 +1397,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatFiltersNote =>
-      'L’AutoMod de Twitch évalue les mots de chaque message du chat en direct ; seuls les mots qu’il évalue sont masqués, donc un message qu’il n’a pas évalué s’affiche toujours. Les mots masqués apparaissent sous forme d’étoiles : appuyez dessus pour voir le message. Le chat des anciennes diffusions n’est pas filtré.';
+      'L’AutoMod de Twitch analyse chaque message du chat en direct et classe certains mots dans une catégorie ; seuls ces mots sont masqués, donc un message sans mot classé s’affiche toujours. Les mots masqués apparaissent sous forme d’étoiles : appuyez dessus pour voir le message. Le chat des anciennes diffusions n’est pas filtré.';
 
   @override
   String get mutedKeywordsTitle => 'Mots-clés masqués';
@@ -1424,7 +1425,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String mutedKeywordsRemove({required String word}) {
-    return 'Retirer $word';
+    return 'Retirer « $word »';
   }
 
   @override
@@ -1504,7 +1505,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mentionDetail =>
-      'Quand quelqu’un vous mentionne dans un chat que vous regardez pendant qu’ONSET est en arrière-plan ou en Picture-in-picture.';
+      'Vous prévient quand quelqu’un vous mentionne dans le chat d’une chaîne que vous regardez, pendant qu’ONSET est en arrière-plan ou en Picture-in-picture.';
 
   @override
   String get settingsUpdates => 'Mises à jour';
@@ -1573,7 +1574,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get updatesChecking => 'Vérification en cours';
+  String get updatesChecking => 'Recherche en cours';
 
   @override
   String get followedSortViewers => 'Spectateurs (décroissant)';
@@ -1632,16 +1633,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get releaseNotesWhatsNew => 'NOUVEAUTÉS';
+  String get releaseNotesWhatsNew => 'QUOI DE NEUF';
 
   @override
   String releaseNotesWhatsNewIn({required String version}) {
-    return 'NOUVEAUTÉS DE LA $version';
+    return 'QUOI DE NEUF DANS LA $version';
   }
 
   @override
   String releaseNotesUpdatedTo({required String version}) {
-    return 'Mise à jour vers la $version';
+    return 'Version $version installée';
   }
 
   @override
@@ -1712,7 +1713,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'ONSET n’est pas autorisé à installer des mises à jour';
 
   @override
-  String get updateCorrupted => 'Le téléchargement est corrompu – réessayez';
+  String get updateCorrupted =>
+      'Le fichier téléchargé est corrompu – réessayez';
 
   @override
   String get updateInstallFailed =>
@@ -1779,6 +1781,6 @@ class AppLocalizationsFr extends AppLocalizations {
         );
     final String totalString = totalNumberFormat.format(total);
 
-    return '$receivedString / $totalString Mo';
+    return '$receivedString / $totalString Mo';
   }
 }

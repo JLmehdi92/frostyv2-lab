@@ -48,9 +48,10 @@ enum SettingsPageId {
 }
 
 /// Opens a settings page in its pane on a tablet: the side column's page
-/// for a section, over the section for a page inside it.
+/// for a section, over the section for a page inside it. The pane names it
+/// from [SettingsPageId] when it builds, so the title follows the language.
 typedef SettingsOpener =
-    void Function(SettingsPageId id, String title, WidgetBuilder builder);
+    void Function(SettingsPageId id, WidgetBuilder builder);
 
 /// A settings page shown in the tablet's detail pane: two columns of groups
 /// under the page's title, and where its links open.
@@ -94,28 +95,37 @@ class SettingsPaneScope extends InheritedWidget {
 }
 
 /// Opens the settings page [id]: in the tablet's pane when there is one,
-/// else pushed (phone) with its back button and [title]. Completes when
-/// the pushed page is closed (at once in a pane).
+/// else pushed (phone) with its back button and title. Completes when the
+/// pushed page is closed (at once in a pane).
+///
+/// The title is read from [id] each time the page builds, so switching the
+/// language on Settings › General renames the page at once. The route is
+/// named by [SettingsPageId.name], the same in every language, so analytics
+/// count one screen whatever the language.
 Future<void> openSettingsPage(
   BuildContext context, {
   required SettingsPageId id,
   required WidgetBuilder builder,
-  String? title,
 }) {
   final pane = SettingsPaneScope.maybeOf(context);
-  final name = title ?? id.title(context.l10n);
   if (pane != null) {
-    pane.onOpen(id, name, builder);
+    pane.onOpen(id, builder);
     return Future.value();
   }
   return Navigator.of(context).push<void>(
     MaterialPageRoute(
-      settings: RouteSettings(name: name),
-      builder: (context) =>
-          SettingsScaffold(title: name, body: builder(context)),
+      settings: RouteSettings(name: settingsRouteName(id)),
+      builder: (context) => SettingsScaffold(
+        title: id.title(context.l10n),
+        body: builder(context),
+      ),
     ),
   );
 }
+
+/// The route name of the settings page [id] when it is pushed: its id, not
+/// its translated title.
+String settingsRouteName(SettingsPageId id) => 'Settings/${id.name}';
 
 /// Opens [url] the way links open in the app ("Open links in external
 /// browser").

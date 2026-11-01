@@ -809,13 +809,16 @@ enum HomeTab {
   /// The names saved before the navigation shell, and where they went: Top
   /// (top streams and categories) is Home's Live tab, Search lives in
   /// Browse.
-  static final legacyNames = {'top': live.name, 'search': browse.name};
+  static final _legacyNames = Map<String, String>.unmodifiable({
+    'top': live.name,
+    'search': browse.name,
+  });
 
   /// Reads the saved start tab of [json], moving a value saved before the
   /// navigation shell to its new place.
   static Object? readStored(Map<dynamic, dynamic> json, String key) {
     final value = json[key];
-    return legacyNames[value] ?? value;
+    return _legacyNames[value] ?? value;
   }
 }
 

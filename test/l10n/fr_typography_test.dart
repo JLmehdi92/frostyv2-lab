@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'arb.dart';
@@ -71,6 +73,41 @@ void main() {
     });
   });
 
+  test('assets/release-notes.fr.md is well set', () {
+    final lines = File('assets/release-notes.fr.md').readAsLinesSync();
+    final texts = [for (final line in lines) ?frenchNotesText(line)];
+    // The notes are read: a version, its date, sections and points.
+    expect(texts, contains('29 octobre 2026'));
+    expect(texts.length, greaterThan(8));
+    final problems = [
+      for (final text in texts)
+        for (final problem in frenchTypographyProblems(text))
+          '$problem in: $text',
+    ];
+    expect(problems, isEmpty, reason: problems.join('\n'));
+  });
+
+  test('the notes\' lines are read as French text, Markdown aside', () {
+    expect(frenchNotesText('<!-- Note pour qui écrit -->'), isNull);
+    expect(frenchNotesText('---'), isNull);
+    expect(frenchNotesText('## v1.0.0'), isNull);
+    expect(frenchNotesText('   '), isNull);
+    expect(frenchNotesText('### Nouveautés'), 'Nouveautés');
+    expect(
+      frenchNotesText('- [Android] **Lecteur :** les lives'),
+      'Lecteur : les lives',
+    );
+    expect(
+      frenchNotesText('  - Dans `Paramètres › Vidéo` pour'),
+      'Dans Paramètres › Vidéo pour',
+    );
+    // And a fault in them is caught.
+    expect(
+      frenchTypographyProblems(frenchNotesText("- l'accueil : ici")!),
+      isNotEmpty,
+    );
+  });
+
   test('app_fr.arb is well set', () {
     final fr = readArb(frArbPath);
     final keys = messageKeys(fr);
@@ -127,7 +164,20 @@ const _screenNames = {
   'Paramètres',
   'Général',
   'Autres',
+  // Home's tabs.
+  'Suivis',
+  'Clips',
 };
+
+/// Names of several words, cited as they read on screen (« les onglets En
+/// direct et Chaînes en direct », « la rubrique À propos »), and the
+/// design's name: their capitals are no Title Case.
+const _namesOfWords = [
+  'Chaînes en direct',
+  'En direct',
+  'À propos',
+  'Noir & Signal',
+];
 
 final _letter = RegExp(r'\p{L}', unicode: true);
 final _upper = RegExp(r'^\p{Lu}', unicode: true);
@@ -217,7 +267,11 @@ List<String> _runProblems(String text) {
 
 /// A capital inside a sentence, on a word that is no name: Title Case.
 List<String> _titleCaseProblems(String run) {
-  final tokens = run.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+  var text = run;
+  for (final name in _namesOfWords) {
+    text = text.replaceAll(name, 'X');
+  }
+  final tokens = text.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
   final problems = <String>[];
   var sentenceStart = true;
   var quoted = false;
@@ -245,4 +299,24 @@ List<String> _titleCaseProblems(String run) {
     }
   }
   return problems;
+}
+
+/// The French text a line of release-notes.fr.md shows, Markdown taken out
+/// (headings, bullets, [Android]/[iOS] tags, bold, code), or null for a line
+/// that shows none (blank, a rule, an HTML comment, a version number).
+String? frenchNotesText(String line) {
+  final trimmed = line.trim();
+  if (trimmed.isEmpty ||
+      trimmed == '---' ||
+      trimmed.startsWith('<!--') ||
+      RegExp(r'^## v?\d').hasMatch(trimmed)) {
+    return null;
+  }
+  final text = trimmed
+      .replaceFirst(RegExp(r'^#+\s*'), '')
+      .replaceFirst(RegExp(r'^[-*]\s+'), '')
+      .replaceFirst(RegExp(r'^\[(Android|iOS)\]\s*'), '')
+      .replaceAll('**', '')
+      .replaceAll('`', '');
+  return text.isEmpty ? null : text;
 }

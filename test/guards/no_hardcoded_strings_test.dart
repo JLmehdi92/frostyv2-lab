@@ -204,6 +204,57 @@ class B {
       );
     });
 
+    test('hole: a local constant later shown as text', () {
+      expect(
+        texts('''
+Widget a() {
+  const w = 'Welcome';
+  final x = flag ? 'Live' : 'Offline';
+  return Column(children: [Text(w), Tooltip(message: x)]);
+}
+Widget b() {
+  const id = 'channel';
+  return Text(lookup(id));
+}
+'''),
+        ['Welcome', 'Live', 'Offline'],
+      );
+    });
+
+    test('hole: text returned by a helper whose result is shown', () {
+      expect(
+        texts(r'''
+String viewersText(int n) => '$n viewers';
+String _status(bool on) {
+  if (on) return 'Live';
+  return 'Offline';
+}
+String _key(int n) => 'row-$n';
+Widget a(int n) => Column(children: [
+  Text(viewersText(n)),
+  Semantics(label: _status(true)),
+  KeyedSubtree(key: ValueKey(_key(n)), child: const SizedBox()),
+]);
+'''),
+        ['{} viewers', 'Live', 'Offline'],
+      );
+    });
+
+    test('hole: single words as the values of a map read into text', () {
+      expect(
+        texts('''
+const _kinds = {Kind.live: 'Live', Kind.vod: 'Video'};
+const _routes = {Kind.live: 'livePage'};
+class A {
+  final Kind kind;
+  Widget build(BuildContext context) =>
+      Text(_kinds[kind]!, semanticsLabel: describe(_routes[kind]));
+}
+'''),
+        ['Live', 'Video'],
+      );
+    });
+
     test('says where a literal is and why', () {
       final [literal] = flaggedIn(
         "\n\nfinal t = Text('Hello');\n",

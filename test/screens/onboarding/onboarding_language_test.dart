@@ -149,10 +149,11 @@ void main() {
   }
 
   /// What is wrong on the phone's Intro:
-  /// - parts overlapping, in reading order: the tile, the name, the
-  ///   description, the language pill, the version (when shown), "Next";
-  ///   only the visible part of each counts (a part scrolled out of its
-  ///   area is not drawn there);
+  /// - any two parts overlapping: the tile, the name, the description, the
+  ///   language pill, the version (when shown), "Next" (one column in
+  ///   portrait, two side by side on a landscape window); only the visible
+  ///   part of each counts (a part scrolled out of its area is not drawn
+  ///   there);
   /// - the language pill not wholly in view: cut by the window or by a
   ///   scrolling edge, under "Next", or its labels cut short.
   List<String> introProblems(WidgetTester tester, AppLocalizations l) {
@@ -171,14 +172,15 @@ void main() {
       ('Next', tester.getRect(find.text(l.commonNext))),
     ];
     final problems = <String>[];
-    for (var i = 1; i < parts.length; i++) {
-      final (aboveName, above) = parts[i - 1];
-      final (name, rect) = parts[i];
-      if (rect.height <= 0 || above.height <= 0) continue;
-      if (above.bottom > rect.top + 0.01) {
-        problems.add(
-          '$aboveName (to ${above.bottom}) over $name (${rect.top})',
-        );
+    for (var i = 0; i < parts.length; i++) {
+      for (var j = i + 1; j < parts.length; j++) {
+        final (aName, a) = parts[i];
+        final (bName, b) = parts[j];
+        if (a.height <= 0 || b.height <= 0) continue;
+        final common = a.intersect(b);
+        if (common.width > 0.01 && common.height > 0.01) {
+          problems.add('$aName ($a) overlaps $bName ($b)');
+        }
       }
     }
     final whole = tester.getRect(languagePill);
@@ -275,6 +277,36 @@ void main() {
     expect(find.text(english.onboardingIntroDescription), findsOneWidget);
   });
 
+  group('a tap on the pill never moves the tile or the name', () {
+    for (final (size, scale) in const [
+      (Size(360, 560), 1.3),
+      (Size(360, 640), 1.3),
+      (Size(360, 640), 1.6),
+      (Size(412, 915), 1.6),
+      (Size(320, 568), 2.0),
+      (Size(844, 390), 1.3),
+    ]) {
+      testWidgets('${size.width.round()}x${size.height.round()}, text '
+          '×$scale', (tester) async {
+        await pump(tester, size: size, textScale: scale);
+        await settle(tester);
+        Rect tile() => tester.getRect(find.byType(OnsetMarkTile));
+        Rect name() => tester.getRect(find.byType(OnsetWordmark));
+        final (tileBefore, nameBefore) = (tile(), name());
+
+        await tapText(tester, 'Français');
+        expect(find.text(french.onboardingIntroDescription), findsOneWidget);
+        expect(tile(), tileBefore);
+        expect(name(), nameBefore);
+
+        await tapText(tester, 'English');
+        expect(find.text(english.onboardingIntroDescription), findsOneWidget);
+        expect(tile(), tileBefore);
+        expect(name(), nameBefore);
+      });
+    }
+  });
+
   testWidgets('Next without a tap stores the language shown, explicitly', (
     tester,
   ) async {
@@ -341,6 +373,11 @@ void main() {
       ('a 320x568 phone', Size(320, 568)),
       ('a 360x560 phone', Size(360, 560)),
       ('a short window', Size(400, 480)),
+      // A phone's window held sideways: split screen, freeform or desktop
+      // mode (the flow asks a phone for portrait, but these still occur).
+      ('a 844x390 landscape phone window', Size(844, 390)),
+      ('a 740x360 landscape phone window', Size(740, 360)),
+      ('a 568x320 landscape phone window', Size(568, 320)),
       ('a landscape tablet', Size(1280, 854)),
       ('a portrait tablet', Size(854, 1280)),
     ]) {
@@ -348,7 +385,7 @@ void main() {
         ('English', english, const Locale('en', 'US')),
         ('French', french, const Locale('fr', 'FR')),
       ]) {
-        for (final scale in const [1.0, 1.3, 2.0]) {
+        for (final scale in const [1.0, 1.3, 1.6, 2.0]) {
           testWidgets('$name, $lang, text ×$scale', (tester) async {
             await pump(tester, size: size, device: [device], textScale: scale);
             await settle(tester);
