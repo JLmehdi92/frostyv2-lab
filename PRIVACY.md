@@ -21,8 +21,9 @@ based on their source code, which anyone can read at
 - Your Twitch credentials and your history stay **on your device**; none of it
   is sent anywhere except to Twitch.
 - The builds published on GitHub include Google Firebase, but send **no crash
-  reports, analytics, or performance data** unless you turn on **Share crash logs and analytics**, which is off by default (section 5).
-- The policy also covers the website onsetapp.app, which measures its audience
+  reports, analytics, or performance data** unless you turn on **Share crash
+  logs and analytics**, which is off by default (section 5).
+- This policy also covers the website onsetapp.app, which measures its audience
   with Cloudflare Web Analytics (section 12).
 
 ## 1. Who is responsible
@@ -246,10 +247,10 @@ request camera, microphone, location, contacts, or storage permissions.
 
 ## 9. Children
 
-ONSET is a client for Twitch and is meant for people who are allowed to use Twitch.
-Twitch's Terms of Service require users to be at least 13 years old (or older
-where local law sets a higher minimum age), and users under the age of
-majority may use Twitch only with a parent's or guardian's supervision and
+ONSET is a client for Twitch and is meant for people who are allowed to use
+Twitch. Twitch's Terms of Service require users to be at least 13 years old
+(or older where local law sets a higher minimum age), and users under the age
+of majority may use Twitch only with a parent's or guardian's supervision and
 agreement. You must meet Twitch's age requirements to use ONSET. ONSET is not
 directed at children under 13.
 
@@ -273,14 +274,17 @@ For data held by Twitch or the other services, contact them directly.
 - 7TV: https://7tv.app/legal/privacy
 - BetterTTV: https://betterttv.com/privacy
 - FrankerFaceZ: https://www.frankerfacez.com/privacy
-- recent-messages (robotty): https://recent-messages.robotty.de/ (the service's page describes what it stores)
+- recent-messages (robotty): https://recent-messages.robotty.de/ (the
+  service's page describes what it stores)
 - GIPHY: https://giphy.com/privacy
 - Cloudflare (token service, website hosting, and Web Analytics):
   https://www.cloudflare.com/privacypolicy/
-- GitHub: https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
+- GitHub:
+  https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
 - Amazon Web Services (IVS player): https://aws.amazon.com/privacy/
 - Google (Google Play, Firebase): https://policies.google.com/privacy
-- Google Firebase (crash reports and analytics): https://firebase.google.com/support/privacy
+- Google Firebase (crash reports and analytics):
+  https://firebase.google.com/support/privacy
 
 ## 12. The website
 
@@ -291,24 +295,25 @@ This policy also covers the website onsetapp.app, which the developer runs.
   each request, such as your IP address and your browser's user agent, under
   its own privacy policy (https://www.cloudflare.com/privacypolicy/). The site
   itself sets no cookies, but Cloudflare may set a strictly necessary security
-  cookie (such as `__cf_bm` or `cf_clearance`) if it needs to check that a
-  request does not come from a bot.
+  cookie, such as `__cf_bm` or `cf_clearance`, as part of its protection
+  against bots.
 - **Visit statistics:** the site uses Cloudflare Web Analytics. On each page,
   a small script from Cloudflare (static.cloudflareinsights.com) sends
   Cloudflare information about the visit, such as the page's address (without
   its query string or fragment), the address of the page you came from (if
-  any), performance measurements (load timings and Core Web Vitals, including
-  the CSS selector and image address of the page's largest element), the
-  transfer size and network protocol, a rough memory figure, your browser and
-  operating system versions, and a random identifier for that page load.
-  Cloudflare also receives your IP address with the request and derives your
-  country from it. The developer sees only aggregated figures, such as page
-  views, visits, top pages, referring sites, countries, browsers, operating
-  systems, device types, and load times. According to Cloudflare, Web
-  Analytics uses no cookies or local storage to collect these statistics, does
-  not fingerprint visitors for them, and does not track visitors across the
-  sites that use Cloudflare. Also according to Cloudflare, the detailed data
-  is kept for 7 days, after which only a sample of about 10% is kept; the
+  any), and performance measurements (load timings and Core Web Vitals, with
+  the CSS selectors of the elements they concern, for example the largest
+  element, and that element's image address). It also sends the transfer size
+  and network protocol, an approximate figure for the page's memory use, your
+  browser and operating system versions, and a random identifier for that page
+  load. Cloudflare also receives your IP address with the request and derives
+  your country from it. The developer sees only aggregated figures, such as
+  page views, visits, top pages, referring sites, countries, browsers,
+  operating systems, device types, and load times. According to Cloudflare,
+  Web Analytics uses no cookies or local storage to collect these statistics,
+  does not fingerprint visitors for them, and does not track visitors across
+  the sites that use Cloudflare. Also according to Cloudflare, the detailed
+  data is kept for 7 days, after which only a sample of about 10% is kept; the
   developer can view the figures for the past six months.
 - **Language choice:** when you pick English or French in the language switch,
   the site stores that choice in your browser's local storage, under the key
@@ -319,13 +324,17 @@ This policy also covers the website onsetapp.app, which the developer runs.
   and you did not arrive from another page of the site.
 - **Legal basis:** the developer's legitimate interest in serving and
   protecting the site and in measuring its audience with aggregated statistics
-  (GDPR Article 6(1)(f)). You can object at any time (section 10); most
-  content blockers already block the statistics script. Cloudflare processes
-  this data on the developer's behalf (for data it uses to protect its own
-  network, it acts under its own privacy policy) and may process it outside
-  the European Union, including in the United States; according to Cloudflare,
-  these transfers rely on the EU-U.S. Data Privacy Framework or, failing that,
-  on standard contractual clauses.
+  (GDPR Article 6(1)(f)). We consider that this audience measurement falls
+  within the consent exemption that the CNIL, the French data protection
+  authority, allows for audience measurement tools: it sets no cookies, it
+  only produces aggregated statistics, and, according to Cloudflare, it does
+  not track visitors across sites. You can object at any time (section 10);
+  most content blockers already block the statistics script. Cloudflare
+  processes this data on the developer's behalf (for data it uses to protect
+  its own network, it acts as a controller, under its own privacy policy) and
+  may process it outside the European Union, including in the United States;
+  according to Cloudflare, these transfers rely on the EU-U.S. Data Privacy
+  Framework or, failing that, on standard contractual clauses.
 - **Nothing else:** the site shows no ads and uses no other third-party
   service. The download link, the GitHub link, and the iPhone waitlist link
   all lead to GitHub, where GitHub's own privacy statement applies.

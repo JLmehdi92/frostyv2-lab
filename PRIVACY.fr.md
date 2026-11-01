@@ -26,8 +26,9 @@ Cette politique est aussi disponible [en anglais](PRIVACY.md).
 - Les versions publiées sur GitHub incluent Google Firebase, mais n’envoient
   **aucun rapport de plantage, aucune statistique ni donnée de performance**
   tant que vous n’activez pas **Partager les rapports de plantage et
-  statistiques** (« Share crash logs and analytics » en anglais), désactivé par défaut (section 5).
-- La politique couvre aussi le site onsetapp.app, qui mesure sa fréquentation
+  statistiques** (« Share crash logs and analytics » en anglais), désactivé
+  par défaut (section 5).
+- Cette politique couvre aussi le site onsetapp.app, qui mesure sa fréquentation
   avec Cloudflare Web Analytics (section 12).
 
 ## 1. Responsable du traitement
@@ -318,13 +319,17 @@ directement à eux.
 - 7TV : https://7tv.app/legal/privacy
 - BetterTTV : https://betterttv.com/privacy
 - FrankerFaceZ : https://www.frankerfacez.com/privacy
-- recent-messages (robotty) : https://recent-messages.robotty.de/ (la page du service décrit ce qu’il conserve)
+- recent-messages (robotty) : https://recent-messages.robotty.de/ (la page du
+  service décrit ce qu’il conserve)
 - GIPHY : https://giphy.com/privacy
-- Cloudflare (service de jetons, hébergement du site et Web Analytics) : https://www.cloudflare.com/privacypolicy/
-- GitHub : https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
+- Cloudflare (service de jetons, hébergement du site et Web Analytics) :
+  https://www.cloudflare.com/privacypolicy/
+- GitHub :
+  https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
 - Amazon Web Services (lecteur IVS) : https://aws.amazon.com/privacy/
 - Google (Google Play, Firebase) : https://policies.google.com/privacy
-- Google Firebase (rapports de plantage et statistiques) : https://firebase.google.com/support/privacy
+- Google Firebase (rapports de plantage et statistiques) :
+  https://firebase.google.com/support/privacy
 
 ## 12. Le site web
 
@@ -332,33 +337,34 @@ Cette politique couvre aussi le site onsetapp.app, géré par le développeur.
 
 - **Hébergement :** le site est hébergé sur Cloudflare Pages. Pour servir les
   pages et protéger le site contre les abus, Cloudflare traite des données
-  techniques sur chaque requête, comme votre adresse IP et l’agent utilisateur
-  (user agent) de votre navigateur, selon sa propre politique de
+  techniques relatives à chaque requête, comme votre adresse IP et l’agent
+  utilisateur (user agent) de votre navigateur, selon sa propre politique de
   confidentialité (https://www.cloudflare.com/privacypolicy/). Le site
   lui-même ne dépose aucun cookie, mais Cloudflare peut déposer un cookie de
-  sécurité strictement nécessaire (comme `__cf_bm` ou `cf_clearance`) s’il
-  doit vérifier qu’une requête ne vient pas d’un robot.
+  sécurité strictement nécessaire, comme `__cf_bm` ou `cf_clearance`, dans le
+  cadre de sa protection contre les robots.
 - **Statistiques de visite :** le site utilise Cloudflare Web Analytics. Sur
   chaque page, un petit script de Cloudflare (static.cloudflareinsights.com)
   transmet à Cloudflare des informations sur la visite, comme l’adresse de la
   page (sans ses paramètres ni son ancre), celle de la page d’où vous venez
-  (s’il y en a une), des mesures de performance (temps de chargement et
-  signaux Web essentiels, ou Core Web Vitals, dont le sélecteur CSS et
-  l’adresse de l’image du plus grand élément de la page), la taille transférée
-  et le protocole réseau, une estimation grossière de la mémoire, les versions
-  de votre navigateur et de votre système d’exploitation, ainsi qu’un
-  identifiant aléatoire propre à ce chargement de page. Cloudflare reçoit
-  aussi votre adresse IP avec la requête et en déduit votre pays. Le
-  développeur ne voit que des chiffres agrégés, comme les pages vues, les
-  visites, les pages les plus consultées, les sites référents, les pays, les
-  navigateurs, les systèmes d’exploitation, les types d’appareils et les temps
-  de chargement. Selon Cloudflare, Web Analytics n’utilise ni cookie ni
-  stockage local pour recueillir ces statistiques, n’a pas recours à
+  (s’il y en a une) et des mesures de performance (temps de chargement et
+  signaux Web essentiels, ou Core Web Vitals, avec les sélecteurs CSS des
+  éléments concernés, par exemple le plus grand élément de la page, et
+  l’adresse de l’image de cet élément). Il transmet aussi la taille transférée
+  et le protocole réseau, une estimation approximative de la mémoire utilisée
+  par la page, les versions de votre navigateur et de votre système
+  d’exploitation, ainsi qu’un identifiant aléatoire propre à ce chargement de
+  page. Cloudflare reçoit aussi votre adresse IP avec la requête et en déduit
+  votre pays. Le développeur ne voit que des chiffres agrégés, comme les pages
+  vues, les visites, les pages les plus consultées, les sites référents, les
+  pays, les navigateurs, les systèmes d’exploitation, les types d’appareils et
+  les temps de chargement. Selon Cloudflare, Web Analytics n’utilise ni cookie
+  ni stockage local pour recueillir ces statistiques, n’a pas recours à
   l’empreinte numérique (fingerprinting) pour les établir et ne suit pas les
-  visiteurs d’un site à l’autre parmi ceux qui utilisent Cloudflare. Toujours
-  selon Cloudflare, les données détaillées sont conservées 7 jours, puis seul
-  un échantillon d’environ 10 % en est gardé ; le développeur peut consulter
-  les chiffres des six derniers mois.
+  visiteurs d’un site à l’autre parmi les sites qui utilisent Cloudflare.
+  Toujours selon Cloudflare, les données détaillées sont conservées 7 jours,
+  puis seul un échantillon d’environ 10 % en est gardé ; le développeur peut
+  consulter les chiffres des six derniers mois.
 - **Choix de la langue :** quand vous choisissez l’anglais ou le français dans
   le sélecteur de langue, le site enregistre ce choix dans le stockage local
   de votre navigateur (localStorage), sous la clé `onset.lang`. Il sert
@@ -370,14 +376,19 @@ Cette politique couvre aussi le site onsetapp.app, géré par le développeur.
   n’arrivez pas d’une autre page du site.
 - **Base légale :** l’intérêt légitime du développeur à servir et à protéger
   le site, et à mesurer sa fréquentation au moyen de statistiques agrégées
-  (article 6, paragraphe 1, point f) du RGPD). Vous pouvez vous y opposer à
-  tout moment (section 10) ; la plupart des bloqueurs de contenu bloquent déjà
-  le script de statistiques. Cloudflare traite ces données pour le compte du
-  développeur (pour celles qu’il utilise afin de protéger son propre réseau,
-  il agit selon sa propre politique de confidentialité) et peut les traiter
-  hors de l’Union européenne, notamment aux États-Unis ; selon Cloudflare, ces
-  transferts reposent sur le cadre de protection des données UE-États-Unis
-  (Data Privacy Framework) ou, à défaut, sur des clauses contractuelles types.
+  (article 6, paragraphe 1, point f) du RGPD). Nous considérons que cette
+  mesure d’audience entre dans l’exemption de consentement que la CNIL admet
+  pour les outils de mesure d’audience : elle ne dépose aucun cookie, sert
+  uniquement à produire des statistiques agrégées et, selon Cloudflare, ne
+  suit pas les visiteurs d’un site à l’autre. Vous pouvez vous y opposer à
+  tout moment (section 10) ; la plupart des bloqueurs de contenu empêchent
+  déjà le chargement du script de statistiques. Cloudflare traite ces données
+  pour le compte du développeur (pour celles qu’il utilise afin de protéger
+  son propre réseau, il agit en tant que responsable du traitement, selon sa
+  propre politique de confidentialité) et peut les traiter hors de l’Union
+  européenne, notamment aux États-Unis ; selon Cloudflare, ces transferts
+  reposent sur le cadre de protection des données UE-États-Unis (Data Privacy
+  Framework) ou, à défaut, sur des clauses contractuelles types.
 - **Rien d’autre :** le site n’affiche aucune publicité et ne fait appel à
   aucun autre service tiers. Le lien de téléchargement, le lien vers GitHub et
   celui de la liste d’attente iPhone mènent tous à GitHub, qui applique sa

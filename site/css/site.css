@@ -463,6 +463,10 @@ html[lang="fr"] .fo-msg2{left:76%;top:4%}
   .cta2 .stores{margin-top:24px}
   .foot{padding-top:32px;padding-bottom:32px}
   .foot-top .brand{display:none}
+  /* phone footer: a two-column list (GitHub | Privacy, Legal | iPhone waitlist), the email across both */
+  .foot-links{flex:1 1 100%;display:grid;grid-template-columns:repeat(2,auto);justify-content:start;gap:0 6px}
+  .foot-links a{line-height:1.3}
+  .foot-links a[href^="mailto:"]{grid-column:1 / -1;justify-self:start}
   .foot-bot{margin-top:16px;padding-top:16px}
 }
 /* narrow phones: the bar keeps Download, the language and the theme; GitHub stays in the hero credit
@@ -473,6 +477,8 @@ html[lang="fr"] .fo-msg2{left:76%;top:4%}
 @media (max-width:359px){
   /* "Twitch, en direct." stays on one line on the narrowest phones */
   html[lang="fr"] .h1{font-size:2.125rem}
+  /* the French footer labels are too long for two columns here: one clean column */
+  html[lang="fr"] .foot-links{grid-template-columns:auto}
   .bar-dl .lbl-s{display:none}
   .bar-dl{width:44px;padding:0;justify-content:center}
   .fo-gift{bottom:62px}

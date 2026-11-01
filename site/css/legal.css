@@ -47,6 +47,8 @@
 .policy h2{margin-top:2.6em;padding-top:1.4em;border-top:1px solid var(--hl);font-size:clamp(1.3rem,1.1rem + .6vw,1.6rem);line-height:1.25;font-weight:700;letter-spacing:-0.022em;color:var(--t1);scroll-margin-top:calc(var(--bar-h) + 16px)}
 .policy p,.policy ul{margin:1.05em 0 0}
 .policy h2 + p,.policy h2 + ul,.policy h2 + .tbl{margin-top:.9em}
+/* the legal notice's sections are a few lines each: less space above each heading */
+.is-solo .policy h2{margin-top:1.8em;padding-top:1em}
 .policy ul{padding-left:1.25em}
 .policy li{padding-left:.25em}
 .policy li + li{margin-top:.6em}
