@@ -49,6 +49,9 @@ void main() {
     );
   }
 
+  UserTwitch user(String login) =>
+      UserTwitch('1', login, login, 'https://example.com/$login.png');
+
   testWidgets('a parent rebuilding does not ask Twitch again after a failure', (
     tester,
   ) async {
@@ -65,16 +68,56 @@ void main() {
     verify(() => api.getUser(userLogin: 'offline_one')).called(1);
   });
 
+  testWidgets('a failed lookup is tried again after a delay and the picture '
+      'comes back', (tester) async {
+    var calls = 0;
+    when(() => api.getUser(userLogin: 'flaky_one')).thenAnswer((_) {
+      calls++;
+      if (calls == 1) return Future.error(Exception('network blip'));
+      return Future.value(user('flaky_one'));
+    });
+    await pump(tester, 'flaky_one');
+    await tester.pump();
+    expect(find.byType(CachedNetworkImage), findsNothing);
+
+    await tester.pump(ProfilePicture.retryDelays.first);
+    await tester.pump();
+    expect(find.byType(CachedNetworkImage), findsOneWidget);
+    expect(calls, 2);
+  });
+
+  testWidgets('a lookup that keeps failing is tried a bounded number of '
+      'times, then again when the app comes back to the front', (tester) async {
+    var calls = 0;
+    var online = false;
+    when(() => api.getUser(userLogin: 'down_one')).thenAnswer((_) {
+      calls++;
+      return online
+          ? Future.value(user('down_one'))
+          : Future.error(Exception('offline'));
+    });
+    await pump(tester, 'down_one');
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(minutes: 1));
+    }
+    expect(calls, 1 + ProfilePicture.retryDelays.length);
+
+    online = true;
+    final binding = tester.binding;
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.pump();
+    expect(calls, 2 + ProfilePicture.retryDelays.length);
+    expect(find.byType(CachedNetworkImage), findsOneWidget);
+  });
+
   testWidgets('a known picture shows from the first frame, decoded as '
       'before', (tester) async {
-    when(() => api.getUser(userLogin: 'known_one')).thenAnswer(
-      (_) async => const UserTwitch(
-        '1',
-        'known_one',
-        'Known',
-        'https://example.com/known.png',
-      ),
-    );
+    when(
+      () => api.getUser(userLogin: 'known_one'),
+    ).thenAnswer((_) async => user('known_one'));
     // The first picture asks Twitch once.
     await pump(tester, 'known_one');
     await tester.pump();
