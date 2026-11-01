@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/utils/context_extensions.dart';
 
 /// Twitch refuses chat messages longer than this.
@@ -22,7 +23,7 @@ class ChatCharacterCounter extends StatelessWidget {
         if (left >= kChatCounterThreshold) return const SizedBox.shrink();
         return Semantics(
           liveRegion: true,
-          label: '$left characters left',
+          label: context.l10n.chatCharactersLeft(count: left),
           child: ExcludeSemantics(
             child: Text(
               '$left',

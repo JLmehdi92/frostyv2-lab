@@ -1,3 +1,4 @@
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/utils/common_utils.dart';
 
@@ -15,12 +16,17 @@ String? moderationNotice(
   final login = clearChat.message?.trim().toLowerCase();
   if (login == null || !_login.hasMatch(login)) return null;
   final name = displayNameOf(login);
+  // A line put in the chat: worded in the language on screen now.
+  final l = L10n.current;
   final duration = clearChat.tags['ban-duration'];
-  if (duration == null) return '$name has been permanently banned.';
+  if (duration == null) return l.chatNoticeBanned(name: name);
   final seconds = int.tryParse(duration);
   // A duration that cannot be read is still a timeout, not a ban.
-  if (seconds == null) return '$name has been timed out.';
-  return '$name has been timed out for ${timeoutLength(seconds)}.';
+  if (seconds == null) return l.chatNoticeTimedOut(name: name);
+  return l.chatNoticeTimedOutFor(
+    name: name,
+    duration: timeoutLength(seconds, l),
+  );
 }
 
 /// The notice line chat adds for a targeted CLEARCHAT, or null: none for a
@@ -53,24 +59,23 @@ IRCMessage? moderationNoticeLine(
   return notice;
 }
 
-/// [seconds] as Twitch words it: "1 second", "10 minutes", "2 weeks"…
-String timeoutLength(int seconds) {
-  const units = [
-    (604800, 'week'),
-    (86400, 'day'),
-    (3600, 'hour'),
-    (60, 'minute'),
+/// [seconds] as Twitch words it, in [l]'s language (the one on screen by
+/// default): "1 second", "10 minutes", "2 weeks"…
+String timeoutLength(int seconds, [AppLocalizations? l]) {
+  final words = l ?? L10n.current;
+  final units = <(int, String Function({required int count}))>[
+    (604800, words.chatDurationWeeks),
+    (86400, words.chatDurationDays),
+    (3600, words.chatDurationHours),
+    (60, words.chatDurationMinutes),
   ];
   for (final (size, unit) in units) {
     if (seconds >= size && seconds % size == 0) {
-      return _plural(seconds ~/ size, unit);
+      return unit(count: seconds ~/ size);
     }
   }
-  return _plural(seconds < 0 ? 0 : seconds, 'second');
+  return words.chatDurationSeconds(count: seconds < 0 ? 0 : seconds);
 }
-
-String _plural(int count, String unit) =>
-    '$count $unit${count == 1 ? '' : 's'}';
 
 /// How chat names [login]: the display name of their latest message in
 /// [newestFirst], or the login when they have not chatted.

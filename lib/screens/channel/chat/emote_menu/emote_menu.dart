@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu_panel.dart';
 import 'package:onset/screens/channel/chat/emote_menu/recent_emotes_panel.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
@@ -33,7 +34,7 @@ class EmoteMenu extends StatelessWidget {
         return EmoteTabsView(
           panel: panel,
           headers: [
-            'Recent',
+            context.l10n.emoteMenuRecent,
             if (settings.showTwitchEmotes) 'Twitch',
             if (settings.show7TVEmotes) '7TV',
             if (settings.showBTTVEmotes) 'BTTV',
@@ -42,10 +43,12 @@ class EmoteMenu extends StatelessWidget {
           tabActions: {
             if (hasRecent)
               0: IconButton(
-                tooltip: 'Clear recent emotes',
+                tooltip: context.l10n.emoteMenuClearRecent,
                 onPressed: () {
                   chatStore.assetsStore.recentEmotes.clear();
-                  chatStore.updateNotification('Recent emotes cleared');
+                  chatStore.updateNotification(
+                    context.l10n.emoteMenuRecentCleared,
+                  );
                 },
                 style: IconButton.styleFrom(
                   fixedSize: const Size(44, 44),
@@ -369,7 +372,7 @@ class _EmoteMenuPanelOverlayState extends State<EmoteMenuPanelOverlay> {
                             nub: placement.nub,
                             child: Semantics(
                               container: true,
-                              label: 'Emote menu',
+                              label: context.l10n.chatEmoteMenu,
                               explicitChildNodes: true,
                               child: EmoteMenu(
                                 chatStore: widget.chatStore,

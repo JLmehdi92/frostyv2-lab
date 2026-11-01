@@ -344,7 +344,7 @@ class _GiftBombPinState extends State<GiftBombPin>
           );
 
     final name = Text(
-      bomb.gifterName,
+      bomb.gifter(context.l10n),
       key: GiftBombPin.nameKey,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -451,7 +451,7 @@ class _GiftBombPinState extends State<GiftBombPin>
         liveRegion: true,
         label: context.l10n.giftBombSemantics(
           count: bomb.count,
-          name: bomb.gifterName,
+          name: bomb.gifter(context.l10n),
         ),
         value: _semanticsValue(context.l10n),
         child: RepaintBoundary(

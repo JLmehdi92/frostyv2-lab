@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/chat_rules.dart';
 import 'package:onset/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
@@ -37,7 +38,7 @@ class ChatRulesSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (onBack case final back?)
-            SheetBackHeader(title: 'Chat rules', onBack: back),
+            SheetBackHeader(title: context.l10n.chatRulesTitle, onBack: back),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Row(
@@ -81,7 +82,7 @@ class ChatRulesSheet extends StatelessWidget {
                       Semantics(
                         header: true,
                         child: Text(
-                          'Chat Rules',
+                          context.l10n.chatRulesHeading,
                           style: SheetText.subtitle.copyWith(
                             color: colors.text,
                           ),
@@ -128,7 +129,7 @@ class ChatRulesSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
             child: SheetButton(
-              label: 'OK, Got it!',
+              label: context.l10n.chatRulesAccept,
               large: true,
               expand: true,
               onPressed: onAccept,
@@ -233,7 +234,7 @@ class ChatRulesTile extends StatelessWidget {
         if (read == null || !read.hasRules) return const SizedBox.shrink();
         return SheetRow(
           glyph: SheetGlyphKind.rules,
-          label: 'Chat rules',
+          label: context.l10n.chatRulesTitle,
           end: SheetRowEnd.chevron,
           onTap: () async {
             if (onOpen case final open?) {

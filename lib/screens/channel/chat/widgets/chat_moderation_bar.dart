@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
 import 'package:onset/screens/channel/chat/moderation_notice.dart';
@@ -76,8 +77,8 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
   Future<void> _ban() async {
     final reason = await showModerationReasonDialog(
       context,
-      title: 'Ban ${widget.name}?',
-      action: 'Ban',
+      title: context.l10n.chatModBarBanTitle(name: widget.name),
+      action: context.l10n.chatModBarBan,
       required: false,
     );
     if (mounted && reason != null) await _run(BanCommand(widget.login, reason));
@@ -86,8 +87,8 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
   Future<void> _warn() async {
     final reason = await showModerationReasonDialog(
       context,
-      title: 'Warn ${widget.name}',
-      action: 'Warn',
+      title: context.l10n.chatModBarWarnTitle(name: widget.name),
+      action: context.l10n.chatModBarWarn,
       required: true,
     );
     if (mounted && reason != null) {
@@ -154,13 +155,13 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
             onPressed: () => _run(TimeoutCommand(widget.login, duration, '')),
             child: Text(
               duration.inSeconds == 1
-                  ? '1 second (purge)'
-                  : timeoutLength(duration.inSeconds),
+                  ? context.l10n.chatModBarPurge
+                  : timeoutLength(duration.inSeconds, context.l10n),
             ),
           ),
       ],
       builder: (context, controller, _) => ModerationPill(
-        label: 'Timeout',
+        label: context.l10n.chatModBarTimeout,
         glyph: SheetGlyphKind.timer,
         height: height,
         tone: ModerationPillTone.raised,
@@ -184,14 +185,14 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
                 children: [
                   timeout,
                   ModerationPill(
-                    label: 'Ban',
+                    label: context.l10n.chatModBarBan,
                     glyph: SheetGlyphKind.block,
                     height: height,
                     tone: ModerationPillTone.danger,
                     onPressed: enabled ? _ban : null,
                   ),
                   ModerationPill(
-                    label: 'Unban',
+                    label: context.l10n.chatModBarUnban,
                     glyph: SheetGlyphKind.unban,
                     height: height,
                     onPressed: enabled
@@ -199,7 +200,7 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
                         : null,
                   ),
                   ModerationPill(
-                    label: 'Warn',
+                    label: context.l10n.chatModBarWarn,
                     glyph: SheetGlyphKind.warn,
                     height: height,
                     onPressed: enabled ? _warn : null,
@@ -400,14 +401,16 @@ class _ReasonDialogState extends State<_ReasonDialog> {
       content: SheetTextField(
         controller: _reason,
         autofocus: true,
-        label: widget.required ? 'Reason' : 'Reason (optional)',
+        label: widget.required
+            ? context.l10n.chatModBarReason
+            : context.l10n.chatModBarReasonOptional,
         maxLength: TwitchApi.maxReasonLength,
         counter: true,
         onChanged: (_) => setState(() {}),
       ),
       actions: [
         SheetButton(
-          label: 'Cancel',
+          label: context.l10n.commonCancel,
           tone: SheetButtonTone.text,
           onPressed: () => Navigator.pop(context),
         ),

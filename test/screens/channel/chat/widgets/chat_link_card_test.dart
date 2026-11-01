@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_link_card.dart';
@@ -74,9 +75,9 @@ void main() {
       final first = await ChatLinkPreviews.load(link, clips: clips, vods: vods);
       await ChatLinkPreviews.load(link, clips: clips, vods: vods);
 
-      expect(first?.title, 'What a play');
+      expect(first?.titleIn(L10n.english), 'What a play');
       expect(first?.channel, 'Streamer');
-      expect(first?.detail, 'Clip · 0:30 · 1.5K views');
+      expect(first?.detailIn(L10n.english), 'Clip · 0:30 · 1.5K views');
       verify(() => clips.getClip('FunnySlug-abc')).called(1);
     });
 
@@ -110,8 +111,8 @@ void main() {
       final second = ChatLinkPreviews.load(link, clips: clips, vods: vods);
       pending.complete(clip());
 
-      expect((await first)?.title, 'What a play');
-      expect((await second)?.title, 'What a play');
+      expect((await first)?.titleIn(L10n.english), 'What a play');
+      expect((await second)?.titleIn(L10n.english), 'What a play');
       verify(() => clips.getClip('FunnySlug-abc')).called(1);
     });
 
@@ -225,7 +226,7 @@ void main() {
         vods: vods,
       );
 
-      expect(preview?.detail, 'Video · 1:02:05 · 1 view');
+      expect(preview?.detailIn(L10n.english), 'Video · 1:02:05 · 1 view');
       expect(preview?.thumbnailUrl, isNull);
     });
   });

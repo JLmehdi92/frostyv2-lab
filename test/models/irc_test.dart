@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 
 import '../fixtures/irc_messages.dart';
@@ -123,7 +124,7 @@ void main() {
           'https://static-cdn.jtvnw.net/emoticons/v2/25/static/dark/3.0',
         );
         // Maybe another channel's sub emote: not "You can use it."
-        expect(kappa.unlockHint, isNull);
+        expect(kappa.unlockHint(L10n.english), isNull);
       });
 
       test('handles multiple instances of same emote', () {

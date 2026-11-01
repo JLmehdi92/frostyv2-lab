@@ -16,6 +16,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 part 'chat_assets_store.g.dart';
 
+/// The keys of the viewer's Twitch emote sections that are not a channel's
+/// ([ChatAssetsStoreBase.userEmoteSectionToEmotes], where a channel's
+/// section is keyed by its display name). Keys, not text: the emote menu
+/// names them in the language on screen.
+abstract final class UserEmoteSection {
+  static const channel = 'Channel Emotes';
+  static const global = 'Global Emotes';
+  static const unlocked = 'Unlocked Emotes';
+  static const other = 'Other Channels';
+}
+
 class ChatAssetsStore = ChatAssetsStoreBase with _$ChatAssetsStore;
 
 abstract class ChatAssetsStoreBase with Store {
@@ -191,7 +202,7 @@ abstract class ChatAssetsStoreBase with Store {
                   .getEmotesChannel(id: channelId)
                   .then((emotes) {
                     _userEmoteSectionToEmotes.update(
-                      'Channel Emotes',
+                      UserEmoteSection.channel,
                       (existingEmoteSet) => [...existingEmoteSet, ...emotes],
                       ifAbsent: () => emotes.toList(),
                     );
@@ -442,14 +453,15 @@ abstract class ChatAssetsStoreBase with Store {
     }
     final sections = <String, List<Emote>>{
       // Loaded with the channel's other emotes.
-      'Channel Emotes': ?_userEmoteSectionToEmotes['Channel Emotes'],
+      UserEmoteSection.channel:
+          ?_userEmoteSectionToEmotes[UserEmoteSection.channel],
     };
     for (final emote in emotes) {
       final section = _ownedSection(emote)
-          ? owners[emote.ownerId] ?? 'Other Channels'
+          ? owners[emote.ownerId] ?? UserEmoteSection.other
           : emote.type == EmoteType.twitchGlobal || emote.ownerId == 'twitch'
-          ? 'Global Emotes'
-          : 'Unlocked Emotes';
+          ? UserEmoteSection.global
+          : UserEmoteSection.unlocked;
       (sections[section] ??= []).add(emote);
     }
     _userEmoteSectionToEmotes = sections;
@@ -483,7 +495,7 @@ abstract class ChatAssetsStoreBase with Store {
           // Check for tuurbo emote sets (e.g., monkey set).
           if (ownerId == 'twitch') {
             _userEmoteSectionToEmotes.update(
-              'Global Emotes',
+              UserEmoteSection.global,
               (existingEmoteSet) => [...existingEmoteSet, ...emoteSet],
               ifAbsent: () => emoteSet,
             );
@@ -497,13 +509,13 @@ abstract class ChatAssetsStoreBase with Store {
           }
         } else if (emoteSet.first.type == EmoteType.twitchGlobal) {
           _userEmoteSectionToEmotes.update(
-            'Global Emotes',
+            UserEmoteSection.global,
             (existingEmoteSet) => [...existingEmoteSet, ...emoteSet],
             ifAbsent: () => emoteSet,
           );
         } else if (emoteSet.first.type == EmoteType.twitchUnlocked) {
           _userEmoteSectionToEmotes.update(
-            'Unlocked Emotes',
+            UserEmoteSection.unlocked,
             (existingEmoteSet) => [...existingEmoteSet, ...emoteSet],
             ifAbsent: () => emoteSet,
           );

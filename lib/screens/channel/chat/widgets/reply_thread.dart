@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
@@ -49,9 +50,9 @@ class ReplyThread extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SheetSectionLabel(
-                    'Replies',
-                    padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
+                  SheetSectionLabel(
+                    context.l10n.chatReplies,
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                   ),
                   if (replyParent != null)
                     ChatMessage(ircMessage: replyParent, chatStore: chatStore)

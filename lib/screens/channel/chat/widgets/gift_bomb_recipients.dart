@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/celebrations/signal_pill.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:onset/theme.dart';
@@ -36,12 +37,15 @@ class GiftBombRecipients extends StatefulWidget {
 
   static const _duration = Duration(milliseconds: 220);
 
-  /// "3 of 5 recipients", or "5 recipients" once they all arrived.
-  static String label(GiftBomb bomb) {
+  /// "3 of 5 recipients", or "5 recipients" once they all arrived, in
+  /// [l]'s language (the one on screen by default).
+  static String label(GiftBomb bomb, [AppLocalizations? l]) {
+    final words = l ?? L10n.current;
     final count = bomb.count;
     final received = bomb.received < count ? bomb.received : count;
-    final noun = count == 1 ? 'recipient' : 'recipients';
-    return received < count ? '$received of $count $noun' : '$count $noun';
+    return received < count
+        ? words.chatGiftRecipientsReceived(received: received, count: count)
+        : words.chatGiftRecipients(count: count);
   }
 
   @override
@@ -70,7 +74,7 @@ class _GiftBombRecipientsState extends State<GiftBombRecipients> {
     return ValueListenableBuilder<GiftBomb>(
       valueListenable: widget.live,
       builder: (context, bomb, _) {
-        final title = GiftBombRecipients.label(bomb);
+        final title = GiftBombRecipients.label(bomb, context.l10n);
         final chip = Container(
           height: 28,
           padding: const EdgeInsetsDirectional.only(start: 11, end: 8),
@@ -136,7 +140,11 @@ class _GiftBombRecipientsState extends State<GiftBombRecipients> {
                   children: [
                     for (final name in bomb.recipients)
                       _RecipientPill(name, accent: accent),
-                    if (more > 0) _RecipientPill('+$more more', accent: accent),
+                    if (more > 0)
+                      _RecipientPill(
+                        context.l10n.chatGiftRecipientsMore(count: more),
+                        accent: accent,
+                      ),
                   ],
                 ),
               );

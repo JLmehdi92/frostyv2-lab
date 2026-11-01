@@ -156,6 +156,8 @@ const _properNouns = {
   'Mbit/s',
   // Twitch's own playful word for a clip being made.
   'Clipperino',
+  // A Twitch name colour named after the Dodgers (« Bleu Dodger »).
+  'Dodger',
 };
 
 /// The app's screens and sections, named as their titles read (« dans

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/screens/channel/celebrations/onset_rocket.dart';
 import 'package:onset/theme.dart';
@@ -44,9 +45,10 @@ class RaidWelcomeCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Semantics(
           container: true,
-          label:
-              "You followed ${arrival.fromName}'s raid. Welcome to "
-              "${arrival.targetName}'s chat",
+          label: context.l10n.chatRaidWelcomeSemantics(
+            from: arrival.fromName,
+            target: arrival.targetName,
+          ),
           child: ExcludeSemantics(
             child: DecoratedBox(
               decoration: ShapeDecoration(
@@ -87,16 +89,21 @@ class RaidWelcomeCard extends StatelessWidget {
                                   children: [
                                     Text.rich(
                                       TextSpan(
-                                        children: [
-                                          const TextSpan(text: 'You followed '),
-                                          TextSpan(
-                                            text: arrival.fromName,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                            ),
+                                        // The raiding channel in bold,
+                                        // where the language puts it.
+                                        children: l10nSpans(
+                                          context.l10n.chatRaidWelcomeFrom(
+                                            name: l10nMark(0),
                                           ),
-                                          const TextSpan(text: "'s raid"),
-                                        ],
+                                          [
+                                            TextSpan(
+                                              text: arrival.fromName,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                       style: TextStyle(
                                         fontFamily: OnsetTokens.bodyFamily,
@@ -106,7 +113,9 @@ class RaidWelcomeCard extends StatelessWidget {
                                       ),
                                     ),
                                     Text(
-                                      "Welcome to ${arrival.targetName}'s chat",
+                                      context.l10n.chatRaidWelcomeTo(
+                                        name: arrival.targetName,
+                                      ),
                                       style: TextStyle(
                                         fontFamily: OnsetTokens.bodyFamily,
                                         fontSize: 12,

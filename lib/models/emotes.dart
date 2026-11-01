@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/l10n.dart';
 
 part 'emotes.g.dart';
 
@@ -298,20 +299,20 @@ class Emote {
     );
   }
 
-  /// How a viewer gets to use it, like Twitch's emote card; null for
-  /// third-party emotes.
-  String? get unlockHint => switch (type) {
-    EmoteType.twitchGlobal => 'Available to everyone on Twitch.',
+  /// How a viewer gets to use it, like Twitch's emote card, in [l]'s
+  /// language; null for third-party emotes.
+  String? unlockHint(AppLocalizations l) => switch (type) {
+    EmoteType.twitchGlobal => l.emoteUnlockHint(how: 'global'),
     // Emotes read from a message's tags have no owner and may belong to
     // someone else's sets.
     EmoteType.twitchSub || EmoteType.twitchUnlocked =>
-      ownerId == null ? null : 'You can use it.',
-    EmoteType.twitchFollower => 'Follow this channel to use it.',
-    EmoteType.twitchBits => 'Cheer Bits in this channel to unlock it.',
-    EmoteType.twitchChannel =>
-      subTier == null
-          ? 'Subscribe to this channel to use it.'
-          : 'Subscribe to this channel at Tier $subTier to use it.',
+      ownerId == null ? null : l.emoteUnlockHint(how: 'owned'),
+    EmoteType.twitchFollower => l.emoteUnlockHint(how: 'follow'),
+    EmoteType.twitchBits => l.emoteUnlockHint(how: 'bits'),
+    EmoteType.twitchChannel => switch (subTier) {
+      null => l.emoteUnlockHint(how: 'subscribe'),
+      final tier => l.emoteUnlockTier(tier: tier),
+    },
     _ => null,
   };
 

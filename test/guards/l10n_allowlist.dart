@@ -39,6 +39,81 @@ const l10nAllowlist = <String, Map<String, String>>{
         'A Hermes topic name sent to Twitch (HighlightTopic.prefix): code.',
     'raid': 'A Hermes topic name sent to Twitch (HighlightTopic.prefix): code.',
   },
+  'lib/models/community_points.dart': {
+    'ACTIVE':
+        'A prediction\'s status code from Twitch (the default when it '
+        'sends none), compared, never shown.',
+  },
+  'lib/models/irc.dart': {
+    'GIF':
+        'A GIF\'s title when it has none, and the format\'s name in its '
+        'details: GIF in every language.',
+  },
+  'lib/models/vod.dart': {
+    'ARCHIVE':
+        'A GQL value sent to Twitch (VodType / WatchedVideoType.gqlName): code.',
+    'HIGHLIGHT':
+        'A GQL value sent to Twitch (VodType / WatchedVideoType.gqlName): code.',
+    'UPLOAD':
+        'A GQL value sent to Twitch (VodType / WatchedVideoType.gqlName): code.',
+    'LIVE':
+        'A GQL value sent to Twitch (VodType / WatchedVideoType.gqlName): code.',
+    'VOD':
+        'A GQL value sent to Twitch (VodType / WatchedVideoType.gqlName): code.',
+  },
+  'lib/screens/channel/chat/chat_commands.dart': {
+    'me': _commandName,
+    'color': _commandName,
+    'block': _commandName,
+    'unblock': _commandName,
+    'help': _commandName,
+    'ban': _commandName,
+    'unban': _commandName,
+    'timeout': _commandName,
+    'untimeout': _commandName,
+    'warn': _commandName,
+    'delete': _commandName,
+    'clear': _commandName,
+    'slow': _commandName,
+    'slowoff': _commandName,
+    'followers': _commandName,
+    'followersoff': _commandName,
+    'subscribers': _commandName,
+    'subscribersoff': _commandName,
+    'emoteonly': _commandName,
+    'emoteonlyoff': _commandName,
+    'uniquechat': _commandName,
+    'uniquechatoff': _commandName,
+  },
+  'lib/screens/channel/chat/details/chat_details.dart': {
+    'preview-message':
+        'The id of the colour picker\'s fake preview message (an IRC tag), '
+        'never shown.',
+  },
+  'lib/screens/channel/chat/stores/chat_assets_store.dart': {
+    'Channel Emotes': _emoteSection,
+    'Global Emotes': _emoteSection,
+    'Unlocked Emotes': _emoteSection,
+    'Other Channels': _emoteSection,
+  },
+  'lib/screens/channel/chat/stores/chat_store.dart': {
+    'PONG :tmi.twitch.tv': _ircLine,
+    'CAP REQ :twitch.tv/tags twitch.tv/commands': _ircLine,
+    'PASS oauth:{}': _ircLine,
+  },
+  'lib/screens/channel/chat/widgets/first_frame_image.dart': {
+    'Still image of':
+        'The name of a diagnostics property in an image error report, for '
+        'debugging, never shown.',
+  },
+  'lib/screens/channel/chat/widgets/user_card_info.dart': {
+    'account date':
+        'What a failed lookup was, for its debugPrint line only, never '
+        'shown.',
+    'follow date':
+        'What a failed lookup was, for its debugPrint line only, never '
+        'shown.',
+  },
   'lib/screens/channel/hype_train/hype_train_reducer.dart': {
     'duplicate start': _ignoredEvent,
     'not applicable': _ignoredEvent,
@@ -96,6 +171,9 @@ const l10nAllowlist = <String, Map<String, String>>{
     'ONSET v{} ({})':
         'The app\'s name, its version and build number: a brand and figures.',
   },
+  'lib/utils/irc_privmsg_builder.dart': {
+    '@{} :{}!{}@{}.tmi.twitch.tv PRIVMSG #{} :{}': _ircLine,
+  },
   'lib/utils/stream_languages.dart': {
     'English':
         'A language\'s own name (an endonym), the same in every language.',
@@ -135,6 +213,18 @@ const l10nAllowlist = <String, Map<String, String>>{
 const _apiLog =
     'ApiException.message, English for logs and crash reports; screens '
     'show apiErrorText (lib/l10n/api_errors.dart) instead.';
+
+const _commandName =
+    'A chat command\'s name: what is typed after the slash, as Twitch reads '
+    'it, never translated (only its usage words and description are).';
+
+const _emoteSection =
+    'A key of the viewer\'s Twitch emote sections (UserEmoteSection), '
+    'compared, never shown: the emote menu names it in the language on '
+    'screen.';
+
+const _ircLine =
+    'A line of the IRC protocol sent to Twitch\'s chat server: code.';
 
 const _autoQuality =
     'The adaptive rendition\'s name, a quality value compared and saved '

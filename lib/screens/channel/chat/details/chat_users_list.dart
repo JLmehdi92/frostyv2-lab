@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:intl/intl.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
@@ -125,7 +125,7 @@ class _ChattersListState extends State<ChattersList> {
                               color: colors.text,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Filter chatters',
+                              hintText: context.l10n.chatChattersFilter,
                               hintStyle: SheetText.row.copyWith(
                                 fontWeight: FontWeight.w400,
                                 color: colors.tertiary,
@@ -142,8 +142,8 @@ class _ChattersListState extends State<ChattersList> {
                         if (showClear)
                           IconButton(
                             tooltip: store.filterText.isEmpty
-                                ? 'Cancel'
-                                : 'Clear',
+                                ? context.l10n.commonCancel
+                                : context.l10n.chatClear,
                             style: IconButton.styleFrom(
                               fixedSize: const Size(40, 40),
                               minimumSize: const Size(40, 40),
@@ -200,7 +200,9 @@ class _ChattersListState extends State<ChattersList> {
                                 ),
                                 sliver: SliverToBoxAdapter(
                                   child: Text(
-                                    '${NumberFormat().format(store.chatUsers.length)} chatters found',
+                                    context.l10n.chatChattersFound(
+                                      count: store.chatUsers.length,
+                                    ),
                                     style: SheetText.tabular(
                                       TextStyle(
                                         fontFamily: OnsetTokens.bodyFamily,
@@ -213,11 +215,17 @@ class _ChattersListState extends State<ChattersList> {
                               ),
                             if (store.chatUsers.isEmpty)
                               SliverToBoxAdapter(
-                                child: _empty(context, 'No chatters found'),
+                                child: _empty(
+                                  context,
+                                  context.l10n.chatChattersNone,
+                                ),
                               )
                             else if (users.isEmpty)
                               SliverToBoxAdapter(
-                                child: _empty(context, 'No matching chatters'),
+                                child: _empty(
+                                  context,
+                                  context.l10n.chatChattersNoMatch,
+                                ),
                               )
                             else
                               SliverPadding(

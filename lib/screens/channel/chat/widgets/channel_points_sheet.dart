@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/watch_streak.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
@@ -208,7 +209,8 @@ class _PanelState extends State<_Panel> {
                   const _PointsRing(size: 20),
                 Expanded(
                   child: Text(
-                    points.pointsName?.toUpperCase() ?? 'CHANNEL POINTS',
+                    (points.pointsName ?? context.l10n.pointsChannelPoints)
+                        .toUpperCase(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: SheetText.section.copyWith(color: colors.secondary),
@@ -256,7 +258,7 @@ class _PanelState extends State<_Panel> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     child: Text(
-                      'Log in to see your balance.',
+                      context.l10n.pointsLogInForBalance,
                       style: SheetText.body.copyWith(color: colors.secondary),
                     ),
                   ),
@@ -264,8 +266,8 @@ class _PanelState extends State<_Panel> {
                 if (prediction != null) ...[
                   SheetSectionLabel(
                     prediction.isOpen
-                        ? 'Prediction — open'
-                        : 'Prediction — locked',
+                        ? context.l10n.pointsPredictionOpen
+                        : context.l10n.pointsPredictionLocked,
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   ),
                   _PredictionCard(
@@ -280,7 +282,7 @@ class _PanelState extends State<_Panel> {
                 ],
 
                 if (points.rewards.isNotEmpty) ...[
-                  const SheetSectionLabel('Rewards'),
+                  SheetSectionLabel(context.l10n.pointsRewards),
                   ...points.rewards.map(
                     (reward) => RewardRow(
                       reward: reward,
@@ -294,7 +296,7 @@ class _PanelState extends State<_Panel> {
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      'This channel has no rewards set up.',
+                      context.l10n.pointsNoRewards,
                       style: SheetText.body.copyWith(color: colors.secondary),
                     ),
                   ),
@@ -350,6 +352,7 @@ class WatchStreakCard extends StatelessWidget {
       live: live,
       channelName: channelName,
       now: DateTime.now(),
+      l: context.l10n,
     );
     final next = streak.threshold;
     final showProgress =
@@ -435,8 +438,7 @@ class WatchStreakCard extends StatelessWidget {
                 ),
               ),
             Text(
-              'Twitch counts streaks. Watching in this app may not count '
-              'toward them.',
+              context.l10n.pointsStreakNote,
               style: TextStyle(
                 fontFamily: OnsetTokens.bodyFamily,
                 fontSize: 12,
@@ -470,7 +472,7 @@ void _report(ScaffoldMessengerState messenger, PointsActionResult result) {
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        content: Text(result.message),
+        content: Text(result.text(messenger.context.l10n)),
         duration: Duration(seconds: result.isSuccess ? 2 : 6),
       ),
     );
@@ -513,8 +515,7 @@ class _ClaimButton extends StatelessWidget {
             ),
             Expanded(
               child: Text(
-                'Twitch blocks collecting the bonus from here — its anti-bot '
-                'check. Collect it on twitch.tv and the balance follows.',
+                context.l10n.pointsBonusBlocked,
                 style: TextStyle(
                   fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 12,
@@ -528,7 +529,7 @@ class _ClaimButton extends StatelessWidget {
       }
 
       return SheetButton(
-        label: 'Collect bonus',
+        label: context.l10n.pointsCollectBonus,
         expand: true,
         icon: SheetGlyph(
           SheetGlyphKind.gift,
@@ -638,7 +639,11 @@ class _PredictionCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            odds == null ? '—' : '${odds.toStringAsFixed(2)} ×',
+                            odds == null
+                                ? '—'
+                                : context.l10n.pointsOdds(
+                                    odds: localDecimal(odds.toStringAsFixed(2)),
+                                  ),
                             style: SheetText.tabular(
                               TextStyle(
                                 fontFamily: OnsetTokens.bodyFamily,
@@ -675,9 +680,12 @@ class _PredictionCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${ChannelPointsSheet.formatPoints(outcome.totalPoints)}'
-                        '  ·  ${outcome.totalUsers} '
-                        '${outcome.totalUsers == 1 ? 'viewer' : 'viewers'}',
+                        context.l10n.pointsOutcomeTotals(
+                          points: ChannelPointsSheet.formatPoints(
+                            outcome.totalPoints,
+                          ),
+                          count: outcome.totalUsers,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: SheetText.tabular(
@@ -698,9 +706,14 @@ class _PredictionCard extends StatelessWidget {
                       ? body
                       : Semantics(
                           button: true,
-                          label:
-                              'Bet on ${outcome.title}, pays '
-                              '${odds == null ? 'unknown' : '${odds.toStringAsFixed(2)} times'}',
+                          label: odds == null
+                              ? context.l10n.pointsBetOnUnknown(
+                                  title: outcome.title,
+                                )
+                              : context.l10n.pointsBetOn(
+                                  title: outcome.title,
+                                  odds: localDecimal(odds.toStringAsFixed(2)),
+                                ),
                           child: Material(
                             type: MaterialType.transparency,
                             child: InkWell(
@@ -717,7 +730,7 @@ class _PredictionCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 2, 8, 6),
               child: Text(
-                'Tap an outcome to bet.',
+                context.l10n.pointsTapToBet,
                 style: TextStyle(
                   fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 11.5,
@@ -804,7 +817,7 @@ class _BetSheetState extends State<BetSheet> {
     final canBet = _stake >= _minimumStake && _stake <= widget.balance;
 
     final label = Text(
-      'BET ON',
+      context.l10n.pointsBetHeading,
       style: SheetText.section.copyWith(color: colors.secondary),
     );
 
@@ -828,7 +841,7 @@ class _BetSheetState extends State<BetSheet> {
                   Transform.translate(
                     offset: const Offset(-12, 0),
                     child: IconButton(
-                      tooltip: 'Back',
+                      tooltip: context.l10n.commonBack,
                       onPressed: back,
                       style: IconButton.styleFrom(
                         fixedSize: const Size(44, 44),
@@ -874,7 +887,9 @@ class _BetSheetState extends State<BetSheet> {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                'Balance ${ChannelPointsSheet.formatPoints(widget.balance)}',
+                context.l10n.pointsBalance(
+                  points: ChannelPointsSheet.formatPoints(widget.balance),
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: SheetText.tabular(
@@ -890,13 +905,13 @@ class _BetSheetState extends State<BetSheet> {
 
             if (!affordable)
               Text(
-                'You need at least $_minimumStake points to bet.',
+                context.l10n.pointsNeedAtLeast(points: _minimumStake),
                 style: SheetText.body.copyWith(color: colors.secondary),
               )
             else ...[
               Semantics(
                 container: true,
-                label: 'Stake',
+                label: context.l10n.pointsStake,
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -911,7 +926,7 @@ class _BetSheetState extends State<BetSheet> {
                           onSelected: () => _setStake(preset),
                         ),
                     SheetChoicePill(
-                      label: 'Max',
+                      label: context.l10n.pointsMax,
                       large: true,
                       selected: _stake == widget.balance,
                       onSelected: () => _setStake(widget.balance),
@@ -922,7 +937,7 @@ class _BetSheetState extends State<BetSheet> {
               const SizedBox(height: 14),
               SheetTextField(
                 controller: _controller,
-                label: 'Points',
+                label: context.l10n.pointsField,
                 keyboardType: TextInputType.number,
                 // A pasted "1,500" or "2e3" is not a stake.
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -943,9 +958,10 @@ class _BetSheetState extends State<BetSheet> {
               const SizedBox(height: 10),
               Text(
                 odds == null
-                    ? 'No odds yet.'
-                    : 'Pays about ${odds.toStringAsFixed(2)} × '
-                          'if this wins — moves with every other bet.',
+                    ? context.l10n.pointsNoOdds
+                    : context.l10n.pointsPaysAbout(
+                        odds: localDecimal(odds.toStringAsFixed(2)),
+                      ),
                 style: TextStyle(
                   fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 12,
@@ -956,8 +972,10 @@ class _BetSheetState extends State<BetSheet> {
               const SizedBox(height: 16),
               SheetButton(
                 label: _stake > 0
-                    ? 'Bet ${ChannelPointsSheet.formatPoints(_stake)}'
-                    : 'Bet',
+                    ? context.l10n.pointsBetAmount(
+                        points: ChannelPointsSheet.formatPoints(_stake),
+                      )
+                    : context.l10n.pointsBet,
                 large: true,
                 expand: true,
                 onPressed: canBet ? () => widget.onBet(_stake) : null,
@@ -1052,7 +1070,7 @@ class RewardRow extends StatelessWidget {
                         spacing: 3,
                         children: [
                           Text(
-                            reward.title,
+                            reward.titleIn(context.l10n),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -1159,7 +1177,7 @@ class _RedeemDialogState extends State<_RedeemDialog> {
     final colors = SheetColors.of(context);
 
     return OnsetDialog(
-      title: widget.reward.title,
+      title: widget.reward.titleIn(context.l10n),
       leading: Container(
         width: 40,
         height: 40,
@@ -1176,13 +1194,13 @@ class _RedeemDialogState extends State<_RedeemDialog> {
                 errorBuilder: (_, _, _) => const SizedBox.shrink(),
               ),
       ),
-      message:
-          'Spend ${ChannelPointsSheet.formatPoints(widget.reward.cost)} '
-          'points?',
+      message: context.l10n.pointsSpend(
+        points: ChannelPointsSheet.formatPoints(widget.reward.cost),
+      ),
       content: needsInput
           ? SheetTextField(
               controller: _controller,
-              label: 'Your message',
+              label: context.l10n.pointsYourMessage,
               autofocus: true,
               maxLength: _RedeemDialog.maxMessageLength,
               counter: true,
@@ -1191,12 +1209,12 @@ class _RedeemDialogState extends State<_RedeemDialog> {
           : null,
       actions: [
         SheetButton(
-          label: 'Cancel',
+          label: context.l10n.commonCancel,
           tone: SheetButtonTone.text,
           onPressed: () => Navigator.of(context).pop(),
         ),
         SheetButton(
-          label: 'Redeem',
+          label: context.l10n.pointsRedeem,
           // Twitch rejects an empty prompt on a reward that requires one, so
           // the button waits rather than sending a request that cannot work.
           onPressed: needsInput && _controller.text.trim().isEmpty

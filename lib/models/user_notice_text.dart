@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/user_notice.dart';
 
 /// One run of a notice's sentence: a name or count Twitch sets in bold, or
@@ -21,7 +23,8 @@ class NoticeSegment {
   String toString() => bold ? '**$text**' : text;
 }
 
-/// Words a sub or gift notice.
+/// Words a sub or gift notice, in [l]'s language (the one on screen by
+/// default).
 ///
 /// The sentences are built from the `msg-param-*` tags rather than showing
 /// `system-msg`, with every name in bold. The tags carry the same
@@ -35,17 +38,19 @@ class NoticeSegment {
 List<NoticeSegment> userNoticeText(
   UserNotice notice, {
   required String channelName,
+  AppLocalizations? l,
 }) {
-  final words = switch (notice.kind) {
-    UserNoticeKind.sub || UserNoticeKind.resub => _sub(notice),
-    UserNoticeKind.subGift => _subGift(notice),
-    UserNoticeKind.communityGift => _communityGift(notice, channelName),
-    UserNoticeKind.extendSub => _extendSub(notice),
+  final words = l ?? L10n.current;
+  final segments = switch (notice.kind) {
+    UserNoticeKind.sub || UserNoticeKind.resub => _sub(notice, words),
+    UserNoticeKind.subGift => _subGift(notice, words),
+    UserNoticeKind.communityGift => _communityGift(notice, channelName, words),
+    UserNoticeKind.extendSub => _extendSub(notice, words),
     UserNoticeKind.raid => _raid(notice),
     _ => null,
   };
 
-  return words ?? _systemMessage(notice);
+  return segments ?? _systemMessage(notice);
 }
 
 /// The name Twitch shows for a viewer: the display name, followed by the login
@@ -58,24 +63,12 @@ String readableNoticeName(String displayName, String? login) {
   return '$displayName ($login)';
 }
 
-const _months = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
-
-/// "Tier 1", "Tier 2" or "Tier 3", or null for Prime and unknown plans.
-String? _paidTier(UserNotice notice) => switch (notice.tier) {
-  'Tier 1' || 'Tier 2' || 'Tier 3' => notice.tier,
+/// 1, 2 or 3 for "Tier 1", "Tier 2" or "Tier 3", or null for Prime and
+/// unknown plans.
+int? _paidTier(UserNotice notice) => switch (notice.tier) {
+  'Tier 1' => 1,
+  'Tier 2' => 2,
+  'Tier 3' => 3,
   _ => null,
 };
 
@@ -85,48 +78,81 @@ String? _senderName(UserNotice notice) {
   return readableNoticeName(displayName, notice.login);
 }
 
-String _plural(int count, String singular) =>
-    count == 1 ? singular : '${singular}s';
+/// [message], a sentence built with [l10nMark]s, as segments: mark `i` is
+/// `bold[i]`, in bold; then each sentence of [more] after a space, in plain
+/// words. One message per sentence, names where the language puts them.
+List<NoticeSegment> _sentences(
+  String message,
+  List<String> bold, [
+  List<String?> more = const [],
+]) {
+  final segments = <NoticeSegment>[];
+  final plain = StringBuffer();
+  void flush() {
+    if (plain.isEmpty) return;
+    segments.add(NoticeSegment(plain.toString()));
+    plain.clear();
+  }
+
+  final marks = {
+    for (final (index, name) in bold.indexed)
+      l10nMark(index).runes.single: name,
+  };
+  for (final rune in message.runes) {
+    if (marks[rune] case final name?) {
+      flush();
+      segments.add(NoticeSegment(name, bold: true));
+    } else {
+      plain.writeCharCode(rune);
+    }
+  }
+  for (final sentence in more.nonNulls) {
+    plain.write(' $sentence');
+  }
+  flush();
+  return segments;
+}
 
 /// "It's their first Gift Sub in the channel!" or "They've given N Gift Subs
 /// in the channel!", or null when the gifter's count is hidden or unknown.
-String? _giftCountSentence(int? senderCount) {
+String? _giftCountSentence(int? senderCount, AppLocalizations l) {
   if (senderCount == null || senderCount <= 0) return null;
-  if (senderCount == 1) return "It's their first Gift Sub in the channel!";
-  return "They've given $senderCount Gift Subs in the channel!";
+  if (senderCount == 1) return l.noticeGiftFirst;
+  return l.noticeGiftCount(count: senderCount);
 }
 
-List<NoticeSegment>? _sub(UserNotice notice) {
+List<NoticeSegment>? _sub(UserNotice notice, AppLocalizations l) {
   final name = _senderName(notice);
   if (name == null) return null;
 
   final tier = _paidTier(notice);
-  final subscribed = notice.isPrime
-      ? ' subscribed with Prime.'
+  final plan = notice.isPrime
+      ? 'prime'
       : tier != null
-      ? ' subscribed at $tier.'
-      : ' subscribed.';
+      ? 'tier'
+      : 'none';
+  final subscribed = notice.kind == UserNoticeKind.resub
+      ? l.noticeResubscribed(plan: plan, name: l10nMark(0), tier: tier ?? 0)
+      : l.noticeSubscribed(plan: plan, name: l10nMark(0), tier: tier ?? 0);
 
   final months = notice.cumulativeMonths;
   final streak = notice.streakMonths;
-  final String tail;
+  final String? tail;
   if (months != null &&
       notice.shouldShareStreak &&
       streak != null &&
       streak > 0) {
-    tail =
-        " They've subscribed for $months ${_plural(months, 'month')}, "
-        'currently on a $streak month streak!';
+    tail = l.noticeSubStreak(months: months, streak: streak);
   } else if (months != null && months > 1) {
-    tail = " They've subscribed for $months months!";
+    tail = l.noticeSubMonths(months: months);
   } else {
-    tail = '';
+    tail = null;
   }
 
-  return [NoticeSegment(name, bold: true), NoticeSegment('$subscribed$tail')];
+  return _sentences(subscribed, [name], [tail]);
 }
 
-List<NoticeSegment>? _subGift(UserNotice notice) {
+List<NoticeSegment>? _subGift(UserNotice notice, AppLocalizations l) {
   // Twitch names the gifter by their display name alone (the anonymous
   // gifter account reads "AnAnonymousGifter"); only the recipient gets the
   // login after a name beyond ASCII.
@@ -137,76 +163,98 @@ List<NoticeSegment>? _subGift(UserNotice notice) {
   final recipient = readableNoticeName(recipientName, notice.recipientLogin);
   final tier = _paidTier(notice);
   final months = notice.giftMonths ?? 1;
-  final countSentence = _giftCountSentence(notice.senderCount);
-  final tail = countSentence == null ? '!' : '! $countSentence';
+  final countSentence = _giftCountSentence(notice.senderCount, l);
 
   if (months > 1) {
-    return [
-      NoticeSegment(gifter, bold: true),
-      if (tier != null) ...[
-        const NoticeSegment(' gifted '),
-        NoticeSegment('$months months', bold: true),
-        const NoticeSegment(' of '),
-        NoticeSegment(tier, bold: true),
-        const NoticeSegment(' to '),
-      ] else ...[
-        const NoticeSegment(' gifted a '),
-        NoticeSegment('$months month', bold: true),
-        const NoticeSegment(' Sub to '),
-      ],
-      NoticeSegment(recipient, bold: true),
-      NoticeSegment(tail),
-    ];
+    if (tier != null) {
+      return _sentences(
+        l.noticeGiftedMonthsTier(
+          gifter: l10nMark(0),
+          months: l10nMark(1),
+          tier: l10nMark(2),
+          recipient: l10nMark(3),
+        ),
+        [
+          gifter,
+          l.noticeGiftMonths(count: months),
+          l.noticeGiftTier(tier: tier),
+          recipient,
+        ],
+        [countSentence],
+      );
+    }
+    return _sentences(
+      l.noticeGiftedMonths(
+        gifter: l10nMark(0),
+        months: l10nMark(1),
+        recipient: l10nMark(2),
+      ),
+      [gifter, l.noticeGiftMonthsShort(count: months), recipient],
+      [countSentence],
+    );
   }
 
-  return [
-    NoticeSegment(gifter, bold: true),
-    NoticeSegment(
-      tier == null ? ' gifted a Sub to ' : ' gifted a $tier Sub to ',
+  return _sentences(
+    l.noticeGiftedSub(
+      tiered: tier == null ? 'no' : 'yes',
+      gifter: l10nMark(0),
+      tier: tier ?? 0,
+      recipient: l10nMark(1),
     ),
-    NoticeSegment(recipient, bold: true),
-    NoticeSegment(tail),
-  ];
+    [gifter, recipient],
+    [countSentence],
+  );
 }
 
-List<NoticeSegment>? _communityGift(UserNotice notice, String channelName) {
+List<NoticeSegment>? _communityGift(
+  UserNotice notice,
+  String channelName,
+  AppLocalizations l,
+) {
   final count = notice.massGiftCount;
   final gifter = notice.isAnonymous
-      ? 'An anonymous gifter'
+      ? l.chatAnonymousGifter
       : _senderName(notice);
   if (count == null || gifter == null) return null;
 
   final tier = _paidTier(notice);
-  final subs = tier == null
-      ? '$count ${_plural(count, 'Sub')}'
-      : '$count $tier ${_plural(count, 'Sub')}';
   final senderCount = notice.senderCount ?? 0;
-  final tail = switch (senderCount) {
-    1 => ". It's their first Gift Sub in the channel!",
-    > 1 => ". They've gifted a total of $senderCount in the channel!",
-    _ => '!',
+  final more = switch (senderCount) {
+    1 => l.noticeCommunityGiftFirst,
+    > 1 => l.noticeCommunityGiftTotal(count: senderCount),
+    _ => null,
   };
 
-  return [
-    NoticeSegment(gifter, bold: true),
-    NoticeSegment(" is gifting $subs to $channelName's community$tail"),
-  ];
+  return _sentences(
+    l.noticeCommunityGift(
+      tiered: tier == null ? 'no' : 'yes',
+      count: count,
+      gifter: l10nMark(0),
+      tier: tier ?? 0,
+      channel: channelName,
+      end: more == null ? 'last' : 'more',
+    ),
+    [gifter],
+    [more],
+  );
 }
 
-List<NoticeSegment>? _extendSub(UserNotice notice) {
+List<NoticeSegment>? _extendSub(UserNotice notice, AppLocalizations l) {
   final name = _senderName(notice);
   final month = notice.benefitEndMonth;
   if (name == null || month == null || month < 1 || month > 12) return null;
 
   final tier = _paidTier(notice);
-  final subscription = tier == null ? 'subscription' : '$tier subscription';
-
-  return [
-    NoticeSegment(name, bold: true),
-    NoticeSegment(
-      ' extended their $subscription through ${_months[month - 1]}!',
+  return _sentences(
+    l.noticeExtendedSub(
+      tiered: tier == null ? 'no' : 'yes',
+      name: l10nMark(0),
+      tier: tier ?? 0,
+      // In the language of `Intl`, the one on screen.
+      month: DateFormat.MMMM().format(DateTime(2000, month)),
     ),
-  ];
+    [name],
+  );
 }
 
 final _wordCharacter = RegExp(r'\w');

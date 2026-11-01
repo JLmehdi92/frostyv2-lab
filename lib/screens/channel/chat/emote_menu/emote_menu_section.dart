@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
@@ -117,7 +118,7 @@ class EmoteCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: locked ? '${emote.name}, locked' : null,
+      label: locked ? context.l10n.emoteMenuLocked(name: emote.name) : null,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,

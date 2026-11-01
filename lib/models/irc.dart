@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/chat_gif.dart';
 import 'package:onset/models/cheermote.dart';
@@ -183,17 +185,26 @@ class IRCMessage {
 
   List<NoticeSegment>? _noticeText;
   String? _noticeTextChannel;
+  String? _noticeTextLanguage;
 
-  /// The notice's sentence, worded on first use and kept for as long as
-  /// [channelName] stays the same. [channelName] is the display name of the
-  /// channel a gift bomb is aimed at, which for a shared-chat partner is only
-  /// known once its profile has loaded.
-  List<NoticeSegment> noticeText({required String channelName}) {
+  /// The notice's sentence in [l]'s language (the one on screen by
+  /// default), worded on first use and kept for as long as [channelName]
+  /// and the language stay the same. [channelName] is the display name of
+  /// the channel a gift bomb is aimed at, which for a shared-chat partner is
+  /// only known once its profile has loaded.
+  List<NoticeSegment> noticeText({
+    required String channelName,
+    AppLocalizations? l,
+  }) {
     final notice = this.notice;
     if (notice == null) return const [];
-    if (_noticeText == null || _noticeTextChannel != channelName) {
-      _noticeText = userNoticeText(notice, channelName: channelName);
+    final words = l ?? L10n.current;
+    if (_noticeText == null ||
+        _noticeTextChannel != channelName ||
+        _noticeTextLanguage != words.localeName) {
+      _noticeText = userNoticeText(notice, channelName: channelName, l: words);
       _noticeTextChannel = channelName;
+      _noticeTextLanguage = words.localeName;
     }
     return _noticeText!;
   }
@@ -231,7 +242,7 @@ class IRCMessage {
       messages.clear();
       bufferedMessages.clear();
       messages.add(
-        IRCMessage.createNotice(message: 'Chat was cleared by a moderator'),
+        IRCMessage.createNotice(message: L10n.current.chatClearedByModerator),
       );
       return false;
     }
@@ -351,7 +362,7 @@ class IRCMessage {
         WidgetSpan(
           alignment: PlaceholderAlignment.middle,
           child: Tooltip(
-            message: 'Historical message',
+            message: context.l10n.chatHistoricalMessage,
             preferBelow: false,
             triggerMode: TooltipTriggerMode.tap,
             child: Icon(
@@ -377,8 +388,12 @@ class IRCMessage {
             triggerMode: TooltipTriggerMode.tap,
             preferBelow: false,
             message: isCurrentChannel
-                ? 'Sent from ${sourceChannelUser.displayName} (current channel)'
-                : 'Sent from ${sourceChannelUser.displayName}',
+                ? context.l10n.chatSentFromCurrent(
+                    name: sourceChannelUser.displayName,
+                  )
+                : context.l10n.chatSentFrom(
+                    name: sourceChannelUser.displayName,
+                  ),
             child: CachedNetworkImage(
               cacheManager: CustomCacheManager.instance,
               imageUrl: sourceChannelUser.profileImageUrl,
@@ -629,7 +644,7 @@ class IRCMessage {
     if (!showMessage) {
       span.add(
         TextSpan(
-          text: ' <message deleted>',
+          text: ' ${context.l10n.chatMessageDeletedInline}',
           style: onTapDeletedMessage != null
               ? textStyle?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
@@ -770,7 +785,7 @@ class IRCMessage {
             TextSpan(
               text: word,
               style: textStyle,
-              semanticsLabel: 'Filtered word',
+              semanticsLabel: context.l10n.chatFilteredWord,
               recognizer: onTapFiltered == null
                   ? null
                   : (TapGestureRecognizer()..onTap = onTapFiltered),
@@ -802,7 +817,10 @@ class IRCMessage {
             WidgetSpan(
               alignment: PlaceholderAlignment.middle,
               child: Semantics(
-                label: '${cheer.prefix} ${cheer.amount} bits',
+                label: context.l10n.chatCheerSemantics(
+                  prefix: cheer.prefix,
+                  count: cheer.amount,
+                ),
                 child: OnsetCachedNetworkImage(
                   imageUrl: cheer.tier.url(dark: dark, animated: animateEmotes),
                   height: emoteSize,
@@ -958,9 +976,14 @@ class IRCMessage {
             url: emoteStack.last.url,
             title: nextWordIsEmoji
                 ? emoji
-                : '${emoteStack.last.name} (${emoteStack.last.type})',
+                : '${emoteStack.last.name} '
+                      '(${emoteStack.last.type.label(context.l10n)})',
             subtitle: Text(
-              'with ${nextWordIsEmoji ? message.join(' + ') : message.skip(1).join(' + ')}',
+              context.l10n.chatEmoteStackWith(
+                emotes: nextWordIsEmoji
+                    ? message.join(' + ')
+                    : message.skip(1).join(' + '),
+              ),
             ),
             launchExternal: launchExternal,
           ),
@@ -1141,7 +1164,7 @@ class IRCMessage {
           ),
           url: badge.url,
           title: badge.name,
-          subtitle: Text(badge.type.toString()),
+          subtitle: Text(badge.type.label(context.l10n)),
           launchExternal: launchExternal,
           showCopyName: false,
         ),
@@ -1239,13 +1262,19 @@ class IRCMessage {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 3,
             children: [
-              Text(emote.type.toString()),
+              Text(emote.type.label(context.l10n)),
               if (emote.ownerDisplayName != null && emote.ownerUsername != null)
                 Text(
-                  'by ${utils.getReadableName(emote.ownerDisplayName!, emote.ownerUsername!)}',
+                  context.l10n.chatEmoteBy(
+                    name: utils.getReadableName(
+                      emote.ownerDisplayName!,
+                      emote.ownerUsername!,
+                    ),
+                  ),
                   style: detail,
                 ),
-              if (emote.unlockHint case final hint?) Text(hint, style: detail),
+              if (emote.unlockHint(context.l10n) case final hint?)
+                Text(hint, style: detail),
             ],
           );
         },
@@ -1348,7 +1377,7 @@ class IRCMessage {
             if (showCopyName)
               SheetRow(
                 glyph: SheetGlyphKind.copy,
-                label: 'Copy name',
+                label: context.l10n.chatCopyName,
                 onTap: () {
                   // An emote's title is "name (real name)": only the name.
                   Clipboard.setData(
@@ -1360,7 +1389,7 @@ class IRCMessage {
               ),
             SheetRow(
               glyph: SheetGlyphKind.link,
-              label: 'Copy image URL',
+              label: context.l10n.chatCopyImageUrl,
               onTap: () {
                 Clipboard.setData(ClipboardData(text: url));
 
@@ -1369,7 +1398,7 @@ class IRCMessage {
             ),
             SheetRow(
               glyph: SheetGlyphKind.external,
-              label: 'Open in browser',
+              label: context.l10n.chatOpenInBrowser,
               onTap: () {
                 // Web links only, like every link the app opens.
                 unawaited(LinkRouter.open(url, launchExternal: launchExternal));
@@ -1632,7 +1661,7 @@ class IRCMessage {
     raw: '',
     tags: {'tmi-sent-ts': '${DateTime.now().millisecondsSinceEpoch}'},
     command: Command.notice,
-    message: "You followed ${arrival.fromName}'s raid",
+    message: L10n.current.chatRaidWelcomeFrom(name: arrival.fromName),
     raidArrival: arrival,
   );
 

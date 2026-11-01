@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/details/chat_details.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
@@ -67,7 +68,7 @@ class ChatBottomBar extends StatelessWidget {
 
     final emoteMenuButton = isEmotesEnabled
         ? Tooltip(
-            message: 'Emote menu',
+            message: context.l10n.chatEmoteMenu,
             preferBelow: false,
             child: Semantics(
               selected: chatStore.assetsStore.showEmoteMenu,
@@ -117,13 +118,14 @@ class ChatBottomBar extends StatelessWidget {
           expandChat: chatStore.expandChat,
         );
 
+        final l = context.l10n;
         final effectiveChatDelay = chatStore.settings.effectiveChatDelay;
 
         // Check if chat delay is active (for indicator only, doesn't block input)
         final hasChatDelay =
             chatStore.settings.showVideo && effectiveChatDelay > 0;
 
-        const loginTooltipMessage = 'Log in to chat';
+        final loginTooltipMessage = context.l10n.chatLogInToChat;
 
         final bottomBarContent = Column(
           children: [
@@ -182,7 +184,7 @@ class ChatBottomBar extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        tooltip: 'Cancel reply',
+                        tooltip: context.l10n.chatCancelReply,
                         visualDensity: VisualDensity.compact,
                         onPressed: () => chatStore.replyingToMessage = null,
                         icon: const Icon(Icons.close, size: 20),
@@ -241,7 +243,9 @@ class ChatBottomBar extends StatelessWidget {
                   final command = matchingCommands[index];
                   return _CommandTile(
                     name: command.name,
-                    detail: '${command.usage} · ${command.description}',
+                    detail:
+                        '${command.usage(context.l10n)} · '
+                        '${command.description(context.l10n)}',
                     onTap: () {
                       final text = '/${command.name} ';
                       chatStore.textController.value = TextEditingValue(
@@ -308,7 +312,7 @@ class ChatBottomBar extends StatelessWidget {
                                   }
                                 : null,
                             child: IconButton(
-                              tooltip: 'Enter a message',
+                              tooltip: context.l10n.chatEnterMessage,
                               onPressed: isDisabled
                                   ? null
                                   : () {
@@ -450,26 +454,37 @@ class ChatBottomBar extends StatelessWidget {
                                   hintText: !isLoggedIn
                                       ? loginTooltipMessage
                                       : locked
-                                      ? "You can't chat right now"
+                                      ? l.chatCannotChatNow
                                       : !isConnected
                                       ? (hasConnected
-                                            ? 'Chat disconnected'
-                                            : 'Connecting...')
+                                            ? l.chatInputDisconnected
+                                            : l.chatInputConnecting)
                                       : isWaitingForAck
-                                      ? 'Sending...'
+                                      ? l.chatSending
                                       : chatStore.restriction != null
-                                      ? chatStore.restriction!.describe(null)
+                                      ? chatStore.restriction!.describe(null, l)
                                       : chatStore.replyingToMessage != null
                                       ? channelDisplayName != null
-                                            ? 'Reply in ${channelDisplayName!}'
-                                            : 'Reply'
+                                            ? l.chatReplyIn(
+                                                name: channelDisplayName!,
+                                              )
+                                            : l.chatReply
                                       : hasChatDelay
                                       ? channelDisplayName != null
-                                            ? 'Chat in ${channelDisplayName!} (${effectiveChatDelay.toInt()}s delay)'
-                                            : 'Chat (${effectiveChatDelay.toInt()}s delay)'
+                                            ? l.chatInChannelDelayed(
+                                                name: channelDisplayName!,
+                                                seconds: effectiveChatDelay
+                                                    .toInt(),
+                                              )
+                                            : l.chatDelayed(
+                                                seconds: effectiveChatDelay
+                                                    .toInt(),
+                                              )
                                       : channelDisplayName != null
-                                      ? 'Chat in ${channelDisplayName!}'
-                                      : 'Chat',
+                                      ? l.chatInChannel(
+                                          name: channelDisplayName!,
+                                        )
+                                      : l.chatInputPlaceholder,
                                 ),
                                 controller: chatStore.textController,
                                 // Twitch refuses longer messages.
@@ -567,7 +582,7 @@ class _SendButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = context.onsetColors.live;
     return IconButton(
-      tooltip: waiting ? 'Sending...' : 'Send',
+      tooltip: waiting ? context.l10n.chatSending : context.l10n.chatSend,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints.tightFor(width: 36, height: 36),
       style: IconButton.styleFrom(
@@ -611,7 +626,7 @@ class ChatMoreButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = large ? 48.0 : 44.0;
     return IconButton(
-      tooltip: 'More',
+      tooltip: context.l10n.chatMoreOptions,
       padding: EdgeInsets.zero,
       constraints: BoxConstraints.tightFor(width: size, height: size),
       style: IconButton.styleFrom(
@@ -863,9 +878,11 @@ class _CommandTile extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Container(
-            height: 44,
+            // Taller with large text, within the row's 56 dp.
+            constraints: const BoxConstraints(minHeight: 44),
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 1,

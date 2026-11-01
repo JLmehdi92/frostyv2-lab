@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 
 /// A reward a channel offers for channel points.
 @immutable
@@ -93,17 +94,29 @@ class PointsReward {
     );
   }
 
-  /// Twitch's own name for a built-in reward.
+  /// Twitch's own name for a built-in reward, in [l]'s language (the one
+  /// on screen by default).
   ///
   /// These carry no title over the wire, so an unknown type falls back to its readable identifier rather
   /// than to a blank row.
-  static String automaticRewardTitle(String type) => switch (type) {
-    'SEND_HIGHLIGHTED_MESSAGE' => 'Highlight my message',
-    'RANDOM_SUB_EMOTE_UNLOCK' => 'Unlock a random sub emote',
-    'CHOSEN_SUB_EMOTE_UNLOCK' => 'Choose an emote to unlock',
-    'CHOSEN_MODIFIED_SUB_EMOTE_UNLOCK' => 'Modify a single emote',
-    'SINGLE_MESSAGE_BYPASS_SUB_MODE' => 'Send a message in sub-only mode',
-    _ => type.toLowerCase().replaceAll('_', ' '),
+  static String automaticRewardTitle(String type, [AppLocalizations? l]) {
+    final kind = switch (type) {
+      'SEND_HIGHLIGHTED_MESSAGE' => 'highlight',
+      'RANDOM_SUB_EMOTE_UNLOCK' => 'randomEmote',
+      'CHOSEN_SUB_EMOTE_UNLOCK' => 'chosenEmote',
+      'CHOSEN_MODIFIED_SUB_EMOTE_UNLOCK' => 'modifiedEmote',
+      'SINGLE_MESSAGE_BYPASS_SUB_MODE' => 'subOnlyMessage',
+      _ => null,
+    };
+    if (kind == null) return type.toLowerCase().replaceAll('_', ' ');
+    return (l ?? L10n.current).pointsAutomaticReward(type: kind);
+  }
+
+  /// Its name in [l]'s language: the streamer's title, or Twitch's name for
+  /// a built-in reward.
+  String titleIn(AppLocalizations l) => switch (automaticType) {
+    final type? => automaticRewardTitle(type, l),
+    null => title,
   };
 }
 
@@ -344,21 +357,21 @@ class PointsActionResult {
     return PointsActionResult(PointsActionStatus.unknown, code);
   }
 
-  /// What to put in front of the viewer.
+  /// What to put in front of the viewer, in [l]'s language. Twitch's own
+  /// code for an unknown refusal is shown as it is.
   ///
   /// The integrity case says who refused and why rather than blaming the app:
   /// nothing is broken here, and no amount of retrying will change it.
-  String get message => switch (status) {
-    PointsActionStatus.success => 'Done.',
-    PointsActionStatus.integrityRefused =>
-      'Twitch refused: anti-bot check. Not something this app can pass.',
-    PointsActionStatus.notAuthenticated =>
-      'Twitch rejected the login. Sign in again to spend points.',
-    PointsActionStatus.network => 'Could not reach Twitch. Try again.',
-    PointsActionStatus.unknown when rawCode == busyCode =>
-      'Already in progress.',
-    PointsActionStatus.unknown => 'Twitch refused: ${rawCode ?? 'no reason'}',
-  };
+  String text(AppLocalizations l) =>
+      status == PointsActionStatus.unknown && rawCode == busyCode
+      ? l.pointsBusy
+      : l.pointsResult(
+          status: status.name,
+          reason: rawCode ?? l.pointsNoReason,
+        );
+
+  /// [text] in the language on screen.
+  String get message => text(L10n.current);
 }
 
 Color? _hexColor(String? hex) {

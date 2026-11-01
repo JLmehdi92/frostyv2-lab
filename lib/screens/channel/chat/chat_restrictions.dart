@@ -1,3 +1,4 @@
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 
 /// Why the viewer cannot chat right now, or what limits their messages.
@@ -34,18 +35,25 @@ class ChatRestriction {
   /// placeholder).
   bool get showsBar => blocksInput || kind == ChatRestrictionKind.banned;
 
-  /// What the banner says; [left] is the time to [until].
-  String describe(Duration? left) => switch (kind) {
-    ChatRestrictionKind.banned => 'You are permanently banned from this chat',
+  /// What the banner says, in [l]'s language (the one on screen by
+  /// default); [left] is the time to [until].
+  String describe(Duration? left, [AppLocalizations? l]) =>
+      _describe(left, l ?? L10n.current);
+
+  String _describe(Duration? left, AppLocalizations l) => switch (kind) {
+    ChatRestrictionKind.banned => l.chatRestrictionBanned,
     ChatRestrictionKind.timedOut =>
-      'You are timed out${left == null ? '' : ' · ${formatWait(left)}'}',
-    ChatRestrictionKind.slowMode =>
-      'Slow mode · you can chat again in ${formatWait(left ?? Duration.zero)}',
-    ChatRestrictionKind.emoteOnly => 'Emote-only chat',
-    ChatRestrictionKind.subscribersOnly => 'Subscribers-only chat',
+      left == null
+          ? l.chatRestrictionTimedOut
+          : l.chatRestrictionTimedOutFor(wait: formatWait(left, l)),
+    ChatRestrictionKind.slowMode => l.chatRestrictionSlow(
+      wait: formatWait(left ?? Duration.zero, l),
+    ),
+    ChatRestrictionKind.emoteOnly => l.chatRestrictionEmoteOnly,
+    ChatRestrictionKind.subscribersOnly => l.chatRestrictionSubscribersOnly,
     ChatRestrictionKind.followersOnly => switch (minutes) {
-      null || 0 => 'Followers-only chat',
-      final m => 'Followers-only chat · following for $m+ min',
+      null || 0 => l.chatRestrictionFollowersOnly,
+      final m => l.chatRestrictionFollowersFor(minutes: m),
     },
   };
 }
@@ -53,10 +61,13 @@ class ChatRestriction {
 /// Height of the line [ChatRestriction.showsBar] puts above the input.
 const kRestrictionBarHeight = 28.0;
 
-/// "4:05", "1:02:03", "12s".
-String formatWait(Duration left) {
+/// "4:05", "1:02:03", "12s" (« 12 s » in French), in [l]'s language (the
+/// one on screen by default).
+String formatWait(Duration left, [AppLocalizations? l]) {
   final seconds = left.inSeconds < 0 ? 0 : left.inSeconds;
-  if (seconds < 60) return '${seconds}s';
+  if (seconds < 60) {
+    return (l ?? L10n.current).chatShortSeconds(seconds: seconds);
+  }
   final h = seconds ~/ 3600;
   final m = (seconds % 3600) ~/ 60;
   final s = (seconds % 60).toString().padLeft(2, '0');

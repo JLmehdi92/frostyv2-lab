@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
@@ -22,13 +23,13 @@ class FilteredMessageSheet extends StatelessWidget {
                 child: Semantics(
                   header: true,
                   child: Text(
-                    'Message Blocked',
+                    context.l10n.chatFilteredTitle,
                     style: SheetText.title.copyWith(color: colors.text),
                   ),
                 ),
               ),
               IconButton(
-                tooltip: 'Close',
+                tooltip: context.l10n.commonClose,
                 style: IconButton.styleFrom(
                   fixedSize: const Size(44, 44),
                   padding: EdgeInsets.zero,
@@ -45,15 +46,14 @@ class FilteredMessageSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 12, top: 4, bottom: 16),
             child: Text(
-              'Would you like to see this message? It has been hidden for '
-              'you based on your NSFW Chat Filter settings.',
+              context.l10n.chatFilteredBody,
               style: SheetText.body.copyWith(color: colors.body),
             ),
           ),
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: SheetButton(
-              label: 'Show Message',
+              label: context.l10n.chatFilteredShow,
               large: true,
               expand: true,
               onPressed: () => Navigator.of(context).pop(true),

@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 
 /// Twitch's state of a viewer's watch streak in a channel.
 enum WatchStreakState {
@@ -95,48 +96,50 @@ class WatchStreak {
     };
   }
 
-  /// The streak panel's wording: [live] says whether the channel is
-  /// live, which changes how a suspended streak is saved.
+  /// The streak panel's wording, in [l]'s language (the one on screen by
+  /// default): [live] says whether the channel is live, which changes how a
+  /// suspended streak is saved.
   WatchStreakCopy copy({
     required bool live,
     required String channelName,
     required DateTime now,
+    AppLocalizations? l,
   }) {
+    final words = l ?? L10n.current;
     if (state == WatchStreakState.suspended) {
       if (live) {
         return (
-          title: 'Keep watching to save your Watch Streak!',
-          subtitle:
-              "Watch this live stream and you'll be able to save your "
-              'current $value-stream streak.',
+          title: words.streakSaveTitle,
+          subtitle: words.streakSaveLive(count: value),
         );
       }
       final left = expiresAt?.difference(now);
       return (
-        title: 'Watch Streak Expiring',
+        title: words.streakExpiringTitle,
         subtitle: left == null || left.isNegative
             ? null
-            : 'Watch $channelName in the next ${left.inHours}h '
-                  '${left.inMinutes % 60}m ${left.inSeconds % 60}s to save '
-                  'your streak!',
+            : words.streakExpiring(
+                name: channelName,
+                hours: left.inHours,
+                minutes: left.inMinutes % 60,
+                seconds: left.inSeconds % 60,
+              ),
       );
     }
     final next = threshold;
     final bonus = pointsBonus;
     final points = bonus == null
         ? null
-        : NumberFormat.decimalPattern('en_US').format(bonus);
+        : NumberFormat.decimalPattern(words.localeName).format(bonus);
     return (
-      title: 'Your Watch Streak: $value',
-      subtitle: next == null || points == null
+      title: words.streakYour(value: value),
+      subtitle: next == null || points == null || bonus == null
           ? null
           : next - value == 1
-          ? '1 more stream until an extra $points channel points reward'
+          ? words.streakOneMore(count: bonus, points: points)
           : canShare
-          ? 'You reached a $next-stream streak and earned an extra $points '
-                'channel points'
-          : 'Reach $next-stream streak and earn an extra $points channel '
-                'points',
+          ? words.streakReached(count: bonus, next: next, points: points)
+          : words.streakReach(count: bonus, next: next, points: points),
     );
   }
 

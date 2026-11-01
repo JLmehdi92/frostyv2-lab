@@ -7,6 +7,7 @@ import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/services/telemetry.dart';
 import 'package:onset/utils/link_router.dart';
@@ -30,16 +31,40 @@ import 'package:provider/provider.dart';
 /// What a preview card shows.
 class ChatLinkPreview {
   const ChatLinkPreview({
-    required this.title,
+    required this.isClip,
+    required this.rawTitle,
     required this.channel,
-    required this.detail,
+    required this.duration,
+    required this.viewCount,
     this.thumbnailUrl,
   });
 
-  final String title;
+  /// A clip; else a video.
+  final bool isClip;
+
+  /// Its title as Twitch gave it (maybe blank).
+  final String rawTitle;
   final String channel;
-  final String detail;
+
+  /// Its length, as a clock ("0:30").
+  final String duration;
+  final int viewCount;
   final String? thumbnailUrl;
+
+  /// Its title, or « Untitled » in [l]'s language.
+  String titleIn(AppLocalizations l) => rawTitle.trim().isEmpty
+      ? (isClip ? l.chatLinkUntitledClip : l.chatLinkUntitled)
+      : rawTitle;
+
+  /// "Clip · 0:30 · 1.5K views", in [l]'s language.
+  String detailIn(AppLocalizations l) => [
+    if (isClip) l.chatLinkClip else l.chatLinkVideo,
+    duration,
+    l.chatLinkViews(
+      count: viewCount,
+      views: NumberFormat.compact(locale: l.localeName).format(viewCount),
+    ),
+  ].join(' · ');
 }
 
 /// [url] when it is an https image on a Twitch host, or null.
@@ -55,9 +80,6 @@ String? _twitchImage(String? url) {
   }
   return url;
 }
-
-String _views(int count) =>
-    '${NumberFormat.compact().format(count)} ${count == 1 ? 'view' : 'views'}';
 
 /// Previews shared by every chat.
 ///
@@ -180,22 +202,22 @@ abstract final class ChatLinkPreviews {
         final clip = await clips.getClip(slug);
         if (clip == null) return null;
         return ChatLinkPreview(
-          title: clip.title.trim().isEmpty ? 'Untitled clip' : clip.title,
+          isClip: true,
+          rawTitle: clip.title,
           channel: clip.broadcasterDisplayName,
-          detail:
-              'Clip · ${formatVodTime(clip.duration)} · '
-              '${_views(clip.viewCount)}',
+          duration: formatVodTime(clip.duration),
+          viewCount: clip.viewCount,
           thumbnailUrl: _twitchImage(clip.thumbnailUrl),
         );
       case VodLink(:final vodId):
         final vod = await vods.getVideo(vodId);
         if (vod == null) return null;
         return ChatLinkPreview(
-          title: vod.title.trim().isEmpty ? 'Untitled' : vod.title,
+          isClip: false,
+          rawTitle: vod.title,
           channel: vod.ownerDisplayName,
-          detail:
-              'Video · ${formatVodTime(vod.duration)} · '
-              '${_views(vod.viewCount)}',
+          duration: formatVodTime(vod.duration),
+          viewCount: vod.viewCount,
           thumbnailUrl: _twitchImage(vod.previewThumbnailUrl),
         );
       default:
@@ -331,7 +353,7 @@ class _ChatLinkCardState extends State<ChatLinkCard> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              preview.title,
+                              preview.titleIn(context.l10n),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodyMedium?.copyWith(
@@ -345,7 +367,7 @@ class _ChatLinkCardState extends State<ChatLinkCard> {
                               style: theme.textTheme.bodySmall,
                             ),
                             Text(
-                              preview.detail,
+                              preview.detailIn(context.l10n),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodySmall?.copyWith(

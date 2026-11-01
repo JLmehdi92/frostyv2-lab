@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
@@ -10,23 +13,32 @@ class ChatModes extends StatelessWidget {
 
   const ChatModes({super.key, required this.roomState});
 
-  String pluralize(String str, String count) => count == '1' ? str : '${str}s';
-
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Observer(
       builder: (context) {
-        // The pills: what is on, and for how long.
+        // The pills: what is on, and for how long, in the order of their
+        // names.
         final active = <(String, SheetGlyphKind, String?)>[
           if (roomState.emoteOnly != '0')
-            ('Emote only', SheetGlyphKind.emote, null),
+            (ChatMode.emoteOnly.pill(l), SheetGlyphKind.emote, null),
           if (roomState.followersOnly != '-1')
-            ('Follower only', SheetGlyphKind.heart, _getFollowersDuration()),
+            (
+              ChatMode.followers.pill(l),
+              SheetGlyphKind.heart,
+              _getFollowersDuration(l),
+            ),
           if (roomState.slowMode != '0')
-            ('Slow mode', SheetGlyphKind.hourglass, _getSlowModeDuration()),
-          if (roomState.subMode != '0') ('Sub only', SheetGlyphKind.star, null),
+            (
+              ChatMode.slow.pill(l),
+              SheetGlyphKind.hourglass,
+              _getSlowModeDuration(l),
+            ),
+          if (roomState.subMode != '0')
+            (ChatMode.subscribers.pill(l), SheetGlyphKind.star, null),
           if (roomState.r9k != '0')
-            ('Unique mode', SheetGlyphKind.unique, null),
+            (ChatMode.uniqueChat.pill(l), SheetGlyphKind.unique, null),
         ]..sort((a, b) => a.$1.compareTo(b.$1));
 
         return Row(
@@ -41,7 +53,7 @@ class ChatModes extends StatelessWidget {
     );
   }
 
-  String? _getFollowersDuration() {
+  String? _getFollowersDuration(AppLocalizations l) {
     if (roomState.followersOnly == '0') {
       return null; // No duration for immediate followers
     }
@@ -50,26 +62,29 @@ class ChatModes extends StatelessWidget {
       final hours = minutes ~/ 60;
       final remainingMinutes = minutes % 60;
       if (remainingMinutes == 0) {
-        return '${hours}h';
+        return l.chatShortHours(hours: hours);
       } else {
-        return '${hours}h ${remainingMinutes}m';
+        return l.chatShortHoursMinutes(hours: hours, minutes: remainingMinutes);
       }
     }
-    return '${minutes}m';
+    return l.chatShortMinutes(minutes: minutes);
   }
 
-  String _getSlowModeDuration() {
+  String _getSlowModeDuration(AppLocalizations l) {
     final seconds = int.parse(roomState.slowMode);
     if (seconds >= 60) {
       final minutes = seconds ~/ 60;
       final remainingSeconds = seconds % 60;
       if (remainingSeconds == 0) {
-        return '${minutes}m';
+        return l.chatShortMinutes(minutes: minutes);
       } else {
-        return '${minutes}m ${remainingSeconds}s';
+        return l.chatShortMinutesSeconds(
+          minutes: minutes,
+          seconds: remainingSeconds,
+        );
       }
     }
-    return '${seconds}s';
+    return l.chatShortSeconds(seconds: seconds);
   }
 }
 

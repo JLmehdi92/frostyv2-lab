@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/stores/whisper_store.dart';
 
@@ -41,13 +42,16 @@ class HeldMessageWatcher {
 
   void _onUpdate(Map<String, Object?> event) {
     if (event['user_id'] != _userId) return;
-    final decision = switch (event['status']) {
-      'approved' => 'Moderators approved your held message',
-      'denied' => 'Moderators denied your held message',
-      'invalid' => 'Your held message can no longer be reviewed',
+    final status = switch (event['status']) {
+      final String status
+          when const {'approved', 'denied', 'invalid'}.contains(status) =>
+        status,
       _ => null,
     };
-    if (decision == null) return;
+    if (status == null) return;
+    // A line put in the chat: worded in the language on screen now.
+    final l = L10n.current;
+    final decision = l.chatHeldDecision(decision: status);
     final quote = switch (event['message']) {
       {'text': final String text} => whisperPreview(text),
       _ => '',
@@ -57,9 +61,9 @@ class HeldMessageWatcher {
     } else if (quote.runes.length > _maxQuote) {
       // By code point, so an emoji is not cut in half.
       final cut = String.fromCharCodes(quote.runes.take(_maxQuote));
-      _onNotice('$decision: "$cut…"');
+      _onNotice(l.chatHeldQuoted(decision: decision, quote: '$cut…'));
     } else {
-      _onNotice('$decision: "$quote"');
+      _onNotice(l.chatHeldQuoted(decision: decision, quote: quote));
     }
   }
 

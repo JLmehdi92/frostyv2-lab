@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/chat.dart';
 import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:onset/screens/channel/chat/widgets/add_chat_dialog.dart';
@@ -28,8 +29,7 @@ class ChatTabs extends StatelessWidget {
         final tabs = chatTabsStore.tabs;
         final activeIndex = chatTabsStore.activeTabIndex;
         final showTabBar = chatTabsStore.showTabBar;
-        final showMerge =
-            tabs.where((t) => t.isActivated).length >= 2;
+        final showMerge = tabs.where((t) => t.isActivated).length >= 2;
 
         // Calculate extra top padding for tab bar when visible
         final tabBarHeight = showTabBar ? 48.0 : 0.0;
@@ -160,7 +160,9 @@ class ChatTabs extends StatelessWidget {
     final isMerged = chatTabsStore.mergedMode;
     return IconButton.filledTonal(
       icon: const Icon(Icons.call_merge, size: 18),
-      tooltip: isMerged ? 'Split chats' : 'Merge loaded chats',
+      tooltip: isMerged
+          ? context.l10n.chatTabsSplit
+          : context.l10n.chatTabsMerge,
       visualDensity: VisualDensity.compact,
       isSelected: isMerged,
       style: IconButton.styleFrom(
@@ -209,7 +211,7 @@ class ChatTabs extends StatelessWidget {
         if (isActivated)
           MenuItemButton(
             leadingIcon: const Icon(Icons.power_off_rounded, size: 18),
-            child: const Text('Disconnect'),
+            child: Text(context.l10n.chatTabsDisconnect),
             onPressed: () {
               HapticFeedback.lightImpact();
               chatTabsStore.deactivateTab(index);
@@ -222,7 +224,7 @@ class ChatTabs extends StatelessWidget {
             color: Theme.of(context).colorScheme.error,
           ),
           child: Text(
-            'Remove',
+            context.l10n.chatTabsRemove,
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
           onPressed: () {
@@ -233,8 +235,7 @@ class ChatTabs extends StatelessWidget {
       ],
       builder: (context, controller, child) {
         return InputChip(
-          avatar:
-              isActivated ? avatar : Opacity(opacity: 0.5, child: avatar),
+          avatar: isActivated ? avatar : Opacity(opacity: 0.5, child: avatar),
           label: Text(
             displayName,
             style: isActivated
@@ -252,7 +253,7 @@ class ChatTabs extends StatelessWidget {
             }
           },
           onDeleted: () => controller.open(),
-          deleteButtonTooltipMessage: 'Tab options',
+          deleteButtonTooltipMessage: context.l10n.chatTabsOptions,
         );
       },
     );
@@ -266,9 +267,9 @@ Future<void> addChatTab(
 ) async {
   if (!chatTabsStore.canAddTab) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Maximum 10 chats open'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(context.l10n.chatTabsMaximum),
+        duration: const Duration(seconds: 2),
       ),
     );
     return;
@@ -286,9 +287,9 @@ Future<void> addChatTab(
     if (!added && context.mounted) {
       // If not added, it means the channel already exists (switched to it)
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Channel already open, switched to it'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(context.l10n.chatTabsAlreadyOpen),
+          duration: const Duration(seconds: 2),
         ),
       );
     }

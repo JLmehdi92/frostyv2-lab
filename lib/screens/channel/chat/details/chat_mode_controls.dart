@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
@@ -30,14 +32,13 @@ const kFollowAges = [
   Duration(days: 90),
 ];
 
-String _followAgeLabel(Duration age) {
-  if (age == Duration.zero) return 'Any follower';
+String _followAgeLabel(Duration age, AppLocalizations l) {
+  if (age == Duration.zero) return l.chatModesAnyFollower;
   final days = age.inDays;
   if (days >= 30 && days % 30 == 0 && age.inSeconds % 86400 == 0) {
-    final months = days ~/ 30;
-    return '$months month${months == 1 ? '' : 's'}';
+    return l.chatDurationMonths(count: days ~/ 30);
   }
-  return timeoutLength(age.inSeconds);
+  return timeoutLength(age.inSeconds, l);
 }
 
 /// A moderator's switches for the chat's room modes, and clearing the chat.
@@ -110,16 +111,16 @@ class _ChatModeControlsState extends State<ChatModeControls> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => OnsetDialog(
-        title: 'Clear chat?',
-        message: 'Every message is deleted for everyone.',
+        title: context.l10n.chatModesClearTitle,
+        message: context.l10n.chatModesClearMessage,
         actions: [
           SheetButton(
-            label: 'Cancel',
+            label: context.l10n.commonCancel,
             tone: SheetButtonTone.text,
             onPressed: () => Navigator.pop(context, false),
           ),
           SheetButton(
-            label: 'Clear',
+            label: context.l10n.chatClear,
             tone: SheetButtonTone.danger,
             onPressed: () => Navigator.pop(context, true),
           ),
@@ -227,7 +228,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    mode.label,
+                    mode.label(context.l10n),
                     style: SheetText.row.copyWith(color: colors.text),
                   ),
                   ?picker,
@@ -236,7 +237,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
             ),
             OnsetSwitch(
               value: on,
-              semanticsLabel: mode.label,
+              semanticsLabel: mode.label(context.l10n),
               onChanged: _busy
                   ? null
                   : (value) => toggle(mode, value, duration),
@@ -263,13 +264,13 @@ class _ChatModeControlsState extends State<ChatModeControls> {
                 child: Semantics(
                   header: true,
                   child: Text(
-                    'Chat modes',
+                    context.l10n.chatDetailsModes,
                     style: SheetText.title.copyWith(color: colors.text),
                   ),
                 ),
               ),
               Text(
-                'Moderator',
+                context.l10n.chatModesModerator,
                 style: SheetText.status.copyWith(
                   fontSize: 12,
                   color: colors.secondary,
@@ -286,7 +287,8 @@ class _ChatModeControlsState extends State<ChatModeControls> {
           picker: _picker(
             value: _slowWait,
             values: kSlowModeWaits,
-            label: (wait) => '${wait.inSeconds}s between messages',
+            label: (wait) =>
+                context.l10n.chatModesSlowWait(seconds: wait.inSeconds),
             onChanged: (wait) {
               setState(() => _slowWait = wait);
               if (slowOn) {
@@ -303,7 +305,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
           picker: _picker(
             value: _followAge,
             values: kFollowAges,
-            label: _followAgeLabel,
+            label: (age) => _followAgeLabel(age, context.l10n),
             onChanged: (age) {
               setState(() => _followAge = age);
               if (followersOn) {
@@ -324,7 +326,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
         ),
         SheetRow(
           glyph: SheetGlyphKind.clearChat,
-          label: 'Clear chat',
+          label: context.l10n.chatModesClearChat,
           danger: true,
           onTap: _busy ? null : _clear,
         ),

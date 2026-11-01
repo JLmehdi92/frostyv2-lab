@@ -5898,5 +5898,2038 @@
         "example": "HypeKappa"
       }
     }
+  },
+  "chatDurationSeconds": "{count, plural, one{{count} second} other{{count} seconds}}",
+  "@chatDurationSeconds": {
+    "description": "A length in seconds, as the chat words a timeout, a slow-mode wait, a follow age or a sleep timer (« 10 minutes », « 2 semaines »).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "chatDurationMinutes": "{count, plural, one{{count} minute} other{{count} minutes}}",
+  "@chatDurationMinutes": {
+    "description": "A length in minutes, as the chat words a timeout, a slow-mode wait, a follow age or a sleep timer (« 10 minutes », « 2 semaines »).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "chatDurationHours": "{count, plural, one{{count} hour} other{{count} hours}}",
+  "@chatDurationHours": {
+    "description": "A length in hours, as the chat words a timeout, a slow-mode wait, a follow age or a sleep timer (« 10 minutes », « 2 semaines »).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "chatDurationDays": "{count, plural, one{{count} day} other{{count} days}}",
+  "@chatDurationDays": {
+    "description": "A length in days, as the chat words a timeout, a slow-mode wait, a follow age or a sleep timer (« 10 minutes », « 2 semaines »).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "chatDurationWeeks": "{count, plural, one{{count} week} other{{count} weeks}}",
+  "@chatDurationWeeks": {
+    "description": "A length in weeks, as the chat words a timeout, a slow-mode wait, a follow age or a sleep timer (« 10 minutes », « 2 semaines »).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "chatDurationMonths": "{count, plural, one{{count} month} other{{count} months}}",
+  "@chatDurationMonths": {
+    "description": "A follow age in months, in the moderator's followers-only menu (« 3 mois »).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "chatShortSeconds": "{seconds}s",
+  "@chatShortSeconds": {
+    "description": "A short wait in seconds: the slow mode's wait in the chat's pills and above the input, a sleep timer's last minute.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "chatShortMinutes": "{minutes}m",
+  "@chatShortMinutes": {
+    "description": "A short length in whole minutes, in the chat modes' pills (followers-only age, slow mode).",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "chatShortMinutesSeconds": "{minutes}m {seconds}s",
+  "@chatShortMinutesSeconds": {
+    "description": "A short length in minutes and seconds: the slow mode's pill, a sleep timer under an hour.",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "2"
+      },
+      "seconds": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "chatShortHours": "{hours}h",
+  "@chatShortHours": {
+    "description": "A short length in whole hours, in the chat modes' pills (followers-only age).",
+    "placeholders": {
+      "hours": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "chatShortHoursMinutes": "{hours}h {minutes}m",
+  "@chatShortHoursMinutes": {
+    "description": "A short length in hours and minutes: the followers-only pill, a sleep timer.",
+    "placeholders": {
+      "hours": {
+        "type": "int",
+        "example": "1"
+      },
+      "minutes": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "chatConnecting": "Connecting to chat...",
+  "@chatConnecting": {
+    "description": "The first line of a chat, while it connects."
+  },
+  "chatWelcome": "Welcome to {name}'s chat!",
+  "@chatWelcome": {
+    "description": "The line once the chat is connected. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "chatReconnected": "{attempts, plural, one{Reconnected ({attempts} attempt, {seconds}s)} other{Reconnected ({attempts} attempts, {seconds}s)}}",
+  "@chatReconnected": {
+    "description": "The line that replaces the reconnecting line once the chat is back: how many tries and seconds it took.",
+    "placeholders": {
+      "attempts": {
+        "type": "int",
+        "example": "2"
+      },
+      "seconds": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "chatReconnectingIn": "Reconnecting in {seconds}s... (attempt {attempt} of {max})",
+  "@chatReconnectingIn": {
+    "description": "The chat lost its connection: the countdown before the next try.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "4"
+      },
+      "attempt": {
+        "type": "int",
+        "example": "2"
+      },
+      "max": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "chatReconnecting": "Reconnecting... (attempt {attempt} of {max})",
+  "@chatReconnecting": {
+    "description": "The chat lost its connection: a try is running.",
+    "placeholders": {
+      "attempt": {
+        "type": "int",
+        "example": "2"
+      },
+      "max": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "chatDisconnected": "Chat disconnected. Please check your connection.",
+  "@chatDisconnected": {
+    "description": "The line once every try to reconnect failed; a Reconnect button follows (chatReconnect)."
+  },
+  "chatReconnect": "Reconnect",
+  "@chatReconnect": {
+    "description": "The button on the « chat disconnected » line, and the row of the chat's details sheet that reconnects the chat."
+  },
+  "chatReconnectingNotice": "Reconnecting to chat...",
+  "@chatReconnectingNotice": {
+    "description": "The note above the input after the viewer asked to reconnect (chat details › Reconnect)."
+  },
+  "chatSyncIn": "Chat will sync in {seconds}s...",
+  "@chatSyncIn": {
+    "description": "The chat is delayed to match the video (Settings › Chat › Message delay): the countdown until it catches up.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+  "chatSevenTvEmoteAdded": "{name} added 7TV emote \"{emote}\" to chat",
+  "@chatSevenTvEmoteAdded": {
+    "description": "A line when an editor of the channel adds a 7TV emote. name is the editor's name, emote the emote's code.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Editor"
+      },
+      "emote": {
+        "type": "String",
+        "example": "catJAM"
+      }
+    }
+  },
+  "chatSevenTvEmoteRemoved": "{name} removed 7TV emote \"{emote}\" from chat",
+  "@chatSevenTvEmoteRemoved": {
+    "description": "A line when an editor of the channel removes a 7TV emote. name is the editor's name, emote the emote's code.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Editor"
+      },
+      "emote": {
+        "type": "String",
+        "example": "catJAM"
+      }
+    }
+  },
+  "chatMessageTooLong": "Messages can be {max} characters at most",
+  "@chatMessageTooLong": {
+    "description": "The note above the input when a message is too long for Twitch.",
+    "placeholders": {
+      "max": {
+        "type": "int",
+        "example": "500"
+      }
+    }
+  },
+  "chatWaitCommand": "Please wait, running the previous command...",
+  "@chatWaitCommand": {
+    "description": "The note above the input when a command is sent while the last one still runs."
+  },
+  "chatWaitMessage": "Please wait, sending previous message...",
+  "@chatWaitMessage": {
+    "description": "The note above the input when a message is sent before Twitch confirmed the last one."
+  },
+  "chatCannotSendDisconnected": "Cannot send message - chat is disconnected. Reconnecting...",
+  "@chatCannotSendDisconnected": {
+    "description": "A line in chat when a message is sent while the chat is disconnected."
+  },
+  "chatMaybeNotSent": "Message may not have been sent. Please try again.",
+  "@chatMaybeNotSent": {
+    "description": "The note above the input when Twitch did not confirm a message in time."
+  },
+  "chatClearedByModerator": "Chat was cleared by a moderator",
+  "@chatClearedByModerator": {
+    "description": "The line left when a moderator clears the whole chat."
+  },
+  "chatHelpCommands": "Commands: {commands}",
+  "@chatHelpCommands": {
+    "description": "The line /help writes in chat: every command's usage (chatCommandUsage…), joined with commas. The commands themselves are never translated.",
+    "placeholders": {
+      "commands": {
+        "type": "String",
+        "example": "/me <message>, /help"
+      }
+    }
+  },
+  "chatLogInToWhisper": "Log in to whisper.",
+  "@chatLogInToWhisper": {
+    "description": "A line in chat: /w needs the viewer logged in."
+  },
+  "chatWhisperSent": "Whisper sent to {name}.",
+  "@chatWhisperSent": {
+    "description": "A line in chat once /w sent the whisper. name is the recipient's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Friend"
+      }
+    }
+  },
+  "chatWhisperSentNoReplies": "Whisper sent to {name}. Replies cannot reach this app until you log in again.",
+  "@chatWhisperSentNoReplies": {
+    "description": "The same, while Twitch refuses the app's whisper connection until the viewer logs in again.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Friend"
+      }
+    }
+  },
+  "chatWhisperNoUser": "Couldn't whisper: no user named {login}.",
+  "@chatWhisperNoUser": {
+    "description": "A line in chat: /w names nobody. login is what the viewer typed.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "ghost"
+      }
+    }
+  },
+  "chatWhisperFailedBecause": "Couldn't whisper: {reason}",
+  "@chatWhisperFailedBecause": {
+    "description": "A line in chat: the whisper failed; reason is the error, worded (a sentence).",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "No internet connection. Please check your network."
+      }
+    }
+  },
+  "chatWhisperFailed": "Couldn't whisper.",
+  "@chatWhisperFailed": {
+    "description": "A line in chat: the whisper failed for an unexpected reason."
+  },
+  "chatLogInToChangeColor": "Log in to change your color.",
+  "@chatLogInToChangeColor": {
+    "description": "A line in chat: /color needs the viewer logged in."
+  },
+  "chatColorChanged": "Your name color was changed.",
+  "@chatColorChanged": {
+    "description": "A line in chat once /color changed the viewer's name colour."
+  },
+  "chatColorFailedHex": "Couldn't change your color (hex colors need Turbo or Prime).",
+  "@chatColorFailedHex": {
+    "description": "A line in chat: Twitch refused the colour (#RRGGBB colours need Turbo or Prime)."
+  },
+  "chatAlreadyBlocked": "{name} is already blocked.",
+  "@chatAlreadyBlocked": {
+    "description": "A line in chat: /block names someone already blocked. French puts the name last so nothing agrees with it.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatBlockedUser": "Blocked {name}.",
+  "@chatBlockedUser": {
+    "description": "A line in chat once /block blocked someone. French puts the name last so nothing agrees with it.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatUnblockedUser": "Unblocked {name}.",
+  "@chatUnblockedUser": {
+    "description": "A line in chat once /unblock unblocked someone.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatBlockFailed": "Couldn't block {login}.",
+  "@chatBlockFailed": {
+    "description": "A line in chat: /block failed. login is what the viewer typed.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "troll"
+      }
+    }
+  },
+  "chatUnblockFailed": "Couldn't unblock {login}.",
+  "@chatUnblockFailed": {
+    "description": "A line in chat: /unblock failed. login is what the viewer typed.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "troll"
+      }
+    }
+  },
+  "chatLogInToModerate": "Log in to moderate.",
+  "@chatLogInToModerate": {
+    "description": "A line in chat: a moderation command needs the viewer logged in."
+  },
+  "chatCommandArgUser": "user",
+  "@chatCommandArgUser": {
+    "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: someone's name."
+  },
+  "chatCommandArgMessage": "message",
+  "@chatCommandArgMessage": {
+    "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the text to send."
+  },
+  "chatCommandArgColor": "color",
+  "@chatCommandArgColor": {
+    "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: a colour name or #RRGGBB."
+  },
+  "chatCommandArgReason": "reason",
+  "@chatCommandArgReason": {
+    "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: why (a ban, a warning)."
+  },
+  "chatCommandArgLength": "length",
+  "@chatCommandArgLength": {
+    "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: a length such as 10m."
+  },
+  "chatCommandArgSeconds": "seconds",
+  "@chatCommandArgSeconds": {
+    "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the slow mode's wait."
+  },
+  "chatCommandArgMessageId": "message id",
+  "@chatCommandArgMessageId": {
+    "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the id of the message to delete."
+  },
+  "chatCommandDescription": "{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} help{List the commands} ban{Ban a user from the chat} unban{Lift a ban} timeout{Time a user out (10m by default; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Slow mode (30s by default)} slowoff{Turn slow mode off} followers{Followers-only mode (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Subscribers-only mode} subscribersoff{Turn subscribers-only mode off} emoteonly{Emote-only mode} emoteonlyoff{Turn emote-only mode off} uniquechat{Unique chat mode (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}",
+  "@chatCommandDescription": {
+    "description": "What a chat command does, beside its usage in the input's suggestions. command is the command's name (never translated, nor are the lengths « 10m », « 30s » and their units « s, m, h, d, w, mo » that Twitch reads).",
+    "placeholders": {
+      "command": {
+        "type": "String",
+        "example": "ban"
+      }
+    }
+  },
+  "chatCommandUsage": "Usage: {usage}",
+  "@chatCommandUsage": {
+    "description": "A line in chat when a command is typed wrong: how to type it. usage is the command and its words (/ban <user> [reason]).",
+    "placeholders": {
+      "usage": {
+        "type": "String",
+        "example": "/ban <user> [reason]"
+      }
+    }
+  },
+  "chatCommandBadLength": "Unknown length \"{length}\". Use e.g. 30, 10m, 2h, 1d or 1w.",
+  "@chatCommandBadLength": {
+    "description": "A line in chat: /timeout got a length it cannot read. length is what the viewer typed; the examples are what Twitch reads (never translated).",
+    "placeholders": {
+      "length": {
+        "type": "String",
+        "example": "5min"
+      }
+    }
+  },
+  "chatCommandTimeoutRange": "Timeouts last from 1 second to 2 weeks.",
+  "@chatCommandTimeoutRange": {
+    "description": "A line in chat: /timeout got a length out of range."
+  },
+  "chatCommandSlowRange": "The slow mode wait is 3 to 120 seconds.",
+  "@chatCommandSlowRange": {
+    "description": "A line in chat: /slow got a wait out of range."
+  },
+  "chatCommandFollowAgeRange": "The follow age is 0 minutes to 3 months (e.g. 10m, 1w, 3mo).",
+  "@chatCommandFollowAgeRange": {
+    "description": "A line in chat: /followers got a follow age out of range. The examples are what Twitch reads (never translated)."
+  },
+  "chatCommandUnknownColor": "Unknown color. Try Blue, Coral, HotPink… or #RRGGBB (Turbo/Prime).",
+  "@chatCommandUnknownColor": {
+    "description": "A line in chat: /color got a colour it does not know. Blue, Coral, HotPink are what /color reads (never translated; French writes them in lower case, which /color reads the same)."
+  },
+  "chatCommandNotInApp": "/{command} is not available in this app.",
+  "@chatCommandNotInApp": {
+    "description": "A line in chat: a Twitch command this app does not run. command is its name.",
+    "placeholders": {
+      "command": {
+        "type": "String",
+        "example": "raid"
+      }
+    }
+  },
+  "chatCommandUnknown": "Unknown command /{command}. Type /help for the commands you can use.",
+  "@chatCommandUnknown": {
+    "description": "A line in chat: a command nobody knows. command is what the viewer typed; /help is the command (never translated).",
+    "placeholders": {
+      "command": {
+        "type": "String",
+        "example": "dance"
+      }
+    }
+  },
+  "chatModeName": "{mode, select, slow{Slow mode} followers{Followers-only mode} subscribers{Subscribers-only mode} emoteOnly{Emote-only mode} uniqueChat{Unique chat mode} other{}}",
+  "@chatModeName": {
+    "description": "A room mode's name: the moderator's switches (Chat modes sheet) and their outcome lines. mode is ChatMode.name.",
+    "placeholders": {
+      "mode": {
+        "type": "String",
+        "example": "slow"
+      }
+    }
+  },
+  "chatModeChanged": "{mode, select, slow{Slow mode} followers{Followers-only mode} subscribers{Subscribers-only mode} emoteOnly{Emote-only mode} uniqueChat{Unique chat mode} other{}} {state, select, on{on} other{off}}.",
+  "@chatModeChanged": {
+    "description": "A line in chat once a moderator turned a room mode on or off. mode is ChatMode.name; state is on or off. « activé » agrees with « mode ».",
+    "placeholders": {
+      "mode": {
+        "type": "String",
+        "example": "slow"
+      },
+      "state": {
+        "type": "String",
+        "example": "on"
+      }
+    }
+  },
+  "chatModeSlowOn": "Slow mode on ({duration}).",
+  "@chatModeSlowOn": {
+    "description": "A line in chat once a moderator turned slow mode on. duration is the wait (chatDuration…).",
+    "placeholders": {
+      "duration": {
+        "type": "String",
+        "example": "30 seconds"
+      }
+    }
+  },
+  "chatModeFollowersOn": "Followers-only mode on (followers of {duration}).",
+  "@chatModeFollowersOn": {
+    "description": "A line in chat once a moderator turned followers-only mode on with a follow age. duration is the age (chatDuration…).",
+    "placeholders": {
+      "duration": {
+        "type": "String",
+        "example": "10 minutes"
+      }
+    }
+  },
+  "chatModFailed": "Couldn't {command, select, ban{ban} timeout{time out} untimeout{remove the timeout of} unban{unban} warn{warn} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}}: {reason}",
+  "@chatModFailed": {
+    "description": "A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error).",
+    "placeholders": {
+      "command": {
+        "type": "String",
+        "example": "ban"
+      },
+      "reason": {
+        "type": "String",
+        "example": "no user named ghost"
+      }
+    }
+  },
+  "chatModFailedUnexpected": "Couldn't {command, select, ban{ban} timeout{time out} untimeout{remove the timeout of} unban{unban} warn{warn} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}} (unexpected error).",
+  "@chatModFailedUnexpected": {
+    "description": "A moderation action failed for an unexpected reason. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch.",
+    "placeholders": {
+      "command": {
+        "type": "String",
+        "example": "clear"
+      }
+    }
+  },
+  "chatModCannotModerate": "Twitch says you can't moderate this chat.",
+  "@chatModCannotModerate": {
+    "description": "Why a moderation action failed (after chatModFailed's colon): the viewer is not a moderator here."
+  },
+  "chatModNoUser": "no user named {login}",
+  "@chatModNoUser": {
+    "description": "Why a moderation action failed (after chatModFailed's colon): nobody has that name. login is what the viewer typed.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "ghost"
+      }
+    }
+  },
+  "chatModLogInAgain": "Log in again to moderate from this app.",
+  "@chatModLogInAgain": {
+    "description": "A moderation action failed: the viewer's login predates the moderator permissions."
+  },
+  "chatModNotThrough": "That did not go through. Try again.",
+  "@chatModNotThrough": {
+    "description": "A moderation action failed without an answer (under the moderation bar or the chat modes)."
+  },
+  "chatModBanned": "You banned {name}.",
+  "@chatModBanned": {
+    "description": "A line in chat once the viewer banned someone. name is their display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatModTimedOut": "You timed out {name} for {duration}.",
+  "@chatModTimedOut": {
+    "description": "A line in chat once the viewer timed someone out. duration is chatDuration….",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      },
+      "duration": {
+        "type": "String",
+        "example": "10 minutes"
+      }
+    }
+  },
+  "chatModUntimedOut": "You removed the timeout of {name}.",
+  "@chatModUntimedOut": {
+    "description": "A line in chat once the viewer lifted a timeout. French puts the name last (no elision before it).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatModUnbanned": "You unbanned {name}.",
+  "@chatModUnbanned": {
+    "description": "A line in chat once the viewer lifted a ban.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatModWarned": "You warned {name}.",
+  "@chatModWarned": {
+    "description": "A line in chat once the viewer warned someone.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatModMessageDeleted": "Message deleted.",
+  "@chatModMessageDeleted": {
+    "description": "A line in chat once the viewer deleted a message (/delete)."
+  },
+  "chatModCleared": "You cleared the chat.",
+  "@chatModCleared": {
+    "description": "A line in chat once the viewer cleared the chat (/clear)."
+  },
+  "chatNoticeBanned": "{name} has been permanently banned.",
+  "@chatNoticeBanned": {
+    "description": "A line in chat when a moderator bans someone. French puts the name last so nothing agrees with it.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatNoticeTimedOut": "{name} has been timed out.",
+  "@chatNoticeTimedOut": {
+    "description": "A line in chat when a moderator times someone out, for a length Twitch did not give.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatNoticeTimedOutFor": "{name} has been timed out for {duration}.",
+  "@chatNoticeTimedOutFor": {
+    "description": "A line in chat when a moderator times someone out. duration is chatDuration….",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      },
+      "duration": {
+        "type": "String",
+        "example": "10 minutes"
+      }
+    }
+  },
+  "chatRestrictionBanned": "You are permanently banned from this chat",
+  "@chatRestrictionBanned": {
+    "description": "Above the chat input (and as its placeholder): the viewer is banned. « votre compte » so nothing agrees with the viewer."
+  },
+  "chatRestrictionTimedOut": "You are timed out",
+  "@chatRestrictionTimedOut": {
+    "description": "The chat input's placeholder while the viewer is timed out."
+  },
+  "chatRestrictionTimedOutFor": "You are timed out · {wait}",
+  "@chatRestrictionTimedOutFor": {
+    "description": "Above the chat input while the viewer is timed out. wait is the time left (« 4:05 », « 12 s »).",
+    "placeholders": {
+      "wait": {
+        "type": "String",
+        "example": "4:05"
+      }
+    }
+  },
+  "chatRestrictionSlow": "Slow mode · you can chat again in {wait}",
+  "@chatRestrictionSlow": {
+    "description": "Above the chat input in slow mode, after a message. wait is the time left.",
+    "placeholders": {
+      "wait": {
+        "type": "String",
+        "example": "12s"
+      }
+    }
+  },
+  "chatRestrictionEmoteOnly": "Emote-only chat",
+  "@chatRestrictionEmoteOnly": {
+    "description": "The chat input's placeholder in emote-only mode."
+  },
+  "chatRestrictionSubscribersOnly": "Subscribers-only chat",
+  "@chatRestrictionSubscribersOnly": {
+    "description": "The chat input's placeholder in subscribers-only mode."
+  },
+  "chatRestrictionFollowersOnly": "Followers-only chat",
+  "@chatRestrictionFollowersOnly": {
+    "description": "The chat input's placeholder in followers-only mode."
+  },
+  "chatRestrictionFollowersFor": "Followers-only chat · following for {minutes}+ min",
+  "@chatRestrictionFollowersFor": {
+    "description": "The same, when followers must have followed for a while. minutes is that follow age.",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "chatNewMessages": "{count, plural, one{{count} new message} other{{count} new messages}}",
+  "@chatNewMessages": {
+    "description": "The button over a paused chat: how many messages arrived since; tapping it scrolls back down.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "chatResumeScroll": "Resume scroll",
+  "@chatResumeScroll": {
+    "description": "The same button when no message arrived: back to the newest messages."
+  },
+  "chatHistoricalMessage": "Historical message",
+  "@chatHistoricalMessage": {
+    "description": "Tooltip of the clock before a message loaded from the chat's history (sent before the viewer joined)."
+  },
+  "chatSentFromCurrent": "Sent from {name} (current channel)",
+  "@chatSentFromCurrent": {
+    "description": "Tooltip of a channel's picture before a message in a shared chat: sent from this channel.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "chatSentFrom": "Sent from {name}",
+  "@chatSentFrom": {
+    "description": "Tooltip of a channel's picture before a message in a shared chat: sent from another channel of it.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pokimane"
+      }
+    }
+  },
+  "chatMessageDeletedInline": "<message deleted>",
+  "@chatMessageDeletedInline": {
+    "description": "Shown in place of a deleted message's text, after the name; tapping it shows the message."
+  },
+  "chatDeletedUser": "Deleted user",
+  "@chatDeletedUser": {
+    "description": "The name shown for a message (from the chat's history, a replay, a pin) whose sender's account no longer exists."
+  },
+  "chatFilteredWord": "Filtered word",
+  "@chatFilteredWord": {
+    "description": "What a screen reader says for a word the chat filters hide (drawn as stars)."
+  },
+  "chatCheerSemantics": "{count, plural, one{{prefix} {count} bit} other{{prefix} {count} bits}}",
+  "@chatCheerSemantics": {
+    "description": "What a screen reader says for a cheer in a message. prefix is the cheermote's name (Cheer, Kappa…), never translated. Bits is Twitch's word, after an ordinary space as in htBits.",
+    "placeholders": {
+      "prefix": {
+        "type": "String",
+        "example": "Cheer"
+      },
+      "count": {
+        "type": "int",
+        "example": "100"
+      }
+    }
+  },
+  "chatEmoteStackWith": "with {emotes}",
+  "@chatEmoteStackWith": {
+    "description": "The details of a stack of emotes (a zero-width emote over another): the emotes on top, joined with « + ».",
+    "placeholders": {
+      "emotes": {
+        "type": "String",
+        "example": "RainTime + SnowTime"
+      }
+    }
+  },
+  "chatEmoteBy": "by {name}",
+  "@chatEmoteBy": {
+    "description": "The details of an emote: who made or owns it.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "chatCopyName": "Copy name",
+  "@chatCopyName": {
+    "description": "A row of an emote's, badge's or GIF's details: copies its name."
+  },
+  "chatCopyImageUrl": "Copy image URL",
+  "@chatCopyImageUrl": {
+    "description": "A row of an emote's, badge's or GIF's details: copies its picture's address."
+  },
+  "chatOpenInBrowser": "Open in browser",
+  "@chatOpenInBrowser": {
+    "description": "A row of an emote's, badge's or GIF's details: opens its picture in the browser."
+  },
+  "chatMessageCopied": "Message copied",
+  "@chatMessageCopied": {
+    "description": "The note above the input once a message was copied."
+  },
+  "chatCopyMessage": "Copy message",
+  "@chatCopyMessage": {
+    "description": "A row of a message's options (long press)."
+  },
+  "chatCopyMessageAndPaste": "Copy message and paste",
+  "@chatCopyMessageAndPaste": {
+    "description": "A row of a message's options: copies the message into the input."
+  },
+  "chatReplyToMessage": "Reply to message",
+  "@chatReplyToMessage": {
+    "description": "A row of a message's options."
+  },
+  "chatDeleteMessage": "Delete message",
+  "@chatDeleteMessage": {
+    "description": "A row of a message's options, for moderators."
+  },
+  "chatFirstMessage": "First message",
+  "@chatFirstMessage": {
+    "description": "Above a viewer's first message in the channel, highlighted."
+  },
+  "chatHighlightedMessage": "Highlighted message",
+  "@chatHighlightedMessage": {
+    "description": "Above a message highlighted with channel points."
+  },
+  "chatMessageDeleted": "Message deleted",
+  "@chatMessageDeleted": {
+    "description": "Above a message a moderator deleted."
+  },
+  "chatPermanentlyBanned": "Permanently banned",
+  "@chatPermanentlyBanned": {
+    "description": "Above the messages of someone banned."
+  },
+  "chatTimedOutFor": "{count, plural, one{Timed out for {count} second} other{Timed out for {count} seconds}}",
+  "@chatTimedOutFor": {
+    "description": "Above the messages of someone timed out: for how many seconds.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "600"
+      }
+    }
+  },
+  "chatAnnouncement": "Announcement",
+  "@chatAnnouncement": {
+    "description": "Above a moderator's announcement."
+  },
+  "chatMessageOptionsHint": "message options",
+  "@chatMessageOptionsHint": {
+    "description": "What a screen reader says a long press on a message does (it opens its options). Lower case: it follows « double tap and hold to »."
+  },
+  "chatCopyMessageHint": "copy message",
+  "@chatCopyMessageHint": {
+    "description": "What a screen reader says a long press on a notice does (it copies it). Lower case."
+  },
+  "chatReplies": "Replies",
+  "@chatReplies": {
+    "description": "The heading of a reply thread's sheet."
+  },
+  "chatEmoteMenu": "Emote menu",
+  "@chatEmoteMenu": {
+    "description": "Tooltip of the button beside the chat input that opens the emote menu, and the menu's name for screen readers."
+  },
+  "chatLogInToChat": "Log in to chat",
+  "@chatLogInToChat": {
+    "description": "The chat input's placeholder (and its note) when the viewer is not logged in."
+  },
+  "chatCancelReply": "Cancel reply",
+  "@chatCancelReply": {
+    "description": "Tooltip of the cross on the « replying to » bar above the input."
+  },
+  "chatEnterMessage": "Enter a message",
+  "@chatEnterMessage": {
+    "description": "Tooltip of the collapsed chat input's button that opens the keyboard."
+  },
+  "chatCannotChatNow": "You can't chat right now",
+  "@chatCannotChatNow": {
+    "description": "The chat input's placeholder while the viewer cannot send (rules not accepted yet, a restriction)."
+  },
+  "chatInputDisconnected": "Chat disconnected",
+  "@chatInputDisconnected": {
+    "description": "The chat input's placeholder while the chat is disconnected."
+  },
+  "chatInputConnecting": "Connecting...",
+  "@chatInputConnecting": {
+    "description": "The chat input's placeholder while the chat connects."
+  },
+  "chatSending": "Sending...",
+  "@chatSending": {
+    "description": "The chat input's placeholder, and the send button's tooltip, while Twitch confirms a message."
+  },
+  "chatSend": "Send",
+  "@chatSend": {
+    "description": "Tooltip of the chat input's send button."
+  },
+  "chatReplyIn": "Reply in {name}",
+  "@chatReplyIn": {
+    "description": "The chat input's placeholder while replying. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "chatReply": "Reply",
+  "@chatReply": {
+    "description": "The chat input's placeholder while replying when the channel is not named, and the user card's reply button."
+  },
+  "chatInChannelDelayed": "Chat in {name} ({seconds}s delay)",
+  "@chatInChannelDelayed": {
+    "description": "The chat input's placeholder while the chat is delayed to match the video. name is the channel's display name; « délai » is the setting's word (Délai des messages).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      },
+      "seconds": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "chatDelayed": "Chat ({seconds}s delay)",
+  "@chatDelayed": {
+    "description": "The same, when the channel is not named.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "chatInChannel": "Chat in {name}",
+  "@chatInChannel": {
+    "description": "The chat input's placeholder. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "chatInputPlaceholder": "Chat",
+  "@chatInputPlaceholder": {
+    "description": "The chat input's placeholder when the channel is not named."
+  },
+  "chatMoreOptions": "More",
+  "@chatMoreOptions": {
+    "description": "Tooltip of the « ⋯ » button beside the chat input (the chat's details), and of the user card's « ⋯ »."
+  },
+  "chatCharactersLeft": "{count, plural, one{{count} character left} other{{count} characters left}}",
+  "@chatCharactersLeft": {
+    "description": "What a screen reader says for the counter beside the chat input near the length limit.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "20"
+      }
+    }
+  },
+  "chatColorUpdated": "Chat color updated successfully!",
+  "@chatColorUpdated": {
+    "description": "Snackbar once the name colour picked in the chat details was saved."
+  },
+  "chatColorUpdateFailed": "Failed to update chat color. Please try again.",
+  "@chatColorUpdateFailed": {
+    "description": "Snackbar when the name colour could not be saved."
+  },
+  "chatDetailsChatOnly": "Chat only",
+  "@chatDetailsChatOnly": {
+    "description": "A row of the chat's details sheet: hides the video."
+  },
+  "chatDetailsShowVideo": "Show video",
+  "@chatDetailsShowVideo": {
+    "description": "A row of the chat's details sheet: shows the video again."
+  },
+  "chatDetailsRefreshAssets": "Refresh emotes and badges",
+  "@chatDetailsRefreshAssets": {
+    "description": "A row of the chat's details sheet."
+  },
+  "chatDetailsUsernameColor": "Username color",
+  "@chatDetailsUsernameColor": {
+    "description": "A row of the chat's details sheet, and the title of the colour picker it opens."
+  },
+  "chatDetailsPointsPollsPredictions": "Channel points, polls and predictions",
+  "@chatDetailsPointsPollsPredictions": {
+    "description": "A row of the chat's details sheet: opens the chat on twitch.tv."
+  },
+  "chatDetailsOpensTwitchChat": "Opens the chat on twitch.tv",
+  "@chatDetailsOpensTwitchChat": {
+    "description": "The line under the « Channel points, polls and predictions » row."
+  },
+  "chatDetailsTwitchChat": "Twitch chat",
+  "@chatDetailsTwitchChat": {
+    "description": "The title of the in-app page showing the chat on twitch.tv."
+  },
+  "chatDetailsOpensTwitch": "Opens twitch.tv",
+  "@chatDetailsOpensTwitch": {
+    "description": "The line under the Subscribe and Gift a Sub rows of the chat's details sheet."
+  },
+  "chatDetailsGiftSub": "Gift a Sub",
+  "@chatDetailsGiftSub": {
+    "description": "A row of the chat's details sheet (opens the channel's subscription page on twitch.tv), and that page's title."
+  },
+  "chatDetailsModes": "Chat modes",
+  "@chatDetailsModes": {
+    "description": "A row of the chat's details sheet for moderators, and the title of the sheet it opens."
+  },
+  "chatDetailsModesDetail": "Slow, followers-only, clear chat…",
+  "@chatDetailsModesDetail": {
+    "description": "The line under the « Chat modes » row."
+  },
+  "chatDetailsChatters": "Chatters",
+  "@chatDetailsChatters": {
+    "description": "A row of the chat's details sheet: the list of who is in the chat."
+  },
+  "chatDetailsAddChat": "Add chat",
+  "@chatDetailsAddChat": {
+    "description": "A row of the chat's details sheet: opens another channel's chat in a new tab."
+  },
+  "chatDetailsSleepTimer": "Sleep timer",
+  "@chatDetailsSleepTimer": {
+    "description": "A row of the chat's details sheet (the time left while it runs), and the title of its view."
+  },
+  "chatSave": "Save",
+  "@chatSave": {
+    "description": "The colour picker's button that saves the picked name colour."
+  },
+  "chatColorPreview": "How it will look in chat",
+  "@chatColorPreview": {
+    "description": "The colour picker's preview: a fake message from the viewer, in the picked colour."
+  },
+  "chatColorName": "{color, select, blue{Blue} blue_violet{Blue Violet} cadet_blue{Cadet Blue} chocolate{Chocolate} coral{Coral} dodger_blue{Dodger Blue} firebrick{Firebrick} golden_rod{Golden Rod} green{Green} hot_pink{Hot Pink} orange_red{Orange Red} red{Red} sea_green{Sea Green} spring_green{Spring Green} yellow_green{Yellow Green} other{}}",
+  "@chatColorName": {
+    "description": "A Twitch name colour in the colour picker. color is Twitch's id for it (blue_violet). /color still takes the English names.",
+    "placeholders": {
+      "color": {
+        "type": "String",
+        "example": "blue_violet"
+      }
+    }
+  },
+  "chatModesAnyFollower": "Any follower",
+  "@chatModesAnyFollower": {
+    "description": "The followers-only mode's shortest follow age: anyone following."
+  },
+  "chatModesClearTitle": "Clear chat?",
+  "@chatModesClearTitle": {
+    "description": "The title of the dialog that confirms clearing the chat."
+  },
+  "chatModesClearMessage": "Every message is deleted for everyone.",
+  "@chatModesClearMessage": {
+    "description": "The text of the dialog that confirms clearing the chat."
+  },
+  "chatClear": "Clear",
+  "@chatClear": {
+    "description": "The button that confirms clearing the chat, and the clear button of the chatters' and channels' search fields."
+  },
+  "chatModesModerator": "Moderator",
+  "@chatModesModerator": {
+    "description": "Beside the Chat modes sheet's title: these are a moderator's tools."
+  },
+  "chatModesSlowWait": "{seconds}s between messages",
+  "@chatModesSlowWait": {
+    "description": "The slow mode's wait in its picker.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "chatModesClearChat": "Clear chat",
+  "@chatModesClearChat": {
+    "description": "The Chat modes sheet's row that clears the chat."
+  },
+  "chatModePill": "{mode, select, emoteOnly{Emote only} followers{Follower only} slow{Slow mode} subscribers{Sub only} uniqueChat{Unique mode} other{}}",
+  "@chatModePill": {
+    "description": "A pill at the top of the chat's details sheet: a room mode that is on. mode is ChatMode.name.",
+    "placeholders": {
+      "mode": {
+        "type": "String",
+        "example": "slow"
+      }
+    }
+  },
+  "chatChattersFilter": "Filter chatters",
+  "@chatChattersFilter": {
+    "description": "The placeholder of the chatters list's search field."
+  },
+  "chatChattersFound": "{count, plural, one{{count} chatter found} other{{count} chatters found}}",
+  "@chatChattersFound": {
+    "description": "Above the chatters list: how many it holds.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "1204"
+      }
+    }
+  },
+  "chatChattersNone": "No chatters found",
+  "@chatChattersNone": {
+    "description": "The chatters list when Twitch gives nobody."
+  },
+  "chatChattersNoMatch": "No matching chatters",
+  "@chatChattersNoMatch": {
+    "description": "The chatters list when nobody matches the filter."
+  },
+  "emoteMenuRecent": "Recent",
+  "@emoteMenuRecent": {
+    "description": "The emote menu's first tab: the emotes the viewer used lately (« emotes » is feminine)."
+  },
+  "emoteMenuClearRecent": "Clear recent emotes",
+  "@emoteMenuClearRecent": {
+    "description": "Tooltip of the button on the emote menu's Recent tab."
+  },
+  "emoteMenuRecentCleared": "Recent emotes cleared",
+  "@emoteMenuRecentCleared": {
+    "description": "The note above the input once the recent emotes were cleared."
+  },
+  "emoteMenuNoRecent": "No recent emotes",
+  "@emoteMenuNoRecent": {
+    "description": "The emote menu's Recent tab when it is empty."
+  },
+  "emoteMenuLocked": "{name}, locked",
+  "@emoteMenuLocked": {
+    "description": "What a screen reader says for an emote the viewer cannot use yet. name is the emote's code; « verrouillée » agrees with « emote ».",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "nisqyHype"
+      }
+    }
+  },
+  "emoteMenuChannel": "Channel",
+  "@emoteMenuChannel": {
+    "description": "A tab of the emote menu: the channel's emotes."
+  },
+  "emoteMenuGlobal": "Global",
+  "@emoteMenuGlobal": {
+    "description": "A tab of the emote menu: the global emotes (« emotes » is feminine)."
+  },
+  "emoteMenuUnlocked": "Unlocked",
+  "@emoteMenuUnlocked": {
+    "description": "A tab of the emote menu's Twitch section: emotes the viewer unlocked."
+  },
+  "emoteMenuOther": "Other",
+  "@emoteMenuOther": {
+    "description": "A tab of the emote menu's Twitch section: other channels' emotes the viewer can use."
+  },
+  "chatHeldDecision": "{decision, select, approved{Moderators approved your held message} denied{Moderators denied your held message} other{Your held message can no longer be reviewed}}",
+  "@chatHeldDecision": {
+    "description": "A line in chat when the viewer's message held by AutoMod was decided. decision is approved, denied or invalid; a full stop or the quoted message follows (chatHeldQuoted).",
+    "placeholders": {
+      "decision": {
+        "type": "String",
+        "example": "approved"
+      }
+    }
+  },
+  "chatHeldQuoted": "{decision}: \"{quote}\"",
+  "@chatHeldQuoted": {
+    "description": "The same line with the held message quoted. decision is chatHeldDecision.",
+    "placeholders": {
+      "decision": {
+        "type": "String",
+        "example": "Moderators approved your held message"
+      },
+      "quote": {
+        "type": "String",
+        "example": "hello chat"
+      }
+    }
+  },
+  "chatAddChatSearchFailed": "Failed to search channels",
+  "@chatAddChatSearchFailed": {
+    "description": "The Add chat sheet when the search failed."
+  },
+  "chatAddChatTitle": "Add Chat",
+  "@chatAddChatTitle": {
+    "description": "The title of the sheet that opens another channel's chat in a new tab."
+  },
+  "chatAddChatSearch": "Search for a channel",
+  "@chatAddChatSearch": {
+    "description": "The placeholder of the Add chat sheet's search field."
+  },
+  "chatAddChatPrompt": "Search for a channel to add",
+  "@chatAddChatPrompt": {
+    "description": "The Add chat sheet before anything is typed."
+  },
+  "chatAddChatNoChannels": "No channels found",
+  "@chatAddChatNoChannels": {
+    "description": "The Add chat sheet when the search found nobody."
+  },
+  "chatTabsSplit": "Split chats",
+  "@chatTabsSplit": {
+    "description": "Tooltip of the merge button while the chats are merged."
+  },
+  "chatTabsMerge": "Merge loaded chats",
+  "@chatTabsMerge": {
+    "description": "Tooltip of the button that shows every open chat in one list."
+  },
+  "chatTabsDisconnect": "Disconnect",
+  "@chatTabsDisconnect": {
+    "description": "An item of a chat tab's menu: disconnects that chat."
+  },
+  "chatTabsRemove": "Remove",
+  "@chatTabsRemove": {
+    "description": "An item of a chat tab's menu: closes that tab."
+  },
+  "chatTabsOptions": "Tab options",
+  "@chatTabsOptions": {
+    "description": "Tooltip of a chat tab's menu button."
+  },
+  "chatTabsMaximum": "Maximum 10 chats open",
+  "@chatTabsMaximum": {
+    "description": "Snackbar when the viewer adds an 11th chat."
+  },
+  "chatTabsAlreadyOpen": "Channel already open, switched to it",
+  "@chatTabsAlreadyOpen": {
+    "description": "Snackbar when the viewer adds a chat already open: the app shows it."
+  },
+  "chatUserWhisper": "Whisper",
+  "@chatUserWhisper": {
+    "description": "Tooltip of the user card's whisper button."
+  },
+  "chatUserProfile": "Profile",
+  "@chatUserProfile": {
+    "description": "Tooltip of the user card's button that opens the channel's profile."
+  },
+  "chatUserNoRecentMessages": "No recent messages",
+  "@chatUserNoRecentMessages": {
+    "description": "The user card when the viewer saw no message from that user."
+  },
+  "chatUserRecentMessages": "Recent messages",
+  "@chatUserRecentMessages": {
+    "description": "The heading of the user card's list of that user's messages."
+  },
+  "chatUserBadgeMonths": "{count, plural, one{{name} · {count} month} other{{name} · {count} months}}",
+  "@chatUserBadgeMonths": {
+    "description": "A subscriber or founder badge on the user card, with how many months. name is the badge's title from Twitch.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Subscriber"
+      },
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "chatUserAccountCreated": "Account created {date}",
+  "@chatUserAccountCreated": {
+    "description": "On the user card: when the account was made. date is a date (« 1 nov. 2026 »).",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Nov 1, 2026"
+      }
+    }
+  },
+  "chatUserFollowingSince": "Following since {date}",
+  "@chatUserFollowingSince": {
+    "description": "On the user card, for a moderator: since when the user follows the channel. No agreement with the user.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Nov 1, 2026"
+      }
+    }
+  },
+  "chatFilteredTitle": "Message Blocked",
+  "@chatFilteredTitle": {
+    "description": "The title of the sheet over a message hidden by the chat filters."
+  },
+  "chatFilteredBody": "Would you like to see this message? It has been hidden for you based on your NSFW Chat Filter settings.",
+  "@chatFilteredBody": {
+    "description": "The text of the same sheet."
+  },
+  "chatFilteredShow": "Show Message",
+  "@chatFilteredShow": {
+    "description": "The same sheet's button that shows the message."
+  },
+  "chatRulesTitle": "Chat rules",
+  "@chatRulesTitle": {
+    "description": "The chat details' row that opens the channel's chat rules, and the back header over them."
+  },
+  "chatRulesHeading": "Chat Rules",
+  "@chatRulesHeading": {
+    "description": "The heading of the channel's chat rules sheet."
+  },
+  "chatRulesAccept": "OK, Got it!",
+  "@chatRulesAccept": {
+    "description": "The button that accepts a channel's chat rules."
+  },
+  "chatRaidWelcomeSemantics": "You followed {from}'s raid. Welcome to {target}'s chat",
+  "@chatRaidWelcomeSemantics": {
+    "description": "What a screen reader says for the card at the top of a chat the viewer joined with a raid. from is the raiding channel, target this one.",
+    "placeholders": {
+      "from": {
+        "type": "String",
+        "example": "Pokimane"
+      },
+      "target": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "chatRaidWelcomeFrom": "You followed {name}'s raid",
+  "@chatRaidWelcomeFrom": {
+    "description": "The card at the top of a chat the viewer joined with a raid; name (the raiding channel) is drawn bold. Also the line it stands for in chat.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pokimane"
+      }
+    }
+  },
+  "chatRaidWelcomeTo": "Welcome to {name}'s chat",
+  "@chatRaidWelcomeTo": {
+    "description": "The same card's second line. name is this channel.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "chatGiftRecipientsReceived": "{count, plural, one{{received} of {count} recipient} other{{received} of {count} recipients}}",
+  "@chatGiftRecipientsReceived": {
+    "description": "Above the list of a gift bomb's recipients: how many got their sub so far.",
+    "placeholders": {
+      "received": {
+        "type": "int",
+        "example": "3"
+      },
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "chatGiftRecipients": "{count, plural, one{{count} recipient} other{{count} recipients}}",
+  "@chatGiftRecipients": {
+    "description": "The same once every recipient got their sub.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "chatGiftRecipientsMore": "{count, plural, one{+{count} more} other{+{count} more}}",
+  "@chatGiftRecipientsMore": {
+    "description": "The last pill of a gift bomb's recipients: how many are not shown.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "chatAnonymousGifter": "An anonymous gifter",
+  "@chatAnonymousGifter": {
+    "description": "Who gave anonymous gift subs, in the gift sub lines and pins. French says « Anonyme » (no gender)."
+  },
+  "chatLinkUntitledClip": "Untitled clip",
+  "@chatLinkUntitledClip": {
+    "description": "The preview card of a clip link posted in chat, when the clip has no title."
+  },
+  "chatLinkUntitled": "Untitled",
+  "@chatLinkUntitled": {
+    "description": "The preview card of a video link posted in chat, when the video has no title."
+  },
+  "chatLinkClip": "Clip",
+  "@chatLinkClip": {
+    "description": "The kind on a clip link's preview card in chat, before its length and views (« Clip · 0:30 · 1,5 k vues »)."
+  },
+  "chatLinkVideo": "Video",
+  "@chatLinkVideo": {
+    "description": "The kind on a video link's preview card in chat, before its length and views."
+  },
+  "chatLinkViews": "{count, plural, one{{views} view} other{{views} views}}",
+  "@chatLinkViews": {
+    "description": "The views on a link's preview card in chat. views is the number, short (1.5K); count chooses the form.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1500"
+      },
+      "views": {
+        "type": "String",
+        "example": "1.5K"
+      }
+    }
+  },
+  "chatModBarBanTitle": "Ban {name}?",
+  "@chatModBarBanTitle": {
+    "description": "The title of the dialog that asks a moderator for a ban's reason.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatModBarBan": "Ban",
+  "@chatModBarBan": {
+    "description": "The moderation bar's ban button, and the button of the dialog it opens."
+  },
+  "chatModBarWarnTitle": "Warn {name}",
+  "@chatModBarWarnTitle": {
+    "description": "The title of the dialog that asks a moderator for a warning's reason.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Troll"
+      }
+    }
+  },
+  "chatModBarWarn": "Warn",
+  "@chatModBarWarn": {
+    "description": "The moderation bar's warn button, and the button of the dialog it opens."
+  },
+  "chatModBarPurge": "1 second (purge)",
+  "@chatModBarPurge": {
+    "description": "The shortest timeout of the moderation bar's menu: it removes the user's messages."
+  },
+  "chatModBarTimeout": "Timeout",
+  "@chatModBarTimeout": {
+    "description": "The moderation bar's button that opens the timeout lengths."
+  },
+  "chatModBarUnban": "Unban",
+  "@chatModBarUnban": {
+    "description": "The moderation bar's unban button (lifts a ban or a timeout)."
+  },
+  "chatModBarReason": "Reason",
+  "@chatModBarReason": {
+    "description": "The reason field of the warn dialog (required)."
+  },
+  "chatModBarReasonOptional": "Reason (optional)",
+  "@chatModBarReasonOptional": {
+    "description": "The reason field of the ban dialog."
+  },
+  "pointsChannelPoints": "Channel points",
+  "@pointsChannelPoints": {
+    "description": "The name of channel points when the channel gave none of its own: the button beside the chat input and the sheet's heading (in capitals)."
+  },
+  "pointsLogInForBalance": "Log in to see your balance.",
+  "@pointsLogInForBalance": {
+    "description": "The channel points sheet when the viewer is not logged in."
+  },
+  "pointsPredictionOpen": "Prediction — open",
+  "@pointsPredictionOpen": {
+    "description": "The heading of the prediction in the channel points sheet, while it takes bets."
+  },
+  "pointsPredictionLocked": "Prediction — locked",
+  "@pointsPredictionLocked": {
+    "description": "The same, once it no longer takes bets."
+  },
+  "pointsRewards": "Rewards",
+  "@pointsRewards": {
+    "description": "The heading of the channel's rewards in the channel points sheet."
+  },
+  "pointsNoRewards": "This channel has no rewards set up.",
+  "@pointsNoRewards": {
+    "description": "The channel points sheet when the channel has neither rewards nor a prediction."
+  },
+  "pointsStreakNote": "Twitch counts streaks. Watching in this app may not count toward them.",
+  "@pointsStreakNote": {
+    "description": "Under the watch streak in the channel points sheet."
+  },
+  "pointsBonusBlocked": "Twitch blocks collecting the bonus from here — its anti-bot check. Collect it on twitch.tv and the balance follows.",
+  "@pointsBonusBlocked": {
+    "description": "The channel points sheet when Twitch refuses the bonus to the app."
+  },
+  "pointsCollectBonus": "Collect bonus",
+  "@pointsCollectBonus": {
+    "description": "The channel points sheet's button that collects the bonus chest."
+  },
+  "pointsOutcomeTotals": "{count, plural, one{{points}  ·  {count} viewer} other{{points}  ·  {count} viewers}}",
+  "@pointsOutcomeTotals": {
+    "description": "Under a prediction's outcome: the points bet on it, then how many bet.",
+    "placeholders": {
+      "points": {
+        "type": "String",
+        "example": "12 400"
+      },
+      "count": {
+        "type": "int",
+        "example": "34"
+      }
+    }
+  },
+  "pointsBetOn": "Bet on {title}, pays {odds} times",
+  "@pointsBetOn": {
+    "description": "What a screen reader says for an outcome of an open prediction. title is the outcome (Twitch's text), odds the payout (1.85).",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Yes"
+      },
+      "odds": {
+        "type": "String",
+        "example": "1.85"
+      }
+    }
+  },
+  "pointsBetOnUnknown": "Bet on {title}, pays unknown",
+  "@pointsBetOnUnknown": {
+    "description": "The same before anyone bet on it.",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Yes"
+      }
+    }
+  },
+  "pointsTapToBet": "Tap an outcome to bet.",
+  "@pointsTapToBet": {
+    "description": "Under an open prediction in the channel points sheet."
+  },
+  "pointsBetHeading": "BET ON",
+  "@pointsBetHeading": {
+    "description": "The heading of the bet view, above the outcome (written in capitals)."
+  },
+  "pointsBalance": "Balance {points}",
+  "@pointsBalance": {
+    "description": "The bet view: the viewer's points.",
+    "placeholders": {
+      "points": {
+        "type": "String",
+        "example": "12 400"
+      }
+    }
+  },
+  "pointsNeedAtLeast": "You need at least {points} points to bet.",
+  "@pointsNeedAtLeast": {
+    "description": "The bet view when the viewer has too few points.",
+    "placeholders": {
+      "points": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "pointsStake": "Stake",
+  "@pointsStake": {
+    "description": "What a screen reader calls the bet view's amount pills."
+  },
+  "pointsMax": "Max",
+  "@pointsMax": {
+    "description": "The bet view's pill that bets every point."
+  },
+  "pointsField": "Points",
+  "@pointsField": {
+    "description": "The label of the bet view's amount field."
+  },
+  "pointsNoOdds": "No odds yet.",
+  "@pointsNoOdds": {
+    "description": "The bet view before anyone bet on the outcome."
+  },
+  "pointsPaysAbout": "Pays about {odds} × if this wins — moves with every other bet.",
+  "@pointsPaysAbout": {
+    "description": "The bet view: the payout for the stake typed. odds has two decimals.",
+    "placeholders": {
+      "odds": {
+        "type": "String",
+        "example": "1.85"
+      }
+    }
+  },
+  "pointsBetAmount": "Bet {points}",
+  "@pointsBetAmount": {
+    "description": "The bet view's button once an amount is typed.",
+    "placeholders": {
+      "points": {
+        "type": "String",
+        "example": "500"
+      }
+    }
+  },
+  "pointsBet": "Bet",
+  "@pointsBet": {
+    "description": "The bet view's button before an amount is typed."
+  },
+  "pointsOdds": "{odds} ×",
+  "@pointsOdds": {
+    "description": "The payout beside a prediction's outcome (1.85 ×).",
+    "placeholders": {
+      "odds": {
+        "type": "String",
+        "example": "1.85"
+      }
+    }
+  },
+  "pointsSpend": "Spend {points} points?",
+  "@pointsSpend": {
+    "description": "The title of the dialog that confirms redeeming a reward.",
+    "placeholders": {
+      "points": {
+        "type": "String",
+        "example": "1 000"
+      }
+    }
+  },
+  "pointsYourMessage": "Your message",
+  "@pointsYourMessage": {
+    "description": "The field of a reward that asks for a message."
+  },
+  "pointsRedeem": "Redeem",
+  "@pointsRedeem": {
+    "description": "The button that redeems a reward."
+  },
+  "pointsResult": "{status, select, success{Done.} integrityRefused{Twitch refused: anti-bot check. Not something this app can pass.} notAuthenticated{Twitch rejected the login. Sign in again to spend points.} network{Could not reach Twitch. Try again.} other{Twitch refused: {reason}}}",
+  "@pointsResult": {
+    "description": "Snackbar after spending channel points (a reward, a bet, the bonus). status is PointsActionStatus.name; reason is Twitch's own code for an unknown refusal (never translated), or pointsNoReason.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "success"
+      },
+      "reason": {
+        "type": "String",
+        "example": "request_failed"
+      }
+    }
+  },
+  "pointsBusy": "Already in progress.",
+  "@pointsBusy": {
+    "description": "Snackbar when the viewer spends channel points while the last spend still runs."
+  },
+  "pointsNoReason": "no reason",
+  "@pointsNoReason": {
+    "description": "After « Twitch refused: » when Twitch gave no reason."
+  },
+  "pointsAutomaticReward": "{type, select, highlight{Highlight my message} randomEmote{Unlock a random sub emote} chosenEmote{Choose an emote to unlock} modifiedEmote{Modify a single emote} subOnlyMessage{Send a message in sub-only mode} other{}}",
+  "@pointsAutomaticReward": {
+    "description": "The name of one of Twitch's built-in rewards (Twitch sends none for them).",
+    "placeholders": {
+      "type": {
+        "type": "String",
+        "example": "highlight"
+      }
+    }
+  },
+  "streakSaveTitle": "Keep watching to save your Watch Streak!",
+  "@streakSaveTitle": {
+    "description": "The watch streak card when the streak is suspended and the channel is live."
+  },
+  "streakSaveLive": "{count, plural, other{Watch this live stream and you'll be able to save your current {count}-stream streak.}}",
+  "@streakSaveLive": {
+    "description": "Under the same title: how long the streak is (in streams).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "streakExpiringTitle": "Watch Streak Expiring",
+  "@streakExpiringTitle": {
+    "description": "The watch streak card when the streak is suspended and the channel is offline."
+  },
+  "streakExpiring": "Watch {name} in the next {hours}h {minutes}m {seconds}s to save your streak!",
+  "@streakExpiring": {
+    "description": "Under the same title: the time left to save the streak. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      },
+      "hours": {
+        "type": "int",
+        "example": "5"
+      },
+      "minutes": {
+        "type": "int",
+        "example": "12"
+      },
+      "seconds": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "streakYour": "Your Watch Streak: {value}",
+  "@streakYour": {
+    "description": "The watch streak card's title: how many streams in a row.",
+    "placeholders": {
+      "value": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "streakOneMore": "{count, plural, one{1 more stream until an extra {points} channel point reward} other{1 more stream until an extra {points} channel points reward}}",
+  "@streakOneMore": {
+    "description": "Under the watch streak's title: one stream before the bonus. points is the bonus (« 1 200 »); count chooses the form.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "350"
+      },
+      "points": {
+        "type": "String",
+        "example": "350"
+      }
+    }
+  },
+  "streakReached": "{count, plural, one{You reached a {next}-stream streak and earned an extra {points} channel point} other{You reached a {next}-stream streak and earned an extra {points} channel points}}",
+  "@streakReached": {
+    "description": "Under the watch streak's title once the bonus was earned. next is the streak's length in streams.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "350"
+      },
+      "next": {
+        "type": "int",
+        "example": "5"
+      },
+      "points": {
+        "type": "String",
+        "example": "350"
+      }
+    }
+  },
+  "streakReach": "{count, plural, one{Reach {next}-stream streak and earn an extra {points} channel point} other{Reach {next}-stream streak and earn an extra {points} channel points}}",
+  "@streakReach": {
+    "description": "Under the watch streak's title: the next bonus.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "350"
+      },
+      "next": {
+        "type": "int",
+        "example": "5"
+      },
+      "points": {
+        "type": "String",
+        "example": "350"
+      }
+    }
+  },
+  "emoteUnlockHint": "{how, select, global{Available to everyone on Twitch.} owned{You can use it.} follow{Follow this channel to use it.} bits{Cheer Bits in this channel to unlock it.} subscribe{Subscribe to this channel to use it.} other{}}",
+  "@emoteUnlockHint": {
+    "description": "An emote's details: how the viewer gets to use it, like Twitch's emote card. « la » / « l’ » stand for the emote (feminine).",
+    "placeholders": {
+      "how": {
+        "type": "String",
+        "example": "follow"
+      }
+    }
+  },
+  "emoteUnlockTier": "Subscribe to this channel at Tier {tier} to use it.",
+  "@emoteUnlockTier": {
+    "description": "The same, for an emote of a higher sub tier.",
+    "placeholders": {
+      "tier": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "emoteTypeName": "{type, select, twitchBits{Twitch bits emote} twitchFollower{Twitch follower emote} twitchSub{Twitch sub emote} twitchGlobal{Twitch global emote} twitchUnlocked{Twitch unlocked emote} twitchChannel{Twitch channel emote} ffzGlobal{FrankerFaceZ global emote} ffzChannel{FrankerFaceZ channel emote} bttvGlobal{BetterTTV global emote} bttvChannel{BetterTTV channel emote} bttvShared{BetterTTV shared emote} sevenTVGlobal{7TV global emote} sevenTVChannel{7TV channel emote} other{}}",
+  "@emoteTypeName": {
+    "description": "An emote's kind, in its details. type is EmoteType.name.",
+    "placeholders": {
+      "type": {
+        "type": "String",
+        "example": "twitchGlobal"
+      }
+    }
+  },
+  "badgeTypeName": "{type, select, twitch{Twitch badge} bttv{BetterTTV badge} ffz{FrankerFaceZ badge} sevenTV{7TV badge} other{}}",
+  "@badgeTypeName": {
+    "description": "A chat badge's source, in its details. type is BadgeType.name.",
+    "placeholders": {
+      "type": {
+        "type": "String",
+        "example": "twitch"
+      }
+    }
+  },
+  "noticeSubscribed": "{plan, select, prime{{name} subscribed with Prime.} tier{{name} subscribed at Tier {tier}.} other{{name} subscribed.}}",
+  "@noticeSubscribed": {
+    "description": "A sub line in chat: who subscribed, and how (plan: prime, tier, or other when Twitch did not say). Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
+    "placeholders": {
+      "plan": {
+        "type": "String",
+        "example": "tier"
+      },
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "tier": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "noticeResubscribed": "{plan, select, prime{{name} subscribed with Prime.} tier{{name} subscribed at Tier {tier}.} other{{name} subscribed.}}",
+  "@noticeResubscribed": {
+    "description": "The same line for a resub (Twitch words both alike in English; French says « Réabonnement »). Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
+    "placeholders": {
+      "plan": {
+        "type": "String",
+        "example": "tier"
+      },
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "tier": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "noticeSubStreak": "{months, plural, one{They've subscribed for {months} month, currently on a {streak} month streak!} other{They've subscribed for {months} months, currently on a {streak} month streak!}}",
+  "@noticeSubStreak": {
+    "description": "The sentence after a sub line: how long in all, and the streak the subscriber shares.",
+    "placeholders": {
+      "months": {
+        "type": "int",
+        "example": "12"
+      },
+      "streak": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "noticeSubMonths": "They've subscribed for {months} months!",
+  "@noticeSubMonths": {
+    "description": "The sentence after a sub line: how long in all (2 months or more).",
+    "placeholders": {
+      "months": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "noticeGiftedSub": "{tiered, select, yes{{gifter} gifted a Tier {tier} Sub to {recipient}!} other{{gifter} gifted a Sub to {recipient}!}}",
+  "@noticeGiftedSub": {
+    "description": "A gift sub line in chat. tiered is yes when Twitch named the tier. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
+    "placeholders": {
+      "tiered": {
+        "type": "String",
+        "example": "yes"
+      },
+      "gifter": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "tier": {
+        "type": "int",
+        "example": "1"
+      },
+      "recipient": {
+        "type": "String",
+        "example": "Viewer"
+      }
+    }
+  },
+  "noticeGiftedMonthsTier": "{gifter} gifted {months} of {tier} to {recipient}!",
+  "@noticeGiftedMonthsTier": {
+    "description": "A gift of several months of sub. months is noticeGiftMonths, tier noticeGiftTier, both drawn bold. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
+    "placeholders": {
+      "gifter": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "months": {
+        "type": "String",
+        "example": "6 months"
+      },
+      "tier": {
+        "type": "String",
+        "example": "Tier 1"
+      },
+      "recipient": {
+        "type": "String",
+        "example": "Viewer"
+      }
+    }
+  },
+  "noticeGiftedMonths": "{gifter} gifted a {months} Sub to {recipient}!",
+  "@noticeGiftedMonths": {
+    "description": "The same when Twitch did not name the tier. months is noticeGiftMonthsShort, drawn bold. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
+    "placeholders": {
+      "gifter": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "months": {
+        "type": "String",
+        "example": "6 month"
+      },
+      "recipient": {
+        "type": "String",
+        "example": "Viewer"
+      }
+    }
+  },
+  "noticeGiftMonths": "{count, plural, one{{count} month} other{{count} months}}",
+  "@noticeGiftMonths": {
+    "description": "Inside noticeGiftedMonthsTier: how many months were gifted (drawn bold).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+  "noticeGiftMonthsShort": "{count} month",
+  "@noticeGiftMonthsShort": {
+    "description": "Inside noticeGiftedMonths: how many months were gifted, as English writes it before « Sub » (drawn bold).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+  "noticeGiftTier": "Tier {tier}",
+  "@noticeGiftTier": {
+    "description": "Inside noticeGiftedMonthsTier: the sub tier (drawn bold).",
+    "placeholders": {
+      "tier": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "noticeGiftFirst": "It's their first Gift Sub in the channel!",
+  "@noticeGiftFirst": {
+    "description": "The sentence after a gift sub line: the gifter's first. « son » agrees with « abonnement »."
+  },
+  "noticeGiftCount": "They've given {count} Gift Subs in the channel!",
+  "@noticeGiftCount": {
+    "description": "The sentence after a gift sub line: how many the gifter gave in all (2 or more).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "noticeCommunityGift": "{tiered, select, yes{{count, plural, one{{gifter} is gifting {count} Tier {tier} Sub to {channel}'s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} Tier {tier} Subs to {channel}'s community{end, select, more{.} other{!}}}}} other{{count, plural, one{{gifter} is gifting {count} Sub to {channel}'s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} Subs to {channel}'s community{end, select, more{.} other{!}}}}}}",
+  "@noticeCommunityGift": {
+    "description": "A gift bomb's line in chat: who gifts how many subs to the channel's community (gifter bold). tiered is yes when Twitch named the tier; end is more when another sentence follows (a full stop), else last (an exclamation mark). Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
+    "placeholders": {
+      "tiered": {
+        "type": "String",
+        "example": "yes"
+      },
+      "count": {
+        "type": "int",
+        "example": "5"
+      },
+      "gifter": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "tier": {
+        "type": "int",
+        "example": "1"
+      },
+      "channel": {
+        "type": "String",
+        "example": "xQc"
+      },
+      "end": {
+        "type": "String",
+        "example": "last"
+      }
+    }
+  },
+  "noticeCommunityGiftFirst": "It's their first Gift Sub in the channel!",
+  "@noticeCommunityGiftFirst": {
+    "description": "The sentence after a gift bomb's line: the gifter's first gift."
+  },
+  "noticeCommunityGiftTotal": "They've gifted a total of {count} in the channel!",
+  "@noticeCommunityGiftTotal": {
+    "description": "The sentence after a gift bomb's line: how many subs the gifter gave in all.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "50"
+      }
+    }
+  },
+  "noticeExtendedSub": "{tiered, select, yes{{name} extended their Tier {tier} subscription through {month}!} other{{name} extended their subscription through {month}!}}",
+  "@noticeExtendedSub": {
+    "description": "A line when a subscriber extended their sub. month is a month's name (« mai »); « son » agrees with « abonnement ». Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
+    "placeholders": {
+      "tiered": {
+        "type": "String",
+        "example": "yes"
+      },
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "tier": {
+        "type": "int",
+        "example": "1"
+      },
+      "month": {
+        "type": "String",
+        "example": "May"
+      }
+    }
   }
 }

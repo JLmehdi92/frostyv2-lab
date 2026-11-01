@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 
 void main() {
@@ -52,16 +53,18 @@ void main() {
     expect(whisper.message, 'hi there');
     expect(parseChatCommand('/whisper friend yo'), isA<WhisperCommand>());
     expect(
-      (parseChatCommand('/w friend') as UnsupportedCommand).message,
+      (parseChatCommand('/w friend') as UnsupportedCommand).text(L10n.english),
       'Usage: /w <user> <message>',
     );
     expect(parseChatCommand('/w'), isA<UnsupportedCommand>());
     expect(
-      (parseChatCommand('/raid someone') as UnsupportedCommand).message,
+      (parseChatCommand('/raid someone') as UnsupportedCommand).text(
+        L10n.english,
+      ),
       contains('not available'),
     );
     expect(
-      (parseChatCommand('/dance') as UnsupportedCommand).message,
+      (parseChatCommand('/dance') as UnsupportedCommand).text(L10n.english),
       contains('/help'),
     );
   });
@@ -73,7 +76,7 @@ void main() {
       expect(ban.reason, 'spam links');
       expect((parseChatCommand('/ban troll') as BanCommand).reason, '');
       expect(
-        (parseChatCommand('/ban') as UnsupportedCommand).message,
+        (parseChatCommand('/ban') as UnsupportedCommand).text(L10n.english),
         'Usage: /ban <user> [reason]',
       );
       expect(parseChatCommand('/ban a-b'), isA<UnsupportedCommand>());
@@ -97,15 +100,18 @@ void main() {
       expect(reasoned.reason, 'calm down');
       expect(timeout('/timeout troll 1h spam').reason, 'spam');
       expect(
-        (parseChatCommand('/timeout troll 3w') as UnsupportedCommand).message,
+        (parseChatCommand('/timeout troll 3w') as UnsupportedCommand).text(
+          L10n.english,
+        ),
         contains('2 weeks'),
       );
       expect(parseChatCommand('/timeout troll 0'), isA<UnsupportedCommand>());
       // A mistyped length is refused, not taken as the reason.
       for (final typo in ['5min', '1h30m', '1.5h']) {
         expect(
-          (parseChatCommand('/timeout troll $typo') as UnsupportedCommand)
-              .message,
+          (parseChatCommand('/timeout troll $typo') as UnsupportedCommand).text(
+            L10n.english,
+          ),
           contains('Unknown length'),
         );
       }
@@ -131,7 +137,9 @@ void main() {
       expect(warn.login, 'troll');
       expect(warn.reason, 'no spam');
       expect(
-        (parseChatCommand('/warn troll') as UnsupportedCommand).message,
+        (parseChatCommand('/warn troll') as UnsupportedCommand).text(
+          L10n.english,
+        ),
         'Usage: /warn <user> <reason>',
       );
     });

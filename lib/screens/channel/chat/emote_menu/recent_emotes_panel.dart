@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu_section.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
@@ -36,7 +37,7 @@ class RecentEmotesPanel extends StatelessWidget {
                     color: color,
                   ),
                   Text(
-                    'No recent emotes',
+                    context.l10n.emoteMenuNoRecent,
                     style: SheetText.status.copyWith(
                       fontSize: 13,
                       color: color,

@@ -9,6 +9,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_chat_history_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/chat_history.dart';
 import 'package:onset/models/emotes.dart';
@@ -492,6 +493,8 @@ abstract class ChatStoreBase with Store {
   /// keeps its text for another try. The input clears only while it still
   /// holds [submitted] (not a draft typed meanwhile).
   Future<void> _runCommand(ChatCommand command, String submitted) async {
+    // Lines put in the chat are worded in the language on screen now.
+    final l = L10n.current;
     void say(String text) =>
         messageBuffer.add(IRCMessage.createNotice(message: text));
     void done() {
@@ -509,16 +512,20 @@ abstract class ChatStoreBase with Store {
           ...kChatCommands,
           if (canModerate) ...kModeratorChatCommands,
         ];
-        say('Commands: ${[for (final c in commands) c.usage].join(', ')}');
+        say(
+          l.chatHelpCommands(
+            commands: [for (final c in commands) c.usage(l)].join(', '),
+          ),
+        );
         done();
       case ModerationCommand():
         final outcome = await moderate(command);
         if (outcome?.ok ?? false) done();
-      case UnsupportedCommand(:final message):
-        say(message);
+      case UnsupportedCommand():
+        say(command.text(l));
       case WhisperCommand(:final login, :final message):
         final whispers = this.whispers;
-        if (me == null || whispers == null) return say('Log in to whisper.');
+        if (me == null || whispers == null) return say(l.chatLogInToWhisper);
         try {
           final user = await twitchApi.getUser(userLogin: login);
           if (_shouldDisconnect) return;
@@ -532,33 +539,34 @@ abstract class ChatStoreBase with Store {
           if (error != null) return say(error);
           say(
             whispers.status == WhisperStatus.refused
-                ? 'Whisper sent to ${user.displayName}. Replies cannot reach '
-                      'this app until you log in again.'
-                : 'Whisper sent to ${user.displayName}.',
+                ? l.chatWhisperSentNoReplies(name: user.displayName)
+                : l.chatWhisperSent(name: user.displayName),
           );
           done();
         } on NotFoundException {
           if (!_shouldDisconnect) {
-            say("Couldn't whisper: no user named $login.");
+            say(l.chatWhisperNoUser(login: login));
           }
         } on ApiException catch (e) {
-          if (!_shouldDisconnect) say("Couldn't whisper: ${e.message}");
+          if (!_shouldDisconnect) {
+            say(l.chatWhisperFailedBecause(reason: chatErrorText(l, e)));
+          }
         } catch (e, stack) {
           Telemetry.recordError(e, stack, reason: '/w');
-          if (!_shouldDisconnect) say("Couldn't whisper.");
+          if (!_shouldDisconnect) say(l.chatWhisperFailed);
         }
       case ColorCommand(:final color):
-        if (me == null) return say('Log in to change your color.');
+        if (me == null) return say(l.chatLogInToChangeColor);
         final ok = await twitchApi.updateUserChatColor(
           userId: me,
           color: color,
         );
         if (_shouldDisconnect) return;
         if (ok) {
-          say('Your name color was changed.');
+          say(l.chatColorChanged);
           done();
         } else {
-          say("Couldn't change your color (hex colors need Turbo or Prime).");
+          say(l.chatColorFailedHex);
         }
       case BlockCommand(:final login) || UnblockCommand(:final login):
         final block = command is BlockCommand;
@@ -568,7 +576,7 @@ abstract class ChatStoreBase with Store {
             (b) => b.userId == user.id,
           );
           if (block && already) {
-            say('${user.displayName} is already blocked.');
+            say(l.chatAlreadyBlocked(name: user.displayName));
             done();
             return;
           }
@@ -584,12 +592,20 @@ abstract class ChatStoreBase with Store {
           if (listed != block) {
             throw StateError('not ${block ? '' : 'un'}blocked');
           }
-          say('${block ? 'Blocked' : 'Unblocked'} ${user.displayName}.');
+          say(
+            block
+                ? l.chatBlockedUser(name: user.displayName)
+                : l.chatUnblockedUser(name: user.displayName),
+          );
           done();
         } catch (e) {
           debugPrint('/${block ? 'block' : 'unblock'} $login failed: $e');
           if (!_shouldDisconnect) {
-            say("Couldn't ${block ? 'block' : 'unblock'} $login.");
+            say(
+              block
+                  ? l.chatBlockFailed(login: login)
+                  : l.chatUnblockFailed(login: login),
+            );
           }
         }
     }
@@ -627,7 +643,7 @@ abstract class ChatStoreBase with Store {
     final me = auth.user.details?.id;
     final ModerationOutcome outcome;
     if (me == null) {
-      outcome = (ok: false, message: 'Log in to moderate.');
+      outcome = (ok: false, message: L10n.current.chatLogInToModerate);
     } else {
       // Helix decides: USERSTATE (behind [canModerate]) comes after joining
       // and misses someone modded meanwhile.
@@ -833,7 +849,9 @@ abstract class ChatStoreBase with Store {
 
     assetsStore.init();
 
-    _messages.add(IRCMessage.createNotice(message: 'Connecting to chat...'));
+    _messages.add(
+      IRCMessage.createNotice(message: L10n.current.chatConnecting),
+    );
 
     // IRC first: the history is put above whatever live chat has shown by
     // the time it arrives, so it never holds the chat back.
@@ -1127,8 +1145,9 @@ abstract class ChatStoreBase with Store {
         _resetOwnRestrictions();
         messageBuffer.add(
           IRCMessage.createNotice(
-            message:
-                "Welcome to ${getReadableName(displayName, channelName)}'s chat!",
+            message: L10n.current.chatWelcome(
+              name: getReadableName(displayName, channelName),
+            ),
           ),
         );
         if (_pendingArrival case final arrival?) {
@@ -1162,8 +1181,10 @@ abstract class ChatStoreBase with Store {
           final index = _messages.indexOf(_reconnectMessage!);
           if (index != -1) {
             _messages[index] = IRCMessage.createNotice(
-              message:
-                  'Reconnected ($attempts ${attempts == 1 ? 'attempt' : 'attempts'}, ${elapsed}s)',
+              message: L10n.current.chatReconnected(
+                attempts: attempts,
+                seconds: elapsed,
+              ),
             );
           }
         }
@@ -1277,8 +1298,13 @@ abstract class ChatStoreBase with Store {
 
         messageBuffer.add(
           IRCMessage.createNotice(
-            message:
-                '${getReadableName(body.actor.displayName, body.actor.username)} added 7TV emote "${emote.name}" to chat',
+            message: L10n.current.chatSevenTvEmoteAdded(
+              name: getReadableName(
+                body.actor.displayName,
+                body.actor.username,
+              ),
+              emote: emote.name,
+            ),
           ),
         );
       } else if (body.pulled != null) {
@@ -1290,8 +1316,13 @@ abstract class ChatStoreBase with Store {
 
         messageBuffer.add(
           IRCMessage.createNotice(
-            message:
-                '${getReadableName(body.actor.displayName, body.actor.username)} removed 7TV emote "${pulledEmote.name}" from chat',
+            message: L10n.current.chatSevenTvEmoteRemoved(
+              name: getReadableName(
+                body.actor.displayName,
+                body.actor.username,
+              ),
+              emote: pulledEmote.name,
+            ),
           ),
         );
       }
@@ -1404,13 +1435,13 @@ abstract class ChatStoreBase with Store {
           // Add directly to messages, not buffer, so it shows immediately
           _messages.add(
             IRCMessage.createNotice(
-              message: 'Chat disconnected. Please check your connection.',
+              message: L10n.current.chatDisconnected,
               actionCallback: () {
                 _retries = 0;
                 _backoffTime = 0;
                 connectToChat(isReconnect: true);
               },
-              actionLabel: 'Reconnect',
+              actionLabel: L10n.current.chatReconnect,
             ),
           );
           return;
@@ -1452,7 +1483,11 @@ abstract class ChatStoreBase with Store {
         if (_backoffTime > 0) {
           var remainingSeconds = _backoffTime;
           updateReconnectMessage(
-            'Reconnecting in ${remainingSeconds}s... (attempt $_retries of $_maxRetries)',
+            L10n.current.chatReconnectingIn(
+              seconds: remainingSeconds,
+              attempt: _retries,
+              max: _maxRetries,
+            ),
           );
 
           // Update countdown every second
@@ -1474,7 +1509,11 @@ abstract class ChatStoreBase with Store {
 
             if (remainingSeconds > 0) {
               updateReconnectMessage(
-                'Reconnecting in ${remainingSeconds}s... (attempt $_retries of $_maxRetries)',
+                L10n.current.chatReconnectingIn(
+                  seconds: remainingSeconds,
+                  attempt: _retries,
+                  max: _maxRetries,
+                ),
               );
               return true; // Continue loop
             }
@@ -1487,7 +1526,7 @@ abstract class ChatStoreBase with Store {
 
         // Attempting phase - update same message, no add/remove
         updateReconnectMessage(
-          'Reconnecting... (attempt $_retries of $_maxRetries)',
+          L10n.current.chatReconnecting(attempt: _retries, max: _maxRetries),
         );
 
         _channelListener?.cancel();
@@ -1563,7 +1602,7 @@ abstract class ChatStoreBase with Store {
 
     // Create and store reference to the countdown message
     _countdownMessage = IRCMessage.createNotice(
-      message: 'Chat will sync in ${remainingSeconds}s...',
+      message: L10n.current.chatSyncIn(seconds: remainingSeconds),
     );
     _messages.add(_countdownMessage!);
 
@@ -1590,7 +1629,7 @@ abstract class ChatStoreBase with Store {
           if (remainingSeconds > 0) {
             // Create new message and update reference
             _countdownMessage = IRCMessage.createNotice(
-              message: 'Chat will sync in ${remainingSeconds}s...',
+              message: L10n.current.chatSyncIn(seconds: remainingSeconds),
             );
             _messages[index] = _countdownMessage!;
           } else {
@@ -1623,7 +1662,7 @@ abstract class ChatStoreBase with Store {
     // limit).
     if (message.characters.length > kChatMessageMaxLength) {
       updateNotification(
-        'Messages can be $kChatMessageMaxLength characters at most',
+        L10n.current.chatMessageTooLong(max: kChatMessageMaxLength),
       );
       return;
     }
@@ -1632,7 +1671,7 @@ abstract class ChatStoreBase with Store {
     final command = parseChatCommand(message);
     if (command is! SendAsIs) {
       if (_runningCommand) {
-        updateNotification('Please wait, running the previous command...');
+        updateNotification(L10n.current.chatWaitCommand);
         return;
       }
       _runningCommand = true;
@@ -1648,15 +1687,14 @@ abstract class ChatStoreBase with Store {
     // Prevent double-sending while waiting for server acknowledgment
     if (_isWaitingForAck) {
       HapticFeedback.mediumImpact();
-      updateNotification('Please wait, sending previous message...');
+      updateNotification(L10n.current.chatWaitMessage);
       return;
     }
 
     if (_channel == null || _channel?.closeCode != null) {
       messageBuffer.add(
         IRCMessage.createNotice(
-          message:
-              'Cannot send message - chat is disconnected. Reconnecting...',
+          message: L10n.current.chatCannotSendDisconnected,
         ),
       );
       return;
@@ -1690,7 +1728,7 @@ abstract class ChatStoreBase with Store {
         _isWaitingForAck = false;
         toSend = null;
         HapticFeedback.heavyImpact();
-        updateNotification('Message may not have been sent. Please try again.');
+        updateNotification(L10n.current.chatMaybeNotSent);
       }
     });
 

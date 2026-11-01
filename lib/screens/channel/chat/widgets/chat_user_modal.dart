@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
@@ -110,7 +111,7 @@ class _ChatUserModalState extends State<ChatUserModal> {
             children: [
               if (widget.chatStore.auth.isLoggedIn)
                 _action(
-                  tooltip: 'Reply',
+                  tooltip: context.l10n.chatReply,
                   glyph: SheetGlyphKind.reply,
                   onPressed: () {
                     widget.chatStore.textController.text =
@@ -122,7 +123,7 @@ class _ChatUserModalState extends State<ChatUserModal> {
               if (widget.chatStore.auth.isLoggedIn &&
                   widget.chatStore.whispers != null)
                 _action(
-                  tooltip: 'Whisper',
+                  tooltip: context.l10n.chatUserWhisper,
                   glyph: SheetGlyphKind.whisper,
                   onPressed: () {
                     final navigator = Navigator.of(context);
@@ -139,7 +140,7 @@ class _ChatUserModalState extends State<ChatUserModal> {
                   },
                 ),
               _action(
-                tooltip: 'Profile',
+                tooltip: context.l10n.chatUserProfile,
                 glyph: SheetGlyphKind.profile,
                 onPressed: () {
                   Navigator.pop(context);
@@ -156,7 +157,7 @@ class _ChatUserModalState extends State<ChatUserModal> {
                 },
               ),
               _action(
-                tooltip: 'More',
+                tooltip: context.l10n.chatMoreOptions,
                 glyph: SheetGlyphKind.more,
                 onPressed: () => showOnsetSheet<void>(
                   context: context,
@@ -191,6 +192,7 @@ class _ChatUserModalState extends State<ChatUserModal> {
               (message) => message.user == widget.username,
             ),
             store.assetsStore.twitchBadgesToObject,
+            context.l10n,
           ),
         );
       },
@@ -232,9 +234,9 @@ class _ChatUserModalState extends State<ChatUserModal> {
             .toList();
 
         if (userMessages.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: AlertMessage(message: 'No recent messages'),
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: AlertMessage(message: context.l10n.chatUserNoRecentMessages),
           );
         }
 
@@ -273,9 +275,9 @@ class _ChatUserModalState extends State<ChatUserModal> {
       moderation,
       divider,
       if (!dense)
-        const SheetSectionLabel(
-          'Recent messages',
-          padding: EdgeInsets.fromLTRB(16, 10, 16, 0),
+        SheetSectionLabel(
+          context.l10n.chatUserRecentMessages,
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
         ),
     ];
 

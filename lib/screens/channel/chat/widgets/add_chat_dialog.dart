@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/screens/channel/chat/widgets/animated_scroll_border.dart';
 import 'package:onset/utils/common_utils.dart';
@@ -53,7 +54,9 @@ class _AddChatSheetState extends State<AddChatSheet> {
 
   Timer? _debounce;
   bool _isLoading = false;
-  String? _errorMessage;
+
+  /// The last search failed.
+  bool _failed = false;
   List<ChannelQuery> _results = [];
 
   @override
@@ -79,7 +82,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
     if (query.isEmpty) {
       setState(() {
         _results = [];
-        _errorMessage = null;
+        _failed = false;
         _isLoading = false;
       });
       return;
@@ -87,7 +90,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
+      _failed = false;
     });
 
     // Debounce the search by 300ms
@@ -98,7 +101,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
           setState(() {
             _results = channels;
             _isLoading = false;
-            _errorMessage = null;
+            _failed = false;
           });
         }
       } catch (e) {
@@ -106,7 +109,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
           setState(() {
             _results = [];
             _isLoading = false;
-            _errorMessage = 'Failed to search channels';
+            _failed = true;
           });
         }
       }
@@ -137,7 +140,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
               child: Semantics(
                 header: true,
                 child: Text(
-                  'Add Chat',
+                  context.l10n.chatAddChatTitle,
                   style: SheetText.title.copyWith(
                     color: SheetColors.of(context).text,
                   ),
@@ -152,13 +155,13 @@ class _AddChatSheetState extends State<AddChatSheet> {
                 autocorrect: false,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search_rounded),
-                  hintText: 'Search for a channel',
+                  hintText: context.l10n.chatAddChatSearch,
                   suffixIcon:
                       _focusNode.hasFocus || _textController.text.isNotEmpty
                       ? IconButton(
                           tooltip: _textController.text.isEmpty
-                              ? 'Cancel'
-                              : 'Clear',
+                              ? context.l10n.commonCancel
+                              : context.l10n.chatClear,
                           onPressed: () {
                             if (_textController.text.isEmpty) {
                               _focusNode.unfocus();
@@ -188,7 +191,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            'Search for a channel to add',
+            context.l10n.chatAddChatPrompt,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -205,11 +208,11 @@ class _AddChatSheetState extends State<AddChatSheet> {
       );
     }
 
-    if (_errorMessage != null) {
+    if (_failed) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: AlertMessage(message: _errorMessage!),
+          child: AlertMessage(message: context.l10n.chatAddChatSearchFailed),
         ),
       );
     }
@@ -219,7 +222,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            'No channels found',
+            context.l10n.chatAddChatNoChannels,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

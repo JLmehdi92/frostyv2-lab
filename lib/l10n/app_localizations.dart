@@ -6467,6 +6467,1746 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlocked reward {name}'**
   String htRewardUnlocked({required String name});
+
+  /// A length in seconds, as the chat words a timeout, a slow-mode wait, a follow age or a sleep timer (« 10 minutes », « 2 semaines »).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} second} other{{count} seconds}}'**
+  String chatDurationSeconds({required int count});
+
+  /// A length in minutes, as the chat words a timeout, a slow-mode wait, a follow age or a sleep timer (« 10 minutes », « 2 semaines »).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} minute} other{{count} minutes}}'**
+  String chatDurationMinutes({required int count});
+
+  /// A length in hours, as the chat words a timeout, a slow-mode wait, a follow age or a sleep timer (« 10 minutes », « 2 semaines »).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} hour} other{{count} hours}}'**
+  String chatDurationHours({required int count});
+
+  /// A length in days, as the chat words a timeout, a slow-mode wait, a follow age or a sleep timer (« 10 minutes », « 2 semaines »).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} day} other{{count} days}}'**
+  String chatDurationDays({required int count});
+
+  /// A length in weeks, as the chat words a timeout, a slow-mode wait, a follow age or a sleep timer (« 10 minutes », « 2 semaines »).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} week} other{{count} weeks}}'**
+  String chatDurationWeeks({required int count});
+
+  /// A follow age in months, in the moderator's followers-only menu (« 3 mois »).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} month} other{{count} months}}'**
+  String chatDurationMonths({required int count});
+
+  /// A short wait in seconds: the slow mode's wait in the chat's pills and above the input, a sleep timer's last minute.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s'**
+  String chatShortSeconds({required int seconds});
+
+  /// A short length in whole minutes, in the chat modes' pills (followers-only age, slow mode).
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m'**
+  String chatShortMinutes({required int minutes});
+
+  /// A short length in minutes and seconds: the slow mode's pill, a sleep timer under an hour.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m {seconds}s'**
+  String chatShortMinutesSeconds({required int minutes, required int seconds});
+
+  /// A short length in whole hours, in the chat modes' pills (followers-only age).
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h'**
+  String chatShortHours({required int hours});
+
+  /// A short length in hours and minutes: the followers-only pill, a sleep timer.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String chatShortHoursMinutes({required int hours, required int minutes});
+
+  /// The first line of a chat, while it connects.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting to chat...'**
+  String get chatConnecting;
+
+  /// The line once the chat is connected. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to {name}\'s chat!'**
+  String chatWelcome({required String name});
+
+  /// The line that replaces the reconnecting line once the chat is back: how many tries and seconds it took.
+  ///
+  /// In en, this message translates to:
+  /// **'{attempts, plural, one{Reconnected ({attempts} attempt, {seconds}s)} other{Reconnected ({attempts} attempts, {seconds}s)}}'**
+  String chatReconnected({required int attempts, required int seconds});
+
+  /// The chat lost its connection: the countdown before the next try.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting in {seconds}s... (attempt {attempt} of {max})'**
+  String chatReconnectingIn({
+    required int seconds,
+    required int attempt,
+    required int max,
+  });
+
+  /// The chat lost its connection: a try is running.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting... (attempt {attempt} of {max})'**
+  String chatReconnecting({required int attempt, required int max});
+
+  /// The line once every try to reconnect failed; a Reconnect button follows (chatReconnect).
+  ///
+  /// In en, this message translates to:
+  /// **'Chat disconnected. Please check your connection.'**
+  String get chatDisconnected;
+
+  /// The button on the « chat disconnected » line, and the row of the chat's details sheet that reconnects the chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get chatReconnect;
+
+  /// The note above the input after the viewer asked to reconnect (chat details › Reconnect).
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting to chat...'**
+  String get chatReconnectingNotice;
+
+  /// The chat is delayed to match the video (Settings › Chat › Message delay): the countdown until it catches up.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat will sync in {seconds}s...'**
+  String chatSyncIn({required int seconds});
+
+  /// A line when an editor of the channel adds a 7TV emote. name is the editor's name, emote the emote's code.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added 7TV emote \"{emote}\" to chat'**
+  String chatSevenTvEmoteAdded({required String name, required String emote});
+
+  /// A line when an editor of the channel removes a 7TV emote. name is the editor's name, emote the emote's code.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} removed 7TV emote \"{emote}\" from chat'**
+  String chatSevenTvEmoteRemoved({required String name, required String emote});
+
+  /// The note above the input when a message is too long for Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages can be {max} characters at most'**
+  String chatMessageTooLong({required int max});
+
+  /// The note above the input when a command is sent while the last one still runs.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait, running the previous command...'**
+  String get chatWaitCommand;
+
+  /// The note above the input when a message is sent before Twitch confirmed the last one.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait, sending previous message...'**
+  String get chatWaitMessage;
+
+  /// A line in chat when a message is sent while the chat is disconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot send message - chat is disconnected. Reconnecting...'**
+  String get chatCannotSendDisconnected;
+
+  /// The note above the input when Twitch did not confirm a message in time.
+  ///
+  /// In en, this message translates to:
+  /// **'Message may not have been sent. Please try again.'**
+  String get chatMaybeNotSent;
+
+  /// The line left when a moderator clears the whole chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat was cleared by a moderator'**
+  String get chatClearedByModerator;
+
+  /// The line /help writes in chat: every command's usage (chatCommandUsage…), joined with commas. The commands themselves are never translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Commands: {commands}'**
+  String chatHelpCommands({required String commands});
+
+  /// A line in chat: /w needs the viewer logged in.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to whisper.'**
+  String get chatLogInToWhisper;
+
+  /// A line in chat once /w sent the whisper. name is the recipient's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Whisper sent to {name}.'**
+  String chatWhisperSent({required String name});
+
+  /// The same, while Twitch refuses the app's whisper connection until the viewer logs in again.
+  ///
+  /// In en, this message translates to:
+  /// **'Whisper sent to {name}. Replies cannot reach this app until you log in again.'**
+  String chatWhisperSentNoReplies({required String name});
+
+  /// A line in chat: /w names nobody. login is what the viewer typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t whisper: no user named {login}.'**
+  String chatWhisperNoUser({required String login});
+
+  /// A line in chat: the whisper failed; reason is the error, worded (a sentence).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t whisper: {reason}'**
+  String chatWhisperFailedBecause({required String reason});
+
+  /// A line in chat: the whisper failed for an unexpected reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t whisper.'**
+  String get chatWhisperFailed;
+
+  /// A line in chat: /color needs the viewer logged in.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to change your color.'**
+  String get chatLogInToChangeColor;
+
+  /// A line in chat once /color changed the viewer's name colour.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name color was changed.'**
+  String get chatColorChanged;
+
+  /// A line in chat: Twitch refused the colour (#RRGGBB colours need Turbo or Prime).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t change your color (hex colors need Turbo or Prime).'**
+  String get chatColorFailedHex;
+
+  /// A line in chat: /block names someone already blocked. French puts the name last so nothing agrees with it.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is already blocked.'**
+  String chatAlreadyBlocked({required String name});
+
+  /// A line in chat once /block blocked someone. French puts the name last so nothing agrees with it.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked {name}.'**
+  String chatBlockedUser({required String name});
+
+  /// A line in chat once /unblock unblocked someone.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblocked {name}.'**
+  String chatUnblockedUser({required String name});
+
+  /// A line in chat: /block failed. login is what the viewer typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t block {login}.'**
+  String chatBlockFailed({required String login});
+
+  /// A line in chat: /unblock failed. login is what the viewer typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t unblock {login}.'**
+  String chatUnblockFailed({required String login});
+
+  /// A line in chat: a moderation command needs the viewer logged in.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to moderate.'**
+  String get chatLogInToModerate;
+
+  /// A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: someone's name.
+  ///
+  /// In en, this message translates to:
+  /// **'user'**
+  String get chatCommandArgUser;
+
+  /// A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the text to send.
+  ///
+  /// In en, this message translates to:
+  /// **'message'**
+  String get chatCommandArgMessage;
+
+  /// A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: a colour name or #RRGGBB.
+  ///
+  /// In en, this message translates to:
+  /// **'color'**
+  String get chatCommandArgColor;
+
+  /// A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: why (a ban, a warning).
+  ///
+  /// In en, this message translates to:
+  /// **'reason'**
+  String get chatCommandArgReason;
+
+  /// A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: a length such as 10m.
+  ///
+  /// In en, this message translates to:
+  /// **'length'**
+  String get chatCommandArgLength;
+
+  /// A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the slow mode's wait.
+  ///
+  /// In en, this message translates to:
+  /// **'seconds'**
+  String get chatCommandArgSeconds;
+
+  /// A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the id of the message to delete.
+  ///
+  /// In en, this message translates to:
+  /// **'message id'**
+  String get chatCommandArgMessageId;
+
+  /// What a chat command does, beside its usage in the input's suggestions. command is the command's name (never translated, nor are the lengths « 10m », « 30s » and their units « s, m, h, d, w, mo » that Twitch reads).
+  ///
+  /// In en, this message translates to:
+  /// **'{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} help{List the commands} ban{Ban a user from the chat} unban{Lift a ban} timeout{Time a user out (10m by default; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Slow mode (30s by default)} slowoff{Turn slow mode off} followers{Followers-only mode (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Subscribers-only mode} subscribersoff{Turn subscribers-only mode off} emoteonly{Emote-only mode} emoteonlyoff{Turn emote-only mode off} uniquechat{Unique chat mode (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}'**
+  String chatCommandDescription({required String command});
+
+  /// A line in chat when a command is typed wrong: how to type it. usage is the command and its words (/ban <user> [reason]).
+  ///
+  /// In en, this message translates to:
+  /// **'Usage: {usage}'**
+  String chatCommandUsage({required String usage});
+
+  /// A line in chat: /timeout got a length it cannot read. length is what the viewer typed; the examples are what Twitch reads (never translated).
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown length \"{length}\". Use e.g. 30, 10m, 2h, 1d or 1w.'**
+  String chatCommandBadLength({required String length});
+
+  /// A line in chat: /timeout got a length out of range.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeouts last from 1 second to 2 weeks.'**
+  String get chatCommandTimeoutRange;
+
+  /// A line in chat: /slow got a wait out of range.
+  ///
+  /// In en, this message translates to:
+  /// **'The slow mode wait is 3 to 120 seconds.'**
+  String get chatCommandSlowRange;
+
+  /// A line in chat: /followers got a follow age out of range. The examples are what Twitch reads (never translated).
+  ///
+  /// In en, this message translates to:
+  /// **'The follow age is 0 minutes to 3 months (e.g. 10m, 1w, 3mo).'**
+  String get chatCommandFollowAgeRange;
+
+  /// A line in chat: /color got a colour it does not know. Blue, Coral, HotPink are what /color reads (never translated; French writes them in lower case, which /color reads the same).
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown color. Try Blue, Coral, HotPink… or #RRGGBB (Turbo/Prime).'**
+  String get chatCommandUnknownColor;
+
+  /// A line in chat: a Twitch command this app does not run. command is its name.
+  ///
+  /// In en, this message translates to:
+  /// **'/{command} is not available in this app.'**
+  String chatCommandNotInApp({required String command});
+
+  /// A line in chat: a command nobody knows. command is what the viewer typed; /help is the command (never translated).
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown command /{command}. Type /help for the commands you can use.'**
+  String chatCommandUnknown({required String command});
+
+  /// A room mode's name: the moderator's switches (Chat modes sheet) and their outcome lines. mode is ChatMode.name.
+  ///
+  /// In en, this message translates to:
+  /// **'{mode, select, slow{Slow mode} followers{Followers-only mode} subscribers{Subscribers-only mode} emoteOnly{Emote-only mode} uniqueChat{Unique chat mode} other{}}'**
+  String chatModeName({required String mode});
+
+  /// A line in chat once a moderator turned a room mode on or off. mode is ChatMode.name; state is on or off. « activé » agrees with « mode ».
+  ///
+  /// In en, this message translates to:
+  /// **'{mode, select, slow{Slow mode} followers{Followers-only mode} subscribers{Subscribers-only mode} emoteOnly{Emote-only mode} uniqueChat{Unique chat mode} other{}} {state, select, on{on} other{off}}.'**
+  String chatModeChanged({required String mode, required String state});
+
+  /// A line in chat once a moderator turned slow mode on. duration is the wait (chatDuration…).
+  ///
+  /// In en, this message translates to:
+  /// **'Slow mode on ({duration}).'**
+  String chatModeSlowOn({required String duration});
+
+  /// A line in chat once a moderator turned followers-only mode on with a follow age. duration is the age (chatDuration…).
+  ///
+  /// In en, this message translates to:
+  /// **'Followers-only mode on (followers of {duration}).'**
+  String chatModeFollowersOn({required String duration});
+
+  /// A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t {command, select, ban{ban} timeout{time out} untimeout{remove the timeout of} unban{unban} warn{warn} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}}: {reason}'**
+  String chatModFailed({required String command, required String reason});
+
+  /// A moderation action failed for an unexpected reason. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t {command, select, ban{ban} timeout{time out} untimeout{remove the timeout of} unban{unban} warn{warn} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}} (unexpected error).'**
+  String chatModFailedUnexpected({required String command});
+
+  /// Why a moderation action failed (after chatModFailed's colon): the viewer is not a moderator here.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch says you can\'t moderate this chat.'**
+  String get chatModCannotModerate;
+
+  /// Why a moderation action failed (after chatModFailed's colon): nobody has that name. login is what the viewer typed.
+  ///
+  /// In en, this message translates to:
+  /// **'no user named {login}'**
+  String chatModNoUser({required String login});
+
+  /// A moderation action failed: the viewer's login predates the moderator permissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again to moderate from this app.'**
+  String get chatModLogInAgain;
+
+  /// A moderation action failed without an answer (under the moderation bar or the chat modes).
+  ///
+  /// In en, this message translates to:
+  /// **'That did not go through. Try again.'**
+  String get chatModNotThrough;
+
+  /// A line in chat once the viewer banned someone. name is their display name.
+  ///
+  /// In en, this message translates to:
+  /// **'You banned {name}.'**
+  String chatModBanned({required String name});
+
+  /// A line in chat once the viewer timed someone out. duration is chatDuration….
+  ///
+  /// In en, this message translates to:
+  /// **'You timed out {name} for {duration}.'**
+  String chatModTimedOut({required String name, required String duration});
+
+  /// A line in chat once the viewer lifted a timeout. French puts the name last (no elision before it).
+  ///
+  /// In en, this message translates to:
+  /// **'You removed the timeout of {name}.'**
+  String chatModUntimedOut({required String name});
+
+  /// A line in chat once the viewer lifted a ban.
+  ///
+  /// In en, this message translates to:
+  /// **'You unbanned {name}.'**
+  String chatModUnbanned({required String name});
+
+  /// A line in chat once the viewer warned someone.
+  ///
+  /// In en, this message translates to:
+  /// **'You warned {name}.'**
+  String chatModWarned({required String name});
+
+  /// A line in chat once the viewer deleted a message (/delete).
+  ///
+  /// In en, this message translates to:
+  /// **'Message deleted.'**
+  String get chatModMessageDeleted;
+
+  /// A line in chat once the viewer cleared the chat (/clear).
+  ///
+  /// In en, this message translates to:
+  /// **'You cleared the chat.'**
+  String get chatModCleared;
+
+  /// A line in chat when a moderator bans someone. French puts the name last so nothing agrees with it.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has been permanently banned.'**
+  String chatNoticeBanned({required String name});
+
+  /// A line in chat when a moderator times someone out, for a length Twitch did not give.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has been timed out.'**
+  String chatNoticeTimedOut({required String name});
+
+  /// A line in chat when a moderator times someone out. duration is chatDuration….
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has been timed out for {duration}.'**
+  String chatNoticeTimedOutFor({
+    required String name,
+    required String duration,
+  });
+
+  /// Above the chat input (and as its placeholder): the viewer is banned. « votre compte » so nothing agrees with the viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'You are permanently banned from this chat'**
+  String get chatRestrictionBanned;
+
+  /// The chat input's placeholder while the viewer is timed out.
+  ///
+  /// In en, this message translates to:
+  /// **'You are timed out'**
+  String get chatRestrictionTimedOut;
+
+  /// Above the chat input while the viewer is timed out. wait is the time left (« 4:05 », « 12 s »).
+  ///
+  /// In en, this message translates to:
+  /// **'You are timed out · {wait}'**
+  String chatRestrictionTimedOutFor({required String wait});
+
+  /// Above the chat input in slow mode, after a message. wait is the time left.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow mode · you can chat again in {wait}'**
+  String chatRestrictionSlow({required String wait});
+
+  /// The chat input's placeholder in emote-only mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Emote-only chat'**
+  String get chatRestrictionEmoteOnly;
+
+  /// The chat input's placeholder in subscribers-only mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribers-only chat'**
+  String get chatRestrictionSubscribersOnly;
+
+  /// The chat input's placeholder in followers-only mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Followers-only chat'**
+  String get chatRestrictionFollowersOnly;
+
+  /// The same, when followers must have followed for a while. minutes is that follow age.
+  ///
+  /// In en, this message translates to:
+  /// **'Followers-only chat · following for {minutes}+ min'**
+  String chatRestrictionFollowersFor({required int minutes});
+
+  /// The button over a paused chat: how many messages arrived since; tapping it scrolls back down.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} new message} other{{count} new messages}}'**
+  String chatNewMessages({required int count});
+
+  /// The same button when no message arrived: back to the newest messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume scroll'**
+  String get chatResumeScroll;
+
+  /// Tooltip of the clock before a message loaded from the chat's history (sent before the viewer joined).
+  ///
+  /// In en, this message translates to:
+  /// **'Historical message'**
+  String get chatHistoricalMessage;
+
+  /// Tooltip of a channel's picture before a message in a shared chat: sent from this channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent from {name} (current channel)'**
+  String chatSentFromCurrent({required String name});
+
+  /// Tooltip of a channel's picture before a message in a shared chat: sent from another channel of it.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent from {name}'**
+  String chatSentFrom({required String name});
+
+  /// Shown in place of a deleted message's text, after the name; tapping it shows the message.
+  ///
+  /// In en, this message translates to:
+  /// **'<message deleted>'**
+  String get chatMessageDeletedInline;
+
+  /// The name shown for a message (from the chat's history, a replay, a pin) whose sender's account no longer exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted user'**
+  String get chatDeletedUser;
+
+  /// What a screen reader says for a word the chat filters hide (drawn as stars).
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered word'**
+  String get chatFilteredWord;
+
+  /// What a screen reader says for a cheer in a message. prefix is the cheermote's name (Cheer, Kappa…), never translated. Bits is Twitch's word, after an ordinary space as in htBits.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{prefix} {count} bit} other{{prefix} {count} bits}}'**
+  String chatCheerSemantics({required String prefix, required int count});
+
+  /// The details of a stack of emotes (a zero-width emote over another): the emotes on top, joined with « + ».
+  ///
+  /// In en, this message translates to:
+  /// **'with {emotes}'**
+  String chatEmoteStackWith({required String emotes});
+
+  /// The details of an emote: who made or owns it.
+  ///
+  /// In en, this message translates to:
+  /// **'by {name}'**
+  String chatEmoteBy({required String name});
+
+  /// A row of an emote's, badge's or GIF's details: copies its name.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy name'**
+  String get chatCopyName;
+
+  /// A row of an emote's, badge's or GIF's details: copies its picture's address.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy image URL'**
+  String get chatCopyImageUrl;
+
+  /// A row of an emote's, badge's or GIF's details: opens its picture in the browser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get chatOpenInBrowser;
+
+  /// The note above the input once a message was copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Message copied'**
+  String get chatMessageCopied;
+
+  /// A row of a message's options (long press).
+  ///
+  /// In en, this message translates to:
+  /// **'Copy message'**
+  String get chatCopyMessage;
+
+  /// A row of a message's options: copies the message into the input.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy message and paste'**
+  String get chatCopyMessageAndPaste;
+
+  /// A row of a message's options.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply to message'**
+  String get chatReplyToMessage;
+
+  /// A row of a message's options, for moderators.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message'**
+  String get chatDeleteMessage;
+
+  /// Above a viewer's first message in the channel, highlighted.
+  ///
+  /// In en, this message translates to:
+  /// **'First message'**
+  String get chatFirstMessage;
+
+  /// Above a message highlighted with channel points.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlighted message'**
+  String get chatHighlightedMessage;
+
+  /// Above a message a moderator deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Message deleted'**
+  String get chatMessageDeleted;
+
+  /// Above the messages of someone banned.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently banned'**
+  String get chatPermanentlyBanned;
+
+  /// Above the messages of someone timed out: for how many seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Timed out for {count} second} other{Timed out for {count} seconds}}'**
+  String chatTimedOutFor({required int count});
+
+  /// Above a moderator's announcement.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement'**
+  String get chatAnnouncement;
+
+  /// What a screen reader says a long press on a message does (it opens its options). Lower case: it follows « double tap and hold to ».
+  ///
+  /// In en, this message translates to:
+  /// **'message options'**
+  String get chatMessageOptionsHint;
+
+  /// What a screen reader says a long press on a notice does (it copies it). Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'copy message'**
+  String get chatCopyMessageHint;
+
+  /// The heading of a reply thread's sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies'**
+  String get chatReplies;
+
+  /// Tooltip of the button beside the chat input that opens the emote menu, and the menu's name for screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Emote menu'**
+  String get chatEmoteMenu;
+
+  /// The chat input's placeholder (and its note) when the viewer is not logged in.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to chat'**
+  String get chatLogInToChat;
+
+  /// Tooltip of the cross on the « replying to » bar above the input.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel reply'**
+  String get chatCancelReply;
+
+  /// Tooltip of the collapsed chat input's button that opens the keyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a message'**
+  String get chatEnterMessage;
+
+  /// The chat input's placeholder while the viewer cannot send (rules not accepted yet, a restriction).
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t chat right now'**
+  String get chatCannotChatNow;
+
+  /// The chat input's placeholder while the chat is disconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat disconnected'**
+  String get chatInputDisconnected;
+
+  /// The chat input's placeholder while the chat connects.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get chatInputConnecting;
+
+  /// The chat input's placeholder, and the send button's tooltip, while Twitch confirms a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending...'**
+  String get chatSending;
+
+  /// Tooltip of the chat input's send button.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatSend;
+
+  /// The chat input's placeholder while replying. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply in {name}'**
+  String chatReplyIn({required String name});
+
+  /// The chat input's placeholder while replying when the channel is not named, and the user card's reply button.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get chatReply;
+
+  /// The chat input's placeholder while the chat is delayed to match the video. name is the channel's display name; « délai » is the setting's word (Délai des messages).
+  ///
+  /// In en, this message translates to:
+  /// **'Chat in {name} ({seconds}s delay)'**
+  String chatInChannelDelayed({required String name, required int seconds});
+
+  /// The same, when the channel is not named.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat ({seconds}s delay)'**
+  String chatDelayed({required int seconds});
+
+  /// The chat input's placeholder. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat in {name}'**
+  String chatInChannel({required String name});
+
+  /// The chat input's placeholder when the channel is not named.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get chatInputPlaceholder;
+
+  /// Tooltip of the « ⋯ » button beside the chat input (the chat's details), and of the user card's « ⋯ ».
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get chatMoreOptions;
+
+  /// What a screen reader says for the counter beside the chat input near the length limit.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} character left} other{{count} characters left}}'**
+  String chatCharactersLeft({required int count});
+
+  /// Snackbar once the name colour picked in the chat details was saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat color updated successfully!'**
+  String get chatColorUpdated;
+
+  /// Snackbar when the name colour could not be saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update chat color. Please try again.'**
+  String get chatColorUpdateFailed;
+
+  /// A row of the chat's details sheet: hides the video.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat only'**
+  String get chatDetailsChatOnly;
+
+  /// A row of the chat's details sheet: shows the video again.
+  ///
+  /// In en, this message translates to:
+  /// **'Show video'**
+  String get chatDetailsShowVideo;
+
+  /// A row of the chat's details sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh emotes and badges'**
+  String get chatDetailsRefreshAssets;
+
+  /// A row of the chat's details sheet, and the title of the colour picker it opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Username color'**
+  String get chatDetailsUsernameColor;
+
+  /// A row of the chat's details sheet: opens the chat on twitch.tv.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel points, polls and predictions'**
+  String get chatDetailsPointsPollsPredictions;
+
+  /// The line under the « Channel points, polls and predictions » row.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens the chat on twitch.tv'**
+  String get chatDetailsOpensTwitchChat;
+
+  /// The title of the in-app page showing the chat on twitch.tv.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch chat'**
+  String get chatDetailsTwitchChat;
+
+  /// The line under the Subscribe and Gift a Sub rows of the chat's details sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens twitch.tv'**
+  String get chatDetailsOpensTwitch;
+
+  /// A row of the chat's details sheet (opens the channel's subscription page on twitch.tv), and that page's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift a Sub'**
+  String get chatDetailsGiftSub;
+
+  /// A row of the chat's details sheet for moderators, and the title of the sheet it opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat modes'**
+  String get chatDetailsModes;
+
+  /// The line under the « Chat modes » row.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow, followers-only, clear chat…'**
+  String get chatDetailsModesDetail;
+
+  /// A row of the chat's details sheet: the list of who is in the chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chatters'**
+  String get chatDetailsChatters;
+
+  /// A row of the chat's details sheet: opens another channel's chat in a new tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Add chat'**
+  String get chatDetailsAddChat;
+
+  /// A row of the chat's details sheet (the time left while it runs), and the title of its view.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep timer'**
+  String get chatDetailsSleepTimer;
+
+  /// The colour picker's button that saves the picked name colour.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get chatSave;
+
+  /// The colour picker's preview: a fake message from the viewer, in the picked colour.
+  ///
+  /// In en, this message translates to:
+  /// **'How it will look in chat'**
+  String get chatColorPreview;
+
+  /// A Twitch name colour in the colour picker. color is Twitch's id for it (blue_violet). /color still takes the English names.
+  ///
+  /// In en, this message translates to:
+  /// **'{color, select, blue{Blue} blue_violet{Blue Violet} cadet_blue{Cadet Blue} chocolate{Chocolate} coral{Coral} dodger_blue{Dodger Blue} firebrick{Firebrick} golden_rod{Golden Rod} green{Green} hot_pink{Hot Pink} orange_red{Orange Red} red{Red} sea_green{Sea Green} spring_green{Spring Green} yellow_green{Yellow Green} other{}}'**
+  String chatColorName({required String color});
+
+  /// The followers-only mode's shortest follow age: anyone following.
+  ///
+  /// In en, this message translates to:
+  /// **'Any follower'**
+  String get chatModesAnyFollower;
+
+  /// The title of the dialog that confirms clearing the chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear chat?'**
+  String get chatModesClearTitle;
+
+  /// The text of the dialog that confirms clearing the chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Every message is deleted for everyone.'**
+  String get chatModesClearMessage;
+
+  /// The button that confirms clearing the chat, and the clear button of the chatters' and channels' search fields.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get chatClear;
+
+  /// Beside the Chat modes sheet's title: these are a moderator's tools.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderator'**
+  String get chatModesModerator;
+
+  /// The slow mode's wait in its picker.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s between messages'**
+  String chatModesSlowWait({required int seconds});
+
+  /// The Chat modes sheet's row that clears the chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear chat'**
+  String get chatModesClearChat;
+
+  /// A pill at the top of the chat's details sheet: a room mode that is on. mode is ChatMode.name.
+  ///
+  /// In en, this message translates to:
+  /// **'{mode, select, emoteOnly{Emote only} followers{Follower only} slow{Slow mode} subscribers{Sub only} uniqueChat{Unique mode} other{}}'**
+  String chatModePill({required String mode});
+
+  /// The placeholder of the chatters list's search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter chatters'**
+  String get chatChattersFilter;
+
+  /// Above the chatters list: how many it holds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} chatter found} other{{count} chatters found}}'**
+  String chatChattersFound({required int count});
+
+  /// The chatters list when Twitch gives nobody.
+  ///
+  /// In en, this message translates to:
+  /// **'No chatters found'**
+  String get chatChattersNone;
+
+  /// The chatters list when nobody matches the filter.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching chatters'**
+  String get chatChattersNoMatch;
+
+  /// The emote menu's first tab: the emotes the viewer used lately (« emotes » is feminine).
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get emoteMenuRecent;
+
+  /// Tooltip of the button on the emote menu's Recent tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear recent emotes'**
+  String get emoteMenuClearRecent;
+
+  /// The note above the input once the recent emotes were cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent emotes cleared'**
+  String get emoteMenuRecentCleared;
+
+  /// The emote menu's Recent tab when it is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent emotes'**
+  String get emoteMenuNoRecent;
+
+  /// What a screen reader says for an emote the viewer cannot use yet. name is the emote's code; « verrouillée » agrees with « emote ».
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, locked'**
+  String emoteMenuLocked({required String name});
+
+  /// A tab of the emote menu: the channel's emotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel'**
+  String get emoteMenuChannel;
+
+  /// A tab of the emote menu: the global emotes (« emotes » is feminine).
+  ///
+  /// In en, this message translates to:
+  /// **'Global'**
+  String get emoteMenuGlobal;
+
+  /// A tab of the emote menu's Twitch section: emotes the viewer unlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked'**
+  String get emoteMenuUnlocked;
+
+  /// A tab of the emote menu's Twitch section: other channels' emotes the viewer can use.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get emoteMenuOther;
+
+  /// A line in chat when the viewer's message held by AutoMod was decided. decision is approved, denied or invalid; a full stop or the quoted message follows (chatHeldQuoted).
+  ///
+  /// In en, this message translates to:
+  /// **'{decision, select, approved{Moderators approved your held message} denied{Moderators denied your held message} other{Your held message can no longer be reviewed}}'**
+  String chatHeldDecision({required String decision});
+
+  /// The same line with the held message quoted. decision is chatHeldDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'{decision}: \"{quote}\"'**
+  String chatHeldQuoted({required String decision, required String quote});
+
+  /// The Add chat sheet when the search failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to search channels'**
+  String get chatAddChatSearchFailed;
+
+  /// The title of the sheet that opens another channel's chat in a new tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Chat'**
+  String get chatAddChatTitle;
+
+  /// The placeholder of the Add chat sheet's search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a channel'**
+  String get chatAddChatSearch;
+
+  /// The Add chat sheet before anything is typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a channel to add'**
+  String get chatAddChatPrompt;
+
+  /// The Add chat sheet when the search found nobody.
+  ///
+  /// In en, this message translates to:
+  /// **'No channels found'**
+  String get chatAddChatNoChannels;
+
+  /// Tooltip of the merge button while the chats are merged.
+  ///
+  /// In en, this message translates to:
+  /// **'Split chats'**
+  String get chatTabsSplit;
+
+  /// Tooltip of the button that shows every open chat in one list.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge loaded chats'**
+  String get chatTabsMerge;
+
+  /// An item of a chat tab's menu: disconnects that chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get chatTabsDisconnect;
+
+  /// An item of a chat tab's menu: closes that tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get chatTabsRemove;
+
+  /// Tooltip of a chat tab's menu button.
+  ///
+  /// In en, this message translates to:
+  /// **'Tab options'**
+  String get chatTabsOptions;
+
+  /// Snackbar when the viewer adds an 11th chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum 10 chats open'**
+  String get chatTabsMaximum;
+
+  /// Snackbar when the viewer adds a chat already open: the app shows it.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel already open, switched to it'**
+  String get chatTabsAlreadyOpen;
+
+  /// Tooltip of the user card's whisper button.
+  ///
+  /// In en, this message translates to:
+  /// **'Whisper'**
+  String get chatUserWhisper;
+
+  /// Tooltip of the user card's button that opens the channel's profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get chatUserProfile;
+
+  /// The user card when the viewer saw no message from that user.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent messages'**
+  String get chatUserNoRecentMessages;
+
+  /// The heading of the user card's list of that user's messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent messages'**
+  String get chatUserRecentMessages;
+
+  /// A subscriber or founder badge on the user card, with how many months. name is the badge's title from Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{name} · {count} month} other{{name} · {count} months}}'**
+  String chatUserBadgeMonths({required String name, required int count});
+
+  /// On the user card: when the account was made. date is a date (« 1 nov. 2026 »).
+  ///
+  /// In en, this message translates to:
+  /// **'Account created {date}'**
+  String chatUserAccountCreated({required String date});
+
+  /// On the user card, for a moderator: since when the user follows the channel. No agreement with the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Following since {date}'**
+  String chatUserFollowingSince({required String date});
+
+  /// The title of the sheet over a message hidden by the chat filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Message Blocked'**
+  String get chatFilteredTitle;
+
+  /// The text of the same sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Would you like to see this message? It has been hidden for you based on your NSFW Chat Filter settings.'**
+  String get chatFilteredBody;
+
+  /// The same sheet's button that shows the message.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Message'**
+  String get chatFilteredShow;
+
+  /// The chat details' row that opens the channel's chat rules, and the back header over them.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat rules'**
+  String get chatRulesTitle;
+
+  /// The heading of the channel's chat rules sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Rules'**
+  String get chatRulesHeading;
+
+  /// The button that accepts a channel's chat rules.
+  ///
+  /// In en, this message translates to:
+  /// **'OK, Got it!'**
+  String get chatRulesAccept;
+
+  /// What a screen reader says for the card at the top of a chat the viewer joined with a raid. from is the raiding channel, target this one.
+  ///
+  /// In en, this message translates to:
+  /// **'You followed {from}\'s raid. Welcome to {target}\'s chat'**
+  String chatRaidWelcomeSemantics({
+    required String from,
+    required String target,
+  });
+
+  /// The card at the top of a chat the viewer joined with a raid; name (the raiding channel) is drawn bold. Also the line it stands for in chat.
+  ///
+  /// In en, this message translates to:
+  /// **'You followed {name}\'s raid'**
+  String chatRaidWelcomeFrom({required String name});
+
+  /// The same card's second line. name is this channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to {name}\'s chat'**
+  String chatRaidWelcomeTo({required String name});
+
+  /// Above the list of a gift bomb's recipients: how many got their sub so far.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{received} of {count} recipient} other{{received} of {count} recipients}}'**
+  String chatGiftRecipientsReceived({
+    required int received,
+    required int count,
+  });
+
+  /// The same once every recipient got their sub.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} recipient} other{{count} recipients}}'**
+  String chatGiftRecipients({required int count});
+
+  /// The last pill of a gift bomb's recipients: how many are not shown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{+{count} more} other{+{count} more}}'**
+  String chatGiftRecipientsMore({required int count});
+
+  /// Who gave anonymous gift subs, in the gift sub lines and pins. French says « Anonyme » (no gender).
+  ///
+  /// In en, this message translates to:
+  /// **'An anonymous gifter'**
+  String get chatAnonymousGifter;
+
+  /// The preview card of a clip link posted in chat, when the clip has no title.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled clip'**
+  String get chatLinkUntitledClip;
+
+  /// The preview card of a video link posted in chat, when the video has no title.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get chatLinkUntitled;
+
+  /// The kind on a clip link's preview card in chat, before its length and views (« Clip · 0:30 · 1,5 k vues »).
+  ///
+  /// In en, this message translates to:
+  /// **'Clip'**
+  String get chatLinkClip;
+
+  /// The kind on a video link's preview card in chat, before its length and views.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get chatLinkVideo;
+
+  /// The views on a link's preview card in chat. views is the number, short (1.5K); count chooses the form.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{views} view} other{{views} views}}'**
+  String chatLinkViews({required int count, required String views});
+
+  /// The title of the dialog that asks a moderator for a ban's reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban {name}?'**
+  String chatModBarBanTitle({required String name});
+
+  /// The moderation bar's ban button, and the button of the dialog it opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban'**
+  String get chatModBarBan;
+
+  /// The title of the dialog that asks a moderator for a warning's reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Warn {name}'**
+  String chatModBarWarnTitle({required String name});
+
+  /// The moderation bar's warn button, and the button of the dialog it opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Warn'**
+  String get chatModBarWarn;
+
+  /// The shortest timeout of the moderation bar's menu: it removes the user's messages.
+  ///
+  /// In en, this message translates to:
+  /// **'1 second (purge)'**
+  String get chatModBarPurge;
+
+  /// The moderation bar's button that opens the timeout lengths.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeout'**
+  String get chatModBarTimeout;
+
+  /// The moderation bar's unban button (lifts a ban or a timeout).
+  ///
+  /// In en, this message translates to:
+  /// **'Unban'**
+  String get chatModBarUnban;
+
+  /// The reason field of the warn dialog (required).
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get chatModBarReason;
+
+  /// The reason field of the ban dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get chatModBarReasonOptional;
+
+  /// The name of channel points when the channel gave none of its own: the button beside the chat input and the sheet's heading (in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'Channel points'**
+  String get pointsChannelPoints;
+
+  /// The channel points sheet when the viewer is not logged in.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to see your balance.'**
+  String get pointsLogInForBalance;
+
+  /// The heading of the prediction in the channel points sheet, while it takes bets.
+  ///
+  /// In en, this message translates to:
+  /// **'Prediction — open'**
+  String get pointsPredictionOpen;
+
+  /// The same, once it no longer takes bets.
+  ///
+  /// In en, this message translates to:
+  /// **'Prediction — locked'**
+  String get pointsPredictionLocked;
+
+  /// The heading of the channel's rewards in the channel points sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards'**
+  String get pointsRewards;
+
+  /// The channel points sheet when the channel has neither rewards nor a prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel has no rewards set up.'**
+  String get pointsNoRewards;
+
+  /// Under the watch streak in the channel points sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch counts streaks. Watching in this app may not count toward them.'**
+  String get pointsStreakNote;
+
+  /// The channel points sheet when Twitch refuses the bonus to the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch blocks collecting the bonus from here — its anti-bot check. Collect it on twitch.tv and the balance follows.'**
+  String get pointsBonusBlocked;
+
+  /// The channel points sheet's button that collects the bonus chest.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect bonus'**
+  String get pointsCollectBonus;
+
+  /// Under a prediction's outcome: the points bet on it, then how many bet.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{points}  ·  {count} viewer} other{{points}  ·  {count} viewers}}'**
+  String pointsOutcomeTotals({required String points, required int count});
+
+  /// What a screen reader says for an outcome of an open prediction. title is the outcome (Twitch's text), odds the payout (1.85).
+  ///
+  /// In en, this message translates to:
+  /// **'Bet on {title}, pays {odds} times'**
+  String pointsBetOn({required String title, required String odds});
+
+  /// The same before anyone bet on it.
+  ///
+  /// In en, this message translates to:
+  /// **'Bet on {title}, pays unknown'**
+  String pointsBetOnUnknown({required String title});
+
+  /// Under an open prediction in the channel points sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an outcome to bet.'**
+  String get pointsTapToBet;
+
+  /// The heading of the bet view, above the outcome (written in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'BET ON'**
+  String get pointsBetHeading;
+
+  /// The bet view: the viewer's points.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance {points}'**
+  String pointsBalance({required String points});
+
+  /// The bet view when the viewer has too few points.
+  ///
+  /// In en, this message translates to:
+  /// **'You need at least {points} points to bet.'**
+  String pointsNeedAtLeast({required int points});
+
+  /// What a screen reader calls the bet view's amount pills.
+  ///
+  /// In en, this message translates to:
+  /// **'Stake'**
+  String get pointsStake;
+
+  /// The bet view's pill that bets every point.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get pointsMax;
+
+  /// The label of the bet view's amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'Points'**
+  String get pointsField;
+
+  /// The bet view before anyone bet on the outcome.
+  ///
+  /// In en, this message translates to:
+  /// **'No odds yet.'**
+  String get pointsNoOdds;
+
+  /// The bet view: the payout for the stake typed. odds has two decimals.
+  ///
+  /// In en, this message translates to:
+  /// **'Pays about {odds} × if this wins — moves with every other bet.'**
+  String pointsPaysAbout({required String odds});
+
+  /// The bet view's button once an amount is typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Bet {points}'**
+  String pointsBetAmount({required String points});
+
+  /// The bet view's button before an amount is typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Bet'**
+  String get pointsBet;
+
+  /// The payout beside a prediction's outcome (1.85 ×).
+  ///
+  /// In en, this message translates to:
+  /// **'{odds} ×'**
+  String pointsOdds({required String odds});
+
+  /// The title of the dialog that confirms redeeming a reward.
+  ///
+  /// In en, this message translates to:
+  /// **'Spend {points} points?'**
+  String pointsSpend({required String points});
+
+  /// The field of a reward that asks for a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message'**
+  String get pointsYourMessage;
+
+  /// The button that redeems a reward.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem'**
+  String get pointsRedeem;
+
+  /// Snackbar after spending channel points (a reward, a bet, the bonus). status is PointsActionStatus.name; reason is Twitch's own code for an unknown refusal (never translated), or pointsNoReason.
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, success{Done.} integrityRefused{Twitch refused: anti-bot check. Not something this app can pass.} notAuthenticated{Twitch rejected the login. Sign in again to spend points.} network{Could not reach Twitch. Try again.} other{Twitch refused: {reason}}}'**
+  String pointsResult({required String status, required String reason});
+
+  /// Snackbar when the viewer spends channel points while the last spend still runs.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in progress.'**
+  String get pointsBusy;
+
+  /// After « Twitch refused: » when Twitch gave no reason.
+  ///
+  /// In en, this message translates to:
+  /// **'no reason'**
+  String get pointsNoReason;
+
+  /// The name of one of Twitch's built-in rewards (Twitch sends none for them).
+  ///
+  /// In en, this message translates to:
+  /// **'{type, select, highlight{Highlight my message} randomEmote{Unlock a random sub emote} chosenEmote{Choose an emote to unlock} modifiedEmote{Modify a single emote} subOnlyMessage{Send a message in sub-only mode} other{}}'**
+  String pointsAutomaticReward({required String type});
+
+  /// The watch streak card when the streak is suspended and the channel is live.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep watching to save your Watch Streak!'**
+  String get streakSaveTitle;
+
+  /// Under the same title: how long the streak is (in streams).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{Watch this live stream and you\'ll be able to save your current {count}-stream streak.}}'**
+  String streakSaveLive({required int count});
+
+  /// The watch streak card when the streak is suspended and the channel is offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Streak Expiring'**
+  String get streakExpiringTitle;
+
+  /// Under the same title: the time left to save the streak. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch {name} in the next {hours}h {minutes}m {seconds}s to save your streak!'**
+  String streakExpiring({
+    required String name,
+    required int hours,
+    required int minutes,
+    required int seconds,
+  });
+
+  /// The watch streak card's title: how many streams in a row.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Watch Streak: {value}'**
+  String streakYour({required int value});
+
+  /// Under the watch streak's title: one stream before the bonus. points is the bonus (« 1 200 »); count chooses the form.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 more stream until an extra {points} channel point reward} other{1 more stream until an extra {points} channel points reward}}'**
+  String streakOneMore({required int count, required String points});
+
+  /// Under the watch streak's title once the bonus was earned. next is the streak's length in streams.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{You reached a {next}-stream streak and earned an extra {points} channel point} other{You reached a {next}-stream streak and earned an extra {points} channel points}}'**
+  String streakReached({
+    required int count,
+    required int next,
+    required String points,
+  });
+
+  /// Under the watch streak's title: the next bonus.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Reach {next}-stream streak and earn an extra {points} channel point} other{Reach {next}-stream streak and earn an extra {points} channel points}}'**
+  String streakReach({
+    required int count,
+    required int next,
+    required String points,
+  });
+
+  /// An emote's details: how the viewer gets to use it, like Twitch's emote card. « la » / « l’ » stand for the emote (feminine).
+  ///
+  /// In en, this message translates to:
+  /// **'{how, select, global{Available to everyone on Twitch.} owned{You can use it.} follow{Follow this channel to use it.} bits{Cheer Bits in this channel to unlock it.} subscribe{Subscribe to this channel to use it.} other{}}'**
+  String emoteUnlockHint({required String how});
+
+  /// The same, for an emote of a higher sub tier.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to this channel at Tier {tier} to use it.'**
+  String emoteUnlockTier({required int tier});
+
+  /// An emote's kind, in its details. type is EmoteType.name.
+  ///
+  /// In en, this message translates to:
+  /// **'{type, select, twitchBits{Twitch bits emote} twitchFollower{Twitch follower emote} twitchSub{Twitch sub emote} twitchGlobal{Twitch global emote} twitchUnlocked{Twitch unlocked emote} twitchChannel{Twitch channel emote} ffzGlobal{FrankerFaceZ global emote} ffzChannel{FrankerFaceZ channel emote} bttvGlobal{BetterTTV global emote} bttvChannel{BetterTTV channel emote} bttvShared{BetterTTV shared emote} sevenTVGlobal{7TV global emote} sevenTVChannel{7TV channel emote} other{}}'**
+  String emoteTypeName({required String type});
+
+  /// A chat badge's source, in its details. type is BadgeType.name.
+  ///
+  /// In en, this message translates to:
+  /// **'{type, select, twitch{Twitch badge} bttv{BetterTTV badge} ffz{FrankerFaceZ badge} sevenTV{7TV badge} other{}}'**
+  String badgeTypeName({required String type});
+
+  /// A sub line in chat: who subscribed, and how (plan: prime, tier, or other when Twitch did not say). Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
+  ///
+  /// In en, this message translates to:
+  /// **'{plan, select, prime{{name} subscribed with Prime.} tier{{name} subscribed at Tier {tier}.} other{{name} subscribed.}}'**
+  String noticeSubscribed({
+    required String plan,
+    required String name,
+    required int tier,
+  });
+
+  /// The same line for a resub (Twitch words both alike in English; French says « Réabonnement »). Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
+  ///
+  /// In en, this message translates to:
+  /// **'{plan, select, prime{{name} subscribed with Prime.} tier{{name} subscribed at Tier {tier}.} other{{name} subscribed.}}'**
+  String noticeResubscribed({
+    required String plan,
+    required String name,
+    required int tier,
+  });
+
+  /// The sentence after a sub line: how long in all, and the streak the subscriber shares.
+  ///
+  /// In en, this message translates to:
+  /// **'{months, plural, one{They\'ve subscribed for {months} month, currently on a {streak} month streak!} other{They\'ve subscribed for {months} months, currently on a {streak} month streak!}}'**
+  String noticeSubStreak({required int months, required int streak});
+
+  /// The sentence after a sub line: how long in all (2 months or more).
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ve subscribed for {months} months!'**
+  String noticeSubMonths({required int months});
+
+  /// A gift sub line in chat. tiered is yes when Twitch named the tier. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
+  ///
+  /// In en, this message translates to:
+  /// **'{tiered, select, yes{{gifter} gifted a Tier {tier} Sub to {recipient}!} other{{gifter} gifted a Sub to {recipient}!}}'**
+  String noticeGiftedSub({
+    required String tiered,
+    required String gifter,
+    required int tier,
+    required String recipient,
+  });
+
+  /// A gift of several months of sub. months is noticeGiftMonths, tier noticeGiftTier, both drawn bold. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
+  ///
+  /// In en, this message translates to:
+  /// **'{gifter} gifted {months} of {tier} to {recipient}!'**
+  String noticeGiftedMonthsTier({
+    required String gifter,
+    required String months,
+    required String tier,
+    required String recipient,
+  });
+
+  /// The same when Twitch did not name the tier. months is noticeGiftMonthsShort, drawn bold. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
+  ///
+  /// In en, this message translates to:
+  /// **'{gifter} gifted a {months} Sub to {recipient}!'**
+  String noticeGiftedMonths({
+    required String gifter,
+    required String months,
+    required String recipient,
+  });
+
+  /// Inside noticeGiftedMonthsTier: how many months were gifted (drawn bold).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} month} other{{count} months}}'**
+  String noticeGiftMonths({required int count});
+
+  /// Inside noticeGiftedMonths: how many months were gifted, as English writes it before « Sub » (drawn bold).
+  ///
+  /// In en, this message translates to:
+  /// **'{count} month'**
+  String noticeGiftMonthsShort({required int count});
+
+  /// Inside noticeGiftedMonthsTier: the sub tier (drawn bold).
+  ///
+  /// In en, this message translates to:
+  /// **'Tier {tier}'**
+  String noticeGiftTier({required int tier});
+
+  /// The sentence after a gift sub line: the gifter's first. « son » agrees with « abonnement ».
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s their first Gift Sub in the channel!'**
+  String get noticeGiftFirst;
+
+  /// The sentence after a gift sub line: how many the gifter gave in all (2 or more).
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ve given {count} Gift Subs in the channel!'**
+  String noticeGiftCount({required int count});
+
+  /// A gift bomb's line in chat: who gifts how many subs to the channel's community (gifter bold). tiered is yes when Twitch named the tier; end is more when another sentence follows (a full stop), else last (an exclamation mark). Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
+  ///
+  /// In en, this message translates to:
+  /// **'{tiered, select, yes{{count, plural, one{{gifter} is gifting {count} Tier {tier} Sub to {channel}\'s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} Tier {tier} Subs to {channel}\'s community{end, select, more{.} other{!}}}}} other{{count, plural, one{{gifter} is gifting {count} Sub to {channel}\'s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} Subs to {channel}\'s community{end, select, more{.} other{!}}}}}}'**
+  String noticeCommunityGift({
+    required String tiered,
+    required int count,
+    required String gifter,
+    required int tier,
+    required String channel,
+    required String end,
+  });
+
+  /// The sentence after a gift bomb's line: the gifter's first gift.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s their first Gift Sub in the channel!'**
+  String get noticeCommunityGiftFirst;
+
+  /// The sentence after a gift bomb's line: how many subs the gifter gave in all.
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ve gifted a total of {count} in the channel!'**
+  String noticeCommunityGiftTotal({required int count});
+
+  /// A line when a subscriber extended their sub. month is a month's name (« mai »); « son » agrees with « abonnement ». Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
+  ///
+  /// In en, this message translates to:
+  /// **'{tiered, select, yes{{name} extended their Tier {tier} subscription through {month}!} other{{name} extended their subscription through {month}!}}'**
+  String noticeExtendedSub({
+    required String tiered,
+    required String name,
+    required int tier,
+    required String month,
+  });
 }
 
 class _AppLocalizationsDelegate

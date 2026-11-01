@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
@@ -326,8 +327,8 @@ class _ChatState extends State<Chat> {
                         icon: const Icon(Icons.arrow_downward_rounded),
                         label: Text(
                           bufferCount > 0
-                              ? '$bufferCount new ${bufferCount == 1 ? 'message' : 'messages'}'
-                              : 'Resume scroll',
+                              ? context.l10n.chatNewMessages(count: bufferCount)
+                              : context.l10n.chatResumeScroll,
                           style: context.onsetText.metadata,
                         ),
                       ),

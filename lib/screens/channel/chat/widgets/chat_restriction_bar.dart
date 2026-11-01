@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/chat_restrictions.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
@@ -86,7 +87,7 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
             SheetGlyph(_glyph(restriction.kind), size: 16, color: color),
             Expanded(
               child: Text(
-                restriction.describe(left),
+                restriction.describe(left, context.l10n),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(

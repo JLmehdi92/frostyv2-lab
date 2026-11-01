@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/screens/channel/chat/widgets/channel_points_sheet.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
@@ -153,11 +154,13 @@ class ChannelPointsButton extends StatelessWidget {
 
         // A pill beside the message box.
         final button = Tooltip(
-          message: points.pointsName ?? 'Channel points',
+          message: points.pointsName ?? context.l10n.pointsChannelPoints,
           preferBelow: false,
           child: Semantics(
             button: true,
-            label: '${points.pointsName ?? 'Channel points'}, $balance',
+            label:
+                '${points.pointsName ?? context.l10n.pointsChannelPoints}, '
+                '$balance',
             onTap: openPoints,
             excludeSemantics: true,
             child: Material(

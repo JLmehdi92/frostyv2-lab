@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:intl/intl.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/main.dart';
 import 'package:onset/models/chat_rules.dart';
 import 'package:onset/models/irc.dart';
@@ -106,25 +106,28 @@ class _ChatDetailsState extends State<ChatDetails> {
   bool _loadingColor = false;
   bool _savingColor = false;
 
+  /// A sleep timer's length: « 5 minutes », « 1 heure ».
   String formatDuration(Duration duration) {
+    final l = context.l10n;
     if (duration.inMinutes < 60) {
-      return '${duration.inMinutes} ${Intl.plural(duration.inMinutes, one: 'minute', other: 'minutes')}';
+      return l.chatDurationMinutes(count: duration.inMinutes);
     }
-
-    return '${duration.inHours} ${Intl.plural(duration.inHours, one: 'hour', other: 'hours')}';
+    return l.chatDurationHours(count: duration.inHours);
   }
 
+  /// A running sleep timer's time left: « 1 h 5 min », « 4 min 30 s ».
   String formatTimeLeft(Duration duration) {
+    final l = context.l10n;
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);
 
     if (hours > 0) {
-      return '${hours}h ${minutes}m';
+      return l.chatShortHoursMinutes(hours: hours, minutes: minutes);
     } else if (minutes > 0) {
-      return '${minutes}m ${seconds}s';
+      return l.chatShortMinutesSeconds(minutes: minutes, seconds: seconds);
     } else {
-      return '${seconds}s';
+      return l.chatShortSeconds(seconds: seconds);
     }
   }
 
@@ -210,8 +213,8 @@ class _ChatDetailsState extends State<ChatDetails> {
     });
 
     final message = success
-        ? 'Chat color updated successfully!'
-        : 'Failed to update chat color. Please try again.';
+        ? context.l10n.chatColorUpdated
+        : context.l10n.chatColorUpdateFailed;
     _showMessage(message);
   }
 
@@ -303,7 +306,9 @@ class _ChatDetailsState extends State<ChatDetails> {
                 glyph: showVideo
                     ? SheetGlyphKind.whisper
                     : SheetGlyphKind.monitor,
-                label: showVideo ? 'Chat only' : 'Show video',
+                label: showVideo
+                    ? context.l10n.chatDetailsChatOnly
+                    : context.l10n.chatDetailsShowVideo,
                 onTap: () {
                   store.settings.showVideo = !showVideo;
                   Navigator.of(context).pop();
@@ -313,23 +318,23 @@ class _ChatDetailsState extends State<ChatDetails> {
           ),
           SheetRow(
             glyph: SheetGlyphKind.refresh,
-            label: 'Refresh emotes and badges',
+            label: context.l10n.chatDetailsRefreshAssets,
             trailing: _refreshTrailing(context),
             onTap: _isRefreshingAssets ? null : _handleRefreshAssets,
           ),
           SheetRow(
             glyph: SheetGlyphKind.plug,
-            label: 'Reconnect',
+            label: context.l10n.chatReconnect,
             onTap: () {
               Navigator.of(context).pop();
-              store.updateNotification('Reconnecting to chat...');
+              store.updateNotification(context.l10n.chatReconnectingNotice);
               store.connectToChat();
             },
           ),
           if (loggedIn)
             SheetRow(
               glyph: SheetGlyphKind.palette,
-              label: 'Username color',
+              label: context.l10n.chatDetailsUsernameColor,
               end: SheetRowEnd.chevron,
               trailing: _loadingColor
                   ? SizedBox(
@@ -346,14 +351,14 @@ class _ChatDetailsState extends State<ChatDetails> {
           if (loggedIn)
             SheetRow(
               glyph: SheetGlyphKind.coin,
-              label: 'Channel points, polls and predictions',
-              detail: 'Opens the chat on twitch.tv',
+              label: context.l10n.chatDetailsPointsPollsPredictions,
+              detail: context.l10n.chatDetailsOpensTwitchChat,
               end: SheetRowEnd.external,
               onTap: () {
                 Navigator.of(context).pop();
                 TwitchWebPage.open(
                   context,
-                  title: 'Twitch chat',
+                  title: context.l10n.chatDetailsTwitchChat,
                   url: Uri.https(
                     'www.twitch.tv',
                     '/popout/${widget.userLogin}/chat',
@@ -369,30 +374,32 @@ class _ChatDetailsState extends State<ChatDetails> {
             if (twitchSubscribeUrl(widget.userLogin) case final url?) ...[
               SheetRow(
                 glyph: SheetGlyphKind.star,
-                label: 'Subscribe',
-                detail: 'Opens twitch.tv',
+                label: context.l10n.channelSubscribe,
+                detail: context.l10n.chatDetailsOpensTwitch,
                 end: SheetRowEnd.external,
                 onTap: () {
+                  final title = context.l10n.channelSubscribe;
                   Navigator.of(context).pop();
-                  TwitchWebPage.open(context, title: 'Subscribe', url: url);
+                  TwitchWebPage.open(context, title: title, url: url);
                 },
               ),
               SheetRow(
                 glyph: SheetGlyphKind.gift,
-                label: 'Gift a Sub',
-                detail: 'Opens twitch.tv',
+                label: context.l10n.chatDetailsGiftSub,
+                detail: context.l10n.chatDetailsOpensTwitch,
                 end: SheetRowEnd.external,
                 onTap: () {
+                  final title = context.l10n.chatDetailsGiftSub;
                   Navigator.of(context).pop();
-                  TwitchWebPage.open(context, title: 'Gift a Sub', url: url);
+                  TwitchWebPage.open(context, title: title, url: url);
                 },
               ),
             ],
           if (store.canModerate)
             SheetRow(
               glyph: SheetGlyphKind.shield,
-              label: 'Chat modes',
-              detail: 'Slow, followers-only, clear chat…',
+              label: context.l10n.chatDetailsModes,
+              detail: context.l10n.chatDetailsModesDetail,
               end: SheetRowEnd.chevron,
               onTap: () => showOnsetSheet<void>(
                 context: context,
@@ -413,7 +420,7 @@ class _ChatDetailsState extends State<ChatDetails> {
           ),
           SheetRow(
             glyph: SheetGlyphKind.people,
-            label: 'Chatters',
+            label: context.l10n.chatDetailsChatters,
             end: SheetRowEnd.chevron,
             onTap: () => showOnsetSheet<void>(
               context: context,
@@ -429,7 +436,7 @@ class _ChatDetailsState extends State<ChatDetails> {
           ),
           SheetRow(
             glyph: SheetGlyphKind.addChat,
-            label: 'Add chat',
+            label: context.l10n.chatDetailsAddChat,
             end: SheetRowEnd.chevron,
             onTap: widget.onAddChat,
           ),
@@ -441,7 +448,7 @@ class _ChatDetailsState extends State<ChatDetails> {
                 glyph: SheetGlyphKind.timer,
                 label: hasTimer
                     ? formatTimeLeft(store.timeRemaining)
-                    : 'Sleep timer',
+                    : context.l10n.chatDetailsSleepTimer,
                 color: hasTimer ? accent : null,
                 end: SheetRowEnd.chevron,
                 onTap: () => _show(ChatDetailsView.sleep),
@@ -450,7 +457,7 @@ class _ChatDetailsState extends State<ChatDetails> {
           ),
           SheetRow(
             glyph: SheetGlyphKind.settings,
-            label: 'Settings',
+            label: context.l10n.settingsTitle,
             end: SheetRowEnd.chevron,
             onTap: () => Navigator.push(
               context,
@@ -483,14 +490,14 @@ class _ChatDetailsState extends State<ChatDetails> {
       padding: const EdgeInsets.only(bottom: 14),
       children: [
         SheetBackHeader(
-          title: 'Sleep timer',
+          title: context.l10n.chatDetailsSleepTimer,
           onBack: () => _show(ChatDetailsView.menu),
         ),
         if (store.sleepTimer?.isActive == true)
           Observer(
             builder: (context) => SheetRow(
               glyph: SheetGlyphKind.close,
-              label: 'Cancel',
+              label: context.l10n.commonCancel,
               trailing: Text(
                 formatTimeLeft(store.timeRemaining),
                 style: SheetText.tabular(
@@ -551,7 +558,7 @@ class _ChatDetailsState extends State<ChatDetails> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SheetBackHeader(
-            title: 'Username color',
+            title: context.l10n.chatDetailsUsernameColor,
             onBack: () => _show(ChatDetailsView.menu),
           ),
           if (picked != null)
@@ -601,7 +608,7 @@ class _ChatDetailsState extends State<ChatDetails> {
                 children: [
                   Expanded(
                     child: SheetButton(
-                      label: 'Cancel',
+                      label: context.l10n.commonCancel,
                       tone: SheetButtonTone.text,
                       expand: true,
                       onPressed: () => _show(ChatDetailsView.menu),
@@ -609,7 +616,7 @@ class _ChatDetailsState extends State<ChatDetails> {
                   ),
                   Expanded(
                     child: SheetButton(
-                      label: 'Save',
+                      label: context.l10n.chatSave,
                       expand: true,
                       onPressed: picked == null || _savingColor
                           ? null
@@ -700,11 +707,8 @@ class _ColorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = name
-        .replaceAll('_', ' ')
-        .split(' ')
-        .map((word) => word[0].toUpperCase() + word.substring(1))
-        .join(' ');
+    // Twitch's id for it (blue_violet), named in the language on screen.
+    final displayName = context.l10n.chatColorName(color: name);
     // Apply the same color adjustment for consistent preview
     final color = adjustChatNameColor(context, chatColorValues[name]!);
     return Semantics(
@@ -769,13 +773,14 @@ class _ColorPreview extends StatelessWidget {
       }
     }
 
+    final preview = context.l10n.chatColorPreview;
     final mockMessage = IRCMessage(
       raw: '',
       command: Command.privateMessage,
       tags: mockTags,
       user: userDetails.login,
-      message: 'How it will look in chat',
-      split: ['How', 'it', 'will', 'look', 'in', 'chat'],
+      message: preview,
+      split: preview.split(' '),
       action: false,
       mention: false,
     );

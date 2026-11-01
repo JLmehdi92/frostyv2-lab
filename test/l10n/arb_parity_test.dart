@@ -48,6 +48,11 @@ const _sameInBothLanguages = {
   'htLevelUp': 'A cheer, the same in both languages.',
   'htBits': 'Bits are Twitch\'s currency, named the same in French.',
   'htContributionsHeader': '"Contributions" is spelled the same.',
+  'chatCommandArgMessage':
+      '"message" is the French word too (a command\'s usage).',
+  'chatLinkClip': 'Twitch calls it a "clip" in French.',
+  'pointsMax': '"Max" is the French short form too (bet everything).',
+  'pointsField': '"Points" is spelled the same.',
 };
 
 void main() {

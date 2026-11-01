@@ -1,0 +1,757 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mobx/mobx.dart' show ObservableList;
+import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_points_service.dart';
+import 'package:onset/apis/twitch_watch_streak_service.dart';
+import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/community_points.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/models/watch_streak.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/details/chat_details.dart';
+import 'package:onset/screens/channel/chat/details/chat_mode_controls.dart';
+import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
+import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
+import 'package:onset/screens/channel/chat/moderation.dart';
+import 'package:onset/screens/channel/chat/moderation_notice.dart';
+import 'package:onset/screens/channel/chat/widgets/channel_points_sheet.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
+import 'package:onset/screens/channel/stores/channel_events_store.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/stores/user_store.dart';
+import 'package:onset/services/hermes_client.dart';
+import 'package:onset/widgets/sheet/onset_panel.dart';
+import 'package:provider/provider.dart';
+
+import '../fixtures/irc_messages.dart';
+import '../helpers/chat_message_harness.dart';
+import '../helpers/l10n.dart';
+
+class _MockAuthStore extends Mock implements AuthStore {}
+
+class _MockUserStore extends Mock implements UserStore {}
+
+class _MockTwitchApi extends Mock implements TwitchApi {}
+
+class _MockPointsService extends Mock implements TwitchPointsService {}
+
+class _MockHermesClient extends Mock implements HermesClient {}
+
+class _MockWatchStreakService extends Mock
+    implements TwitchWatchStreakService {}
+
+/// The chat in French: every line the app writes into it (notices, sub,
+/// gift, raid and Bits lines, moderation), the input with its command
+/// suggestions, reply bar and counter, the moderator's tools, the user
+/// card, the emote menu, the chat's details and modes, and the channel
+/// points sheet with a prediction, at every size and text scale, with no
+/// overflow, no English and no text cut off.
+void main() {
+  final french = lookupAppLocalizations(fr);
+
+  setUpAll(() {
+    registerFallbackValue(Duration.zero);
+    registerFallbackValue(() {});
+    registerFallbackValue(
+      const Emote(
+        name: 'x',
+        zeroWidth: false,
+        url: 'https://cdn.example/x.png',
+        type: EmoteType.twitchGlobal,
+      ),
+    );
+    registerFallbackValue(const PointsReward(id: 'x', title: 'x', cost: 1));
+  });
+
+  /// Every line the app itself puts in the chat, worded in the language on
+  /// screen when it is made (call it once French is on).
+  List<IRCMessage> appLines() {
+    final l = L10n.current;
+    IRCMessage notice(String text) => IRCMessage.createNotice(message: text);
+    final moderation = <String>[
+      l.chatModBanned(name: 'Troll'),
+      l.chatModTimedOut(name: 'Troll', duration: timeoutLength(600, l)),
+      l.chatModUntimedOut(name: 'Troll'),
+      l.chatModUnbanned(name: 'Troll'),
+      l.chatModWarned(name: 'Troll'),
+      l.chatModMessageDeleted,
+      l.chatModCleared,
+      for (final mode in ChatMode.values)
+        for (final on in [true, false])
+          l.chatModeChanged(mode: mode.name, state: OnOff.of(on).name),
+      l.chatModeSlowOn(duration: timeoutLength(30, l)),
+      l.chatModeFollowersOn(duration: timeoutLength(604800, l)),
+      for (final command in const <ModerationCommand>[
+        BanCommand('troll', ''),
+        TimeoutCommand('troll', Duration(minutes: 10), ''),
+        UnbanCommand('troll', timeout: true),
+        UnbanCommand('troll'),
+        WarnCommand('troll', 'be nice'),
+        DeleteMessageCommand('abc'),
+        ClearChatCommand(),
+        ChatModeCommand(ChatMode.slow, on: true),
+        ChatModeCommand(ChatMode.emoteOnly, on: false),
+      ]) ...[
+        moderationFailure(
+          const ApiException('Access denied', 403),
+          moderationCommand(command),
+        ),
+        moderationFailure(
+          const NetworkException('offline'),
+          moderationCommand(command),
+        ),
+        moderationFailure(StateError('boom'), moderationCommand(command)),
+      ],
+      moderationFailure(
+        const UnauthorizedException('log in'),
+        moderationCommand(const ClearChatCommand()),
+      ),
+      moderationFailed.message,
+    ];
+    final typed = [
+      for (final line in const [
+        '/color',
+        '/color purple',
+        '/block',
+        '/w friend',
+        '/ban',
+        '/timeout troll 5min',
+        '/timeout troll 3w',
+        '/slow 200',
+        '/followers 4mo',
+        '/subscribers now',
+        '/raid someone',
+        '/dance',
+      ])
+        (parseChatCommand(line) as UnsupportedCommand).text(l),
+    ];
+    return [
+      notice(l.chatConnecting),
+      notice(l.chatWelcome(name: 'Streamer')),
+      notice(l.chatReconnectingIn(seconds: 4, attempt: 2, max: 5)),
+      notice(l.chatReconnecting(attempt: 2, max: 5)),
+      notice(l.chatReconnected(attempts: 1, seconds: 5)),
+      notice(l.chatReconnected(attempts: 3, seconds: 12)),
+      IRCMessage.createNotice(
+        message: l.chatDisconnected,
+        actionCallback: () {},
+        actionLabel: l.chatReconnect,
+      ),
+      notice(l.chatSyncIn(seconds: 6)),
+      notice(l.chatSevenTvEmoteAdded(name: 'Editor', emote: 'catJAM')),
+      notice(l.chatSevenTvEmoteRemoved(name: 'Editor', emote: 'catJAM')),
+      notice(l.chatCannotSendDisconnected),
+      notice(l.chatClearedByModerator),
+      notice(
+        l.chatHelpCommands(
+          commands: [
+            for (final c in [...kChatCommands, ...kModeratorChatCommands])
+              c.usage(l),
+          ].join(', '),
+        ),
+      ),
+      for (final text in typed) notice(text),
+      notice(l.chatLogInToWhisper),
+      notice(l.chatWhisperSent(name: 'Friend')),
+      notice(l.chatWhisperSentNoReplies(name: 'Friend')),
+      notice(l.chatWhisperNoUser(login: 'ghost')),
+      notice(l.chatWhisperFailedBecause(reason: l.apiErrorNetwork)),
+      notice(l.chatWhisperFailed),
+      notice(l.chatLogInToChangeColor),
+      notice(l.chatColorChanged),
+      notice(l.chatColorFailedHex),
+      notice(l.chatAlreadyBlocked(name: 'Troll')),
+      notice(l.chatBlockedUser(name: 'Troll')),
+      notice(l.chatUnblockedUser(name: 'Troll')),
+      notice(l.chatBlockFailed(login: 'troll')),
+      notice(l.chatUnblockFailed(login: 'troll')),
+      notice(l.chatLogInToModerate),
+      for (final decision in const ['approved', 'denied', 'invalid']) ...[
+        notice('${l.chatHeldDecision(decision: decision)}.'),
+        notice(
+          l.chatHeldQuoted(
+            decision: l.chatHeldDecision(decision: decision),
+            quote: 'salut le chat',
+          ),
+        ),
+      ],
+      for (final text in moderation) notice(text),
+      ?moderationNoticeLine(
+        IRCMessage.fromString(clearChatUser),
+        hiddenLogins: const {},
+        newestFirst: const [],
+      ),
+      ?moderationNoticeLine(
+        IRCMessage.fromString(
+          '@room-id=12345;target-user-id=67890;tmi-sent-ts=1234567890124 '
+          ':tmi.twitch.tv CLEARCHAT #channel :banneduser',
+        ),
+        hiddenLogins: const {},
+        newestFirst: const [],
+      ),
+      IRCMessage.raidWelcome(
+        RaidArrival(
+          fromName: 'Raider',
+          targetName: 'Streamer',
+          viewers: 1204,
+          at: DateTime.now(),
+        ),
+      ),
+    ];
+  }
+
+  /// Sub, gift, raid and Bits lines, and messages a moderator acted on.
+  List<IRCMessage> twitchLines() {
+    final timedOut = IRCMessage.fromString(
+      '@display-name=Troll;id=t1;user-id=67890;tmi-sent-ts=1700000000100 '
+      ':banneduser!banneduser@banneduser.tmi.twitch.tv PRIVMSG #channel '
+      ':spam',
+    );
+    final banned = IRCMessage.fromString(
+      '@display-name=Spammeur;id=t2;user-id=67891;tmi-sent-ts=1700000000101 '
+      ':other!other@other.tmi.twitch.tv PRIVMSG #channel :spam',
+    );
+    final deleted = IRCMessage.fromString(
+      '@display-name=Deleted;id=target-msg-abc123;user-id=67892;'
+      'tmi-sent-ts=1700000000102 '
+      ':deleteduser!deleteduser@deleteduser.tmi.twitch.tv PRIVMSG #channel '
+      ':deleted message content',
+    );
+    final moderated = [timedOut, banned, deleted];
+    IRCMessage.clearChat(
+      messages: moderated,
+      bufferedMessages: [],
+      ircMessage: IRCMessage.fromString(clearChatUser),
+    );
+    IRCMessage.clearChat(
+      messages: moderated,
+      bufferedMessages: [],
+      ircMessage: IRCMessage.fromString(
+        '@room-id=12345;target-user-id=67891;tmi-sent-ts=1700000000200 '
+        ':tmi.twitch.tv CLEARCHAT #channel :other',
+      ),
+    );
+    IRCMessage.clearMessage(
+      messages: moderated,
+      bufferedMessages: [],
+      ircMessage: IRCMessage.fromString(clearMsg),
+    );
+    return [
+      for (final raw in [
+        userNoticeSubscription,
+        // The viewer's own message, in French (it is theirs, not the app's).
+        resubStreak.replaceFirst(':Kappa 14 months!', ':Kappa 14 mois !'),
+        resubHiddenStreak.replaceFirst(':Kappa 14 months!', ':Kappa 14 mois !'),
+        primeSub,
+        subGift,
+        multiMonthGift,
+        anonymousSubGift,
+        massGiftHeader,
+        anonymousMassGift,
+        extendSub,
+        raidNotice,
+        // A tier Twitch does not name, a gift of months without a tier.
+        '@display-name=Fan;login=fan;id=n1;msg-id=sub;msg-param-sub-plan=x;'
+            'system-msg=Fan\\ssubscribed.;tmi-sent-ts=1700000000300 '
+            ':tmi.twitch.tv USERNOTICE #channel',
+        '@display-name=G;login=g;id=n2;msg-id=subgift;msg-param-sub-plan=x;'
+            'msg-param-gift-months=6;msg-param-recipient-display-name=R;'
+            'msg-param-recipient-user-name=r;msg-param-sender-count=12;'
+            'system-msg=G\\sgifted\\sa\\ssub!;tmi-sent-ts=1700000000301 '
+            ':tmi.twitch.tv USERNOTICE #channel',
+        '@display-name=Big;login=big;id=n3;msg-id=submysterygift;'
+            'msg-param-mass-gift-count=1;msg-param-sender-count=1;'
+            'msg-param-sub-plan=x;msg-param-community-gift-id=77;'
+            'system-msg=Big\\sis\\sgifting;tmi-sent-ts=1700000000302 '
+            ':tmi.twitch.tv USERNOTICE #channel',
+        // Bits, an announcement, a first and a highlighted message.
+        '@bits=100;display-name=Cheerer;id=b1;user-id=1;'
+            'tmi-sent-ts=1700000000400 '
+            ':cheerer!cheerer@cheerer.tmi.twitch.tv PRIVMSG #channel '
+            ':Cheer100 allez',
+        '@display-name=Mod;id=a1;login=mod;msg-id=announcement;'
+            'msg-param-color=PRIMARY;tmi-sent-ts=1700000000401 '
+            ':tmi.twitch.tv USERNOTICE #channel :bonjour à tous',
+        '@display-name=New;first-msg=1;id=f1;user-id=2;'
+            'tmi-sent-ts=1700000000402 '
+            ':new!new@new.tmi.twitch.tv PRIVMSG #channel :premier message',
+        '@display-name=Pay;msg-id=highlighted-message;id=h1;user-id=3;'
+            'tmi-sent-ts=1700000000403 '
+            ':pay!pay@pay.tmi.twitch.tv PRIVMSG #channel :regardez-moi',
+      ])
+        IRCMessage.fromString(raw),
+      ...moderated,
+    ];
+  }
+
+  for (final (sizeName, size) in frenchChannelScreenSizes) {
+    for (final scale in frenchTextScales) {
+      final at = '$sizeName, text ×$scale';
+
+      testWidgets('every line in the chat, $at', (tester) async {
+        await useLocale(fr);
+        final store = fakeChatStore();
+        final lines = [...appLines(), ...twitchLines()];
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: ListView(
+              children: [
+                for (final line in lines)
+                  ChatMessage(ircMessage: line, chatStore: store),
+              ],
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        await expectFrenchThroughout(tester, 'chat lines, $at');
+      });
+
+      testWidgets('the input: commands, reply, counter, $at', (tester) async {
+        final chat = fakeChatStore();
+        final text = TextEditingController();
+        final focus = FocusNode();
+        addTearDown(text.dispose);
+        addTearDown(focus.dispose);
+        final auth = _MockAuthStore();
+        when(() => auth.isLoggedIn).thenReturn(true);
+        when(() => chat.auth).thenReturn(auth);
+        final assets = chat.assetsStore;
+        when(() => assets.userEmoteToObject).thenReturn({});
+        when(() => chat.matchingEmotes).thenReturn(const []);
+        when(() => chat.matchingChatters).thenReturn(const []);
+        when(
+          () => chat.matchingCommands,
+        ).thenReturn([...kModeratorChatCommands, ...kChatCommands]);
+        when(() => chat.showEmoteAutocomplete).thenReturn(false);
+        when(() => chat.showMentionAutocomplete).thenReturn(false);
+        when(() => chat.expandChat).thenReturn(true);
+        when(() => chat.restriction).thenReturn(null);
+        when(
+          () => chat.replyingToMessage,
+        ).thenReturn(IRCMessage.fromString(basicPrivmsg));
+        when(() => chat.isWaitingForAck).thenReturn(false);
+        when(() => chat.isConnected).thenReturn(true);
+        when(() => chat.hasConnected).thenReturn(true);
+        when(() => chat.textFieldFocusNode).thenReturn(focus);
+        when(() => chat.textController).thenReturn(text);
+        when(() => chat.showSendButton).thenReturn(true);
+        when(
+          () => chat.settings,
+        ).thenReturn(SettingsStore.fromJson({})..autocomplete = true);
+        // Near the length limit: the counter shows.
+        text.text = 'a' * 480;
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: Align(
+              alignment: Alignment.bottomCenter,
+              child: ChatBottomBar(
+                chatStore: chat,
+                onAddChat: () {},
+                channelDisplayName: 'Streamer',
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+          wrap: (app) =>
+              Provider<ChannelEventsStore?>.value(value: null, child: app),
+        );
+        await tester.pump();
+        await expectFrenchThroughout(tester, 'input, $at');
+        expect(
+          find.textContaining('<${french.chatCommandArgUser}>'),
+          findsWidgets,
+          reason: 'the usages read « <utilisateur> »',
+        );
+        expect(find.textContaining('/ban'), findsWidgets);
+      });
+
+      testWidgets('the moderation bar and its dialog, $at', (tester) async {
+        final answer = Completer<ModerationOutcome?>();
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: Align(
+              alignment: const Alignment(0, 0.4),
+              child: ChatModerationBar(
+                login: 'troll',
+                name: 'Troll',
+                onModerate: (_) => answer.future,
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await expectFrenchThroughout(tester, 'moderation bar, $at');
+        await tester.tap(find.text(french.chatModBarTimeout));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'timeout lengths, $at');
+        await tester.tapAt(Offset.zero);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(french.chatModBarBan));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'ban dialog, $at');
+        await tester.tap(find.text(french.commonCancel));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(french.chatModBarUnban));
+        await tester.pump();
+        answer.complete((
+          ok: false,
+          message: L10n.current.chatModCannotModerate,
+        ));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'moderation outcome, $at');
+      });
+
+      testWidgets('the chat modes, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: SingleChildScrollView(
+              child: ChatModeControls(
+                roomState: const ROOMSTATE(
+                  slowMode: '30',
+                  followersOnly: '10',
+                  subMode: '1',
+                  emoteOnly: '1',
+                  r9k: '1',
+                ),
+                onModerate: (_) async => (
+                  ok: true,
+                  message: L10n.current.chatModeSlowOn(
+                    duration: timeoutLength(30),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await expectFrenchThroughout(tester, 'chat modes, $at');
+        await tester.tap(find.text(french.chatModesClearChat));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'clear chat dialog, $at');
+      });
+
+      testWidgets('the user card, $at', (tester) async {
+        final store = fakeChatStore();
+        final api = _MockTwitchApi();
+        when(() => api.getUser(id: any(named: 'id'))).thenAnswer(
+          (_) async => UserTwitch(
+            '33',
+            'troll',
+            'Troll',
+            '',
+            createdAt: DateTime(2019, 3, 1, 12),
+          ),
+        );
+        when(
+          () => api.getFollowedAt(
+            broadcasterId: any(named: 'broadcasterId'),
+            userId: any(named: 'userId'),
+          ),
+        ).thenAnswer((_) async => DateTime(2023, 1, 12, 12));
+        final auth = _MockAuthStore();
+        final user = _MockUserStore();
+        when(() => auth.isLoggedIn).thenReturn(true);
+        when(() => auth.user).thenReturn(user);
+        when(
+          () => user.details,
+        ).thenReturn(const UserTwitch('1', 'mod', 'Mod', ''));
+        final text = TextEditingController();
+        addTearDown(text.dispose);
+        when(() => store.auth).thenReturn(auth);
+        when(() => store.twitchApi).thenReturn(api);
+        when(() => store.whispers).thenReturn(null);
+        when(() => store.canModerate).thenReturn(true);
+        when(() => store.textController).thenReturn(text);
+        when(() => store.safeRequestFocus()).thenReturn(null);
+        when(() => store.messages).thenReturn(
+          ObservableList.of([
+            IRCMessage.fromString(
+              '@display-name=Troll;user-id=33;id=a '
+              ':troll!troll@troll.tmi.twitch.tv PRIVMSG #channel :clip ça',
+            ),
+          ]),
+        );
+        late BuildContext inside;
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: PanelRegion(
+              child: Builder(
+                builder: (context) {
+                  inside = context;
+                  return const SizedBox.expand();
+                },
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+          wrap: (app) => Provider<TwitchApi>.value(value: api, child: app),
+        );
+        showChatUserCard(
+          inside,
+          chatStore: store,
+          username: 'troll',
+          userId: '33',
+          displayName: 'Troll',
+        );
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'user card, $at');
+        expect(
+          find.textContaining(
+            french.chatUserAccountCreated(date: '1er mars 2019'),
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('the emote menu, $at', (tester) async {
+        final settings = SettingsStore.fromJson({});
+        final chat = fakeChatStore(settings: settings);
+        Emote emote(String name, EmoteType type) => Emote(
+          name: name,
+          zeroWidth: false,
+          url: 'https://cdn.example/$name.png',
+          type: type,
+        );
+        final assets = chat.assetsStore;
+        when(() => assets.recentEmotes).thenReturn(ObservableList.of([]));
+        when(() => assets.userEmoteToObject).thenReturn({});
+        when(() => assets.userEmoteSectionToEmotes).thenReturn({
+          'Channel Emotes': [emote('nisqyHype', EmoteType.twitchSub)],
+          'Global Emotes': [emote('Kappa', EmoteType.twitchGlobal)],
+          'Unlocked Emotes': [emote('Prime', EmoteType.twitchUnlocked)],
+          'Other Channels': [emote('Other', EmoteType.twitchSub)],
+        });
+        when(() => assets.sevenTVEmotes).thenReturn([
+          emote('KEKW', EmoteType.sevenTVChannel),
+          emote('OMEGALUL', EmoteType.sevenTVGlobal),
+        ]);
+        when(
+          () => assets.bttvEmotes,
+        ).thenReturn([emote('monkaW', EmoteType.bttvGlobal)]);
+        when(
+          () => assets.ffzEmotes,
+        ).thenReturn([emote('LULW', EmoteType.ffzGlobal)]);
+        when(() => chat.userState).thenReturn(const USERSTATE());
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: Align(
+              alignment: Alignment.bottomCenter,
+              child: SizedBox(height: 320, child: EmoteMenu(chatStore: chat)),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+          wrap: (app) =>
+              Provider<SettingsStore>.value(value: settings, child: app),
+        );
+        await tester.pump();
+        await expectFrenchThroughout(tester, 'emote menu, recent, $at');
+        await tester.tap(find.text('Twitch'));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'emote menu, Twitch, $at');
+        expect(find.text(french.emoteMenuChannel), findsOneWidget);
+        await tester.tap(find.text('7TV'));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'emote menu, 7TV, $at');
+      });
+
+      testWidgets('the chat details, $at', (tester) async {
+        final api = _MockTwitchApi();
+        when(
+          () => api.getUserChatColor(userId: any(named: 'userId')),
+        ).thenAnswer((_) async => '#FF7F50');
+        final auth = _MockAuthStore();
+        final user = _MockUserStore();
+        when(() => auth.isLoggedIn).thenReturn(true);
+        when(() => auth.user).thenReturn(user);
+        when(
+          () => user.details,
+        ).thenReturn(const UserTwitch('1', 'viewer', 'Viewer', ''));
+        final settings = SettingsStore.fromJson({});
+        final details = ChatDetailsStore(
+          twitchApi: api,
+          channelName: 'channel',
+        );
+        final store = fakeChatStore(settings: settings);
+        when(() => store.auth).thenReturn(auth);
+        when(() => store.twitchApi).thenReturn(api);
+        when(() => store.chatDetailsStore).thenReturn(details);
+        when(() => store.chatRules).thenReturn(null);
+        when(() => store.canModerate).thenReturn(true);
+        when(() => store.timeRemaining).thenReturn(Duration.zero);
+        when(() => store.sleepTimer).thenReturn(null);
+        when(() => store.userState).thenReturn(const USERSTATE());
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showChatDetails(
+                  context,
+                  chatStore: store,
+                  onAddChat: () {},
+                ),
+                child: const Text('⋯'),
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.tap(find.text('⋯'));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'chat details, $at');
+        await tester.tap(find.text(french.chatDetailsSleepTimer));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'sleep timer, $at');
+        // Back to the menu, as the system back does.
+        await tester.state<NavigatorState>(find.byType(Navigator)).maybePop();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(french.chatDetailsUsernameColor));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'name colours, $at');
+      });
+
+      testWidgets('channel points, a prediction and the bet, $at', (
+        tester,
+      ) async {
+        final service = _MockPointsService();
+        final points = CommunityPointsContext(
+          balance: 12400,
+          rewards: const [
+            PointsReward(id: 'hydrate', title: 'Hydrate', cost: 100),
+            PointsReward(
+              id: 'auto',
+              title: 'Highlight my message',
+              cost: 50,
+              automaticType: 'SEND_HIGHLIGHTED_MESSAGE',
+            ),
+          ],
+          predictions: [
+            Prediction(
+              id: 'pred',
+              title: 'Va-t-il gagner ?',
+              status: 'ACTIVE',
+              outcomes: const [
+                PredictionOutcome(
+                  id: 'yes',
+                  title: 'Oui',
+                  color: 'BLUE',
+                  totalPoints: 3000,
+                  totalUsers: 3,
+                ),
+                PredictionOutcome(
+                  id: 'no',
+                  title: 'Non',
+                  color: 'PINK',
+                  totalPoints: 1000,
+                  totalUsers: 1,
+                ),
+              ],
+            ),
+          ],
+        );
+        when(
+          () => service.fetchContext(
+            userLogin: any(named: 'userLogin'),
+            authToken: any(named: 'authToken'),
+          ),
+        ).thenAnswer((_) async => points);
+        final streaks = _MockWatchStreakService();
+        when(
+          () => streaks.getWatchStreak(
+            channelId: any(named: 'channelId'),
+            authToken: any(named: 'authToken'),
+          ),
+        ).thenAnswer(
+          (_) async =>
+              const WatchStreak(value: 4, threshold: 5, pointsBonus: 450),
+        );
+        final store = ChannelEventsStore(
+          channelId: '42',
+          channelLogin: 'streamer',
+          channelName: 'Streamer',
+          isChannelLive: () => true,
+          client: _MockHermesClient(),
+          pointsService: service,
+          watchStreakService: streaks,
+          tokenProvider: () async => 'tok',
+        );
+        await store.refreshPoints();
+        await store.refreshWatchStreak();
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: ChannelPointsSheet(points: points, store: store),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        // The prediction's heading (in capitals), before the lists scroll.
+        expect(
+          find.text(french.pointsPredictionOpen.toUpperCase()),
+          findsOneWidget,
+        );
+        await expectFrenchThroughout(tester, 'channel points, $at');
+        // Back to the top, where the outcomes are.
+        for (final list in tester.stateList<ScrollableState>(
+          find.byType(Scrollable),
+        )) {
+          list.position.jumpTo(0);
+        }
+        await tester.pump();
+        await tester.tap(find.text('Oui'));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(tester, 'bet, $at');
+      });
+    }
+  }
+
+  test('every command, mode and emote kind has French words', () {
+    for (final command in [...kChatCommands, ...kModeratorChatCommands]) {
+      expect(command.description(french), isNotEmpty, reason: command.name);
+      expect(command.usage(french), startsWith('/${command.name}'));
+    }
+    expect(
+      [for (final c in kModeratorChatCommands) c.usage(french)],
+      containsAll([
+        '/ban <utilisateur> [motif]',
+        '/timeout <utilisateur> [durée] [motif]',
+        '/delete <id du message>',
+        '/slow [secondes]',
+      ]),
+    );
+    for (final mode in ChatMode.values) {
+      expect(french.chatModeName(mode: mode.name), isNotEmpty);
+      expect(french.chatModePill(mode: mode.name), isNotEmpty);
+    }
+    for (final type in EmoteType.values) {
+      expect(french.emoteTypeName(type: type.name), isNotEmpty);
+    }
+  });
+}

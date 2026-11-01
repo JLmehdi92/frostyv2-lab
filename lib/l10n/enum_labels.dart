@@ -1,6 +1,9 @@
 import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/l10n/app_localizations.dart';
+import 'package:onset/models/badges.dart';
 import 'package:onset/models/clip.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/video/captions.dart';
 import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
@@ -245,5 +248,56 @@ extension ReleaseSectionKindLabel on ReleaseSectionKind {
     ReleaseSectionKind.improved => l.releaseKindImproved(count: count),
     ReleaseSectionKind.fixed => l.releaseKindFixed(count: count),
     ReleaseSectionKind.other => l.releaseKindOther(count: count),
+  };
+}
+
+extension ChatModeLabel on ChatMode {
+  /// A room mode's name: the moderator's switches and their outcomes. Every
+  /// value is listed: a new one must be named in chatModeName too.
+  String label(AppLocalizations l) => switch (this) {
+    ChatMode.slow ||
+    ChatMode.followers ||
+    ChatMode.subscribers ||
+    ChatMode.emoteOnly ||
+    ChatMode.uniqueChat => l.chatModeName(mode: name),
+  };
+
+  /// Its pill at the top of the chat's details while it is on.
+  String pill(AppLocalizations l) => switch (this) {
+    ChatMode.slow ||
+    ChatMode.followers ||
+    ChatMode.subscribers ||
+    ChatMode.emoteOnly ||
+    ChatMode.uniqueChat => l.chatModePill(mode: name),
+  };
+}
+
+extension EmoteTypeLabel on EmoteType {
+  /// An emote's kind, in its details ("Twitch global emote"). Every value
+  /// is listed: a new one must be named in emoteTypeName too.
+  String label(AppLocalizations l) => switch (this) {
+    EmoteType.twitchBits ||
+    EmoteType.twitchFollower ||
+    EmoteType.twitchSub ||
+    EmoteType.twitchGlobal ||
+    EmoteType.twitchUnlocked ||
+    EmoteType.twitchChannel ||
+    EmoteType.ffzGlobal ||
+    EmoteType.ffzChannel ||
+    EmoteType.bttvGlobal ||
+    EmoteType.bttvChannel ||
+    EmoteType.bttvShared ||
+    EmoteType.sevenTVGlobal ||
+    EmoteType.sevenTVChannel => l.emoteTypeName(type: name),
+  };
+}
+
+extension BadgeTypeLabel on BadgeType {
+  /// A chat badge's source, in its details ("Twitch badge").
+  String label(AppLocalizations l) => switch (this) {
+    BadgeType.twitch ||
+    BadgeType.bttv ||
+    BadgeType.ffz ||
+    BadgeType.sevenTV => l.badgeTypeName(type: name),
   };
 }

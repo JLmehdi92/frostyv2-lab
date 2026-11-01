@@ -491,8 +491,13 @@ void main() {
     ];
     // "English" names the language in a sentence (« anglais »); the pill
     // shows it as an endonym, the same in French.
+    // "Clip" and "Chat" are an English verb and placeholder whose French
+    // says more (« Créer un clip », « Envoyer un message »); the French
+    // nouns « Clip » and « Chat » are what other messages show.
     expect(clashes, [
       'languageInTextEnglish "English" is the French of languageNameEnglish',
+      'clipCreateButton "Clip" is the French of chatLinkClip',
+      'chatInputPlaceholder "Chat" is the French of channelChat',
     ]);
   });
 }

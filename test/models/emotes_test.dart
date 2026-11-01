@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/emotes.dart';
 
 void main() {
@@ -632,27 +633,31 @@ void main() {
           'subscriptions',
           EmoteType.twitchChannel,
           tier: '2000',
-        ).unlockHint,
+        ).unlockHint(L10n.english),
         'Subscribe to this channel at Tier 2 to use it.',
       );
       expect(
-        twitch('subscriptions', EmoteType.twitchChannel, tier: '').unlockHint,
+        twitch(
+          'subscriptions',
+          EmoteType.twitchChannel,
+          tier: '',
+        ).unlockHint(L10n.english),
         'Subscribe to this channel to use it.',
       );
       expect(
-        twitch('follower', EmoteType.twitchFollower).unlockHint,
+        twitch('follower', EmoteType.twitchFollower).unlockHint(L10n.english),
         'Follow this channel to use it.',
       );
       expect(
-        twitch('bitstier', EmoteType.twitchBits).unlockHint,
+        twitch('bitstier', EmoteType.twitchBits).unlockHint(L10n.english),
         'Cheer Bits in this channel to unlock it.',
       );
       expect(
-        twitch('globals', EmoteType.twitchGlobal).unlockHint,
+        twitch('globals', EmoteType.twitchGlobal).unlockHint(L10n.english),
         'Available to everyone on Twitch.',
       );
       expect(
-        twitch('subscriptions', EmoteType.twitchSub).unlockHint,
+        twitch('subscriptions', EmoteType.twitchSub).unlockHint(L10n.english),
         'You can use it.',
       );
     });
@@ -662,7 +667,7 @@ void main() {
         Emote.fromBTTV(
           const EmoteBTTV('1', 'a'),
           EmoteType.bttvGlobal,
-        ).unlockHint,
+        ).unlockHint(L10n.english),
         isNull,
       );
     });

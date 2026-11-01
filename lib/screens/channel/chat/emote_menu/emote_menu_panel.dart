@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu_section.dart';
+import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 
@@ -42,7 +44,10 @@ class EmoteMenuPanel extends StatelessWidget {
       return EmoteTabsView(
         style: EmoteTabsStyle.pills,
         panel: SheetPresentation.isPanel(context),
-        headers: [if (channelEmotes.isNotEmpty) 'Channel', 'Global'],
+        headers: [
+          if (channelEmotes.isNotEmpty) context.l10n.emoteMenuChannel,
+          context.l10n.emoteMenuGlobal,
+        ],
         children: [
           if (channelEmotes.isNotEmpty)
             EmoteMenuSection(chatStore: chatStore, emotes: channelEmotes),
@@ -60,7 +65,7 @@ class EmoteMenuPanel extends StatelessWidget {
         style: EmoteTabsStyle.pills,
         panel: SheetPresentation.isPanel(context),
         headers: twitchEmotes!.keys
-            .map((header) => header.split(' ')[0])
+            .map((header) => _sectionTab(header, context.l10n))
             .toList(),
         children: twitchEmotes!.entries
             .map(
@@ -69,7 +74,7 @@ class EmoteMenuPanel extends StatelessWidget {
                 emotes: e.value,
                 // Subscriber emotes of this channel; the follower and Bits
                 // ones the viewer has stay usable.
-                disabled: e.key == 'Channel Emotes' && !isSubbed,
+                disabled: e.key == UserEmoteSection.channel && !isSubbed,
                 usable: chatStore.assetsStore.userEmoteToObject.keys.toSet(),
               ),
             )
@@ -78,3 +83,13 @@ class EmoteMenuPanel extends StatelessWidget {
     }
   }
 }
+
+/// The tab of a section of the viewer's Twitch emotes: the app's sections
+/// named in [l]'s language, a channel's by the first word of its name.
+String _sectionTab(String section, AppLocalizations l) => switch (section) {
+  UserEmoteSection.channel => l.emoteMenuChannel,
+  UserEmoteSection.global => l.emoteMenuGlobal,
+  UserEmoteSection.unlocked => l.emoteMenuUnlocked,
+  UserEmoteSection.other => l.emoteMenuOther,
+  _ => section.split(' ')[0],
+};

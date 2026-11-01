@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/models/emotes.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -165,11 +166,14 @@ void main() {
 
   testWidgets('a command fills the input with itself', (tester) async {
     when(() => chat.matchingCommands).thenReturn(const [
-      (name: 'me', usage: '/me <message>', description: 'Third person'),
+      ChatCommandInfo('me', required: [ChatCommandArg.message]),
     ]);
     await pump(tester);
     expect(find.text('/me'), findsOneWidget);
-    expect(find.text('/me <message> · Third person'), findsOneWidget);
+    expect(
+      find.text('/me <message> · Speak in the third person'),
+      findsOneWidget,
+    );
     await tester.tap(find.text('/me'));
     expect(text.text, '/me ');
     expect(text.selection.baseOffset, 4);

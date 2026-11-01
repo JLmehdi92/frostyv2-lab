@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/theme.dart';
@@ -13,11 +14,14 @@ import 'package:onset/widgets/sheet/sheet_glyph.dart';
 typedef UserCardBadge = ({ChatBadge badge, String label});
 
 /// The Twitch badges of [latest] (someone's latest message) that chat
-/// knows, in their order, with the months of a subscriber or founder badge.
+/// knows, in their order, with the months of a subscriber or founder badge,
+/// in [l]'s language (the one on screen by default).
 List<UserCardBadge> userCardBadges(
   IRCMessage? latest,
-  Map<String, ChatBadge> twitchBadges,
-) {
+  Map<String, ChatBadge> twitchBadges, [
+  AppLocalizations? l,
+]) {
+  final words = l ?? L10n.current;
   final badges = latest?.tags['badges'];
   if (badges == null || badges.isEmpty) return const [];
   final months = <String, String>{
@@ -27,15 +31,30 @@ List<UserCardBadge> userCardBadges(
   return [
     for (final id in badges.split(','))
       if (twitchBadges[id] case final badge?)
-        (badge: badge, label: _label(badge.name, id, months)),
+        (badge: badge, label: _label(badge.name, id, months, words)),
   ];
 }
 
-String _label(String name, String id, Map<String, String> months) {
+/// [date] on the user card ("Nov 1, 2026", in the language of `Intl`, the
+/// one on screen); French writes the first of the month « 1er » (« 1er nov.
+/// 2026 »).
+String _cardDate(DateTime date, AppLocalizations l) {
+  final text = DateFormat.yMMMd().format(date);
+  return l.localeName == 'fr' && date.day == 1
+      ? text.replaceFirst(RegExp(r'^1(?!\d)'), '1er')
+      : text;
+}
+
+String _label(
+  String name,
+  String id,
+  Map<String, String> months,
+  AppLocalizations l,
+) {
   final set = id.split('/').first;
   final count = int.tryParse(months[set] ?? '');
   if ((set == 'subscriber' || set == 'founder') && count != null && count > 0) {
-    return '$name · $count month${count == 1 ? '' : 's'}';
+    return l.chatUserBadgeMonths(name: name, count: count);
   }
   return name;
 }
@@ -96,32 +115,37 @@ class _UserCardInfoState extends State<UserCardInfo> {
     }
   }
 
-  Widget _line(Future<DateTime?>? date, SheetGlyphKind glyph, String label) =>
-      FutureBuilder<DateTime?>(
-        future: date,
-        builder: (context, snapshot) {
-          final value = snapshot.data;
-          if (value == null) return const SizedBox.shrink();
-          final color = SheetColors.of(context).secondary;
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 5,
-            children: [
-              SheetGlyph(glyph, size: widget.dense ? 13 : 14, color: color),
-              Flexible(
-                child: Text(
-                  '$label ${DateFormat.yMMMd().format(value.toLocal())}',
-                  overflow: TextOverflow.ellipsis,
-                  style: SheetText.status.copyWith(
-                    fontSize: widget.dense ? 12 : 12.5,
-                    color: color,
-                  ),
-                ),
+  /// A date line: [words] puts the date in its sentence ("Account created
+  /// Nov 1, 2026").
+  Widget _line(
+    Future<DateTime?>? date,
+    SheetGlyphKind glyph,
+    String Function(String date) words,
+  ) => FutureBuilder<DateTime?>(
+    future: date,
+    builder: (context, snapshot) {
+      final value = snapshot.data;
+      if (value == null) return const SizedBox.shrink();
+      final color = SheetColors.of(context).secondary;
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 5,
+        children: [
+          SheetGlyph(glyph, size: widget.dense ? 13 : 14, color: color),
+          Flexible(
+            child: Text(
+              words(_cardDate(value.toLocal(), context.l10n)),
+              overflow: TextOverflow.ellipsis,
+              style: SheetText.status.copyWith(
+                fontSize: widget.dense ? 12 : 12.5,
+                color: color,
               ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       );
+    },
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -201,9 +225,17 @@ class _UserCardInfoState extends State<UserCardInfo> {
             runSpacing: 4,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              _line(_createdAt, SheetGlyphKind.cake, 'Account created'),
+              _line(
+                _createdAt,
+                SheetGlyphKind.cake,
+                (date) => context.l10n.chatUserAccountCreated(date: date),
+              ),
               if (_followedAt != null)
-                _line(_followedAt, SheetGlyphKind.heart, 'Following since'),
+                _line(
+                  _followedAt,
+                  SheetGlyphKind.heart,
+                  (date) => context.l10n.chatUserFollowingSince(date: date),
+                ),
             ],
           ),
         ),

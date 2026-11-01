@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/user_notice.dart';
@@ -106,7 +107,7 @@ class ChatMessage extends StatelessWidget {
   Future<void> copyMessage() async {
     await Clipboard.setData(ClipboardData(text: ircMessage.message ?? ''));
 
-    _effectiveInputStore.updateNotification('Message copied');
+    _effectiveInputStore.updateNotification(L10n.current.chatMessageCopied);
   }
 
   /// Whether this message is drawn as a [UserNoticeRow]: any `USERNOTICE`
@@ -150,7 +151,7 @@ class ChatMessage extends StatelessWidget {
     ].join('\n');
     await Clipboard.setData(ClipboardData(text: text));
 
-    _effectiveInputStore.updateNotification('Message copied');
+    _effectiveInputStore.updateNotification(L10n.current.chatMessageCopied);
   }
 
   /// A moderator may delete this message: one sent in this chat (not from
@@ -255,7 +256,7 @@ class ChatMessage extends StatelessWidget {
             ),
             SheetRow(
               glyph: SheetGlyphKind.copy,
-              label: 'Copy message',
+              label: context.l10n.chatCopyMessage,
               onTap: () {
                 copyMessage();
                 Navigator.pop(context);
@@ -263,7 +264,7 @@ class ChatMessage extends StatelessWidget {
             ),
             SheetRow(
               glyph: SheetGlyphKind.paste,
-              label: 'Copy message and paste',
+              label: context.l10n.chatCopyMessageAndPaste,
               onTap: () async {
                 await copyMessage();
 
@@ -283,7 +284,7 @@ class ChatMessage extends StatelessWidget {
             ),
             SheetRow(
               glyph: SheetGlyphKind.reply,
-              label: 'Reply to message',
+              label: context.l10n.chatReplyToMessage,
               onTap: () {
                 // In merged mode, switch to the source tab so the reply
                 // targets the correct channel (reply-parent-msg-id is
@@ -298,7 +299,7 @@ class ChatMessage extends StatelessWidget {
             if (_canDelete)
               SheetRow(
                 glyph: SheetGlyphKind.trash,
-                label: 'Delete message',
+                label: context.l10n.chatDeleteMessage,
                 danger: true,
                 onTap: () {
                   Navigator.pop(context);
@@ -420,7 +421,7 @@ class ChatMessage extends StatelessWidget {
                 color: messageHeaderTextColor,
               );
               messageHeader = Text(
-                'First message',
+                context.l10n.chatFirstMessage,
                 style: TextStyle(
                   fontWeight: messageHeaderFontWeight,
                   color: messageHeaderTextColor,
@@ -429,7 +430,7 @@ class ChatMessage extends StatelessWidget {
             } else if (shouldHighlightMessage) {
               highlightColor = context.onsetColors.highlightedMessage;
               messageHeader = Text(
-                'Highlighted message',
+                context.l10n.chatHighlightedMessage,
                 style: TextStyle(
                   fontWeight: messageHeaderFontWeight,
                   color: messageHeaderTextColor,
@@ -510,18 +511,24 @@ class ChatMessage extends StatelessWidget {
                 children: [
                   if (banDuration == null)
                     if (ircMessage.command == Command.clearMessage)
-                      const Text(
-                        'Message deleted',
-                        style: TextStyle(fontWeight: messageHeaderFontWeight),
+                      Text(
+                        context.l10n.chatMessageDeleted,
+                        style: const TextStyle(
+                          fontWeight: messageHeaderFontWeight,
+                        ),
                       )
                     else
-                      const Text(
-                        'Permanently banned',
-                        style: TextStyle(fontWeight: messageHeaderFontWeight),
+                      Text(
+                        context.l10n.chatPermanentlyBanned,
+                        style: const TextStyle(
+                          fontWeight: messageHeaderFontWeight,
+                        ),
                       )
                   else
                     Text(
-                      'Timed out for $banDuration ${int.parse(banDuration) > 1 ? 'seconds' : 'second'}',
+                      context.l10n.chatTimedOutFor(
+                        count: int.parse(banDuration),
+                      ),
                       style: const TextStyle(
                         fontWeight: messageHeaderFontWeight,
                       ),
@@ -638,7 +645,7 @@ class ChatMessage extends StatelessWidget {
                       ),
                       Expanded(
                         child: Text(
-                          'Announcement',
+                          context.l10n.chatAnnouncement,
                           style: TextStyle(
                             fontWeight: messageHeaderFontWeight,
                             color: announcementColor,
@@ -719,7 +726,9 @@ class ChatMessage extends StatelessWidget {
             ircMessage.command == Command.privateMessage ||
             ircMessage.command == Command.userState;
         final finalMessage = Semantics(
-          onLongPressHint: hasOptions ? 'message options' : 'copy message',
+          onLongPressHint: hasOptions
+              ? context.l10n.chatMessageOptionsHint
+              : context.l10n.chatCopyMessageHint,
           child: InkWell(
             onTap: () {
               FocusScope.of(context).unfocus();
@@ -778,7 +787,10 @@ class ChatMessage extends StatelessWidget {
     final source = notice.sourceRoomId;
 
     return UserNoticeRow(
-      segments: ircMessage.noticeText(channelName: _noticeChannelName),
+      segments: ircMessage.noticeText(
+        channelName: _noticeChannelName,
+        l: context.l10n,
+      ),
       presentation: presentation,
       userMessage: ircMessage.message == null
           ? null

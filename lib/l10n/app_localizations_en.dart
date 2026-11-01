@@ -4504,4 +4504,1513 @@ class AppLocalizationsEn extends AppLocalizations {
   String htRewardUnlocked({required String name}) {
     return 'Unlocked reward $name';
   }
+
+  @override
+  String chatDurationSeconds({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '$count second',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatDurationMinutes({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '$count minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatDurationHours({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '$count hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatDurationDays({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '$count day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatDurationWeeks({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weeks',
+      one: '$count week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatDurationMonths({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months',
+      one: '$count month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatShortSeconds({required int seconds}) {
+    return '${seconds}s';
+  }
+
+  @override
+  String chatShortMinutes({required int minutes}) {
+    return '${minutes}m';
+  }
+
+  @override
+  String chatShortMinutesSeconds({required int minutes, required int seconds}) {
+    return '${minutes}m ${seconds}s';
+  }
+
+  @override
+  String chatShortHours({required int hours}) {
+    return '${hours}h';
+  }
+
+  @override
+  String chatShortHoursMinutes({required int hours, required int minutes}) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String get chatConnecting => 'Connecting to chat...';
+
+  @override
+  String chatWelcome({required String name}) {
+    return 'Welcome to $name\'s chat!';
+  }
+
+  @override
+  String chatReconnected({required int attempts, required int seconds}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      attempts,
+      locale: localeName,
+      other: 'Reconnected ($attempts attempts, ${seconds}s)',
+      one: 'Reconnected ($attempts attempt, ${seconds}s)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatReconnectingIn({
+    required int seconds,
+    required int attempt,
+    required int max,
+  }) {
+    return 'Reconnecting in ${seconds}s... (attempt $attempt of $max)';
+  }
+
+  @override
+  String chatReconnecting({required int attempt, required int max}) {
+    return 'Reconnecting... (attempt $attempt of $max)';
+  }
+
+  @override
+  String get chatDisconnected =>
+      'Chat disconnected. Please check your connection.';
+
+  @override
+  String get chatReconnect => 'Reconnect';
+
+  @override
+  String get chatReconnectingNotice => 'Reconnecting to chat...';
+
+  @override
+  String chatSyncIn({required int seconds}) {
+    return 'Chat will sync in ${seconds}s...';
+  }
+
+  @override
+  String chatSevenTvEmoteAdded({required String name, required String emote}) {
+    return '$name added 7TV emote \"$emote\" to chat';
+  }
+
+  @override
+  String chatSevenTvEmoteRemoved({
+    required String name,
+    required String emote,
+  }) {
+    return '$name removed 7TV emote \"$emote\" from chat';
+  }
+
+  @override
+  String chatMessageTooLong({required int max}) {
+    return 'Messages can be $max characters at most';
+  }
+
+  @override
+  String get chatWaitCommand => 'Please wait, running the previous command...';
+
+  @override
+  String get chatWaitMessage => 'Please wait, sending previous message...';
+
+  @override
+  String get chatCannotSendDisconnected =>
+      'Cannot send message - chat is disconnected. Reconnecting...';
+
+  @override
+  String get chatMaybeNotSent =>
+      'Message may not have been sent. Please try again.';
+
+  @override
+  String get chatClearedByModerator => 'Chat was cleared by a moderator';
+
+  @override
+  String chatHelpCommands({required String commands}) {
+    return 'Commands: $commands';
+  }
+
+  @override
+  String get chatLogInToWhisper => 'Log in to whisper.';
+
+  @override
+  String chatWhisperSent({required String name}) {
+    return 'Whisper sent to $name.';
+  }
+
+  @override
+  String chatWhisperSentNoReplies({required String name}) {
+    return 'Whisper sent to $name. Replies cannot reach this app until you log in again.';
+  }
+
+  @override
+  String chatWhisperNoUser({required String login}) {
+    return 'Couldn\'t whisper: no user named $login.';
+  }
+
+  @override
+  String chatWhisperFailedBecause({required String reason}) {
+    return 'Couldn\'t whisper: $reason';
+  }
+
+  @override
+  String get chatWhisperFailed => 'Couldn\'t whisper.';
+
+  @override
+  String get chatLogInToChangeColor => 'Log in to change your color.';
+
+  @override
+  String get chatColorChanged => 'Your name color was changed.';
+
+  @override
+  String get chatColorFailedHex =>
+      'Couldn\'t change your color (hex colors need Turbo or Prime).';
+
+  @override
+  String chatAlreadyBlocked({required String name}) {
+    return '$name is already blocked.';
+  }
+
+  @override
+  String chatBlockedUser({required String name}) {
+    return 'Blocked $name.';
+  }
+
+  @override
+  String chatUnblockedUser({required String name}) {
+    return 'Unblocked $name.';
+  }
+
+  @override
+  String chatBlockFailed({required String login}) {
+    return 'Couldn\'t block $login.';
+  }
+
+  @override
+  String chatUnblockFailed({required String login}) {
+    return 'Couldn\'t unblock $login.';
+  }
+
+  @override
+  String get chatLogInToModerate => 'Log in to moderate.';
+
+  @override
+  String get chatCommandArgUser => 'user';
+
+  @override
+  String get chatCommandArgMessage => 'message';
+
+  @override
+  String get chatCommandArgColor => 'color';
+
+  @override
+  String get chatCommandArgReason => 'reason';
+
+  @override
+  String get chatCommandArgLength => 'length';
+
+  @override
+  String get chatCommandArgSeconds => 'seconds';
+
+  @override
+  String get chatCommandArgMessageId => 'message id';
+
+  @override
+  String chatCommandDescription({required String command}) {
+    String _temp0 = intl.Intl.selectLogic(command, {
+      'me': 'Speak in the third person',
+      'color': 'Change your name color',
+      'block': 'Block a user',
+      'unblock': 'Unblock a user',
+      'w': 'Whisper a user',
+      'help': 'List the commands',
+      'ban': 'Ban a user from the chat',
+      'unban': 'Lift a ban',
+      'timeout': 'Time a user out (10m by default; s, m, h, d, w)',
+      'untimeout': 'Lift a timeout',
+      'warn': 'Warn a user',
+      'delete': 'Delete a message',
+      'clear': 'Delete every message',
+      'slow': 'Slow mode (30s by default)',
+      'slowoff': 'Turn slow mode off',
+      'followers': 'Followers-only mode (m, h, d, w, mo)',
+      'followersoff': 'Turn followers-only mode off',
+      'subscribers': 'Subscribers-only mode',
+      'subscribersoff': 'Turn subscribers-only mode off',
+      'emoteonly': 'Emote-only mode',
+      'emoteonlyoff': 'Turn emote-only mode off',
+      'uniquechat': 'Unique chat mode (no repeated messages)',
+      'uniquechatoff': 'Turn unique chat mode off',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatCommandUsage({required String usage}) {
+    return 'Usage: $usage';
+  }
+
+  @override
+  String chatCommandBadLength({required String length}) {
+    return 'Unknown length \"$length\". Use e.g. 30, 10m, 2h, 1d or 1w.';
+  }
+
+  @override
+  String get chatCommandTimeoutRange =>
+      'Timeouts last from 1 second to 2 weeks.';
+
+  @override
+  String get chatCommandSlowRange => 'The slow mode wait is 3 to 120 seconds.';
+
+  @override
+  String get chatCommandFollowAgeRange =>
+      'The follow age is 0 minutes to 3 months (e.g. 10m, 1w, 3mo).';
+
+  @override
+  String get chatCommandUnknownColor =>
+      'Unknown color. Try Blue, Coral, HotPink… or #RRGGBB (Turbo/Prime).';
+
+  @override
+  String chatCommandNotInApp({required String command}) {
+    return '/$command is not available in this app.';
+  }
+
+  @override
+  String chatCommandUnknown({required String command}) {
+    return 'Unknown command /$command. Type /help for the commands you can use.';
+  }
+
+  @override
+  String chatModeName({required String mode}) {
+    String _temp0 = intl.Intl.selectLogic(mode, {
+      'slow': 'Slow mode',
+      'followers': 'Followers-only mode',
+      'subscribers': 'Subscribers-only mode',
+      'emoteOnly': 'Emote-only mode',
+      'uniqueChat': 'Unique chat mode',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatModeChanged({required String mode, required String state}) {
+    String _temp0 = intl.Intl.selectLogic(mode, {
+      'slow': 'Slow mode',
+      'followers': 'Followers-only mode',
+      'subscribers': 'Subscribers-only mode',
+      'emoteOnly': 'Emote-only mode',
+      'uniqueChat': 'Unique chat mode',
+      'other': '',
+    });
+    String _temp1 = intl.Intl.selectLogic(state, {'on': 'on', 'other': 'off'});
+    return '$_temp0 $_temp1.';
+  }
+
+  @override
+  String chatModeSlowOn({required String duration}) {
+    return 'Slow mode on ($duration).';
+  }
+
+  @override
+  String chatModeFollowersOn({required String duration}) {
+    return 'Followers-only mode on (followers of $duration).';
+  }
+
+  @override
+  String chatModFailed({required String command, required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(command, {
+      'ban': 'ban',
+      'timeout': 'time out',
+      'untimeout': 'remove the timeout of',
+      'unban': 'unban',
+      'warn': 'warn',
+      'delete': 'delete the message',
+      'clear': 'clear the chat',
+      'slowOn': 'turn slow mode on',
+      'slowOff': 'turn slow mode off',
+      'followersOn': 'turn followers-only mode on',
+      'followersOff': 'turn followers-only mode off',
+      'subscribersOn': 'turn subscribers-only mode on',
+      'subscribersOff': 'turn subscribers-only mode off',
+      'emoteOnlyOn': 'turn emote-only mode on',
+      'emoteOnlyOff': 'turn emote-only mode off',
+      'uniqueChatOn': 'turn unique chat mode on',
+      'uniqueChatOff': 'turn unique chat mode off',
+      'other': 'do that',
+    });
+    return 'Couldn\'t $_temp0: $reason';
+  }
+
+  @override
+  String chatModFailedUnexpected({required String command}) {
+    String _temp0 = intl.Intl.selectLogic(command, {
+      'ban': 'ban',
+      'timeout': 'time out',
+      'untimeout': 'remove the timeout of',
+      'unban': 'unban',
+      'warn': 'warn',
+      'delete': 'delete the message',
+      'clear': 'clear the chat',
+      'slowOn': 'turn slow mode on',
+      'slowOff': 'turn slow mode off',
+      'followersOn': 'turn followers-only mode on',
+      'followersOff': 'turn followers-only mode off',
+      'subscribersOn': 'turn subscribers-only mode on',
+      'subscribersOff': 'turn subscribers-only mode off',
+      'emoteOnlyOn': 'turn emote-only mode on',
+      'emoteOnlyOff': 'turn emote-only mode off',
+      'uniqueChatOn': 'turn unique chat mode on',
+      'uniqueChatOff': 'turn unique chat mode off',
+      'other': 'do that',
+    });
+    return 'Couldn\'t $_temp0 (unexpected error).';
+  }
+
+  @override
+  String get chatModCannotModerate =>
+      'Twitch says you can\'t moderate this chat.';
+
+  @override
+  String chatModNoUser({required String login}) {
+    return 'no user named $login';
+  }
+
+  @override
+  String get chatModLogInAgain => 'Log in again to moderate from this app.';
+
+  @override
+  String get chatModNotThrough => 'That did not go through. Try again.';
+
+  @override
+  String chatModBanned({required String name}) {
+    return 'You banned $name.';
+  }
+
+  @override
+  String chatModTimedOut({required String name, required String duration}) {
+    return 'You timed out $name for $duration.';
+  }
+
+  @override
+  String chatModUntimedOut({required String name}) {
+    return 'You removed the timeout of $name.';
+  }
+
+  @override
+  String chatModUnbanned({required String name}) {
+    return 'You unbanned $name.';
+  }
+
+  @override
+  String chatModWarned({required String name}) {
+    return 'You warned $name.';
+  }
+
+  @override
+  String get chatModMessageDeleted => 'Message deleted.';
+
+  @override
+  String get chatModCleared => 'You cleared the chat.';
+
+  @override
+  String chatNoticeBanned({required String name}) {
+    return '$name has been permanently banned.';
+  }
+
+  @override
+  String chatNoticeTimedOut({required String name}) {
+    return '$name has been timed out.';
+  }
+
+  @override
+  String chatNoticeTimedOutFor({
+    required String name,
+    required String duration,
+  }) {
+    return '$name has been timed out for $duration.';
+  }
+
+  @override
+  String get chatRestrictionBanned =>
+      'You are permanently banned from this chat';
+
+  @override
+  String get chatRestrictionTimedOut => 'You are timed out';
+
+  @override
+  String chatRestrictionTimedOutFor({required String wait}) {
+    return 'You are timed out · $wait';
+  }
+
+  @override
+  String chatRestrictionSlow({required String wait}) {
+    return 'Slow mode · you can chat again in $wait';
+  }
+
+  @override
+  String get chatRestrictionEmoteOnly => 'Emote-only chat';
+
+  @override
+  String get chatRestrictionSubscribersOnly => 'Subscribers-only chat';
+
+  @override
+  String get chatRestrictionFollowersOnly => 'Followers-only chat';
+
+  @override
+  String chatRestrictionFollowersFor({required int minutes}) {
+    return 'Followers-only chat · following for $minutes+ min';
+  }
+
+  @override
+  String chatNewMessages({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new messages',
+      one: '$count new message',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatResumeScroll => 'Resume scroll';
+
+  @override
+  String get chatHistoricalMessage => 'Historical message';
+
+  @override
+  String chatSentFromCurrent({required String name}) {
+    return 'Sent from $name (current channel)';
+  }
+
+  @override
+  String chatSentFrom({required String name}) {
+    return 'Sent from $name';
+  }
+
+  @override
+  String get chatMessageDeletedInline => '<message deleted>';
+
+  @override
+  String get chatDeletedUser => 'Deleted user';
+
+  @override
+  String get chatFilteredWord => 'Filtered word';
+
+  @override
+  String chatCheerSemantics({required String prefix, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$prefix $count bits',
+      one: '$prefix $count bit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatEmoteStackWith({required String emotes}) {
+    return 'with $emotes';
+  }
+
+  @override
+  String chatEmoteBy({required String name}) {
+    return 'by $name';
+  }
+
+  @override
+  String get chatCopyName => 'Copy name';
+
+  @override
+  String get chatCopyImageUrl => 'Copy image URL';
+
+  @override
+  String get chatOpenInBrowser => 'Open in browser';
+
+  @override
+  String get chatMessageCopied => 'Message copied';
+
+  @override
+  String get chatCopyMessage => 'Copy message';
+
+  @override
+  String get chatCopyMessageAndPaste => 'Copy message and paste';
+
+  @override
+  String get chatReplyToMessage => 'Reply to message';
+
+  @override
+  String get chatDeleteMessage => 'Delete message';
+
+  @override
+  String get chatFirstMessage => 'First message';
+
+  @override
+  String get chatHighlightedMessage => 'Highlighted message';
+
+  @override
+  String get chatMessageDeleted => 'Message deleted';
+
+  @override
+  String get chatPermanentlyBanned => 'Permanently banned';
+
+  @override
+  String chatTimedOutFor({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Timed out for $count seconds',
+      one: 'Timed out for $count second',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatAnnouncement => 'Announcement';
+
+  @override
+  String get chatMessageOptionsHint => 'message options';
+
+  @override
+  String get chatCopyMessageHint => 'copy message';
+
+  @override
+  String get chatReplies => 'Replies';
+
+  @override
+  String get chatEmoteMenu => 'Emote menu';
+
+  @override
+  String get chatLogInToChat => 'Log in to chat';
+
+  @override
+  String get chatCancelReply => 'Cancel reply';
+
+  @override
+  String get chatEnterMessage => 'Enter a message';
+
+  @override
+  String get chatCannotChatNow => 'You can\'t chat right now';
+
+  @override
+  String get chatInputDisconnected => 'Chat disconnected';
+
+  @override
+  String get chatInputConnecting => 'Connecting...';
+
+  @override
+  String get chatSending => 'Sending...';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String chatReplyIn({required String name}) {
+    return 'Reply in $name';
+  }
+
+  @override
+  String get chatReply => 'Reply';
+
+  @override
+  String chatInChannelDelayed({required String name, required int seconds}) {
+    return 'Chat in $name (${seconds}s delay)';
+  }
+
+  @override
+  String chatDelayed({required int seconds}) {
+    return 'Chat (${seconds}s delay)';
+  }
+
+  @override
+  String chatInChannel({required String name}) {
+    return 'Chat in $name';
+  }
+
+  @override
+  String get chatInputPlaceholder => 'Chat';
+
+  @override
+  String get chatMoreOptions => 'More';
+
+  @override
+  String chatCharactersLeft({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count characters left',
+      one: '$count character left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatColorUpdated => 'Chat color updated successfully!';
+
+  @override
+  String get chatColorUpdateFailed =>
+      'Failed to update chat color. Please try again.';
+
+  @override
+  String get chatDetailsChatOnly => 'Chat only';
+
+  @override
+  String get chatDetailsShowVideo => 'Show video';
+
+  @override
+  String get chatDetailsRefreshAssets => 'Refresh emotes and badges';
+
+  @override
+  String get chatDetailsUsernameColor => 'Username color';
+
+  @override
+  String get chatDetailsPointsPollsPredictions =>
+      'Channel points, polls and predictions';
+
+  @override
+  String get chatDetailsOpensTwitchChat => 'Opens the chat on twitch.tv';
+
+  @override
+  String get chatDetailsTwitchChat => 'Twitch chat';
+
+  @override
+  String get chatDetailsOpensTwitch => 'Opens twitch.tv';
+
+  @override
+  String get chatDetailsGiftSub => 'Gift a Sub';
+
+  @override
+  String get chatDetailsModes => 'Chat modes';
+
+  @override
+  String get chatDetailsModesDetail => 'Slow, followers-only, clear chat…';
+
+  @override
+  String get chatDetailsChatters => 'Chatters';
+
+  @override
+  String get chatDetailsAddChat => 'Add chat';
+
+  @override
+  String get chatDetailsSleepTimer => 'Sleep timer';
+
+  @override
+  String get chatSave => 'Save';
+
+  @override
+  String get chatColorPreview => 'How it will look in chat';
+
+  @override
+  String chatColorName({required String color}) {
+    String _temp0 = intl.Intl.selectLogic(color, {
+      'blue': 'Blue',
+      'blue_violet': 'Blue Violet',
+      'cadet_blue': 'Cadet Blue',
+      'chocolate': 'Chocolate',
+      'coral': 'Coral',
+      'dodger_blue': 'Dodger Blue',
+      'firebrick': 'Firebrick',
+      'golden_rod': 'Golden Rod',
+      'green': 'Green',
+      'hot_pink': 'Hot Pink',
+      'orange_red': 'Orange Red',
+      'red': 'Red',
+      'sea_green': 'Sea Green',
+      'spring_green': 'Spring Green',
+      'yellow_green': 'Yellow Green',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get chatModesAnyFollower => 'Any follower';
+
+  @override
+  String get chatModesClearTitle => 'Clear chat?';
+
+  @override
+  String get chatModesClearMessage => 'Every message is deleted for everyone.';
+
+  @override
+  String get chatClear => 'Clear';
+
+  @override
+  String get chatModesModerator => 'Moderator';
+
+  @override
+  String chatModesSlowWait({required int seconds}) {
+    return '${seconds}s between messages';
+  }
+
+  @override
+  String get chatModesClearChat => 'Clear chat';
+
+  @override
+  String chatModePill({required String mode}) {
+    String _temp0 = intl.Intl.selectLogic(mode, {
+      'emoteOnly': 'Emote only',
+      'followers': 'Follower only',
+      'slow': 'Slow mode',
+      'subscribers': 'Sub only',
+      'uniqueChat': 'Unique mode',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get chatChattersFilter => 'Filter chatters';
+
+  @override
+  String chatChattersFound({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString chatters found',
+      one: '$countString chatter found',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatChattersNone => 'No chatters found';
+
+  @override
+  String get chatChattersNoMatch => 'No matching chatters';
+
+  @override
+  String get emoteMenuRecent => 'Recent';
+
+  @override
+  String get emoteMenuClearRecent => 'Clear recent emotes';
+
+  @override
+  String get emoteMenuRecentCleared => 'Recent emotes cleared';
+
+  @override
+  String get emoteMenuNoRecent => 'No recent emotes';
+
+  @override
+  String emoteMenuLocked({required String name}) {
+    return '$name, locked';
+  }
+
+  @override
+  String get emoteMenuChannel => 'Channel';
+
+  @override
+  String get emoteMenuGlobal => 'Global';
+
+  @override
+  String get emoteMenuUnlocked => 'Unlocked';
+
+  @override
+  String get emoteMenuOther => 'Other';
+
+  @override
+  String chatHeldDecision({required String decision}) {
+    String _temp0 = intl.Intl.selectLogic(decision, {
+      'approved': 'Moderators approved your held message',
+      'denied': 'Moderators denied your held message',
+      'other': 'Your held message can no longer be reviewed',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatHeldQuoted({required String decision, required String quote}) {
+    return '$decision: \"$quote\"';
+  }
+
+  @override
+  String get chatAddChatSearchFailed => 'Failed to search channels';
+
+  @override
+  String get chatAddChatTitle => 'Add Chat';
+
+  @override
+  String get chatAddChatSearch => 'Search for a channel';
+
+  @override
+  String get chatAddChatPrompt => 'Search for a channel to add';
+
+  @override
+  String get chatAddChatNoChannels => 'No channels found';
+
+  @override
+  String get chatTabsSplit => 'Split chats';
+
+  @override
+  String get chatTabsMerge => 'Merge loaded chats';
+
+  @override
+  String get chatTabsDisconnect => 'Disconnect';
+
+  @override
+  String get chatTabsRemove => 'Remove';
+
+  @override
+  String get chatTabsOptions => 'Tab options';
+
+  @override
+  String get chatTabsMaximum => 'Maximum 10 chats open';
+
+  @override
+  String get chatTabsAlreadyOpen => 'Channel already open, switched to it';
+
+  @override
+  String get chatUserWhisper => 'Whisper';
+
+  @override
+  String get chatUserProfile => 'Profile';
+
+  @override
+  String get chatUserNoRecentMessages => 'No recent messages';
+
+  @override
+  String get chatUserRecentMessages => 'Recent messages';
+
+  @override
+  String chatUserBadgeMonths({required String name, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name · $count months',
+      one: '$name · $count month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatUserAccountCreated({required String date}) {
+    return 'Account created $date';
+  }
+
+  @override
+  String chatUserFollowingSince({required String date}) {
+    return 'Following since $date';
+  }
+
+  @override
+  String get chatFilteredTitle => 'Message Blocked';
+
+  @override
+  String get chatFilteredBody =>
+      'Would you like to see this message? It has been hidden for you based on your NSFW Chat Filter settings.';
+
+  @override
+  String get chatFilteredShow => 'Show Message';
+
+  @override
+  String get chatRulesTitle => 'Chat rules';
+
+  @override
+  String get chatRulesHeading => 'Chat Rules';
+
+  @override
+  String get chatRulesAccept => 'OK, Got it!';
+
+  @override
+  String chatRaidWelcomeSemantics({
+    required String from,
+    required String target,
+  }) {
+    return 'You followed $from\'s raid. Welcome to $target\'s chat';
+  }
+
+  @override
+  String chatRaidWelcomeFrom({required String name}) {
+    return 'You followed $name\'s raid';
+  }
+
+  @override
+  String chatRaidWelcomeTo({required String name}) {
+    return 'Welcome to $name\'s chat';
+  }
+
+  @override
+  String chatGiftRecipientsReceived({
+    required int received,
+    required int count,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$received of $count recipients',
+      one: '$received of $count recipient',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatGiftRecipients({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recipients',
+      one: '$count recipient',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatGiftRecipientsMore({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+$count more',
+      one: '+$count more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatAnonymousGifter => 'An anonymous gifter';
+
+  @override
+  String get chatLinkUntitledClip => 'Untitled clip';
+
+  @override
+  String get chatLinkUntitled => 'Untitled';
+
+  @override
+  String get chatLinkClip => 'Clip';
+
+  @override
+  String get chatLinkVideo => 'Video';
+
+  @override
+  String chatLinkViews({required int count, required String views}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$views views',
+      one: '$views view',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatModBarBanTitle({required String name}) {
+    return 'Ban $name?';
+  }
+
+  @override
+  String get chatModBarBan => 'Ban';
+
+  @override
+  String chatModBarWarnTitle({required String name}) {
+    return 'Warn $name';
+  }
+
+  @override
+  String get chatModBarWarn => 'Warn';
+
+  @override
+  String get chatModBarPurge => '1 second (purge)';
+
+  @override
+  String get chatModBarTimeout => 'Timeout';
+
+  @override
+  String get chatModBarUnban => 'Unban';
+
+  @override
+  String get chatModBarReason => 'Reason';
+
+  @override
+  String get chatModBarReasonOptional => 'Reason (optional)';
+
+  @override
+  String get pointsChannelPoints => 'Channel points';
+
+  @override
+  String get pointsLogInForBalance => 'Log in to see your balance.';
+
+  @override
+  String get pointsPredictionOpen => 'Prediction — open';
+
+  @override
+  String get pointsPredictionLocked => 'Prediction — locked';
+
+  @override
+  String get pointsRewards => 'Rewards';
+
+  @override
+  String get pointsNoRewards => 'This channel has no rewards set up.';
+
+  @override
+  String get pointsStreakNote =>
+      'Twitch counts streaks. Watching in this app may not count toward them.';
+
+  @override
+  String get pointsBonusBlocked =>
+      'Twitch blocks collecting the bonus from here — its anti-bot check. Collect it on twitch.tv and the balance follows.';
+
+  @override
+  String get pointsCollectBonus => 'Collect bonus';
+
+  @override
+  String pointsOutcomeTotals({required String points, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$points  ·  $count viewers',
+      one: '$points  ·  $count viewer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pointsBetOn({required String title, required String odds}) {
+    return 'Bet on $title, pays $odds times';
+  }
+
+  @override
+  String pointsBetOnUnknown({required String title}) {
+    return 'Bet on $title, pays unknown';
+  }
+
+  @override
+  String get pointsTapToBet => 'Tap an outcome to bet.';
+
+  @override
+  String get pointsBetHeading => 'BET ON';
+
+  @override
+  String pointsBalance({required String points}) {
+    return 'Balance $points';
+  }
+
+  @override
+  String pointsNeedAtLeast({required int points}) {
+    return 'You need at least $points points to bet.';
+  }
+
+  @override
+  String get pointsStake => 'Stake';
+
+  @override
+  String get pointsMax => 'Max';
+
+  @override
+  String get pointsField => 'Points';
+
+  @override
+  String get pointsNoOdds => 'No odds yet.';
+
+  @override
+  String pointsPaysAbout({required String odds}) {
+    return 'Pays about $odds × if this wins — moves with every other bet.';
+  }
+
+  @override
+  String pointsBetAmount({required String points}) {
+    return 'Bet $points';
+  }
+
+  @override
+  String get pointsBet => 'Bet';
+
+  @override
+  String pointsOdds({required String odds}) {
+    return '$odds ×';
+  }
+
+  @override
+  String pointsSpend({required String points}) {
+    return 'Spend $points points?';
+  }
+
+  @override
+  String get pointsYourMessage => 'Your message';
+
+  @override
+  String get pointsRedeem => 'Redeem';
+
+  @override
+  String pointsResult({required String status, required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'success': 'Done.',
+      'integrityRefused':
+          'Twitch refused: anti-bot check. Not something this app can pass.',
+      'notAuthenticated':
+          'Twitch rejected the login. Sign in again to spend points.',
+      'network': 'Could not reach Twitch. Try again.',
+      'other': 'Twitch refused: $reason',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get pointsBusy => 'Already in progress.';
+
+  @override
+  String get pointsNoReason => 'no reason';
+
+  @override
+  String pointsAutomaticReward({required String type}) {
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'highlight': 'Highlight my message',
+      'randomEmote': 'Unlock a random sub emote',
+      'chosenEmote': 'Choose an emote to unlock',
+      'modifiedEmote': 'Modify a single emote',
+      'subOnlyMessage': 'Send a message in sub-only mode',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get streakSaveTitle => 'Keep watching to save your Watch Streak!';
+
+  @override
+  String streakSaveLive({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Watch this live stream and you\'ll be able to save your current $count-stream streak.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get streakExpiringTitle => 'Watch Streak Expiring';
+
+  @override
+  String streakExpiring({
+    required String name,
+    required int hours,
+    required int minutes,
+    required int seconds,
+  }) {
+    return 'Watch $name in the next ${hours}h ${minutes}m ${seconds}s to save your streak!';
+  }
+
+  @override
+  String streakYour({required int value}) {
+    return 'Your Watch Streak: $value';
+  }
+
+  @override
+  String streakOneMore({required int count, required String points}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '1 more stream until an extra $points channel points reward',
+      one: '1 more stream until an extra $points channel point reward',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakReached({
+    required int count,
+    required int next,
+    required String points,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'You reached a $next-stream streak and earned an extra $points channel points',
+      one:
+          'You reached a $next-stream streak and earned an extra $points channel point',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakReach({
+    required int count,
+    required int next,
+    required String points,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Reach $next-stream streak and earn an extra $points channel points',
+      one: 'Reach $next-stream streak and earn an extra $points channel point',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String emoteUnlockHint({required String how}) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'global': 'Available to everyone on Twitch.',
+      'owned': 'You can use it.',
+      'follow': 'Follow this channel to use it.',
+      'bits': 'Cheer Bits in this channel to unlock it.',
+      'subscribe': 'Subscribe to this channel to use it.',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String emoteUnlockTier({required int tier}) {
+    return 'Subscribe to this channel at Tier $tier to use it.';
+  }
+
+  @override
+  String emoteTypeName({required String type}) {
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'twitchBits': 'Twitch bits emote',
+      'twitchFollower': 'Twitch follower emote',
+      'twitchSub': 'Twitch sub emote',
+      'twitchGlobal': 'Twitch global emote',
+      'twitchUnlocked': 'Twitch unlocked emote',
+      'twitchChannel': 'Twitch channel emote',
+      'ffzGlobal': 'FrankerFaceZ global emote',
+      'ffzChannel': 'FrankerFaceZ channel emote',
+      'bttvGlobal': 'BetterTTV global emote',
+      'bttvChannel': 'BetterTTV channel emote',
+      'bttvShared': 'BetterTTV shared emote',
+      'sevenTVGlobal': '7TV global emote',
+      'sevenTVChannel': '7TV channel emote',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String badgeTypeName({required String type}) {
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'twitch': 'Twitch badge',
+      'bttv': 'BetterTTV badge',
+      'ffz': 'FrankerFaceZ badge',
+      'sevenTV': '7TV badge',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String noticeSubscribed({
+    required String plan,
+    required String name,
+    required int tier,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(plan, {
+      'prime': '$name subscribed with Prime.',
+      'tier': '$name subscribed at Tier $tier.',
+      'other': '$name subscribed.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String noticeResubscribed({
+    required String plan,
+    required String name,
+    required int tier,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(plan, {
+      'prime': '$name subscribed with Prime.',
+      'tier': '$name subscribed at Tier $tier.',
+      'other': '$name subscribed.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String noticeSubStreak({required int months, required int streak}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other:
+          'They\'ve subscribed for $months months, currently on a $streak month streak!',
+      one:
+          'They\'ve subscribed for $months month, currently on a $streak month streak!',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeSubMonths({required int months}) {
+    return 'They\'ve subscribed for $months months!';
+  }
+
+  @override
+  String noticeGiftedSub({
+    required String tiered,
+    required String gifter,
+    required int tier,
+    required String recipient,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(tiered, {
+      'yes': '$gifter gifted a Tier $tier Sub to $recipient!',
+      'other': '$gifter gifted a Sub to $recipient!',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String noticeGiftedMonthsTier({
+    required String gifter,
+    required String months,
+    required String tier,
+    required String recipient,
+  }) {
+    return '$gifter gifted $months of $tier to $recipient!';
+  }
+
+  @override
+  String noticeGiftedMonths({
+    required String gifter,
+    required String months,
+    required String recipient,
+  }) {
+    return '$gifter gifted a $months Sub to $recipient!';
+  }
+
+  @override
+  String noticeGiftMonths({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months',
+      one: '$count month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeGiftMonthsShort({required int count}) {
+    return '$count month';
+  }
+
+  @override
+  String noticeGiftTier({required int tier}) {
+    return 'Tier $tier';
+  }
+
+  @override
+  String get noticeGiftFirst => 'It\'s their first Gift Sub in the channel!';
+
+  @override
+  String noticeGiftCount({required int count}) {
+    return 'They\'ve given $count Gift Subs in the channel!';
+  }
+
+  @override
+  String noticeCommunityGift({
+    required String tiered,
+    required int count,
+    required String gifter,
+    required int tier,
+    required String channel,
+    required String end,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(end, {'more': '.', 'other': '!'});
+    String _temp1 = intl.Intl.selectLogic(end, {'more': '.', 'other': '!'});
+    String _temp2 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$gifter is gifting $count Tier $tier Subs to $channel\'s community$_temp0',
+      one:
+          '$gifter is gifting $count Tier $tier Sub to $channel\'s community$_temp1',
+    );
+    String _temp3 = intl.Intl.selectLogic(end, {'more': '.', 'other': '!'});
+    String _temp4 = intl.Intl.selectLogic(end, {'more': '.', 'other': '!'});
+    String _temp5 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$gifter is gifting $count Subs to $channel\'s community$_temp3',
+      one: '$gifter is gifting $count Sub to $channel\'s community$_temp4',
+    );
+    String _temp6 = intl.Intl.selectLogic(tiered, {
+      'yes': '$_temp2',
+      'other': '$_temp5',
+    });
+    return '$_temp6';
+  }
+
+  @override
+  String get noticeCommunityGiftFirst =>
+      'It\'s their first Gift Sub in the channel!';
+
+  @override
+  String noticeCommunityGiftTotal({required int count}) {
+    return 'They\'ve gifted a total of $count in the channel!';
+  }
+
+  @override
+  String noticeExtendedSub({
+    required String tiered,
+    required String name,
+    required int tier,
+    required String month,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(tiered, {
+      'yes': '$name extended their Tier $tier subscription through $month!',
+      'other': '$name extended their subscription through $month!',
+    });
+    return '$_temp0';
+  }
 }
