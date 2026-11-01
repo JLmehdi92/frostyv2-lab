@@ -64,9 +64,6 @@ class _ProfilePictureState extends State<ProfilePicture> {
   @override
   Widget build(BuildContext context) {
     final diameter = widget.radius * 2;
-    // Twitch serves 300 px pictures; decoded at the size drawn, they take
-    // the same pixels on screen for a fraction of the memory.
-    final decoded = (diameter * MediaQuery.devicePixelRatioOf(context)).ceil();
     final placeholderColor = Theme.of(context).colorScheme.surfaceContainer;
 
     return ClipOval(
@@ -80,9 +77,6 @@ class _ProfilePictureState extends State<ProfilePicture> {
                   width: diameter,
                   height: diameter,
                   imageUrl: snapshot.data!,
-                  // The width alone: the height follows the picture's
-                  // own proportions, as it did at full size.
-                  memCacheWidth: decoded,
                   placeholder: (context, url) =>
                       ColoredBox(color: placeholderColor),
                 )

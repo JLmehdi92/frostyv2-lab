@@ -65,8 +65,8 @@ void main() {
     verify(() => api.getUser(userLogin: 'offline_one')).called(1);
   });
 
-  testWidgets('a known picture shows from the first frame, decoded at the '
-      'size it is drawn', (tester) async {
+  testWidgets('a known picture shows from the first frame, decoded as '
+      'before', (tester) async {
     when(() => api.getUser(userLogin: 'known_one')).thenAnswer(
       (_) async => const UserTwitch(
         '1',
@@ -87,13 +87,13 @@ void main() {
     expect(find.byType(CachedNetworkImage), findsOneWidget);
     verify(() => api.getUser(userLogin: 'known_one')).called(1);
 
-    // Drawn 40 dp wide at 2.5 px per dp: decoded at 100 px, not at the
-    // 300 px Twitch serves (a ninth of the memory, the same pixels on
-    // screen).
+    // One decoded copy serves every size the avatar is drawn at: a decode
+    // per size would fade the picture in (500 ms) the first time it shows
+    // at a new size.
     final image = tester.widget<CachedNetworkImage>(
       find.byType(CachedNetworkImage),
     );
-    expect(image.memCacheWidth, 100);
+    expect(image.memCacheWidth, isNull);
     expect(image.memCacheHeight, isNull);
   });
 }
