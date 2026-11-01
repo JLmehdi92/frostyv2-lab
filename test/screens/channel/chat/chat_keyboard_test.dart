@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobx/mobx.dart' show ObservableList;
+import 'package:mobx/mobx.dart' show Observable, ObservableList, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
@@ -12,6 +12,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:provider/provider.dart';
 
 import '../../../helpers/chat_message_harness.dart';
@@ -53,6 +54,8 @@ void main() {
   late TextEditingController text;
   late FocusNode focus;
   late ScrollController scroll;
+  late Observable<double> barHeight;
+  late Observable<bool> autoScroll;
 
   setUp(() {
     settings = SettingsStore.fromJson({});
@@ -75,9 +78,12 @@ void main() {
       for (var i = 0; i < 60; i++) IRCMessage.fromString(_line(i)),
     ]);
     when(() => chat.messageBuffer).thenReturn(ObservableList<IRCMessage>());
-    when(() => chat.autoScroll).thenReturn(true);
+    autoScroll = Observable(true);
+    when(() => chat.autoScroll).thenAnswer((_) => autoScroll.value);
+    when(() => chat.resumeScroll()).thenReturn(null);
     when(() => chat.scrollController).thenReturn(scroll);
-    when(() => chat.bottomBarHeight).thenReturn(68);
+    barHeight = Observable(68.0);
+    when(() => chat.bottomBarHeight).thenAnswer((_) => barHeight.value);
     when(() => chat.chatRules).thenReturn(null);
     when(() => chat.matchingEmotes).thenReturn(const []);
     when(() => chat.matchingChatters).thenReturn(const []);
@@ -101,12 +107,16 @@ void main() {
     scroll.dispose();
   });
 
-  Future<void> pump(WidgetTester tester, Size screen) async {
+  Future<void> pump(
+    WidgetTester tester,
+    Size screen, {
+    double navBar = 24,
+  }) async {
     tester.view
       ..physicalSize = screen
       ..devicePixelRatio = 1
-      ..viewPadding = const FakeViewPadding(bottom: 24)
-      ..padding = const FakeViewPadding(bottom: 24);
+      ..viewPadding = FakeViewPadding(bottom: navBar)
+      ..padding = FakeViewPadding(bottom: navBar);
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       Provider<ChannelEventsStore?>.value(
@@ -151,6 +161,35 @@ void main() {
       expect(counts.of<ChatMessage>(), 0, reason: '$counts');
       expect(counts.of<ChatBottomBar>(), 0, reason: '$counts');
       expect(tester.takeException(), isNull);
+    });
+  }
+
+  // Reply while scrolled up: the reply bar grows the chat input as the
+  // keyboard slides in. Without a bottom padding to change (no navigation
+  // bar inset, or the side chat of a landscape screen), nothing but the
+  // input's height tells the resume button and the scrollbar to move.
+  for (final (name, screen) in [
+    ('no navigation bar inset', const Size(412, 915)),
+    ('landscape side chat', const Size(1280, 800)),
+  ]) {
+    testWidgets('$name: after Reply, the resume button and the scrollbar '
+        'clear the reply bar', (tester) async {
+      runInAction(() => autoScroll.value = false);
+      await pump(tester, screen, navBar: 0);
+      final button = find.text('Resume scroll');
+      expect(button, findsOneWidget);
+      final before = tester.getBottomLeft(button).dy;
+
+      runInAction(() => barHeight.value = 68 + 41);
+      await animateKeyboard(tester, navBar: 0);
+      await tester.pumpAndSettle();
+
+      // Before: 320, the reply bar's 41 dp missing (drawn over it).
+      expect(before - tester.getBottomLeft(button).dy, 320 + 41);
+      final scrollbar = tester.widget<OnsetScrollbar>(
+        find.byType(OnsetScrollbar),
+      );
+      expect(scrollbar.padding!.bottom, 68 + 41);
     });
   }
 }

@@ -157,22 +157,29 @@ class _ChatState extends State<Chat> {
                                   ? chatTabsStore!.mergedScrollController
                                   : chatStore.scrollController;
 
-                              return _ChatScrollbar(
-                                controller: scrollController,
-                                bottomBarHeight: chatStore.bottomBarHeight,
-                                safeBottom: safeBottom,
-                                child: Observer(
-                                  builder: (context) {
-                                    return _isMerged
-                                        ? _buildMergedList(
-                                            scrollController,
-                                            safeBottom,
-                                          )
-                                        : _buildNormalList(
-                                            scrollController,
-                                            safeBottom,
-                                          );
-                                  },
+                              final list = Observer(
+                                builder: (context) {
+                                  return _isMerged
+                                      ? _buildMergedList(
+                                          scrollController,
+                                          safeBottom,
+                                        )
+                                      : _buildNormalList(
+                                          scrollController,
+                                          safeBottom,
+                                        );
+                                },
+                              );
+                              // The input's height (reply bar, autocomplete,
+                              // restriction bar) is observed here: nothing
+                              // else rebuilds the scrollbar when it changes.
+                              // The list, built above, is passed in as is.
+                              return Observer(
+                                builder: (_) => _ChatScrollbar(
+                                  controller: scrollController,
+                                  bottomBarHeight: chatStore.bottomBarHeight,
+                                  safeBottom: safeBottom,
+                                  child: list,
                                 ),
                               );
                             },
@@ -277,7 +284,9 @@ class _ChatState extends State<Chat> {
   }
 
   Widget _buildResumeScrollButton(bool emoteMenuInline) {
-    return Builder(
+    // An Observer: it follows the input's height (a reply bar appearing),
+    // which nothing else rebuilds it for.
+    return Observer(
       builder: (context) {
         final isHorizontalLandscape =
             context.isLandscape &&
