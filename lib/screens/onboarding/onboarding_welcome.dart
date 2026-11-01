@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/onboarding/onboarding_parts.dart';
@@ -80,6 +82,9 @@ class _Tip extends StatelessWidget {
   final int number;
   final String text;
 
+  static double _numberSize(BuildContext context) =>
+      math.max(30, MediaQuery.textScalerOf(context).scale(22) + 8);
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -91,8 +96,9 @@ class _Tip extends StatelessWidget {
           spacing: 14,
           children: [
             Container(
-              width: 30,
-              height: 30,
+              // 30 dp, larger with large text so the number stays whole.
+              width: _numberSize(context),
+              height: _numberSize(context),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.fromBorderSide(

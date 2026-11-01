@@ -184,7 +184,10 @@ class _UpNextCard extends StatelessWidget {
                               similar
                                   ? l.vodUpNextSimilar(channel: channel)
                                   : channel,
-                              maxLines: 1,
+                              // « {channel} · Suggestion » keeps its last
+                              // word on a second line where the player has
+                              // room.
+                              maxLines: similar && roomy ? 2 : 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontFamily: OnsetTokens.bodyFamily,

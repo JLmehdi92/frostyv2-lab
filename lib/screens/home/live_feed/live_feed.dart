@@ -1308,6 +1308,7 @@ class _FollowButton extends StatelessWidget {
           ),
           shape: const StadiumBorder(),
           textStyle: TextStyle(
+            fontFamily: OnsetTokens.bodyFamily,
             fontSize: height > 40 ? 14 : 13,
             fontWeight: FontWeight.w600,
           ),

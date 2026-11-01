@@ -68,6 +68,7 @@ class _ShelfHeader extends StatelessWidget {
             minimumSize: const Size(44, 36),
             padding: const EdgeInsets.symmetric(horizontal: 8),
             textStyle: const TextStyle(
+              fontFamily: OnsetTokens.bodyFamily,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),

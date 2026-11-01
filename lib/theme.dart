@@ -726,7 +726,10 @@ class OnsetThemes {
           ),
           border: Border.all(color: borderColor, width: borderWidth),
         ),
-        textStyle: TextStyle(color: colorScheme.onSurface),
+        textStyle: TextStyle(
+          fontFamily: OnsetTokens.bodyFamily,
+          color: colorScheme.onSurface,
+        ),
       ),
       snackBarTheme: SnackBarThemeData(
         showCloseIcon: true,

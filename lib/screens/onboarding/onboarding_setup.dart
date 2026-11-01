@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -617,18 +619,19 @@ class _ThemeChoice extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
+          spacing: 12,
           children: [
+            Text(l.onboardingSetupThemeTitle, style: OnboardingType.rowTitle),
+            // The note takes the room the title leaves, on as many lines
+            // as large text needs.
             Expanded(
               child: Text(
-                l.onboardingSetupThemeTitle,
-                style: OnboardingType.rowTitle,
-              ),
-            ),
-            Text(
-              _note(l, value),
-              style: const TextStyle(
-                fontSize: 12,
-                color: OnboardingColors.tertiary,
+                _note(l, value),
+                textAlign: TextAlign.end,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: OnboardingColors.tertiary,
+                ),
               ),
             ),
           ],
@@ -637,7 +640,11 @@ class _ThemeChoice extends StatelessWidget {
           container: true,
           label: l.onboardingSetupThemeTitle,
           child: Container(
-            height: 44,
+            // 44 dp, taller as large text needs (a 13 sp line and room).
+            height: math.max(
+              44,
+              MediaQuery.textScalerOf(context).scale(13) * 1.3 + 14,
+            ),
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               color: OnboardingColors.raised,
@@ -692,7 +699,17 @@ class _ThemeChoice extends StatelessWidget {
                                       ? OnsetTokens.backgroundDark
                                       : OnboardingColors.body,
                                 ),
-                                child: Text(theme.label(l)),
+                                // A label too wide for its third shrinks
+                                // rather than lose letters.
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(theme.label(l), maxLines: 1),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -726,8 +743,9 @@ class _AccentRow extends StatelessWidget {
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
-        child: SizedBox(
-          height: 56,
+        // 56 dp, taller when large text wraps the title.
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 56),
           child: Row(
             spacing: 12,
             children: [

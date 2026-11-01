@@ -528,6 +528,7 @@ class _SectionTitle extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1053,7 +1054,11 @@ class _MarkAllPill extends StatelessWidget {
             width: OnsetTokens.hairlineWidth,
           ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: OnsetTokens.bodyFamily,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1144,6 +1149,7 @@ class _WhispersColumn extends StatelessWidget {
                         padding: const EdgeInsets.only(left: 12, right: 8),
                         shape: const StadiumBorder(),
                         textStyle: const TextStyle(
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),

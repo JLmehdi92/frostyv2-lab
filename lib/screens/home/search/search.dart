@@ -931,6 +931,7 @@ class _SectionTitle extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             foregroundColor: colors.secondary,
             textStyle: const TextStyle(
+              fontFamily: OnsetTokens.bodyFamily,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -996,6 +997,7 @@ class _HistoryList extends StatelessWidget {
                   minimumSize: const Size(44, 44),
                   foregroundColor: colors.secondary,
                   textStyle: const TextStyle(
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),

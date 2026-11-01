@@ -351,6 +351,7 @@ class StatePill extends StatelessWidget {
         ),
         shape: const StadiumBorder(),
         textStyle: TextStyle(
+          fontFamily: OnsetTokens.bodyFamily,
           fontSize: compact ? 13 : 14,
           fontWeight: FontWeight.w600,
         ),
@@ -387,7 +388,11 @@ class _PrimaryPill extends StatelessWidget {
           backgroundColor: accent,
           foregroundColor: onFillColor(accent),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          textStyle: const TextStyle(
+            fontFamily: OnsetTokens.bodyFamily,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         child: Text(label),
       ),
