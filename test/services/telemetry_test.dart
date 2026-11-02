@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/firebase_performance_interceptor.dart';
@@ -257,6 +258,57 @@ void main() {
 
       expect(shown, [same(details)]);
       expect(printed, isEmpty);
+    });
+  });
+
+  group('image load failures', () {
+    test('are recognised by their library or their exception', () {
+      expect(
+        Telemetry.isImageLoadFailure(
+          FlutterErrorDetails(
+            exception: Exception('HttpException: 404'),
+            library: 'image resource service',
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        Telemetry.isImageLoadFailure(
+          FlutterErrorDetails(
+            exception: NetworkImageLoadException(
+              statusCode: 404,
+              uri: Uri.parse('https://example.com/a.png'),
+            ),
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        Telemetry.isImageLoadFailure(
+          FlutterErrorDetails(
+            exception: StateError('x'),
+            library: 'widgets library',
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('are shown, never reported as fatal, even when collecting', () {
+      final shown = <FlutterErrorDetails>[];
+      final savedPresent = FlutterError.presentError;
+      FlutterError.presentError = shown.add;
+      addTearDown(() => FlutterError.presentError = savedPresent);
+      Telemetry.setCollectionEnabled(true);
+      addTearDown(() => Telemetry.setCollectionEnabled(false));
+
+      final details = FlutterErrorDetails(
+        exception: Exception('HttpException: 404'),
+        library: 'image resource service',
+      );
+      Telemetry.recordFlutterFatalError(details);
+
+      expect(shown, [same(details)]);
     });
   });
 

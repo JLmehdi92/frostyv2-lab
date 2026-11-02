@@ -180,12 +180,21 @@ abstract final class Telemetry {
   /// opted in (Crashlytics then shows it too), else only shown, as Flutter
   /// does without a handler.
   static void recordFlutterFatalError(FlutterErrorDetails details) {
-    if (!collecting) {
+    // An image that fails to load (a deleted emote, a missing avatar, a
+    // dropped connection) is drawn as a placeholder and the app runs on, so
+    // it is never a crash: it is only shown, never reported as fatal.
+    if (!collecting || isImageLoadFailure(details)) {
       FlutterError.presentError(details);
       return;
     }
     _call(() => FirebaseCrashlytics.instance.recordFlutterFatalError(details));
   }
+
+  /// Whether [details] reports an image that could not be loaded, which
+  /// Flutter raises from its image cache with this library name.
+  static bool isImageLoadFailure(FlutterErrorDetails details) =>
+      details.library == 'image resource service' ||
+      details.exception is NetworkImageLoadException;
 
   /// The handler of uncaught platform and async errors: reported once the
   /// viewer opted in (true: handled), else left to the engine, which logs
