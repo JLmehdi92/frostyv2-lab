@@ -442,6 +442,20 @@ class ChatMessage extends StatelessWidget {
                   ),
                 ),
               );
+            } else if (shouldHighlightFirstMessage) {
+              highlightColor = context.onsetColors.highlightedMessage;
+              messageHeaderIcon = Icon(
+                Icons.auto_awesome_rounded,
+                size: messageHeaderIconSize,
+                color: messageHeaderTextColor,
+              );
+              messageHeader = Text(
+                context.l10n.chatFirstMessage,
+                style: TextStyle(
+                  fontWeight: messageHeaderFontWeight,
+                  color: messageHeaderTextColor,
+                ),
+              );
             } else if (cheerChannel != null) {
               messageHeaderIcon = Icon(
                 Icons.diamond_outlined,
@@ -452,20 +466,6 @@ class ChatMessage extends StatelessWidget {
                 context.l10n.chatCheeredIn(channel: cheerChannel),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: messageHeaderFontWeight,
-                  color: messageHeaderTextColor,
-                ),
-              );
-            } else if (shouldHighlightFirstMessage) {
-              highlightColor = context.onsetColors.highlightedMessage;
-              messageHeaderIcon = Icon(
-                Icons.auto_awesome_rounded,
-                size: messageHeaderIconSize,
-                color: messageHeaderTextColor,
-              );
-              messageHeader = Text(
-                context.l10n.chatFirstMessage,
                 style: TextStyle(
                   fontWeight: messageHeaderFontWeight,
                   color: messageHeaderTextColor,

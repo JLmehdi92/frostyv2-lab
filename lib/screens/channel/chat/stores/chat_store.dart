@@ -675,6 +675,15 @@ abstract class ChatStoreBase with Store {
     return outcome;
   }
 
+  void _forgetFollowRefusalWhenOpen() {
+    final followersOnly =
+        int.tryParse(chatDetailsStore.roomState.followersOnly) ?? -1;
+    if (_refusedFor == ChatRestrictionKind.followRequired &&
+        followersOnly < 0) {
+      _refusedFor = null;
+    }
+  }
+
   void _resetOwnRestrictions() {
     _banned = false;
     _refusedFor = null;
@@ -768,8 +777,9 @@ abstract class ChatStoreBase with Store {
     }
 
     // The ban, timeout or slow-mode line above the input.
-    if (auth.isLoggedIn && (_restriction?.showsBar ?? false)) {
-      height += kRestrictionBarHeight;
+    if (_restriction case final restriction?
+        when auth.isLoggedIn && restriction.showsBar) {
+      height += restriction.barHeight;
     }
 
     return height;
@@ -1122,6 +1132,7 @@ abstract class ChatStoreBase with Store {
           case Command.roomState:
             chatDetailsStore.roomState = chatDetailsStore.roomState
                 .fromIRCMessage(parsedIRCMessage);
+            _forgetFollowRefusalWhenOpen();
             _updateRestriction();
             continue;
           case Command.userState:

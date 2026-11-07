@@ -5049,8 +5049,6 @@ class AppLocalizationsEn extends AppLocalizations {
           'Couldn’t send your message. This chat is in emote-only mode.',
       'uniqueChat':
           'Couldn’t send your message. This chat is in unique chat mode, and your message isn’t original.',
-      'followersOnly':
-          'Couldn’t send your message. This chat is in followers-only mode.',
       'followRequired':
           'Couldn’t send your message. This chat is in followers-only mode: follow the channel to chat.',
       'followedTooRecently':
@@ -5063,8 +5061,7 @@ class AppLocalizationsEn extends AppLocalizations {
           'Couldn’t send your message. Your email address is banned from this channel.',
       'phoneAliasBanned':
           'Couldn’t send your message. Your phone number is banned from this channel.',
-      'channelSuspended':
-          'Couldn’t send your message. This channel is suspended.',
+      'channelSuspended': 'This channel doesn’t exist or is suspended.',
       'accountSuspended':
           'Couldn’t send your message. Your account is suspended.',
       'channelBlocked':
@@ -5086,34 +5083,7 @@ class AppLocalizationsEn extends AppLocalizations {
           'Couldn’t send your message. A moderator warned you: acknowledge the warning on twitch.tv to chat again.',
       'banned': 'You’re permanently banned from this chat.',
       'followersOnNow': 'This chat is now in followers-only mode.',
-      'noHelp': 'No help is available for this command.',
       'noPermission': 'You don’t have permission to do that.',
-      'noMods': 'This channel has no moderators.',
-      'banBroadcaster': 'You can’t ban the broadcaster.',
-      'maxMods': 'This channel already has the maximum number of moderators.',
-      'modInvalid': 'This user can’t be made a moderator.',
-      'other': '',
-    });
-    return '$_temp0';
-  }
-
-  @override
-  String chatServerNoticeName({required String notice, required String name}) {
-    String _temp0 = intl.Intl.selectLogic(notice, {
-      'modAdded': 'You added $name as a moderator of this channel.',
-      'modRemoved': 'You removed $name as a moderator of this channel.',
-      'alreadyMod': '$name is already a moderator of this channel.',
-      'notMod': '$name isn’t a moderator of this channel.',
-      'modBanned':
-          '$name is banned from this channel. Unban them before making them a moderator.',
-      'notBanned': '$name isn’t banned from this channel.',
-      'notTimedOut': '$name isn’t timed out in this channel.',
-      'alreadyBanned': '$name is already banned from this channel.',
-      'banMod':
-          'You can’t ban $name: only the broadcaster can ban a moderator.',
-      'timeoutMod':
-          'You can’t time out $name: only the broadcaster can time out a moderator.',
-      'invalidUser': 'Unknown username: $name.',
       'other': '',
     });
     return '$_temp0';
@@ -5130,31 +5100,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String chatServerNoticeMods({required String names}) {
-    return 'Moderators of this channel: $names.';
-  }
-
-  @override
   String chatServerNoticeUnknownCommand({required String command}) {
     return 'Unknown command: $command.';
   }
 
   @override
-  String chatServerNoticeCommercial({required int seconds}) {
-    String _temp0 = intl.Intl.pluralLogic(
-      seconds,
-      locale: localeName,
-      other:
-          'Started a $seconds-second ad break. The stream is still live, and not every viewer will get an ad.',
-      one:
-          'Started a $seconds-second ad break. The stream is still live, and not every viewer will get an ad.',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String chatNoticeOwnMessageDeleted({required String message}) {
-    return 'A moderator deleted your message: “$message”';
+    return 'Your message was deleted: “$message”.';
   }
 
   @override
@@ -6318,8 +6270,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$name reached a $count-stream watch streak!',
-      one: '$name reached a $count-stream watch streak!',
+      other: '$name reached a $count-stream Watch Streak!',
+      one: '$name reached a $count-stream Watch Streak!',
     );
     return '$_temp0';
   }

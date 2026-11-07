@@ -66,6 +66,9 @@ class ChatRestriction {
     _ => true,
   };
 
+  double get barHeight =>
+      helpUrl == null ? kRestrictionBarHeight : kRestrictionBarTapHeight;
+
   String? get helpUrl => switch (kind) {
     ChatRestrictionKind.verifiedEmail ||
     ChatRestrictionKind.verifiedPhone => kTwitchSecuritySettingsUrl,
@@ -126,6 +129,8 @@ String followAgeShort(Duration age, AppLocalizations l) {
 
 /// Height of the line [ChatRestriction.showsBar] puts above the input.
 const kRestrictionBarHeight = 28.0;
+
+const kRestrictionBarTapHeight = 48.0;
 
 /// "4:05", "1:02:03", "12s" (« 12 s » in French), in [l]'s language (the
 /// one on screen by default).

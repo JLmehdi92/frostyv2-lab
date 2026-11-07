@@ -43,7 +43,7 @@ void main() {
           'This channel has been suspended.',
           english,
         ),
-        'Couldn’t send your message. This channel is suspended.',
+        'This channel doesn’t exist or is suspended.',
       );
       expect(
         serverNoticeText(
@@ -51,7 +51,7 @@ void main() {
           'This channel has been suspended.',
           french,
         ),
-        'Impossible d’envoyer votre message. Cette chaîne est suspendue.',
+        'Cette chaîne n’existe pas ou est suspendue.',
       );
       expect(
         serverNoticeText('msg_invalid_reply_parent', 'x', french),
@@ -94,31 +94,30 @@ void main() {
       }
     });
 
-    test('a notice about someone keeps their login', () {
-      expect(
-        serverNoticeText(
+    test('a refusal in followers-only mode asks to follow', () {
+      for (final id in ['msg_followersonly', 'msg_followersonly_zero']) {
+        expect(
+          serverNoticeText(id, 'x', english),
+          'Couldn’t send your message. This chat is in followers-only mode: '
+          'follow the channel to chat.',
+          reason: id,
+        );
+      }
+    });
+
+    test('replies to IRC commands Twitch removed keep Twitch’s text', () {
+      for (final (id, text) in [
+        (
           'mod_success',
-          'You have added friend_1 as a moderator of this channel.',
-          french,
+          'You have added friend as a moderator of this channel.',
         ),
-        'Ajout aux modérateurs de la chaîne : friend_1.',
-      );
-      expect(
-        serverNoticeText(
-          'bad_unban_no_ban',
-          'troll is not banned from this channel.',
-          english,
-        ),
-        'troll isn’t banned from this channel.',
-      );
-      expect(
-        serverNoticeText(
-          'bad_ban_mod',
-          'You cannot ban moderator modo unless you are the owner of this channel.',
-          french,
-        ),
-        'Impossible de bannir modo : seule la personne qui diffuse peut bannir un modérateur.',
-      );
+        ('room_mods', 'The moderators of this channel are: alice, bob.'),
+        ('bad_unban_no_ban', 'troll is not banned from this channel.'),
+        ('commercial_success', 'Initiating 30 second commercial break.'),
+        ('no_help', 'No help available.'),
+      ]) {
+        expect(serverNoticeText(id, text, french), text, reason: id);
+      }
     });
 
     test('numbers and lists are read from Twitch’s text', () {
@@ -137,22 +136,6 @@ void main() {
           french,
         ),
         'Impossible d’envoyer votre message. Le chat est en mode lent : vous pourrez écrire de nouveau dans 12 secondes.',
-      );
-      expect(
-        serverNoticeText(
-          'room_mods',
-          'The moderators of this channel are: alice, bob.',
-          french,
-        ),
-        'Modérateurs de cette chaîne : alice, bob.',
-      );
-      expect(
-        serverNoticeText(
-          'commercial_success',
-          'Initiating 30 second commercial break. Please keep in mind that your stream is still live and not everyone will get a commercial!',
-          english,
-        ),
-        'Started a 30-second ad break. The stream is still live, and not every viewer will get an ad.',
       );
       expect(
         serverNoticeText(

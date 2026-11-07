@@ -18,6 +18,8 @@ class ChatRestrictionBar extends StatefulWidget {
   });
 
   final ChatRestriction? restriction;
+
+  static const lineKey = ValueKey('chat-restriction-line');
   final DateTime Function() now;
 
   @override
@@ -89,29 +91,34 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
       button: helpUrl != null,
       // A fixed height: the chat list pads for it.
       child: Container(
-        height: kRestrictionBarHeight,
+        height: restriction.barHeight,
+        alignment: Alignment.bottomCenter,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          spacing: 7,
-          children: [
-            SheetGlyph(_glyph(restriction.kind), size: 16, color: color),
-            Expanded(
-              child: Text(
-                restriction.describe(left, context.l10n),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: OnsetTokens.bodyFamily,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+        child: SizedBox(
+          key: ChatRestrictionBar.lineKey,
+          height: kRestrictionBarHeight,
+          child: Row(
+            spacing: 7,
+            children: [
+              SheetGlyph(_glyph(restriction.kind), size: 16, color: color),
+              Expanded(
+                child: Text(
+                  restriction.describe(left, context.l10n),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: OnsetTokens.bodyFamily,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
-            ),
-            if (helpUrl != null)
-              SheetGlyph(SheetGlyphKind.external, size: 14, color: color),
-          ],
+              if (helpUrl != null)
+                SheetGlyph(SheetGlyphKind.external, size: 14, color: color),
+            ],
+          ),
         ),
       ),
     );

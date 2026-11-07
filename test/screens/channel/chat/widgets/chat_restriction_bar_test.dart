@@ -105,4 +105,26 @@ void main() {
     expect(find.text('Phone banned here'), findsOneWidget);
     expect(find.byType(GestureDetector), findsNothing);
   });
+
+  testWidgets('the verify bar is tappable over 48 dp, drawn in 28', (
+    tester,
+  ) async {
+    final opened = <Uri>[];
+    final previous = LinkRouter.launcher;
+    LinkRouter.launcher = (url, {mode = LaunchMode.platformDefault}) async {
+      opened.add(url);
+      return true;
+    };
+    addTearDown(() => LinkRouter.launcher = previous);
+    const restriction = ChatRestriction(ChatRestrictionKind.verifiedPhone);
+    await pump(tester, restriction);
+    final bar = tester.getRect(find.byType(ChatRestrictionBar));
+    expect(bar.height, 48);
+    expect(restriction.barHeight, 48);
+    final line = tester.getRect(find.byKey(ChatRestrictionBar.lineKey));
+    expect(line.height, kRestrictionBarHeight);
+    await tester.tapAt(bar.topCenter + const Offset(0, 4));
+    await tester.pump();
+    expect(opened, hasLength(1));
+  });
 }

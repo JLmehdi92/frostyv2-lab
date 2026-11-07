@@ -733,7 +733,7 @@ void main() {
             'system-msg': 'Fan watched 7 consecutive streams.',
           }),
         ),
-        'Fan reached a 7-stream watch streak! They earned 1,450 channel '
+        'Fan reached a 7-stream Watch Streak! They earned 1,450 channel '
         'points.',
       );
       expect(
@@ -775,6 +775,26 @@ void main() {
       expect(
         _text(words),
         'Upgrader prolonge l’abonnement offert par Gifter !',
+      );
+    });
+
+    test('French words a gift paid forward as a new gift', () {
+      final l = lookupAppLocalizations(const Locale('fr'));
+      final words = userNoticeText(
+        UserNotice.fromTags({
+          'msg-id': 'standardpayforward',
+          'display-name': 'Kind',
+          'msg-param-prior-gifter-display-name': 'First',
+          'msg-param-recipient-display-name': 'Lucky',
+          'system-msg': 'x',
+        }),
+        channelName: 'Chaîne',
+        l: l,
+      );
+      expect(
+        _text(words),
+        'Kind offre à son tour un abonnement à Lucky, après celui offert par '
+        'First\u202f!',
       );
     });
 

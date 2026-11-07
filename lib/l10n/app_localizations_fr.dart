@@ -4799,7 +4799,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatUserCardFailed({required String login}) {
-    return 'Impossible d’ouvrir le profil utilisateur ($login).';
+    return 'Impossible d’ouvrir le profil du compte $login.';
   }
 
   @override
@@ -5106,15 +5106,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'rateLimit':
           'Impossible d’envoyer votre message. Vous envoyez des messages trop vite.',
       'duplicate':
-          'Impossible d’envoyer votre message. Il est identique à un message envoyé il y a moins de 30 s.',
+          'Impossible d’envoyer votre message. Il est identique à un message envoyé il y a moins de 30 secondes.',
       'subsOnly':
           'Impossible d’envoyer votre message. Le chat est en mode abonnés uniquement : abonnez-vous à la chaîne pour écrire.',
       'emoteOnly':
           'Impossible d’envoyer votre message. Le chat est en mode emotes uniquement.',
       'uniqueChat':
           'Impossible d’envoyer votre message. Le chat est en mode chat unique et votre message n’est pas original.',
-      'followersOnly':
-          'Impossible d’envoyer votre message. Le chat est en mode followers uniquement.',
       'followRequired':
           'Impossible d’envoyer votre message. Le chat est en mode followers uniquement : suivez la chaîne pour écrire.',
       'followedTooRecently':
@@ -5127,8 +5125,7 @@ class AppLocalizationsFr extends AppLocalizations {
           'Impossible d’envoyer votre message. Votre adresse e-mail est bannie de cette chaîne.',
       'phoneAliasBanned':
           'Impossible d’envoyer votre message. Votre numéro de téléphone est banni de cette chaîne.',
-      'channelSuspended':
-          'Impossible d’envoyer votre message. Cette chaîne est suspendue.',
+      'channelSuspended': 'Cette chaîne n’existe pas ou est suspendue.',
       'accountSuspended':
           'Impossible d’envoyer votre message. Votre compte est suspendu.',
       'channelBlocked':
@@ -5151,37 +5148,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'banned':
           'Bannissement définitif : vous ne pouvez plus écrire dans ce chat.',
       'followersOnNow': 'Le chat est maintenant en mode followers uniquement.',
-      'noHelp': 'Aucune aide n’est disponible pour cette commande.',
       'noPermission': 'Vous n’avez pas l’autorisation de faire cela.',
-      'noMods': 'Cette chaîne n’a aucun modérateur.',
-      'banBroadcaster':
-          'Impossible de bannir la personne qui diffuse sur la chaîne.',
-      'maxMods':
-          'Cette chaîne a déjà atteint le nombre maximal de modérateurs.',
-      'modInvalid': 'Impossible d’ajouter cette personne aux modérateurs.',
-      'other': '',
-    });
-    return '$_temp0';
-  }
-
-  @override
-  String chatServerNoticeName({required String notice, required String name}) {
-    String _temp0 = intl.Intl.selectLogic(notice, {
-      'modAdded': 'Ajout aux modérateurs de la chaîne : $name.',
-      'modRemoved': 'Retrait des modérateurs de la chaîne : $name.',
-      'alreadyMod': '$name fait déjà partie des modérateurs de cette chaîne.',
-      'notMod': '$name ne fait pas partie des modérateurs de cette chaîne.',
-      'modBanned':
-          '$name fait l’objet d’un bannissement sur cette chaîne. Levez-le avant d’ajouter cette personne aux modérateurs.',
-      'notBanned': 'Aucun bannissement à lever pour $name.',
-      'notTimedOut': 'Aucune exclusion temporaire à lever pour $name.',
-      'alreadyBanned':
-          '$name fait déjà l’objet d’un bannissement sur cette chaîne.',
-      'banMod':
-          'Impossible de bannir $name : seule la personne qui diffuse peut bannir un modérateur.',
-      'timeoutMod':
-          'Impossible d’exclure temporairement $name : seule la personne qui diffuse peut exclure temporairement un modérateur.',
-      'invalidUser': 'Nom d’utilisateur inconnu : $name.',
       'other': '',
     });
     return '$_temp0';
@@ -5198,31 +5165,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String chatServerNoticeMods({required String names}) {
-    return 'Modérateurs de cette chaîne : $names.';
-  }
-
-  @override
   String chatServerNoticeUnknownCommand({required String command}) {
     return 'Commande inconnue : $command.';
   }
 
   @override
-  String chatServerNoticeCommercial({required int seconds}) {
-    String _temp0 = intl.Intl.pluralLogic(
-      seconds,
-      locale: localeName,
-      other:
-          'Pause publicitaire de $seconds s lancée. Le live continue et certains spectateurs ne verront pas de publicité.',
-      one:
-          'Pause publicitaire de $seconds s lancée. Le live continue et certains spectateurs ne verront pas de publicité.',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String chatNoticeOwnMessageDeleted({required String message}) {
-    return 'Un modérateur a supprimé votre message : « $message »';
+    return 'Votre message a été supprimé : « $message ».';
   }
 
   @override
@@ -6353,7 +6302,7 @@ class AppLocalizationsFr extends AppLocalizations {
     required String gifter,
     required String recipient,
   }) {
-    return '$name transmet le cadeau offert par $gifter à $recipient !';
+    return '$name offre à son tour un abonnement à $recipient, après celui offert par $gifter !';
   }
 
   @override
@@ -6361,7 +6310,7 @@ class AppLocalizationsFr extends AppLocalizations {
     required String name,
     required String gifter,
   }) {
-    return '$name transmet le cadeau offert par $gifter à la communauté !';
+    return '$name offre à son tour un abonnement à la communauté, après celui offert par $gifter !';
   }
 
   @override

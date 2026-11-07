@@ -130,15 +130,6 @@ void main() {
         expect(l.chatServerNotice(notice: kind), isNotEmpty, reason: kind);
       }
     },
-    'chatServerNoticeName': (l) {
-      for (final kind in kNamedServerNotices.values) {
-        expect(
-          l.chatServerNoticeName(notice: kind, name: 'friend'),
-          contains('friend'),
-          reason: kind,
-        );
-      }
-    },
     'chatRestrictionAccount': (l) {
       for (final kind in ChatRestrictionKind.values) {
         final restriction = ChatRestriction(kind, minutes: 10);

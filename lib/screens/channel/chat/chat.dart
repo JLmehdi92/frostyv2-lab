@@ -19,6 +19,25 @@ import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
+typedef ChatUserCardOpener =
+    void Function(
+      BuildContext context, {
+      required ChatStore chatStore,
+      required ChatUserCardRequest user,
+    });
+
+void openChatUserCard(
+  BuildContext context, {
+  required ChatStore chatStore,
+  required ChatUserCardRequest user,
+}) => showChatUserCard(
+  context,
+  chatStore: chatStore,
+  username: user.login,
+  userId: user.id,
+  displayName: user.displayName,
+);
+
 class Chat extends StatefulWidget {
   final ChatStore chatStore;
   final EdgeInsetsGeometry? listPadding;
@@ -31,12 +50,15 @@ class Chat extends StatefulWidget {
   /// and the active tab determines the send target.
   final ChatTabsStore? chatTabsStore;
 
+  final ChatUserCardOpener openUserCard;
+
   const Chat({
     super.key,
     required this.chatStore,
     this.listPadding,
     required this.onAddChat,
     this.chatTabsStore,
+    this.openUserCard = openChatUserCard,
   });
 
   @override
@@ -75,13 +97,7 @@ class _ChatState extends State<Chat> {
     _userCards?.cancel();
     _userCards = chatStore.userCardRequests.listen((user) {
       if (!mounted) return;
-      showChatUserCard(
-        context,
-        chatStore: chatStore,
-        username: user.login,
-        userId: user.id,
-        displayName: user.displayName,
-      );
+      widget.openUserCard(context, chatStore: chatStore, user: user);
     });
   }
 

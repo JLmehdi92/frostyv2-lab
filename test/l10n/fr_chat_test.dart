@@ -185,13 +185,9 @@ void main() {
       notice(l.chatUserCardFailed(login: 'friend')),
       for (final kind in kPlainServerNotices.values)
         notice(l.chatServerNotice(notice: kind)),
-      for (final kind in kNamedServerNotices.values)
-        notice(l.chatServerNoticeName(notice: kind, name: 'friend_1')),
       notice(l.chatServerNoticeTimedOut(wait: timeoutLength(600, l))),
       notice(l.chatServerNoticeSlowMode(wait: timeoutLength(12, l))),
-      notice(l.chatServerNoticeMods(names: 'alice, bob')),
       notice(l.chatServerNoticeUnknownCommand(command: '/\u2060dance')),
-      notice(l.chatServerNoticeCommercial(seconds: 30)),
       ?ownDeletedMessageNotice(
         IRCMessage.fromString(
           '@login=me;room-id=12345;target-msg-id=m1;tmi-sent-ts=1 '

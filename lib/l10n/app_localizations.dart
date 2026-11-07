@@ -7000,14 +7000,8 @@ abstract class AppLocalizations {
   /// A chat server notice (IRC NOTICE) worded by the app instead of Twitch’s English: a refused message, or the answer to a command. notice names it.
   ///
   /// In en, this message translates to:
-  /// **'{notice, select, rateLimit{Couldn’t send your message. You’re sending messages too quickly.} duplicate{Couldn’t send your message. It’s the same as one you sent less than 30 seconds ago.} subsOnly{Couldn’t send your message. This chat is in subscribers-only mode: subscribe to the channel to chat.} emoteOnly{Couldn’t send your message. This chat is in emote-only mode.} uniqueChat{Couldn’t send your message. This chat is in unique chat mode, and your message isn’t original.} followersOnly{Couldn’t send your message. This chat is in followers-only mode.} followRequired{Couldn’t send your message. This chat is in followers-only mode: follow the channel to chat.} followedTooRecently{Couldn’t send your message. You haven’t followed this channel long enough to chat yet.} verifiedEmail{Couldn’t send your message. This channel requires a verified email address: verify yours in your Twitch security settings.} verifiedPhone{Couldn’t send your message. This channel requires a verified phone number: verify yours in your Twitch security settings.} emailAliasBanned{Couldn’t send your message. Your email address is banned from this channel.} phoneAliasBanned{Couldn’t send your message. Your phone number is banned from this channel.} channelSuspended{Couldn’t send your message. This channel is suspended.} accountSuspended{Couldn’t send your message. Your account is suspended.} channelBlocked{Couldn’t send your message. Your account isn’t in good standing in this channel.} userRestricted{Couldn’t send your message. Your account can’t send chat messages for now. Learn more at appeals.twitch.tv.} channelRestricted{Couldn’t send your message. This channel can’t receive chat messages for now.} invalidReply{Couldn’t send your reply. That message can’t be replied to.} unexpected{Couldn’t send your message. Try again.} badCharacters{Couldn’t send your message. It contains too many characters Twitch can’t process.} rejectedBySettings{Couldn’t send your message. It conflicts with the channel’s moderation settings.} tooManyChats{Too many chats are open at once. Leave one to join this one.} warned{Couldn’t send your message. A moderator warned you: acknowledge the warning on twitch.tv to chat again.} banned{You’re permanently banned from this chat.} followersOnNow{This chat is now in followers-only mode.} noHelp{No help is available for this command.} noPermission{You don’t have permission to do that.} noMods{This channel has no moderators.} banBroadcaster{You can’t ban the broadcaster.} maxMods{This channel already has the maximum number of moderators.} modInvalid{This user can’t be made a moderator.} other{}}'**
+  /// **'{notice, select, rateLimit{Couldn’t send your message. You’re sending messages too quickly.} duplicate{Couldn’t send your message. It’s the same as one you sent less than 30 seconds ago.} subsOnly{Couldn’t send your message. This chat is in subscribers-only mode: subscribe to the channel to chat.} emoteOnly{Couldn’t send your message. This chat is in emote-only mode.} uniqueChat{Couldn’t send your message. This chat is in unique chat mode, and your message isn’t original.} followRequired{Couldn’t send your message. This chat is in followers-only mode: follow the channel to chat.} followedTooRecently{Couldn’t send your message. You haven’t followed this channel long enough to chat yet.} verifiedEmail{Couldn’t send your message. This channel requires a verified email address: verify yours in your Twitch security settings.} verifiedPhone{Couldn’t send your message. This channel requires a verified phone number: verify yours in your Twitch security settings.} emailAliasBanned{Couldn’t send your message. Your email address is banned from this channel.} phoneAliasBanned{Couldn’t send your message. Your phone number is banned from this channel.} channelSuspended{This channel doesn’t exist or is suspended.} accountSuspended{Couldn’t send your message. Your account is suspended.} channelBlocked{Couldn’t send your message. Your account isn’t in good standing in this channel.} userRestricted{Couldn’t send your message. Your account can’t send chat messages for now. Learn more at appeals.twitch.tv.} channelRestricted{Couldn’t send your message. This channel can’t receive chat messages for now.} invalidReply{Couldn’t send your reply. That message can’t be replied to.} unexpected{Couldn’t send your message. Try again.} badCharacters{Couldn’t send your message. It contains too many characters Twitch can’t process.} rejectedBySettings{Couldn’t send your message. It conflicts with the channel’s moderation settings.} tooManyChats{Too many chats are open at once. Leave one to join this one.} warned{Couldn’t send your message. A moderator warned you: acknowledge the warning on twitch.tv to chat again.} banned{You’re permanently banned from this chat.} followersOnNow{This chat is now in followers-only mode.} noPermission{You don’t have permission to do that.} other{}}'**
   String chatServerNotice({required String notice});
-
-  /// A chat server notice about someone, worded by the app: name is their login as Twitch sent it. French puts the name where no word agrees with it.
-  ///
-  /// In en, this message translates to:
-  /// **'{notice, select, modAdded{You added {name} as a moderator of this channel.} modRemoved{You removed {name} as a moderator of this channel.} alreadyMod{{name} is already a moderator of this channel.} notMod{{name} isn’t a moderator of this channel.} modBanned{{name} is banned from this channel. Unban them before making them a moderator.} notBanned{{name} isn’t banned from this channel.} notTimedOut{{name} isn’t timed out in this channel.} alreadyBanned{{name} is already banned from this channel.} banMod{You can’t ban {name}: only the broadcaster can ban a moderator.} timeoutMod{You can’t time out {name}: only the broadcaster can time out a moderator.} invalidUser{Unknown username: {name}.} other{}}'**
-  String chatServerNoticeName({required String notice, required String name});
 
   /// A chat server notice when the viewer, timed out, tries to chat. wait is the time left, worded like chatDuration….
   ///
@@ -7021,28 +7015,16 @@ abstract class AppLocalizations {
   /// **'Couldn’t send your message. This chat is in slow mode: you can chat again in {wait}.'**
   String chatServerNoticeSlowMode({required String wait});
 
-  /// A chat server notice listing the channel’s moderators. names is Twitch’s comma-separated list of logins.
-  ///
-  /// In en, this message translates to:
-  /// **'Moderators of this channel: {names}.'**
-  String chatServerNoticeMods({required String names});
-
   /// A chat server notice when Twitch does not know a command. command is the command as typed, with its slash.
   ///
   /// In en, this message translates to:
   /// **'Unknown command: {command}.'**
   String chatServerNoticeUnknownCommand({required String command});
 
-  /// A chat server notice when the broadcaster starts an ad break. seconds is its length.
+  /// A line in chat when one of the viewer’s own messages is deleted (Twitch does not say by whom: a moderator, or the viewer as a moderator). message is the deleted text, as the viewer wrote it.
   ///
   /// In en, this message translates to:
-  /// **'{seconds, plural, one{Started a {seconds}-second ad break. The stream is still live, and not every viewer will get an ad.} other{Started a {seconds}-second ad break. The stream is still live, and not every viewer will get an ad.}}'**
-  String chatServerNoticeCommercial({required int seconds});
-
-  /// A line in chat when a moderator deletes one of the viewer’s own messages. message is the deleted text, as the viewer wrote it.
-  ///
-  /// In en, this message translates to:
-  /// **'A moderator deleted your message: “{message}”'**
+  /// **'Your message was deleted: “{message}”.'**
   String chatNoticeOwnMessageDeleted({required String message});
 
   /// Above the chat input (and as its placeholder, one line each): the viewer is banned. French uses the noun, so nothing agrees with the viewer and the key word comes first.
@@ -8403,7 +8385,7 @@ abstract class AppLocalizations {
   /// A line in chat when a viewer shares a watch streak. name is drawn bold.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{name} reached a {count}-stream watch streak!} other{{name} reached a {count}-stream watch streak!}}'**
+  /// **'{count, plural, one{{name} reached a {count}-stream Watch Streak!} other{{name} reached a {count}-stream Watch Streak!}}'**
   String noticeWatchStreak({required String name, required int count});
 
   /// The sentence after a watch streak line: the channel points it earned.

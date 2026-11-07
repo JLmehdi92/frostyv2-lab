@@ -77,4 +77,20 @@ void main() {
     );
     expect(find.text('Animated message'), findsNothing);
   });
+
+  testWidgets('a first message keeps its highlight over the cheer header', (
+    tester,
+  ) async {
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(
+        _privmsg(
+          'bits=100;first-msg=1;room-id=12345;source-room-id=777',
+          'Cheer100 hi',
+        ),
+      ),
+      fakeChatStore(channelIdToUserTwitch: {'777': partner}),
+    );
+    expect(find.text('First message'), findsOneWidget);
+  });
 }

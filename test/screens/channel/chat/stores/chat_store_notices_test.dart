@@ -115,6 +115,46 @@ void main() {
     });
   });
 
+  test('a channel suspended on joining is not called a refused send', () {
+    fakeAsync((async) {
+      final store = createTestChatStore(settings: settings, sockets: sockets);
+      async.flushMicrotasks();
+      sockets.single.receive(
+        _notice('msg_channel_suspended', 'This channel has been suspended.'),
+      );
+      async.flushMicrotasks();
+      expect(
+        lines(store).map((m) => m.message),
+        contains('This channel doesn’t exist or is suspended.'),
+      );
+      expect(store.notification, isNull);
+      finish(store, async);
+    });
+  });
+
+  test('“Follow to chat” goes once followers-only mode is off', () {
+    fakeAsync((async) {
+      final store = createTestChatStore(settings: settings, sockets: sockets);
+      async.flushMicrotasks();
+      sockets.single.receive(_welcome);
+      sockets.single.receive(
+        '@followers-only=10;room-id=12345 :tmi.twitch.tv ROOMSTATE #channel',
+      );
+      async.flushMicrotasks();
+      store.sendMessage('hello');
+      sockets.single.receive(_notice('msg_followersonly', 'Follow.'));
+      async.flushMicrotasks();
+      expect(store.restriction?.kind, ChatRestrictionKind.followRequired);
+
+      sockets.single.receive(
+        '@followers-only=-1;room-id=12345 :tmi.twitch.tv ROOMSTATE #channel',
+      );
+      async.flushMicrotasks();
+      expect(store.restriction, isNull);
+      finish(store, async);
+    });
+  });
+
   test('a server notice is worded in the language on screen', () {
     fakeAsync((async) {
       L10n.use(const Locale('fr'));
@@ -122,14 +162,20 @@ void main() {
       final store = createTestChatStore(settings: settings, sockets: sockets);
       async.flushMicrotasks();
       sockets.single.receive(
-        _notice('bad_unban_no_ban', 'troll is not banned from this channel.'),
+        _notice('msg_duplicate', 'Your message was not sent.'),
       );
       sockets.single.receive(
         _notice('slow_on', 'This room is now in slow mode.'),
       );
       async.flushMicrotasks();
       final texts = lines(store).map((m) => m.message).toList();
-      expect(texts, contains('Aucun bannissement à lever pour troll.'));
+      expect(
+        texts,
+        contains(
+          'Impossible d’envoyer votre message. Il est identique à un message '
+          'envoyé il y a moins de 30\u00a0secondes.',
+        ),
+      );
       expect(texts, contains('This room is now in slow mode.'));
       finish(store, async);
     });
@@ -151,7 +197,7 @@ void main() {
         async.flushMicrotasks();
         expect(
           lines(store).map((m) => m.message),
-          contains('A moderator deleted your message: “my words”'),
+          contains('Your message was deleted: “my words”.'),
         );
         finish(store, async);
       });
@@ -175,9 +221,9 @@ void main() {
         );
         async.flushMicrotasks();
         expect(
-          lines(
-            store,
-          ).where((m) => m.message?.startsWith('A moderator deleted') ?? false),
+          lines(store).where(
+            (m) => m.message?.startsWith('Your message was deleted') ?? false,
+          ),
           isEmpty,
         );
         finish(store, async);
