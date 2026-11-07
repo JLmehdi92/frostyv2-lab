@@ -28,6 +28,7 @@ class HighlightCardShell extends StatelessWidget {
     this.headline,
     this.body,
     this.onDismiss,
+    this.dismissTooltip,
     this.footer,
   });
 
@@ -53,6 +54,8 @@ class HighlightCardShell extends StatelessWidget {
   final Widget? headline;
   final Widget? body;
   final VoidCallback? onDismiss;
+
+  final String? dismissTooltip;
 
   /// Shown below, expanded or not (the raid's Watch button).
   final Widget? footer;
@@ -169,7 +172,7 @@ class HighlightCardShell extends StatelessWidget {
                           const SizedBox(height: 44),
                         if (onDismiss != null)
                           IconButton(
-                            tooltip: context.l10n.commonHide,
+                            tooltip: dismissTooltip ?? context.l10n.commonHide,
                             style: IconButton.styleFrom(
                               fixedSize: const Size(40, 44),
                               minimumSize: const Size(40, 44),

@@ -186,6 +186,8 @@ const _properNouns = {
   'Bit',
   'Tier',
   'Prime',
+  'Gaming',
+  'Partner',
   'Turbo',
   'AutoMod',
   'BetterTTV',

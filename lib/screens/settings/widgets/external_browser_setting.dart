@@ -20,3 +20,21 @@ class ExternalBrowserSetting extends StatelessWidget {
     );
   }
 }
+
+class ConfirmLinksSetting extends StatelessWidget {
+  final SettingsStore settingsStore;
+
+  const ConfirmLinksSetting({super.key, required this.settingsStore});
+
+  @override
+  Widget build(BuildContext context) {
+    return Observer(
+      builder: (context) => SettingsListSwitch(
+        title: context.l10n.settingsConfirmLinks,
+        subtitle: Text(context.l10n.settingsConfirmLinksDetail),
+        value: settingsStore.confirmExternalLinks,
+        onChanged: (newValue) => settingsStore.confirmExternalLinks = newValue,
+      ),
+    );
+  }
+}

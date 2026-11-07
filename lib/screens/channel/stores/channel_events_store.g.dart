@@ -123,8 +123,8 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     return _$refreshPointsAsyncAction.run(() => super.refreshPoints());
   }
 
-  late final _$ChannelEventsStoreBaseActionController = ActionController(
-    name: 'ChannelEventsStoreBase',
+  late final _$redeemRewardAsyncAction = AsyncAction(
+    'ChannelEventsStoreBase.redeemReward',
     context: context,
   );
 
@@ -133,15 +133,15 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     PointsReward reward, {
     String? userInput,
   }) {
-    final _$actionInfo = _$ChannelEventsStoreBaseActionController.startAction(
-      name: 'ChannelEventsStoreBase.redeemReward',
+    return _$redeemRewardAsyncAction.run(
+      () => super.redeemReward(reward, userInput: userInput),
     );
-    try {
-      return super.redeemReward(reward, userInput: userInput);
-    } finally {
-      _$ChannelEventsStoreBaseActionController.endAction(_$actionInfo);
-    }
   }
+
+  late final _$ChannelEventsStoreBaseActionController = ActionController(
+    name: 'ChannelEventsStoreBase',
+    context: context,
+  );
 
   @override
   Future<PointsActionResult> claimBonus() {

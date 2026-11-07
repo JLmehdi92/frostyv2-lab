@@ -1001,6 +1001,36 @@
   "@settingsExternalBrowser": {
     "description": "Settings › General › Links: the switch that opens links outside the app."
   },
+  "settingsConfirmLinks": "Ask before opening links",
+  "@settingsConfirmLinks": {
+    "description": "Settings › General › Links: a switch; when on, a link from chat or a channel’s profile that leaves Twitch asks first. On by default."
+  },
+  "settingsConfirmLinksDetail": "Shows where a link from chat or a channel’s profile leads before opening it.",
+  "@settingsConfirmLinksDetail": {
+    "description": "Settings › General › Links: under “Ask before opening links”."
+  },
+  "linkConfirmTitle": "Open this link?",
+  "@linkConfirmTitle": {
+    "description": "Dialog title before opening a link from chat or a channel’s profile that leaves Twitch."
+  },
+  "linkConfirmBody": "This link opens {host}, outside ONSET.",
+  "@linkConfirmBody": {
+    "description": "Dialog body before opening an outside link. host is the website's address (example.com), in bold; the full link shows under it.",
+    "placeholders": {
+      "host": {
+        "type": "String",
+        "example": "example.com"
+      }
+    }
+  },
+  "linkConfirmDontAsk": "Don’t ask again",
+  "@linkConfirmDontAsk": {
+    "description": "Outside-link dialog: a switch; when on, opening the link turns off “Ask before opening links”."
+  },
+  "linkConfirmOpen": "Open",
+  "@linkConfirmOpen": {
+    "description": "Outside-link dialog: the button that opens the link."
+  },
   "settingsStreamLanguage": "Stream language",
   "@settingsStreamLanguage": {
     "description": "Settings › General › Browse: the row that filters live channels by language, its list's title, and what a screen reader calls that list."
@@ -4218,6 +4248,24 @@
       }
     }
   },
+  "sharedChatStarted": "Shared chat started",
+  "@sharedChatStarted": {
+    "description": "Banner above chat when several channels start sharing one chat (one line, title of the banner); also what a screen reader announces."
+  },
+  "sharedChatStartedBody": "{count, plural, one{Messages from another channel show here too.} other{Messages from {count} other channels show here too.}}",
+  "@sharedChatStartedBody": {
+    "description": "Shared chat banner: under its title. count is the number of other channels in the shared chat (at least 1).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "sharedChatWith": "Sharing chat with",
+  "@sharedChatWith": {
+    "description": "Shared chat banner and chat menu: the label before the avatars and names of the channels sharing this chat."
+  },
   "livePlayerUptime": "Stream uptime",
   "@livePlayerUptime": {
     "description": "Tooltip of how long the live has run, over the video."
@@ -4966,6 +5014,24 @@
         "example": "Mod"
       }
     }
+  },
+  "highlightHideForMe": "Hide for me",
+  "@highlightHideForMe": {
+    "description": "Pinned message card above chat: the tooltip and screen-reader label of its close button, which hides this pinned message for the viewer only, for good (others still see it)."
+  },
+  "chatPinnedBy": "{name} pinned a message.",
+  "@chatPinnedBy": {
+    "description": "A line ONSET adds to chat when a moderator pins a new message. name is who pinned it (Twitch's data).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Mira"
+      }
+    }
+  },
+  "chatPinnedNew": "A message was pinned.",
+  "@chatPinnedNew": {
+    "description": "A line ONSET adds to chat when a new message is pinned and Twitch does not say who pinned it."
   },
   "raidViewers": "{count, plural, one{{count} viewer} other{{count} viewers}}",
   "@raidViewers": {
@@ -6173,6 +6239,14 @@
   "@chatReconnectingNotice": {
     "description": "The note above the input after the viewer asked to reconnect (chat details › Reconnect)."
   },
+  "chatExpandedAnnouncement": "Chat expanded",
+  "@chatExpandedAnnouncement": {
+    "description": "What a screen reader announces when the chat grows to take more of the screen (typing in landscape)."
+  },
+  "chatCollapsedAnnouncement": "Chat collapsed",
+  "@chatCollapsedAnnouncement": {
+    "description": "What a screen reader announces when the chat goes back to its normal size."
+  },
   "chatSyncIn": "Chat will sync in {seconds}s…",
   "@chatSyncIn": {
     "description": "The chat is delayed to match the video (Settings › Chat › Message delay): the countdown until it catches up.",
@@ -6869,6 +6943,16 @@
       }
     }
   },
+  "chatBadgeExplainer": "{kind, select, broadcaster{Streams on this channel.} moderator{Moderates this channel’s chat.} leadModerator{Leads the moderators of this channel.} vip{Named a VIP by this channel.} subscriber{Subscribes to this channel; the badge changes with the months of subscription.} founder{Among the first subscribers to this channel.} bits{Has sent Bits in this channel; the badge shows the total.} bitsLeader{Among the top Bits senders in this channel.} subGifter{Has gifted subs in this channel; the badge shows how many.} subGiftLeader{Among the top sub gifters in this channel.} partner{A Twitch Partner.} staff{Works at Twitch.} premium{Has Prime Gaming.} turbo{Has Twitch Turbo.} artist{Makes art for this channel.} noAudio{Watching without sound.} noVideo{Listening without the video.} predictions{Took part in the current prediction; the badge shows the outcome picked.} hypeTrain{Took part in a Hype Train on this channel.} other{}}",
+  "@chatBadgeExplainer": {
+    "description": "Badge details sheet (tap a badge in chat): what a Twitch badge means, under its kind. kind is the badge set; an unknown set shows nothing.",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "vip"
+      }
+    }
+  },
   "chatCopyName": "Copy name",
   "@chatCopyName": {
     "description": "A row of an emote's, badge's or GIF's details: copies its name."
@@ -7207,6 +7291,16 @@
       }
     }
   },
+  "chatModeExplainer": "{mode, select, emoteOnly{Messages can only contain emotes.} followersNow{Only followers can chat.} followers{Only followers can chat, once they’ve followed for the time shown.} slow{Everyone waits the time shown between two messages.} subscribers{Only subscribers can chat.} uniqueChat{Each message must be unique: repeated messages are refused.} other{}}",
+  "@chatModeExplainer": {
+    "description": "Chat menu: the tooltip shown when the viewer taps an active chat mode pill. followers has a follow age shown on the pill; followersNow has none.",
+    "placeholders": {
+      "mode": {
+        "type": "String",
+        "example": "slow"
+      }
+    }
+  },
   "chatChattersFilter": "Filter chatters",
   "@chatChattersFilter": {
     "description": "The placeholder of the chatters list's search field."
@@ -7238,6 +7332,14 @@
   "@emoteMenuClearRecent": {
     "description": "Tooltip of the button on the emote menu's Recent tab."
   },
+  "chatAnimatedEmotesCallout": "Animated emotes can be turned off in Settings › Chat.",
+  "@chatAnimatedEmotesCallout": {
+    "description": "A line ONSET adds to chat once, only for the viewer, the first time an animated emote shows; followed by the “Show me” link."
+  },
+  "chatAnimatedEmotesCalloutShow": "Show me",
+  "@chatAnimatedEmotesCalloutShow": {
+    "description": "The link after the one-time chat line about animated emotes: opens Settings › Chat."
+  },
   "emoteMenuRecentCleared": "Recent emotes cleared",
   "@emoteMenuRecentCleared": {
     "description": "The note above the input once the recent emotes were cleared."
@@ -7255,6 +7357,34 @@
         "example": "nisqyHype"
       }
     }
+  },
+  "emoteMenuAnimated": "{name}, animated emote",
+  "@emoteMenuAnimated": {
+    "description": "What a screen reader says for an animated emote in the emote menu (a small play mark sits on its corner). name is the emote's code.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "catJAM"
+      }
+    }
+  },
+  "emoteMenuRemoveRecent": "Remove from recent emotes",
+  "@emoteMenuRemoveRecent": {
+    "description": "Emote details sheet opened from the Recent tab of the emote menu: removes this one emote from the recent emotes."
+  },
+  "emoteMenuFollowerInfo": "Follower emotes can only be used in {channel}’s chat.",
+  "@emoteMenuFollowerInfo": {
+    "description": "Emote menu, the channel's Twitch emotes: a note above the grid when it holds follower emotes. channel is the channel's display name.",
+    "placeholders": {
+      "channel": {
+        "type": "String",
+        "example": "Mira"
+      }
+    }
+  },
+  "emoteLimitedTime": "Limited-time emote",
+  "@emoteLimitedTime": {
+    "description": "Emote details sheet: a line under the emote's kind for an emote Twitch gives only for a limited time."
   },
   "emoteMenuChannel": "Channel",
   "@emoteMenuChannel": {

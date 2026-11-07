@@ -66,6 +66,7 @@ import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/link_router.dart';
 import 'package:onset/utils/twitch_links.dart';
 import 'package:onset/widgets/alert_message.dart';
+import 'package:onset/widgets/external_link_dialog.dart';
 import 'package:onset/widgets/global_mini_player.dart';
 import 'package:onset/widgets/launch/launch_intro.dart';
 import 'package:onset/widgets/launch/onset_mark.dart';
@@ -408,6 +409,15 @@ class _MyAppState extends State<MyApp> {
         .monitor();
 
     LinkRouter.inAppHandler = _openTwitchLinkInApp;
+    LinkRouter.externalLinkGate = (url) {
+      final settings = context.read<SettingsStore>();
+      return confirmExternalLink(
+        navigatorKey.currentContext,
+        url,
+        ask: settings.confirmExternalLinks,
+        stopAsking: () => settings.confirmExternalLinks = false,
+      );
+    };
     _initDeepLinks();
     _initGoLive();
   }

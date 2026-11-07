@@ -253,15 +253,26 @@ abstract class ChannelEventsStoreBase with Store {
   Future<PointsActionResult> redeemReward(
     PointsReward reward, {
     String? userInput,
-  }) => _runPointsAction(
-    (token) => _pointsService.redeemReward(
-      channelId: channelId,
-      reward: reward,
-      authToken: token,
-      userInput: userInput,
-    ),
-    what: redeemAction,
-  );
+  }) async {
+    final result = await _runPointsAction(
+      (token) => _pointsService.redeemReward(
+        channelId: channelId,
+        reward: reward,
+        authToken: token,
+        userInput: userInput,
+      ),
+      what: redeemAction,
+    );
+    if (result.status == PointsActionStatus.success &&
+        unlocksEmotes(reward.automaticType)) {
+      _entitlementChanges.add(null);
+    }
+    return result;
+  }
+
+  final _entitlementChanges = StreamController<void>.broadcast();
+
+  Stream<void> get entitlementChanges => _entitlementChanges.stream;
 
   /// Collects the bonus chest.
   ///
@@ -387,7 +398,9 @@ abstract class ChannelEventsStoreBase with Store {
     final isMine = viewer != null && event.topic.endsWith('.$viewer');
     if (!event.topic.endsWith('.$channelId') && !isMine) return;
 
-    if (event.topic.startsWith('celebration-events')) {
+    if (event.topic.startsWith('user-subscribe-events')) {
+      _entitlementChanges.add(null);
+    } else if (event.topic.startsWith('celebration-events')) {
       _applyCelebration(event);
     } else if (event.topic.startsWith('creator-goals-events')) {
       _applyGoal(event);
@@ -513,6 +526,7 @@ abstract class ChannelEventsStoreBase with Store {
   }
 
   void dispose() {
+    unawaited(_entitlementChanges.close());
     _pointsRefreshTimer?.cancel();
     _pointsPollTimer?.cancel();
     unawaited(_subscription?.cancel());

@@ -20,33 +20,61 @@ class ChatModes extends StatelessWidget {
       builder: (context) {
         // The pills: what is on, and for how long, in the order of their
         // names.
-        final active = <(String, SheetGlyphKind, String?)>[
+        final followersNow = roomState.followersOnly == '0';
+        final active = <(String, SheetGlyphKind, String?, String)>[
           if (roomState.emoteOnly != '0')
-            (ChatMode.emoteOnly.pill(l), SheetGlyphKind.emote, null),
+            (
+              ChatMode.emoteOnly.pill(l),
+              SheetGlyphKind.emote,
+              null,
+              l.chatModeExplainer(mode: 'emoteOnly'),
+            ),
           if (roomState.followersOnly != '-1')
             (
               ChatMode.followers.pill(l),
               SheetGlyphKind.heart,
               _getFollowersDuration(l),
+              l.chatModeExplainer(
+                mode: followersNow ? 'followersNow' : 'followers',
+              ),
             ),
           if (roomState.slowMode != '0')
             (
               ChatMode.slow.pill(l),
               SheetGlyphKind.hourglass,
               _getSlowModeDuration(l),
+              l.chatModeExplainer(mode: 'slow'),
             ),
           if (roomState.subMode != '0')
-            (ChatMode.subscribers.pill(l), SheetGlyphKind.star, null),
+            (
+              ChatMode.subscribers.pill(l),
+              SheetGlyphKind.star,
+              null,
+              l.chatModeExplainer(mode: 'subscribers'),
+            ),
           if (roomState.r9k != '0')
-            (ChatMode.uniqueChat.pill(l), SheetGlyphKind.unique, null),
+            (
+              ChatMode.uniqueChat.pill(l),
+              SheetGlyphKind.unique,
+              null,
+              l.chatModeExplainer(mode: 'uniqueChat'),
+            ),
         ]..sort((a, b) => a.$1.compareTo(b.$1));
 
         return Row(
           mainAxisSize: MainAxisSize.min,
           spacing: 6,
           children: [
-            for (final (label, glyph, duration) in active)
-              _ModePill(label: label, glyph: glyph, duration: duration),
+            for (final (label, glyph, duration, explainer) in active)
+              Tooltip(
+                message: explainer,
+                triggerMode: TooltipTriggerMode.tap,
+                child: _ModePill(
+                  label: label,
+                  glyph: glyph,
+                  duration: duration,
+                ),
+              ),
           ],
         );
       },

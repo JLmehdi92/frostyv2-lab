@@ -255,5 +255,6 @@ class HermesTopics {
   static List<String> forViewer(String userId) => [
     communityPointsUser(userId),
     predictionsUser(userId),
+    userSubscribeEvents(userId),
   ];
 }

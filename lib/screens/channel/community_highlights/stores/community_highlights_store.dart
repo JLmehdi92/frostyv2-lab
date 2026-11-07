@@ -39,6 +39,8 @@ abstract class CommunityHighlightsStoreBase with Store {
     ServerClock? serverClock,
     this.expandNew = false,
     this.onGoAlong,
+    this.isPinHidden,
+    this.onHidePin,
   }) : _service = service,
        serverClock = serverClock ?? ServerClock() {
     for (final topic in HighlightTopic.values) {
@@ -74,6 +76,17 @@ abstract class CommunityHighlightsStoreBase with Store {
   /// New polls, predictions and raids arrive expanded (large screens); a
   /// pinned message never does, so it never holds a new one back.
   final bool expandNew;
+
+  final bool Function(String pinId)? isPinHidden;
+
+  final void Function(String pinId)? onHidePin;
+
+  final _newPins = StreamController<PinnedChatMessage>.broadcast();
+
+  Stream<PinnedChatMessage> get newPins => _newPins.stream;
+
+  bool _hidden(String? pinId) =>
+      pinId != null && (isPinHidden?.call(pinId) ?? false);
 
   final _subscriptions = <RealtimeTopicSubscription>[];
   final _topicEvents = <StreamSubscription<RealtimeTopicEvent>>[];
@@ -204,11 +217,14 @@ abstract class CommunityHighlightsStoreBase with Store {
   @action
   void toggleExpanded() => _stack = _stack.toggleExpanded();
 
-  /// Hides the visible highlight for this session.
+  /// Hides the visible highlight for this session; a pinned message stays
+  /// hidden for good.
   @action
   void dismissCurrent() {
     final current = _stack.current;
-    if (current != null) _stack = _stack.dismiss(current.kind, current.id);
+    if (current == null) return;
+    if (current.kind == HighlightKind.pinned) onHidePin?.call(current.id);
+    _stack = _stack.dismiss(current.kind, current.id);
   }
 
   // --- Chat ----------------------------------------------------------------------
@@ -300,6 +316,13 @@ abstract class CommunityHighlightsStoreBase with Store {
         if (event is! PinUpdateEvent) _saw(HighlightTopic.pinned);
         final next = reducePinned(_nextPinned, event);
         if (next.refetch) unawaited(_fetchPinned());
+        final pin = next.pin;
+        if (event is PinEvent &&
+            pin != null &&
+            pin.id != _nextPinned?.id &&
+            !_hidden(pin.id)) {
+          _newPins.add(pin);
+        }
         if (!identical(next.pin, _nextPinned)) {
           _nextPinned = next.pin;
           _pinnedSticky = false;
@@ -384,10 +407,11 @@ abstract class CommunityHighlightsStoreBase with Store {
     var stack = _stack;
     stack = _sync(stack, HighlightKind.poll, _poll?.id);
     stack = _sync(stack, HighlightKind.prediction, _prediction?.id);
+    final pinId = _pinned?.id;
     stack = _sync(
       stack,
       HighlightKind.pinned,
-      _pinned?.id,
+      _hidden(pinId) ? null : pinId,
       sticky: _pinnedSticky,
     );
     stack = _sync(stack, HighlightKind.raid, _raid?.raid.id);
@@ -673,6 +697,7 @@ abstract class CommunityHighlightsStoreBase with Store {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    unawaited(_newPins.close());
     for (final events in _topicEvents) {
       unawaited(events.cancel());
     }

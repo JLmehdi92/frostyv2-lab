@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/l10n.dart';
-import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu_section.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
@@ -68,23 +67,22 @@ class RecentEmotesPanel extends StatelessWidget {
                     existingEmote.type == emote.type,
               );
 
+              final locked = matchingEmotes.isEmpty;
+              void details() => showEmoteDetails(
+                context,
+                chatStore: chatStore,
+                emote: emote,
+                onRemoveRecent: () =>
+                    chatStore.assetsStore.removeRecentEmote(emote),
+              );
               return EmoteCell(
                 emote: emote,
-                url: matchingEmotes.isNotEmpty
-                    ? matchingEmotes.first.url
-                    : emote.url,
-                locked: matchingEmotes.isEmpty,
-                onTap: matchingEmotes.isNotEmpty
-                    ? () => chatStore.addEmote(emote)
-                    : null,
+                url: locked ? emote.url : matchingEmotes.first.url,
+                locked: locked,
+                onTap: locked ? details : () => chatStore.addEmote(emote),
                 onLongPress: () {
                   HapticFeedback.lightImpact();
-
-                  IRCMessage.showEmoteDetailsBottomSheet(
-                    context,
-                    emote: emote,
-                    launchExternal: chatStore.settings.launchUrlExternal,
-                  );
+                  details();
                 },
               );
             },

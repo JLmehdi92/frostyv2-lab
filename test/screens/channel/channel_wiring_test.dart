@@ -176,7 +176,8 @@ void main() {
       code,
       contains(
         'void_cycleLandscapeChatMode(){HapticFeedback.lightImpact();'
-        '_chatCycle.next();}',
+        '_chatCycle.next();'
+        'announce(context,_chatCycle.current.label(context.l10n));}',
       ),
     );
     expect(count('_cycleLandscapeChatMode'), 3);

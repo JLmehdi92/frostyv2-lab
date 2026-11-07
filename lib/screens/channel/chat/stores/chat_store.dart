@@ -16,12 +16,14 @@ import 'package:onset/models/emotes.dart';
 import 'package:onset/models/events.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/models/user.dart';
 import 'package:onset/models/user_notice.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/chat_delay_queue.dart';
 import 'package:onset/screens/channel/chat/chat_history.dart' as history;
 import 'package:onset/screens/channel/chat/chat_restrictions.dart';
 import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
+import 'package:onset/screens/channel/chat/emote_entitlements.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:onset/screens/channel/chat/held_messages.dart';
 import 'package:onset/screens/channel/chat/incoming_raid.dart';
@@ -42,6 +44,10 @@ import 'package:onset/utils/common_utils.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 part 'chat_store.g.dart';
+
+const emoteRefreshDelay = Duration(seconds: 3);
+
+const sharedChatBannerDuration = Duration(seconds: 15);
 
 typedef ChatUserCardRequest = ({String login, String id, String displayName});
 
@@ -389,6 +395,40 @@ abstract class ChatStoreBase with Store {
   @readonly
   var _isInSharedChatMode = false;
 
+  @readonly
+  var _showSharedChatBanner = false;
+
+  var _sharedChatAnnounced = false;
+
+  Timer? _sharedChatBannerTimer;
+
+  @computed
+  List<UserTwitch> get sharedChatPartners => [
+    for (final id in assetsStore.sharedChatChannelIds)
+      if (id != channelId) ?assetsStore.channelIdToUserTwitch[id],
+  ];
+
+  @action
+  void dismissSharedChatBanner() {
+    _sharedChatBannerTimer?.cancel();
+    _showSharedChatBanner = false;
+  }
+
+  void _announceSharedChat(IRCMessage message) {
+    if (_sharedChatAnnounced ||
+        message.command != Command.privateMessage ||
+        message.tags['historical'] == '1') {
+      return;
+    }
+    _sharedChatAnnounced = true;
+    _showSharedChatBanner = true;
+    _sharedChatBannerTimer?.cancel();
+    _sharedChatBannerTimer = Timer(
+      sharedChatBannerDuration,
+      () => runInAction(() => _showSharedChatBanner = false),
+    );
+  }
+
   /// Whether we're waiting for server acknowledgment of a sent message.
   @readonly
   var _isWaitingForAck = false;
@@ -607,6 +647,46 @@ abstract class ChatStoreBase with Store {
   }
 
   final _userCardRequests = StreamController<ChatUserCardRequest>.broadcast();
+
+  final _chatSettingsRequests = StreamController<void>.broadcast();
+
+  Stream<void> get chatSettingsRequests => _chatSettingsRequests.stream;
+
+  void _calloutAnimatedEmotes(IRCMessage message) {
+    if (message.command != Command.privateMessage ||
+        !settings.animateEmotes ||
+        settings.animatedEmotesCalloutShown) {
+      return;
+    }
+    if (!hasAnimatedEmote(message, assetsStore.emoteToObject)) return;
+    settings.animatedEmotesCalloutShown = true;
+    final l = L10n.current;
+    messageBuffer.add(
+      IRCMessage.createNotice(
+        message: l.chatAnimatedEmotesCallout,
+        actionLabel: l.chatAnimatedEmotesCalloutShow,
+        actionCallback: () => _chatSettingsRequests.add(null),
+      ),
+    );
+  }
+
+  Timer? _emoteRefreshTimer;
+  List<String>? _globalEmoteSets;
+  String? _userStateEmoteSets;
+
+  void scheduleEmoteRefresh() {
+    if (_shouldDisconnect || auth.user.details == null) return;
+    _emoteRefreshTimer?.cancel();
+    _emoteRefreshTimer = Timer(emoteRefreshDelay, () {
+      if (!_shouldDisconnect) unawaited(_loadUserEmotes(_globalEmoteSets));
+    });
+  }
+
+  void _noteEmoteSets(IRCMessage userState) {
+    final sets = userState.tags['emote-sets'];
+    if (emoteSetsChanged(_userStateEmoteSets, sets)) scheduleEmoteRefresh();
+    _userStateEmoteSets = sets ?? _userStateEmoteSets;
+  }
 
   Stream<ChatUserCardRequest> get userCardRequests => _userCardRequests.stream;
 
@@ -1036,6 +1116,7 @@ abstract class ChatStoreBase with Store {
             _isInSharedChatMode = parsedIRCMessage.tags.containsKey(
               'source-room-id',
             );
+            if (_isInSharedChatMode) _announceSharedChat(parsedIRCMessage);
             // On transition into shared chat mode, fetch assets for participants.
             if (!wasShared && _isInSharedChatMode) {
               assetsStore.fetchSharedChatAssets(
@@ -1088,6 +1169,13 @@ abstract class ChatStoreBase with Store {
             );
 
             messageBuffer.add(parsedIRCMessage);
+            if (changesOwnEmotes(
+              parsedIRCMessage,
+              ownUserId: auth.user.details?.id,
+            )) {
+              scheduleEmoteRefresh();
+            }
+            _calloutAnimatedEmotes(parsedIRCMessage);
             break;
           case Command.clearChat:
             if (_historyPending) _moderationBeforeHistory.add(parsedIRCMessage);
@@ -1137,6 +1225,7 @@ abstract class ChatStoreBase with Store {
             continue;
           case Command.userState:
             _userState = _userState.fromIRCMessage(parsedIRCMessage);
+            _noteEmoteSets(parsedIRCMessage);
 
             // USERSTATE arrival confirms message was sent, even without id tag
             if (toSend != null) {
@@ -1164,6 +1253,7 @@ abstract class ChatStoreBase with Store {
             break;
           case Command.globalUserState:
             final setIds = parsedIRCMessage.tags['emote-sets']?.split(',');
+            _globalEmoteSets = setIds;
             unawaited(_loadUserEmotes(setIds));
             continue;
           case Command.none:
@@ -2170,6 +2260,9 @@ abstract class ChatStoreBase with Store {
     _cancelChatDelayCountdown();
     sleepTimer?.cancel();
     _userCardRequests.close();
+    _chatSettingsRequests.close();
+    _sharedChatBannerTimer?.cancel();
+    _emoteRefreshTimer?.cancel();
 
     _heldMessages?.dispose();
     chatRules?.dispose();

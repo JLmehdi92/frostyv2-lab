@@ -72,7 +72,10 @@ class GeneralSettings extends StatelessWidget {
             ),
             SettingsGroup(
               title: l.settingsLinks,
-              children: [ExternalBrowserSetting(settingsStore: settingsStore)],
+              children: [
+                ExternalBrowserSetting(settingsStore: settingsStore),
+                ConfirmLinksSetting(settingsStore: settingsStore),
+              ],
             ),
           ],
         );

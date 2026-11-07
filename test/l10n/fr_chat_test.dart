@@ -21,6 +21,7 @@ import 'package:onset/screens/channel/chat/details/chat_details.dart';
 import 'package:onset/screens/channel/chat/details/chat_mode_controls.dart';
 import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
+import 'package:onset/screens/channel/chat/emote_menu/emote_menu_section.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
 import 'package:onset/screens/channel/chat/moderation_notice.dart';
 import 'package:onset/screens/channel/chat/server_notice.dart';
@@ -183,6 +184,13 @@ void main() {
       notice(l.chatLogInToModerate),
       notice(l.chatUserCardNoUser(login: 'ghost')),
       notice(l.chatUserCardFailed(login: 'friend')),
+      IRCMessage.createNotice(
+        message: l.chatAnimatedEmotesCallout,
+        actionCallback: () {},
+        actionLabel: l.chatAnimatedEmotesCalloutShow,
+      ),
+      notice(l.chatPinnedBy(name: 'Mira')),
+      notice(l.chatPinnedNew),
       for (final kind in kPlainServerNotices.values)
         notice(l.chatServerNotice(notice: kind)),
       notice(l.chatServerNoticeTimedOut(wait: timeoutLength(600, l))),
@@ -804,10 +812,32 @@ void main() {
           type: type,
         );
         final assets = chat.assetsStore;
-        when(() => assets.recentEmotes).thenReturn(ObservableList.of([]));
+        when(() => assets.recentEmotes).thenReturn(
+          ObservableList.of([
+            const Emote(
+              name: 'seasonal',
+              zeroWidth: false,
+              url: 'https://cdn.example/seasonal.png',
+              type: EmoteType.twitchUnlocked,
+              limitedTime: true,
+            ),
+          ]),
+        );
+        when(() => assets.emoteToObject).thenReturn({});
         when(() => assets.userEmoteToObject).thenReturn({});
         when(() => assets.userEmoteSectionToEmotes).thenReturn({
-          'Channel Emotes': [emote('nisqyHype', EmoteType.twitchSub)],
+          'Channel Emotes': [
+            emote('nisqyHype', EmoteType.twitchSub),
+            const Emote(
+              name: 'nisqyTier',
+              zeroWidth: false,
+              url: 'https://cdn.example/nisqyTier.png',
+              type: EmoteType.twitchChannel,
+              subTier: 2,
+              animated: true,
+            ),
+            emote('nisqyLove', EmoteType.twitchFollower),
+          ],
           'Global Emotes': [emote('Kappa', EmoteType.twitchGlobal)],
           'Unlocked Emotes': [emote('Prime', EmoteType.twitchUnlocked)],
           'Other Channels': [emote('Other', EmoteType.twitchSub)],
@@ -838,10 +868,31 @@ void main() {
         );
         await tester.pump();
         await expectFrenchThroughout(tester, 'emote menu, recent, $at');
+        await tester.longPress(find.byType(EmoteCell).first);
+        await tester.pumpAndSettle();
+        expect(find.text(french.emoteMenuRemoveRecent), findsOneWidget);
+        expect(find.text(french.emoteLimitedTime), findsOneWidget);
+        await expectFrenchThroughout(tester, 'recent emote details, $at');
+        await tester.tapAt(const Offset(4, 4));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Twitch'));
         await tester.pumpAndSettle();
         await expectFrenchThroughout(tester, 'emote menu, Twitch, $at');
         expect(find.text(french.emoteMenuChannel), findsOneWidget);
+        expect(
+          find.text(french.emoteMenuFollowerInfo(channel: 'Channel')),
+          findsOneWidget,
+        );
+        await tester.tap(
+          find.byWidgetPredicate(
+            (w) => w is EmoteCell && w.emote.name == 'nisqyTier',
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text(french.emoteUnlockTier(tier: 2)), findsOneWidget);
+        await expectFrenchThroughout(tester, 'locked emote details, $at');
+        await tester.tapAt(const Offset(4, 4));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('7TV'));
         await tester.pumpAndSettle();
         await expectFrenchThroughout(tester, 'emote menu, 7TV, $at');

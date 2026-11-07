@@ -154,14 +154,19 @@ class Harness {
   /// The raids [CommunityHighlightsStore.onGoAlong] took the viewer along.
   final wentAlong = <OutgoingRaid>[];
 
-  CommunityHighlightsStore create({bool expandNew = false}) =>
-      store = CommunityHighlightsStore(
-        channelId: harnessChannel,
-        service: service,
-        realtime: realtime,
-        expandNew: expandNew,
-        onGoAlong: wentAlong.add,
-      );
+  CommunityHighlightsStore create({
+    bool expandNew = false,
+    bool Function(String pinId)? isPinHidden,
+    void Function(String pinId)? onHidePin,
+  }) => store = CommunityHighlightsStore(
+    channelId: harnessChannel,
+    service: service,
+    realtime: realtime,
+    expandNew: expandNew,
+    onGoAlong: wentAlong.add,
+    isPinHidden: isPinHidden,
+    onHidePin: onHidePin,
+  );
 
   void send(HighlightTopic topic, String payload) =>
       topics[topic]!.add(RealtimeMessage(payload));

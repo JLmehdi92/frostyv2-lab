@@ -12,6 +12,7 @@ EmoteTwitch _$EmoteTwitchFromJson(Map<String, dynamic> json) => EmoteTwitch(
   json['emote_type'] as String?,
   json['owner_id'] as String?,
   tier: json['tier'] as String?,
+  format: (json['format'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 
 EmoteBTTV _$EmoteBTTVFromJson(Map<String, dynamic> json) => EmoteBTTV(
@@ -78,6 +79,7 @@ Emote7TVData _$Emote7TVDataFromJson(Map<String, dynamic> json) => Emote7TVData(
       ? null
       : Owner7TV.fromJson(json['owner'] as Map<String, dynamic>),
   Emote7TVHost.fromJson(json['host'] as Map<String, dynamic>),
+  animated: json['animated'] as bool? ?? false,
 );
 
 Emote7TVHost _$Emote7TVHostFromJson(Map<String, dynamic> json) => Emote7TVHost(
@@ -108,6 +110,8 @@ Emote _$EmoteFromJson(Map<String, dynamic> json) => Emote(
   ownerDisplayName: json['ownerDisplayName'] as String?,
   ownerUsername: json['ownerUsername'] as String?,
   ownerId: json['ownerId'] as String?,
+  animated: json['animated'] as bool? ?? false,
+  limitedTime: json['limitedTime'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$EmoteToJson(Emote instance) => <String, dynamic>{
@@ -123,6 +127,8 @@ Map<String, dynamic> _$EmoteToJson(Emote instance) => <String, dynamic>{
   'ownerDisplayName': instance.ownerDisplayName,
   'ownerUsername': instance.ownerUsername,
   'ownerId': instance.ownerId,
+  'animated': instance.animated,
+  'limitedTime': instance.limitedTime,
 };
 
 const _$EmoteTypeEnumMap = {

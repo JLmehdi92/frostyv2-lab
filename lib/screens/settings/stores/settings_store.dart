@@ -51,6 +51,7 @@ abstract class _SettingsStoreBase with Store {
 
   // Links defaults
   static const defaultLaunchUrlExternal = false;
+  static const defaultConfirmExternalLinks = true;
 
   // Notifications defaults
   static const defaultMentionNotifications = true;
@@ -105,6 +106,10 @@ abstract class _SettingsStoreBase with Store {
   List<String> hiddenContentLabels = defaultHiddenContentLabels;
 
   // Links options
+  @JsonKey(defaultValue: defaultConfirmExternalLinks)
+  @observable
+  var confirmExternalLinks = defaultConfirmExternalLinks;
+
   @JsonKey(defaultValue: defaultLaunchUrlExternal)
   @observable
   var launchUrlExternal = defaultLaunchUrlExternal;
@@ -829,6 +834,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultFullScreen = false;
   static const defaultFullScreenChatOverlay = false;
   static const defaultPinnedChannelIds = <String>[];
+  static const defaultHiddenPinnedChatIds = <String>[];
 
   @JsonKey(defaultValue: defaultFullScreen)
   @observable
@@ -842,11 +848,31 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var pinnedChannelIds = defaultPinnedChannelIds;
 
+  @JsonKey(defaultValue: false)
+  @observable
+  var animatedEmotesCalloutShown = false;
+
+  static const maxHiddenPinnedChats = 50;
+
+  @JsonKey(defaultValue: defaultHiddenPinnedChatIds)
+  @observable
+  var hiddenPinnedChatIds = defaultHiddenPinnedChatIds;
+
+  @action
+  void hidePinnedChat(String pinId) {
+    if (hiddenPinnedChatIds.contains(pinId)) return;
+    final kept = [...hiddenPinnedChatIds, pinId];
+    hiddenPinnedChatIds = kept.length > maxHiddenPinnedChats
+        ? kept.sublist(kept.length - maxHiddenPinnedChats)
+        : kept;
+  }
+
   @action
   void resetGlobalConfigs() {
     fullScreen = defaultFullScreen;
     fullScreenChatOverlay = defaultFullScreenChatOverlay;
     pinnedChannelIds = defaultPinnedChannelIds;
+    hiddenPinnedChatIds = defaultHiddenPinnedChatIds;
   }
 
   /// Every setting back to its default, except the language (see

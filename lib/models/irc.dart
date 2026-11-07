@@ -529,6 +529,7 @@ class IRCMessage {
                 size: badgeSize,
                 backgroundColor: context.onsetColors.subOnly,
                 launchExternal: launchExternal,
+                explainerKind: twitchBadgeExplainerKind(badge),
               ),
             );
             span.add(const TextSpan(text: ' '));
@@ -555,6 +556,7 @@ class IRCMessage {
               badge: newBadge,
               size: badgeSize,
               launchExternal: launchExternal,
+              explainerKind: twitchBadgeExplainerKind(badge),
             ),
           );
           span.add(const TextSpan(text: ' '));
@@ -1197,6 +1199,7 @@ class IRCMessage {
     required bool launchExternal,
     Color? backgroundColor,
     bool? isSvg,
+    String? explainerKind,
   }) {
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
@@ -1211,7 +1214,7 @@ class IRCMessage {
           ),
           url: badge.url,
           title: badge.name,
-          subtitle: Text(badge.type.label(context.l10n)),
+          subtitle: BadgeDetails(badge: badge, explainerKind: explainerKind),
           launchExternal: launchExternal,
           showCopyName: false,
         ),
@@ -1281,7 +1284,11 @@ class IRCMessage {
           decorationColor: linkColor,
         ),
         recognizer: TapGestureRecognizer()
-          ..onTap = () => LinkRouter.open(text, launchExternal: launchExternal),
+          ..onTap = () => LinkRouter.open(
+            text,
+            launchExternal: launchExternal,
+            confirm: true,
+          ),
       );
     } else {
       return TextSpan(text: text, style: style);
@@ -1292,9 +1299,33 @@ class IRCMessage {
     BuildContext context, {
     required Emote emote,
     required bool launchExternal,
+    VoidCallback? onRemoveRecent,
+    VoidCallback? onSubscribe,
   }) {
     _showAssetDetailsBottomSheet(
       context,
+      actions: (context) => [
+        if (onSubscribe != null)
+          SheetRow(
+            glyph: SheetGlyphKind.star,
+            label: context.l10n.channelSubscribe,
+            detail: context.l10n.chatDetailsOpensTwitch,
+            end: SheetRowEnd.external,
+            onTap: () {
+              Navigator.pop(context);
+              onSubscribe();
+            },
+          ),
+        if (onRemoveRecent != null)
+          SheetRow(
+            glyph: SheetGlyphKind.trash,
+            label: context.l10n.emoteMenuRemoveRecent,
+            onTap: () {
+              onRemoveRecent();
+              Navigator.pop(context);
+            },
+          ),
+      ],
       leading: OnsetCachedNetworkImage(imageUrl: emote.url, width: 48),
       url: emote.url,
       title: emote.realName != null
@@ -1320,6 +1351,8 @@ class IRCMessage {
                   ),
                   style: detail,
                 ),
+              if (emote.limitedTime)
+                Text(context.l10n.emoteLimitedTime, style: detail),
               if (emote.unlockHint(context.l10n) case final hint?)
                 Text(hint, style: detail),
             ],
@@ -1342,6 +1375,7 @@ class IRCMessage {
     required bool launchExternal,
     bool showCopyName = true,
     String? copyName,
+    List<Widget> Function(BuildContext context)? actions,
   }) {
     showOnsetSheet<void>(
       context: context,
@@ -1421,6 +1455,7 @@ class IRCMessage {
               color: colors.hairline,
             ),
             const SizedBox(height: 6),
+            ...?actions?.call(context),
             if (showCopyName)
               SheetRow(
                 glyph: SheetGlyphKind.copy,
@@ -1724,6 +1759,33 @@ class IRCMessage {
     actionCallback: actionCallback,
     actionLabel: actionLabel,
   );
+}
+
+class BadgeDetails extends StatelessWidget {
+  const BadgeDetails({super.key, required this.badge, this.explainerKind});
+
+  final ChatBadge badge;
+  final String? explainerKind;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final kind = explainerKind;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 3,
+      children: [
+        Text(badge.type.label(l)),
+        if (kind != null)
+          Text(
+            l.chatBadgeExplainer(kind: kind),
+            style: SheetText.rowDetail.copyWith(
+              color: SheetColors.of(context).secondary,
+            ),
+          ),
+      ],
+    );
+  }
 }
 
 /// The object representation of the IRC ROOMSTATE message.

@@ -407,6 +407,7 @@ class PinnedCard extends StatelessWidget {
       expanded: card.expanded,
       onToggle: card.onToggle,
       onDismiss: card.onDismiss,
+      dismissTooltip: context.l10n.highlightHideForMe,
       semanticsLabel: context.l10n.highlightPinnedFrom(
         sender: sender,
         text: pin.text,

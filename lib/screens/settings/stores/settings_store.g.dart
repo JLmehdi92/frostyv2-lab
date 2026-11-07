@@ -39,6 +39,7 @@ SettingsStore _$SettingsStoreFromJson(
           ?.map((e) => e as String)
           .toList() ??
       []
+  ..confirmExternalLinks = json['confirmExternalLinks'] as bool? ?? true
   ..launchUrlExternal = json['launchUrlExternal'] as bool? ?? false
   ..mentionNotifications = json['mentionNotifications'] as bool? ?? true
   ..appLanguage =
@@ -205,6 +206,13 @@ SettingsStore _$SettingsStoreFromJson(
       (json['pinnedChannelIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList() ??
+      []
+  ..animatedEmotesCalloutShown =
+      json['animatedEmotesCalloutShown'] as bool? ?? false
+  ..hiddenPinnedChatIds =
+      (json['hiddenPinnedChatIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
       [];
 
 Map<String, dynamic> _$SettingsStoreToJson(
@@ -218,6 +226,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'followedSort': _$FollowedSortEnumMap[instance.followedSort]!,
   'streamLanguage': instance.streamLanguage,
   'hiddenContentLabels': instance.hiddenContentLabels,
+  'confirmExternalLinks': instance.confirmExternalLinks,
   'launchUrlExternal': instance.launchUrlExternal,
   'mentionNotifications': instance.mentionNotifications,
   'appLanguage': _$AppLanguageEnumMap[instance.appLanguage]!,
@@ -304,6 +313,8 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'fullScreen': instance.fullScreen,
   'fullScreenChatOverlay': instance.fullScreenChatOverlay,
   'pinnedChannelIds': instance.pinnedChannelIds,
+  'animatedEmotesCalloutShown': instance.animatedEmotesCalloutShown,
+  'hiddenPinnedChatIds': instance.hiddenPinnedChatIds,
 };
 
 const _$ThemeTypeEnumMap = {
@@ -574,6 +585,28 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     _$hiddenContentLabelsAtom.reportWrite(value, super.hiddenContentLabels, () {
       super.hiddenContentLabels = value;
     });
+  }
+
+  late final _$confirmExternalLinksAtom = Atom(
+    name: '_SettingsStoreBase.confirmExternalLinks',
+    context: context,
+  );
+
+  @override
+  bool get confirmExternalLinks {
+    _$confirmExternalLinksAtom.reportRead();
+    return super.confirmExternalLinks;
+  }
+
+  @override
+  set confirmExternalLinks(bool value) {
+    _$confirmExternalLinksAtom.reportWrite(
+      value,
+      super.confirmExternalLinks,
+      () {
+        super.confirmExternalLinks = value;
+      },
+    );
   }
 
   late final _$launchUrlExternalAtom = Atom(
@@ -2124,6 +2157,46 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$animatedEmotesCalloutShownAtom = Atom(
+    name: '_SettingsStoreBase.animatedEmotesCalloutShown',
+    context: context,
+  );
+
+  @override
+  bool get animatedEmotesCalloutShown {
+    _$animatedEmotesCalloutShownAtom.reportRead();
+    return super.animatedEmotesCalloutShown;
+  }
+
+  @override
+  set animatedEmotesCalloutShown(bool value) {
+    _$animatedEmotesCalloutShownAtom.reportWrite(
+      value,
+      super.animatedEmotesCalloutShown,
+      () {
+        super.animatedEmotesCalloutShown = value;
+      },
+    );
+  }
+
+  late final _$hiddenPinnedChatIdsAtom = Atom(
+    name: '_SettingsStoreBase.hiddenPinnedChatIds',
+    context: context,
+  );
+
+  @override
+  List<String> get hiddenPinnedChatIds {
+    _$hiddenPinnedChatIdsAtom.reportRead();
+    return super.hiddenPinnedChatIds;
+  }
+
+  @override
+  set hiddenPinnedChatIds(List<String> value) {
+    _$hiddenPinnedChatIdsAtom.reportWrite(value, super.hiddenPinnedChatIds, () {
+      super.hiddenPinnedChatIds = value;
+    });
+  }
+
   late final _$_SettingsStoreBaseActionController = ActionController(
     name: '_SettingsStoreBase',
     context: context,
@@ -2202,6 +2275,18 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   }
 
   @override
+  void hidePinnedChat(String pinId) {
+    final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
+      name: '_SettingsStoreBase.hidePinnedChat',
+    );
+    try {
+      return super.hidePinnedChat(pinId);
+    } finally {
+      _$_SettingsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void resetGlobalConfigs() {
     final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
       name: '_SettingsStoreBase.resetGlobalConfigs',
@@ -2236,6 +2321,7 @@ startTab: ${startTab},
 followedSort: ${followedSort},
 streamLanguage: ${streamLanguage},
 hiddenContentLabels: ${hiddenContentLabels},
+confirmExternalLinks: ${confirmExternalLinks},
 launchUrlExternal: ${launchUrlExternal},
 mentionNotifications: ${mentionNotifications},
 appLanguage: ${appLanguage},
@@ -2318,6 +2404,8 @@ telemetryConsentVersion: ${telemetryConsentVersion},
 fullScreen: ${fullScreen},
 fullScreenChatOverlay: ${fullScreenChatOverlay},
 pinnedChannelIds: ${pinnedChannelIds},
+animatedEmotesCalloutShown: ${animatedEmotesCalloutShown},
+hiddenPinnedChatIds: ${hiddenPinnedChatIds},
 nameColorContrast: ${nameColorContrast},
 effectiveChatDelay: ${effectiveChatDelay},
 switchableLandscapeChatModes: ${switchableLandscapeChatModes}

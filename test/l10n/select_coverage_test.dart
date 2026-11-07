@@ -62,6 +62,23 @@ void main() {
         expect(mode.pill(l), isNotEmpty, reason: mode.name);
       }
     },
+    'chatModeExplainer': (l) {
+      for (final mode in const [
+        'emoteOnly',
+        'followersNow',
+        'followers',
+        'slow',
+        'subscribers',
+        'uniqueChat',
+      ]) {
+        expect(l.chatModeExplainer(mode: mode), isNotEmpty, reason: mode);
+      }
+    },
+    'chatBadgeExplainer': (l) {
+      for (final kind in twitchBadgeExplainerKinds.values) {
+        expect(l.chatBadgeExplainer(kind: kind), isNotEmpty, reason: kind);
+      }
+    },
     'chatModeChanged': (l) {
       final fallback = l.chatModeChanged(mode: '?', state: OnOff.on.name);
       for (final mode in ChatMode.values) {

@@ -129,6 +129,31 @@ class ChatBadge {
   );
 }
 
+const twitchBadgeExplainerKinds = {
+  'broadcaster': 'broadcaster',
+  'moderator': 'moderator',
+  'lead_moderator': 'leadModerator',
+  'vip': 'vip',
+  'subscriber': 'subscriber',
+  'founder': 'founder',
+  'bits': 'bits',
+  'bits-leader': 'bitsLeader',
+  'sub-gifter': 'subGifter',
+  'sub-gift-leader': 'subGiftLeader',
+  'partner': 'partner',
+  'staff': 'staff',
+  'premium': 'premium',
+  'turbo': 'turbo',
+  'artist-badge': 'artist',
+  'no_audio': 'noAudio',
+  'no_video': 'noVideo',
+  'predictions': 'predictions',
+  'hype-train': 'hypeTrain',
+};
+
+String? twitchBadgeExplainerKind(String badgeKey) =>
+    twitchBadgeExplainerKinds[badgeKey.split('/').first];
+
 enum BadgeType {
   twitch,
   bttv,

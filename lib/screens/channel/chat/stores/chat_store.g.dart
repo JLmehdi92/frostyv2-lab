@@ -17,6 +17,14 @@ mixin _$ChatStore on ChatStoreBase, Store {
         () => super.renderMessages,
         name: 'ChatStoreBase.renderMessages',
       )).value;
+  Computed<List<UserTwitch>>? _$sharedChatPartnersComputed;
+
+  @override
+  List<UserTwitch> get sharedChatPartners =>
+      (_$sharedChatPartnersComputed ??= Computed<List<UserTwitch>>(
+        () => super.sharedChatPartners,
+        name: 'ChatStoreBase.sharedChatPartners',
+      )).value;
   Computed<bool>? _$canModerateComputed;
 
   @override
@@ -282,6 +290,30 @@ mixin _$ChatStore on ChatStoreBase, Store {
     });
   }
 
+  late final _$_showSharedChatBannerAtom = Atom(
+    name: 'ChatStoreBase._showSharedChatBanner',
+    context: context,
+  );
+
+  bool get showSharedChatBanner {
+    _$_showSharedChatBannerAtom.reportRead();
+    return super._showSharedChatBanner;
+  }
+
+  @override
+  bool get _showSharedChatBanner => showSharedChatBanner;
+
+  @override
+  set _showSharedChatBanner(bool value) {
+    _$_showSharedChatBannerAtom.reportWrite(
+      value,
+      super._showSharedChatBanner,
+      () {
+        super._showSharedChatBanner = value;
+      },
+    );
+  }
+
   late final _$_isWaitingForAckAtom = Atom(
     name: 'ChatStoreBase._isWaitingForAck',
     context: context,
@@ -464,6 +496,18 @@ mixin _$ChatStore on ChatStoreBase, Store {
     );
     try {
       return super.revealFilteredMessage(id);
+    } finally {
+      _$ChatStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void dismissSharedChatBanner() {
+    final _$actionInfo = _$ChatStoreBaseActionController.startAction(
+      name: 'ChatStoreBase.dismissSharedChatBanner',
+    );
+    try {
+      return super.dismissSharedChatBanner();
     } finally {
       _$ChatStoreBaseActionController.endAction(_$actionInfo);
     }
@@ -674,6 +718,7 @@ timeRemaining: ${timeRemaining},
 expandChat: ${expandChat},
 replyingToMessage: ${replyingToMessage},
 renderMessages: ${renderMessages},
+sharedChatPartners: ${sharedChatPartners},
 canModerate: ${canModerate},
 matchingEmotes: ${matchingEmotes},
 matchingChatters: ${matchingChatters},

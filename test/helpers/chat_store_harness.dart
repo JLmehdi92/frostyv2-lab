@@ -106,6 +106,7 @@ ChatStore createTestChatStore({
   when(() => assets.init()).thenAnswer((_) async {});
   when(() => assets.showEmoteMenu).thenReturn(false);
   when(() => assets.sevenTvEmoteSetId).thenReturn(null);
+  when(() => assets.emoteToObject).thenReturn({});
   when(
     () => assets.assetsFuture(
       channelId: any(named: 'channelId'),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:mobx/mobx.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
@@ -11,14 +12,31 @@ import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
+import 'package:onset/screens/channel/chat/widgets/shared_chat_banner.dart';
+import 'package:onset/screens/settings/chat_settings.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/announce.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
+
+typedef ChatSettingsOpener =
+    void Function(BuildContext context, SettingsStore settings);
+
+void openChatSettings(BuildContext context, SettingsStore settings) =>
+    unawaited(
+      openSettingsPage(
+        context,
+        id: SettingsPageId.chat,
+        builder: (_) => ChatSettings(settingsStore: settings),
+      ),
+    );
 
 typedef ChatUserCardOpener =
     void Function(
@@ -39,6 +57,39 @@ void openChatUserCard(
   displayName: user.displayName,
 );
 
+class _SharedChatBannerSlot extends StatelessWidget {
+  const _SharedChatBannerSlot({required this.chatStore});
+
+  final ChatStore chatStore;
+
+  @override
+  Widget build(BuildContext context) => Observer(
+    builder: (context) {
+      final show = chatStore.showSharedChatBanner;
+      return AnimatedSwitcher(
+        duration: motionDuration(context, const Duration(milliseconds: 240)),
+        switchInCurve: OnsetMotion.emphasizedDecelerate,
+        switchOutCurve: OnsetMotion.emphasizedAccelerate,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SizeTransition(
+            sizeFactor: animation,
+            axisAlignment: -1,
+            child: child,
+          ),
+        ),
+        child: show
+            ? SharedChatBanner(
+                key: const ValueKey('shared-chat-banner'),
+                partners: chatStore.sharedChatPartners,
+                onDismiss: chatStore.dismissSharedChatBanner,
+              )
+            : const SizedBox(width: double.infinity),
+      );
+    },
+  );
+}
+
 class Chat extends StatefulWidget {
   final ChatStore chatStore;
   final EdgeInsetsGeometry? listPadding;
@@ -53,6 +104,8 @@ class Chat extends StatefulWidget {
 
   final ChatUserCardOpener openUserCard;
 
+  final ChatSettingsOpener openSettings;
+
   const Chat({
     super.key,
     required this.chatStore,
@@ -60,6 +113,7 @@ class Chat extends StatefulWidget {
     required this.onAddChat,
     this.chatTabsStore,
     this.openUserCard = openChatUserCard,
+    this.openSettings = openChatSettings,
   });
 
   @override
@@ -75,22 +129,42 @@ class _ChatState extends State<Chat> {
   bool get _isMerged => chatTabsStore != null;
 
   StreamSubscription<ChatUserCardRequest>? _userCards;
+  StreamSubscription<void>? _settingsRequests;
+  ReactionDisposer? _expandAnnouncer;
 
   @override
   void initState() {
     super.initState();
     _listenUserCards();
+    _announceExpansion();
   }
 
   @override
   void didUpdateWidget(Chat oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.chatStore != widget.chatStore) _listenUserCards();
+    if (oldWidget.chatStore != widget.chatStore) {
+      _listenUserCards();
+      _announceExpansion();
+    }
+  }
+
+  void _announceExpansion() {
+    _expandAnnouncer?.call();
+    _expandAnnouncer = reaction((_) => chatStore.expandChat, (bool expanded) {
+      if (!mounted) return;
+      final l = context.l10n;
+      announce(
+        context,
+        expanded ? l.chatExpandedAnnouncement : l.chatCollapsedAnnouncement,
+      );
+    });
   }
 
   @override
   void dispose() {
     _userCards?.cancel();
+    _settingsRequests?.cancel();
+    _expandAnnouncer?.call();
     super.dispose();
   }
 
@@ -99,6 +173,11 @@ class _ChatState extends State<Chat> {
     _userCards = chatStore.userCardRequests.listen((user) {
       if (!mounted) return;
       widget.openUserCard(context, chatStore: chatStore, user: user);
+    });
+    _settingsRequests?.cancel();
+    _settingsRequests = chatStore.chatSettingsRequests.listen((_) {
+      if (!mounted) return;
+      widget.openSettings(context, chatStore.settings);
     });
   }
 
@@ -246,6 +325,12 @@ class _ChatState extends State<Chat> {
                           ),
                         ),
                       ),
+                    ),
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: _SharedChatBannerSlot(chatStore: chatStore),
                     ),
                     Positioned(
                       left: 0,

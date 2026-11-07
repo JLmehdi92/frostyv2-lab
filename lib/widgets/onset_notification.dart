@@ -63,16 +63,22 @@ class OnsetNotification extends StatelessWidget {
             child: row,
           );
 
+    final announced = Semantics(
+      container: true,
+      liveRegion: true,
+      child: notificationContent,
+    );
+
     // Make it dismissible with swipe gesture if onDismissed is provided
     if (onDismissed != null) {
       return Dismissible(
         key: ValueKey(message),
         onDismissed: (_) => onDismissed!(),
         direction: DismissDirection.up,
-        child: notificationContent,
+        child: announced,
       );
     }
 
-    return notificationContent;
+    return announced;
   }
 }

@@ -5,9 +5,14 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/twitch_links.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/widgets/twitch_web_page.dart';
 
 class EmoteMenuSection extends StatefulWidget {
   final ChatStore chatStore;
@@ -18,12 +23,15 @@ class EmoteMenuSection extends StatefulWidget {
   /// of a channel the viewer is not subscribed to).
   final Set<String> usable;
 
+  final String? followerInfo;
+
   const EmoteMenuSection({
     super.key,
     required this.chatStore,
     required this.emotes,
     this.disabled = false,
     this.usable = const {},
+    this.followerInfo,
   });
 
   @override
@@ -37,40 +45,114 @@ class _EmoteMenuSectionState extends State<EmoteMenuSection>
     super.build(context);
 
     final panel = SheetPresentation.isPanel(context);
+    final emotes = widget.emotes;
+    final followerInfo = widget.followerInfo;
+    final showFollowerInfo =
+        followerInfo != null &&
+        emotes.any((emote) => emote.type == EmoteType.twitchFollower);
+    final side = panel ? 6.0 : 4.0;
     return MediaQuery.removePadding(
       context: context,
       removeTop: true,
-      child: GridView.builder(
-        gridDelegate: emoteGridDelegate(context, panel: panel),
-        padding: EdgeInsets.fromLTRB(panel ? 6 : 4, 4, panel ? 6 : 4, 10),
-        itemBuilder: (context, index) {
-          final off =
-              widget.disabled &&
-              !widget.usable.contains(widget.emotes[index].name);
-          return EmoteCell(
-            emote: widget.emotes[index],
-            locked: off,
-            onTap: off
-                ? null
-                : () => widget.chatStore.addEmote(widget.emotes[index]),
-            onLongPress: () {
-              HapticFeedback.lightImpact();
-
-              IRCMessage.showEmoteDetailsBottomSheet(
-                context,
-                emote: widget.emotes[index],
-                launchExternal: widget.chatStore.settings.launchUrlExternal,
-              );
-            },
-          );
-        },
-        itemCount: widget.emotes.length,
+      child: CustomScrollView(
+        slivers: [
+          if (showFollowerInfo)
+            SliverToBoxAdapter(child: EmoteMenuNote(text: followerInfo)),
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(side, 4, side, 10),
+            sliver: SliverGrid(
+              gridDelegate: emoteGridDelegate(context, panel: panel),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _cell(context, emotes[index]),
+                childCount: emotes.length,
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _cell(BuildContext context, Emote emote) {
+    final locked = widget.disabled && !widget.usable.contains(emote.name);
+    void details() => showEmoteDetails(
+      context,
+      chatStore: widget.chatStore,
+      emote: emote,
+      locked: locked,
+    );
+    return EmoteCell(
+      emote: emote,
+      locked: locked,
+      onTap: locked ? details : () => widget.chatStore.addEmote(emote),
+      onLongPress: () {
+        HapticFeedback.lightImpact();
+        details();
+      },
     );
   }
 
   @override
   bool get wantKeepAlive => true;
+}
+
+void showEmoteDetails(
+  BuildContext context, {
+  required ChatStore chatStore,
+  required Emote emote,
+  bool locked = false,
+  VoidCallback? onRemoveRecent,
+}) {
+  final subscribeUrl = locked && emote.type == EmoteType.twitchChannel
+      ? twitchSubscribeUrl(chatStore.channelName)
+      : null;
+  IRCMessage.showEmoteDetailsBottomSheet(
+    context,
+    emote: emote,
+    launchExternal: chatStore.settings.launchUrlExternal,
+    onRemoveRecent: onRemoveRecent,
+    onSubscribe: subscribeUrl == null
+        ? null
+        : () => TwitchWebPage.open(
+            context,
+            title: context.l10n.channelSubscribe,
+            url: subscribeUrl,
+          ),
+  );
+}
+
+class EmoteMenuNote extends StatelessWidget {
+  const EmoteMenuNote({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: SheetGlyph(
+              SheetGlyphKind.heart,
+              size: 15,
+              color: colors.secondary,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: SheetText.rowDetail.copyWith(color: colors.secondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// The grid of the emote menu: 8 columns on a phone in portrait, 6 beside
@@ -117,28 +199,93 @@ class EmoteCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final label = locked
+        ? context.l10n.emoteMenuLocked(name: emote.name)
+        : emote.animated
+        ? context.l10n.emoteMenuAnimated(name: emote.name)
+        : null;
     return Semantics(
-      label: locked ? context.l10n.emoteMenuLocked(name: emote.name) : null,
+      label: label,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         onLongPress: onLongPress,
-        child: Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Center(
-            // Dimmed by the image's own colour, not an opacity layer per
-            // cell: a channel's sub emotes can fill the grid.
-            child: OnsetCachedNetworkImage(
-              imageUrl: url ?? emote.url,
-              height: emote.height?.toDouble() ?? defaultEmoteSize,
-              width: emote.width?.toDouble(),
-              color: locked ? const Color.fromRGBO(255, 255, 255, 0.42) : null,
-              colorBlendMode: locked ? BlendMode.modulate : null,
-              semanticLabel: locked ? null : emote.name,
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Center(
+                // Dimmed by the image's own colour, not an opacity layer per
+                // cell: a channel's sub emotes can fill the grid.
+                child: OnsetCachedNetworkImage(
+                  imageUrl: url ?? emote.url,
+                  height: emote.height?.toDouble() ?? defaultEmoteSize,
+                  width: emote.width?.toDouble(),
+                  color: locked
+                      ? const Color.fromRGBO(255, 255, 255, 0.42)
+                      : null,
+                  colorBlendMode: locked ? BlendMode.modulate : null,
+                  semanticLabel: label == null ? emote.name : null,
+                ),
+              ),
             ),
-          ),
+            if (emote.animated)
+              const PositionedDirectional(
+                end: 3,
+                bottom: 3,
+                child: AnimatedEmoteMark(),
+              ),
+          ],
         ),
       ),
     );
   }
+}
+
+class AnimatedEmoteMark extends StatelessWidget {
+  const AnimatedEmoteMark({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
+    return ExcludeSemantics(
+      child: Container(
+        width: 13,
+        height: 13,
+        decoration: BoxDecoration(
+          color: colors.raised,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: colors.ring,
+            width: OnsetTokens.hairlineWidth,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: CustomPaint(
+          size: const Size(5, 6),
+          painter: _PlayMarkPainter(colors.secondary),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlayMarkPainter extends CustomPainter {
+  const _PlayMarkPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, size.height / 2)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_PlayMarkPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

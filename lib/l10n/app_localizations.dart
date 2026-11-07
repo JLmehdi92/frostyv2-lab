@@ -1307,6 +1307,42 @@ abstract class AppLocalizations {
   /// **'Open links in external browser'**
   String get settingsExternalBrowser;
 
+  /// Settings › General › Links: a switch; when on, a link from chat or a channel’s profile that leaves Twitch asks first. On by default.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask before opening links'**
+  String get settingsConfirmLinks;
+
+  /// Settings › General › Links: under “Ask before opening links”.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows where a link from chat or a channel’s profile leads before opening it.'**
+  String get settingsConfirmLinksDetail;
+
+  /// Dialog title before opening a link from chat or a channel’s profile that leaves Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Open this link?'**
+  String get linkConfirmTitle;
+
+  /// Dialog body before opening an outside link. host is the website's address (example.com), in bold; the full link shows under it.
+  ///
+  /// In en, this message translates to:
+  /// **'This link opens {host}, outside ONSET.'**
+  String linkConfirmBody({required String host});
+
+  /// Outside-link dialog: a switch; when on, opening the link turns off “Ask before opening links”.
+  ///
+  /// In en, this message translates to:
+  /// **'Don’t ask again'**
+  String get linkConfirmDontAsk;
+
+  /// Outside-link dialog: the button that opens the link.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get linkConfirmOpen;
+
   /// Settings › General › Browse: the row that filters live channels by language, its list's title, and what a screen reader calls that list.
   ///
   /// In en, this message translates to:
@@ -5147,6 +5183,24 @@ abstract class AppLocalizations {
   /// **'Shared chat · {title}'**
   String livePlayerSharedChatTitle({required String title});
 
+  /// Banner above chat when several channels start sharing one chat (one line, title of the banner); also what a screen reader announces.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared chat started'**
+  String get sharedChatStarted;
+
+  /// Shared chat banner: under its title. count is the number of other channels in the shared chat (at least 1).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Messages from another channel show here too.} other{Messages from {count} other channels show here too.}}'**
+  String sharedChatStartedBody({required int count});
+
+  /// Shared chat banner and chat menu: the label before the avatars and names of the channels sharing this chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing chat with'**
+  String get sharedChatWith;
+
   /// Tooltip of how long the live has run, over the video.
   ///
   /// In en, this message translates to:
@@ -5849,6 +5903,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'by {name}'**
   String highlightPinnedBy({required String name});
+
+  /// Pinned message card above chat: the tooltip and screen-reader label of its close button, which hides this pinned message for the viewer only, for good (others still see it).
+  ///
+  /// In en, this message translates to:
+  /// **'Hide for me'**
+  String get highlightHideForMe;
+
+  /// A line ONSET adds to chat when a moderator pins a new message. name is who pinned it (Twitch's data).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} pinned a message.'**
+  String chatPinnedBy({required String name});
+
+  /// A line ONSET adds to chat when a new message is pinned and Twitch does not say who pinned it.
+  ///
+  /// In en, this message translates to:
+  /// **'A message was pinned.'**
+  String get chatPinnedNew;
 
   /// A raid's viewers, the number in full, on the raid cards.
   ///
@@ -6712,6 +6784,18 @@ abstract class AppLocalizations {
   /// **'Reconnecting to chat…'**
   String get chatReconnectingNotice;
 
+  /// What a screen reader announces when the chat grows to take more of the screen (typing in landscape).
+  ///
+  /// In en, this message translates to:
+  /// **'Chat expanded'**
+  String get chatExpandedAnnouncement;
+
+  /// What a screen reader announces when the chat goes back to its normal size.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat collapsed'**
+  String get chatCollapsedAnnouncement;
+
   /// The chat is delayed to match the video (Settings › Chat › Message delay): the countdown until it catches up.
   ///
   /// In en, this message translates to:
@@ -7249,6 +7333,12 @@ abstract class AppLocalizations {
   /// **'by {name}'**
   String chatEmoteBy({required String name});
 
+  /// Badge details sheet (tap a badge in chat): what a Twitch badge means, under its kind. kind is the badge set; an unknown set shows nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, broadcaster{Streams on this channel.} moderator{Moderates this channel’s chat.} leadModerator{Leads the moderators of this channel.} vip{Named a VIP by this channel.} subscriber{Subscribes to this channel; the badge changes with the months of subscription.} founder{Among the first subscribers to this channel.} bits{Has sent Bits in this channel; the badge shows the total.} bitsLeader{Among the top Bits senders in this channel.} subGifter{Has gifted subs in this channel; the badge shows how many.} subGiftLeader{Among the top sub gifters in this channel.} partner{A Twitch Partner.} staff{Works at Twitch.} premium{Has Prime Gaming.} turbo{Has Twitch Turbo.} artist{Makes art for this channel.} noAudio{Watching without sound.} noVideo{Listening without the video.} predictions{Took part in the current prediction; the badge shows the outcome picked.} hypeTrain{Took part in a Hype Train on this channel.} other{}}'**
+  String chatBadgeExplainer({required String kind});
+
   /// A row of an emote's, badge's or GIF's details: copies its name.
   ///
   /// In en, this message translates to:
@@ -7651,6 +7741,12 @@ abstract class AppLocalizations {
   /// **'{mode, select, emoteOnly{Emote-only} followers{Followers-only} slow{Slow mode} subscribers{Subscribers-only} uniqueChat{Unique chat} other{}}'**
   String chatModePill({required String mode});
 
+  /// Chat menu: the tooltip shown when the viewer taps an active chat mode pill. followers has a follow age shown on the pill; followersNow has none.
+  ///
+  /// In en, this message translates to:
+  /// **'{mode, select, emoteOnly{Messages can only contain emotes.} followersNow{Only followers can chat.} followers{Only followers can chat, once they’ve followed for the time shown.} slow{Everyone waits the time shown between two messages.} subscribers{Only subscribers can chat.} uniqueChat{Each message must be unique: repeated messages are refused.} other{}}'**
+  String chatModeExplainer({required String mode});
+
   /// The placeholder of the chatters list's search field.
   ///
   /// In en, this message translates to:
@@ -7687,6 +7783,18 @@ abstract class AppLocalizations {
   /// **'Clear recent emotes'**
   String get emoteMenuClearRecent;
 
+  /// A line ONSET adds to chat once, only for the viewer, the first time an animated emote shows; followed by the “Show me” link.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated emotes can be turned off in Settings › Chat.'**
+  String get chatAnimatedEmotesCallout;
+
+  /// The link after the one-time chat line about animated emotes: opens Settings › Chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me'**
+  String get chatAnimatedEmotesCalloutShow;
+
   /// The note above the input once the recent emotes were cleared.
   ///
   /// In en, this message translates to:
@@ -7704,6 +7812,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}, locked'**
   String emoteMenuLocked({required String name});
+
+  /// What a screen reader says for an animated emote in the emote menu (a small play mark sits on its corner). name is the emote's code.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, animated emote'**
+  String emoteMenuAnimated({required String name});
+
+  /// Emote details sheet opened from the Recent tab of the emote menu: removes this one emote from the recent emotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from recent emotes'**
+  String get emoteMenuRemoveRecent;
+
+  /// Emote menu, the channel's Twitch emotes: a note above the grid when it holds follower emotes. channel is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Follower emotes can only be used in {channel}’s chat.'**
+  String emoteMenuFollowerInfo({required String channel});
+
+  /// Emote details sheet: a line under the emote's kind for an emote Twitch gives only for a limited time.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited-time emote'**
+  String get emoteLimitedTime;
 
   /// A tab of the emote menu: the channel's emotes.
   ///

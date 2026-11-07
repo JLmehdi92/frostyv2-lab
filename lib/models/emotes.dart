@@ -17,12 +17,15 @@ class EmoteTwitch {
   /// channel's subscriber emotes; empty otherwise.
   final String? tier;
 
+  final List<String>? format;
+
   const EmoteTwitch(
     this.id,
     this.name,
     this.emoteType,
     this.ownerId, {
     this.tier,
+    this.format,
   });
 
   factory EmoteTwitch.fromJson(Map<String, dynamic> json) =>
@@ -148,7 +151,17 @@ class Emote7TVData {
   final Owner7TV? owner;
   final Emote7TVHost host;
 
-  const Emote7TVData(this.id, this.name, this.flags, this.owner, this.host);
+  @JsonKey(defaultValue: false)
+  final bool animated;
+
+  const Emote7TVData(
+    this.id,
+    this.name,
+    this.flags,
+    this.owner,
+    this.host, {
+    this.animated = false,
+  });
 
   factory Emote7TVData.fromJson(Map<String, dynamic> json) =>
       _$Emote7TVDataFromJson(json);
@@ -208,6 +221,12 @@ class Emote {
   final String? ownerUsername;
   final String? ownerId;
 
+  @JsonKey(defaultValue: false)
+  final bool animated;
+
+  @JsonKey(defaultValue: false)
+  final bool limitedTime;
+
   const Emote({
     required this.name,
     this.realName,
@@ -221,6 +240,8 @@ class Emote {
     this.ownerDisplayName,
     this.ownerUsername,
     this.ownerId,
+    this.animated = false,
+    this.limitedTime = false,
   });
 
   factory Emote.fromTwitch(EmoteTwitch emote, EmoteType type) => Emote(
@@ -238,6 +259,8 @@ class Emote {
     },
     type: type,
     ownerId: emote.ownerId,
+    animated: emote.format?.contains('animated') ?? false,
+    limitedTime: emote.emoteType == 'limitedtime',
   );
 
   factory Emote.fromBTTV(EmoteBTTV emote, EmoteType type) => Emote(
@@ -248,6 +271,7 @@ class Emote {
         ? 'https://cdn.betterttv.net/emote/${emote.id}/static/3x.webp'
         : null,
     type: type,
+    animated: emote.animated,
   );
 
   factory Emote.fromFFZ(EmoteFFZ emote, EmoteType type) => Emote(
@@ -268,6 +292,7 @@ class Emote {
     type: type,
     ownerDisplayName: emote.owner.displayName,
     ownerUsername: emote.owner.name,
+    animated: emote.animated != null,
   );
 
   factory Emote.from7TV(Emote7TV emote, EmoteType type) {
@@ -296,6 +321,7 @@ class Emote {
       type: type,
       ownerDisplayName: emoteData.owner?.displayName,
       ownerUsername: emoteData.owner?.username,
+      animated: emoteData.animated,
     );
   }
 

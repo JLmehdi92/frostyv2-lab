@@ -370,6 +370,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     LinkRouter.open(
       url,
       launchExternal: context.settingsStore.launchUrlExternal,
+      confirm: true,
     ),
   );
 

@@ -8,6 +8,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
+import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/models/raid_arrival.dart';
@@ -25,6 +26,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_tabs.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/screens/channel/community_highlights/gift_bomb_feed.dart';
+import 'package:onset/screens/channel/community_highlights/pinned_notice.dart';
 import 'package:onset/screens/channel/community_highlights/raid_departure.dart';
 import 'package:onset/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
@@ -62,6 +64,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/modal_bottom_sheet.dart';
 import 'package:onset/utils/pip_callbacks.dart';
+import 'package:onset/widgets/announce.dart';
 import 'package:onset/widgets/blurred_container.dart';
 import 'package:onset/widgets/draggable_divider.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
@@ -307,6 +310,14 @@ class _VideoChatState extends State<VideoChat>
   /// Subtle.
   ReactionDisposer? _subtleCelebrations;
 
+  StreamSubscription<PinnedChatMessage>? _newPins;
+
+  void _sayPinned(PinnedChatMessage pin) {
+    final text = pinnedNotice(pin, L10n.current);
+    _primaryChatStore?.addLocalNotice(text);
+    announce(context, text);
+  }
+
   /// The video channel's own chat, once it is up.
   ChatStore? get _primaryChatStore =>
       _chatTabsStore.tabs.where((tab) => tab.isPrimary).firstOrNull?.chatStore;
@@ -326,7 +337,11 @@ class _VideoChatState extends State<VideoChat>
             view != null &&
             isLargeScreenSize(view.physicalSize / view.devicePixelRatio),
         onGoAlong: _goAlongWithRaid,
+        isPinHidden: (id) =>
+            context.settingsStore.hiddenPinnedChatIds.contains(id),
+        onHidePin: context.settingsStore.hidePinnedChat,
       );
+      _newPins = _highlightsStore!.newPins.listen(_sayPinned);
       _giftBombFeed = feedGiftBombs(
         latest: () => _primaryChatStore?.latestGiftBomb,
         show: (bomb) => _highlightsStore?.showGiftBomb(
@@ -353,6 +368,8 @@ class _VideoChatState extends State<VideoChat>
       _incomingRaidFeed = null;
       _raidCancelFeed?.call();
       _raidCancelFeed = null;
+      unawaited(_newPins?.cancel());
+      _newPins = null;
       _highlightsStore!.dispose();
       _highlightsStore = null;
     }
@@ -634,6 +651,9 @@ class _VideoChatState extends State<VideoChat>
     // Not awaited: the channel must open at the same speed it always did, and
     // a real-time connection failing is not a reason to delay playback.
     unawaited(_eventsStore.connect());
+    _entitlementChanges = _eventsStore.entitlementChanges.listen(
+      (_) => _refreshEmotesOfEveryTab(),
+    );
     _infoStore.start();
     final auth = context.authStore;
     _viewerReaction = reaction(
@@ -1027,6 +1047,14 @@ class _VideoChatState extends State<VideoChat>
     );
   }
 
+  StreamSubscription<void>? _entitlementChanges;
+
+  void _refreshEmotesOfEveryTab() {
+    for (final tab in _chatTabsStore.tabs) {
+      tab.chatStore?.scheduleEmoteRefresh();
+    }
+  }
+
   /// Convenience getter for the currently active chat store.
   ChatStore get _chatStore => _chatTabsStore.activeChatStore;
 
@@ -1035,6 +1063,7 @@ class _VideoChatState extends State<VideoChat>
   void _cycleLandscapeChatMode() {
     HapticFeedback.lightImpact();
     _chatCycle.next();
+    announce(context, _chatCycle.current.label(context.l10n));
   }
 
   @override
@@ -1797,6 +1826,7 @@ class _VideoChatState extends State<VideoChat>
     _giftBombFeed?.call();
     _incomingRaidFeed?.call();
     _raidCancelFeed?.call();
+    unawaited(_newPins?.cancel());
     _highlightsStore?.dispose();
     _subtleCelebrations?.call();
     _departure.dispose();
@@ -1804,6 +1834,7 @@ class _VideoChatState extends State<VideoChat>
     // Always disposed, even on hand-off to the mini window: the mini player
     // shows no hype train or celebration, and leaving the socket open would
     // keep a channel's events flowing after leaving it.
+    unawaited(_entitlementChanges?.cancel());
     _eventsStore.dispose();
     _viewerReaction?.call();
     _infoStore.dispose();

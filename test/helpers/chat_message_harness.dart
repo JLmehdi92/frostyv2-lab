@@ -55,6 +55,11 @@ MockChatStore fakeChatStore({
   });
   when(() => store.updateNotification(any())).thenReturn(null);
   when(() => store.userCardRequests).thenAnswer((_) => const Stream.empty());
+  when(
+    () => store.chatSettingsRequests,
+  ).thenAnswer((_) => const Stream.empty());
+  when(() => store.sharedChatPartners).thenReturn(const []);
+  when(() => store.showSharedChatBanner).thenReturn(false);
   return store;
 }
 

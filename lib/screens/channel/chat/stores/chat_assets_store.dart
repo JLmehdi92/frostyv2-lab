@@ -49,6 +49,8 @@ abstract class ChatAssetsStoreBase with Store {
 
   final channelIdToUserTwitch = ObservableMap<String, UserTwitch>();
 
+  final sharedChatChannelIds = ObservableList<String>();
+
   @computed
   List<Emote> get bttvEmotes =>
       emoteToObject.values.where((emote) => isBTTV(emote)).toList();
@@ -334,6 +336,14 @@ abstract class ChatAssetsStoreBase with Store {
 
     if (sharedSession == null) return <String>[];
 
+    runInAction(
+      () => sharedChatChannelIds
+        ..clear()
+        ..addAll(
+          sharedSession!.participants.map((p) => p.broadcasterId).toSet(),
+        ),
+    );
+
     final newParticipantIds = <String>[];
     for (final participant in sharedSession.participants) {
       final id = participant.broadcasterId;
@@ -527,6 +537,11 @@ abstract class ChatAssetsStoreBase with Store {
       }
     }
   }
+
+  @action
+  void removeRecentEmote(Emote emote) => _recentEmotes.removeWhere(
+    (recent) => recent.name == emote.name && recent.type == emote.type,
+  );
 
   /// Adds a channel emote (e.g., from a live 7TV event).
   /// Mutates the observable `_channelEmoteToObject` so `emoteToObject` recomputes.

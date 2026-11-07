@@ -90,6 +90,76 @@ void main() {
     ),
   ).called(times);
 
+  group('emote entitlements', () {
+    test('a message on the viewer’s subscriptions topic says so', () async {
+      final store = build(viewerId: '7');
+      final changes = <void>[];
+      store.entitlementChanges.listen(changes.add);
+      await store.connect();
+      verify(
+        () => hermes.subscribeAll(
+          any(that: contains('user-subscribe-events-v1.7')),
+        ),
+      ).called(1);
+
+      events.add(
+        const HermesEvent(
+          topic: 'user-subscribe-events-v1.7',
+          type: '',
+          data: {'channel_id': '42', 'user_id': '7'},
+        ),
+      );
+      events.add(
+        const HermesEvent(
+          topic: 'user-subscribe-events-v1.8',
+          type: '',
+          data: {},
+        ),
+      );
+      await pumpEventQueue();
+      expect(changes, hasLength(1));
+      store.dispose();
+    });
+
+    test('redeeming an emote unlock says so, other rewards do not', () async {
+      final store = build(tokenProvider: () async => 'tok');
+      final changes = <void>[];
+      store.entitlementChanges.listen(changes.add);
+
+      await store.redeemReward(_reward);
+      await store.redeemReward(
+        const PointsReward(
+          id: 'auto',
+          title: '',
+          cost: 100,
+          automaticType: 'RANDOM_SUB_EMOTE_UNLOCK',
+        ),
+      );
+      await pumpEventQueue();
+      expect(changes, hasLength(1));
+
+      when(
+        () => points.redeemReward(
+          channelId: any(named: 'channelId'),
+          reward: any(named: 'reward'),
+          authToken: any(named: 'authToken'),
+          userInput: any(named: 'userInput'),
+        ),
+      ).thenAnswer((_) async => 'NOT_ENOUGH_POINTS');
+      await store.redeemReward(
+        const PointsReward(
+          id: 'auto',
+          title: '',
+          cost: 100,
+          automaticType: 'CHOSEN_SUB_EMOTE_UNLOCK',
+        ),
+      );
+      await pumpEventQueue();
+      expect(changes, hasLength(1));
+      store.dispose();
+    });
+  });
+
   test('a malformed celebration is dropped without throwing', () async {
     final store = build();
     await store.connect();

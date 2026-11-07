@@ -294,6 +294,15 @@ class CommunityPointsContext {
 ///
 /// Anything unrecognised stays [unknown] and carries its raw text through, so a
 /// code we have never seen is shown rather than swallowed.
+const emoteUnlockRewardTypes = {
+  'RANDOM_SUB_EMOTE_UNLOCK',
+  'CHOSEN_SUB_EMOTE_UNLOCK',
+  'CHOSEN_MODIFIED_SUB_EMOTE_UNLOCK',
+};
+
+bool unlocksEmotes(String? automaticType) =>
+    emoteUnlockRewardTypes.contains(automaticType);
+
 enum PointsActionStatus {
   success,
 

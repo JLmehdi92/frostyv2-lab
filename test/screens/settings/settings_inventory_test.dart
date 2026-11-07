@@ -27,6 +27,7 @@ final SwitchRows _general = {
   'Use large stream cards': (s) => s.largeStreamCard,
   'Show thumbnail': (s) => s.showThumbnails,
   'Open links in external browser': (s) => s.launchUrlExternal,
+  'Ask before opening links': (s) => s.confirmExternalLinks,
 };
 
 final SwitchRows _video = {

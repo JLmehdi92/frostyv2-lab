@@ -130,7 +130,7 @@ void main() {
     verify(() => chat.updateNotification('Recent emotes cleared')).called(1);
   });
 
-  testWidgets('a sub emote of another channel is greyed and cannot be used', (
+  testWidgets('a sub emote of another channel is greyed, a tap explains it', (
     tester,
   ) async {
     when(() => chat.userState).thenReturn(const USERSTATE());
@@ -146,7 +146,15 @@ void main() {
     await tester.pumpAndSettle();
     final cell = tester.widget<EmoteCell>(find.byType(EmoteCell).first);
     expect(cell.locked, isTrue);
-    expect(cell.onTap, isNull);
+    await tester.tap(find.byType(EmoteCell).first);
+    await tester.pumpAndSettle();
+    expect(find.text('nisqyHype'), findsOneWidget);
+    verifyNever(
+      () => chat.addEmote(
+        any(),
+        autocompleteMode: any(named: 'autocompleteMode'),
+      ),
+    );
   });
 
   group('tablet panel', () {

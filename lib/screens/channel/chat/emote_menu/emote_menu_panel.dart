@@ -76,6 +76,11 @@ class EmoteMenuPanel extends StatelessWidget {
                 // ones the viewer has stay usable.
                 disabled: e.key == UserEmoteSection.channel && !isSubbed,
                 usable: chatStore.assetsStore.userEmoteToObject.keys.toSet(),
+                followerInfo: e.key == UserEmoteSection.channel
+                    ? context.l10n.emoteMenuFollowerInfo(
+                        channel: chatStore.displayName,
+                      )
+                    : null,
               ),
             )
             .toList(),

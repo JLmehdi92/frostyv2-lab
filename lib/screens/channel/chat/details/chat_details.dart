@@ -14,6 +14,7 @@ import 'package:onset/screens/channel/chat/details/chat_users_list.dart';
 import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
+import 'package:onset/screens/channel/chat/widgets/shared_chat_banner.dart';
 import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
@@ -377,6 +378,9 @@ class _ChatDetailsState extends State<ChatDetails> {
         // Read in the observer: the menu follows a login while it is open.
         final loggedIn = store.auth.isLoggedIn;
         final children = [
+          if (store.sharedChatPartners case final partners
+              when partners.isNotEmpty)
+            SharedChatStrip(channels: partners),
           if (_hasActiveModes())
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,

@@ -755,6 +755,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsExternalBrowser => 'Open links in external browser';
 
   @override
+  String get settingsConfirmLinks => 'Ask before opening links';
+
+  @override
+  String get settingsConfirmLinksDetail =>
+      'Shows where a link from chat or a channel’s profile leads before opening it.';
+
+  @override
+  String get linkConfirmTitle => 'Open this link?';
+
+  @override
+  String linkConfirmBody({required String host}) {
+    return 'This link opens $host, outside ONSET.';
+  }
+
+  @override
+  String get linkConfirmDontAsk => 'Don’t ask again';
+
+  @override
+  String get linkConfirmOpen => 'Open';
+
+  @override
   String get settingsStreamLanguage => 'Stream language';
 
   @override
@@ -3282,6 +3303,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sharedChatStarted => 'Shared chat started';
+
+  @override
+  String sharedChatStartedBody({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Messages from $count other channels show here too.',
+      one: 'Messages from another channel show here too.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedChatWith => 'Sharing chat with';
+
+  @override
   String get livePlayerUptime => 'Stream uptime';
 
   @override
@@ -3797,6 +3835,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String highlightPinnedBy({required String name}) {
     return 'by $name';
   }
+
+  @override
+  String get highlightHideForMe => 'Hide for me';
+
+  @override
+  String chatPinnedBy({required String name}) {
+    return '$name pinned a message.';
+  }
+
+  @override
+  String get chatPinnedNew => 'A message was pinned.';
 
   @override
   String raidViewers({required int count}) {
@@ -4728,6 +4777,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatReconnectingNotice => 'Reconnecting to chat…';
 
   @override
+  String get chatExpandedAnnouncement => 'Chat expanded';
+
+  @override
+  String get chatCollapsedAnnouncement => 'Chat collapsed';
+
+  @override
   String chatSyncIn({required int seconds}) {
     return 'Chat will sync in ${seconds}s…';
   }
@@ -5268,6 +5323,35 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String chatBadgeExplainer({required String kind}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'broadcaster': 'Streams on this channel.',
+      'moderator': 'Moderates this channel’s chat.',
+      'leadModerator': 'Leads the moderators of this channel.',
+      'vip': 'Named a VIP by this channel.',
+      'subscriber':
+          'Subscribes to this channel; the badge changes with the months of subscription.',
+      'founder': 'Among the first subscribers to this channel.',
+      'bits': 'Has sent Bits in this channel; the badge shows the total.',
+      'bitsLeader': 'Among the top Bits senders in this channel.',
+      'subGifter': 'Has gifted subs in this channel; the badge shows how many.',
+      'subGiftLeader': 'Among the top sub gifters in this channel.',
+      'partner': 'A Twitch Partner.',
+      'staff': 'Works at Twitch.',
+      'premium': 'Has Prime Gaming.',
+      'turbo': 'Has Twitch Turbo.',
+      'artist': 'Makes art for this channel.',
+      'noAudio': 'Watching without sound.',
+      'noVideo': 'Listening without the video.',
+      'predictions':
+          'Took part in the current prediction; the badge shows the outcome picked.',
+      'hypeTrain': 'Took part in a Hype Train on this channel.',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get chatCopyName => 'Copy name';
 
   @override
@@ -5526,6 +5610,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String chatModeExplainer({required String mode}) {
+    String _temp0 = intl.Intl.selectLogic(mode, {
+      'emoteOnly': 'Messages can only contain emotes.',
+      'followersNow': 'Only followers can chat.',
+      'followers':
+          'Only followers can chat, once they’ve followed for the time shown.',
+      'slow': 'Everyone waits the time shown between two messages.',
+      'subscribers': 'Only subscribers can chat.',
+      'uniqueChat':
+          'Each message must be unique: repeated messages are refused.',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get chatChattersFilter => 'Filter chatters';
 
   @override
@@ -5556,6 +5656,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emoteMenuClearRecent => 'Clear recent emotes';
 
   @override
+  String get chatAnimatedEmotesCallout =>
+      'Animated emotes can be turned off in Settings › Chat.';
+
+  @override
+  String get chatAnimatedEmotesCalloutShow => 'Show me';
+
+  @override
   String get emoteMenuRecentCleared => 'Recent emotes cleared';
 
   @override
@@ -5565,6 +5672,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String emoteMenuLocked({required String name}) {
     return '$name, locked';
   }
+
+  @override
+  String emoteMenuAnimated({required String name}) {
+    return '$name, animated emote';
+  }
+
+  @override
+  String get emoteMenuRemoveRecent => 'Remove from recent emotes';
+
+  @override
+  String emoteMenuFollowerInfo({required String channel}) {
+    return 'Follower emotes can only be used in $channel’s chat.';
+  }
+
+  @override
+  String get emoteLimitedTime => 'Limited-time emote';
 
   @override
   String get emoteMenuChannel => 'Channel';

@@ -364,6 +364,18 @@ mixin _$ChatAssetsStore on ChatAssetsStoreBase, Store {
   );
 
   @override
+  void removeRecentEmote(Emote emote) {
+    final _$actionInfo = _$ChatAssetsStoreBaseActionController.startAction(
+      name: 'ChatAssetsStoreBase.removeRecentEmote',
+    );
+    try {
+      return super.removeRecentEmote(emote);
+    } finally {
+      _$ChatAssetsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void addChannelEmote(Emote emote) {
     final _$actionInfo = _$ChatAssetsStoreBaseActionController.startAction(
       name: 'ChatAssetsStoreBase.addChannelEmote',
