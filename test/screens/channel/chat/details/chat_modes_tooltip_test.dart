@@ -22,7 +22,7 @@ void main() {
     await tester.tap(find.text('Slow mode'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(
-      find.text('Everyone waits the time shown between two messages.'),
+      find.text('Everyone must wait the time shown between messages.'),
       findsOneWidget,
     );
     expect(

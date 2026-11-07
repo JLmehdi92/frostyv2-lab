@@ -334,7 +334,10 @@ abstract class ChatAssetsStoreBase with Store {
       return <String>[];
     }
 
-    if (sharedSession == null) return <String>[];
+    if (sharedSession == null) {
+      runInAction(sharedChatChannelIds.clear);
+      return <String>[];
+    }
 
     runInAction(
       () => sharedChatChannelIds

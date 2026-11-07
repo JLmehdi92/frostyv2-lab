@@ -114,4 +114,16 @@ void main() {
     // Only real ids were asked for.
     verify(() => api.getUsersByIds(['5'])).called(1);
   });
+
+  test('a shared chat that ended clears its channels', () async {
+    when(
+      () => api.getSharedChatSession(broadcasterId: '42'),
+    ).thenAnswer((_) async => null);
+    store.sharedChatChannelIds.addAll(['42', '777']);
+    await store.populateSharedChatParticipants(
+      channelId: '42',
+      onBadgeError: (_) {},
+    );
+    expect(store.sharedChatChannelIds, isEmpty);
+  });
 }

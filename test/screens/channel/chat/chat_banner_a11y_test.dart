@@ -36,6 +36,7 @@ void main() {
     final shown = Observable(true);
     when(() => chat.showSharedChatBanner).thenAnswer((_) => shown.value);
     when(() => chat.sharedChatPartners).thenReturn(const [_guest]);
+    when(() => chat.sharedChatStartedNow).thenReturn(true);
     when(
       () => chat.dismissSharedChatBanner(),
     ).thenAnswer((_) => runInAction(() => shown.value = false));
@@ -51,6 +52,18 @@ void main() {
     await tester.tap(find.byTooltip('Hide'));
     await tester.pumpAndSettle();
     verify(chat.dismissSharedChatBanner).called(1);
+    expect(find.text('Shared chat started'), findsNothing);
+  });
+
+  testWidgets('joining a chat already shared says it is shared', (
+    tester,
+  ) async {
+    final chat = chatWidgetStore();
+    when(() => chat.showSharedChatBanner).thenReturn(true);
+    when(() => chat.sharedChatPartners).thenReturn(const [_guest]);
+    await pump(tester, chat);
+    await tester.pumpAndSettle();
+    expect(find.text('This chat is shared'), findsOneWidget);
     expect(find.text('Shared chat started'), findsNothing);
   });
 

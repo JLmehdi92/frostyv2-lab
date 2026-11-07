@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/screens/settings/chat_settings.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 
 void main() {
@@ -64,6 +65,15 @@ void main() {
       find.text('Double-tap the video in landscape'.toUpperCase()),
       findsOneWidget,
     );
+    expect(
+      find.widgetWithText(
+        SettingsNote,
+        'Double-tapping the video moves to the next layout turned on here. '
+        'Keep at least two on.',
+      ),
+      findsOneWidget,
+    );
+    expect(row(tester, 'Chat over the video').subtitle, isNull);
     expect(row(tester, 'Chat over the video').value, isTrue);
     expect(row(tester, 'Chat beside the video').value, isTrue);
     expect(row(tester, 'No chat').value, isTrue);
@@ -82,5 +92,26 @@ void main() {
     await tester.tap(find.text('Chat beside the video'));
     await tester.pump();
     expect(store.switchableLandscapeChatModes, hasLength(2));
+  });
+
+  testWidgets('readable colors wait while contrast is increased', (
+    tester,
+  ) async {
+    store
+      ..readableNameColors = false
+      ..increaseChatContrast = true;
+    await pump(tester);
+    await reveal(tester, find.text('Readable name colors'));
+    final readable = row(tester, 'Readable name colors');
+    expect(readable.value, isTrue);
+    expect(readable.onChanged, isNull);
+    expect(
+      find.text('Always on while chat contrast is increased.'),
+      findsOneWidget,
+    );
+    store.increaseChatContrast = false;
+    await tester.pump();
+    expect(row(tester, 'Readable name colors').value, isFalse);
+    expect(row(tester, 'Readable name colors').onChanged, isNotNull);
   });
 }

@@ -4,12 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 typedef UrlLauncher = Future<bool> Function(Uri url, {LaunchMode mode});
 
-/// Opens links tapped in the app. Twitch videos and clips open in-app (never
-/// in a browser, see [TwitchLink.opensInApp]); other web links (http and
-/// https, https when written without a scheme) are launched as before. Any
-/// other scheme (`intent:`, `file:`,
-/// `javascript:`, an app's own scheme…) is refused without a word: a link
-/// in chat or on a channel's panels must not reach into the device.
 bool isTwitchHost(Uri uri) {
   final host = uri.host.toLowerCase();
   return host == 'twitch.tv' || host.endsWith('.twitch.tv');

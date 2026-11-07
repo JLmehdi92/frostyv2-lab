@@ -75,8 +75,12 @@ List<Widget> chatPreferenceRows(BuildContext context, SettingsStore settings) {
     ChatPreferenceSwitch(
       glyph: SheetGlyphKind.palette,
       label: l.settingsReadableNameColors,
-      read: () => settings.readableNameColors,
+      read: () => settings.readableNameColors || settings.increaseChatContrast,
       write: (value) => settings.readableNameColors = value,
+      enabled: () => !settings.increaseChatContrast,
+      detail: () => settings.increaseChatContrast
+          ? l.settingsReadableNameColorsLocked
+          : null,
     ),
     ChatPreferenceSwitch(
       glyph: SheetGlyphKind.contrast,
@@ -95,6 +99,7 @@ class ChatPreferenceSwitch extends StatelessWidget {
     required this.read,
     required this.write,
     this.enabled,
+    this.detail,
   });
 
   final SheetGlyphKind glyph;
@@ -102,6 +107,7 @@ class ChatPreferenceSwitch extends StatelessWidget {
   final bool Function() read;
   final ValueChanged<bool> write;
   final bool Function()? enabled;
+  final String? Function()? detail;
 
   @override
   Widget build(BuildContext context) => Observer(
@@ -113,6 +119,7 @@ class ChatPreferenceSwitch extends StatelessWidget {
         child: SheetRow(
           glyph: glyph,
           label: label,
+          detail: detail?.call(),
           trailing: OnsetSwitch(value: on, onChanged: active ? toggle : null),
           onTap: active
               ? () {

@@ -766,7 +766,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String linkConfirmBody({required String host}) {
-    return 'This link opens $host, outside ONSET.';
+    return 'This link leads to $host, outside ONSET.';
   }
 
   @override
@@ -1152,6 +1152,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Lightens or darkens name colors that would be hard to read on the background.';
 
   @override
+  String get settingsReadableNameColorsLocked =>
+      'Always on while chat contrast is increased.';
+
+  @override
   String get settingsIncreaseChatContrast => 'Increase chat contrast';
 
   @override
@@ -1362,7 +1366,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTapToCloseOverlayDetail =>
-      'Tapping an empty part of the chat over the video hides it.';
+      'Tapping an empty part of the chat over the video hides the chat.';
 
   @override
   String get settingsChatSwitching => 'Double-tap the video in landscape';
@@ -3304,6 +3308,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedChatStarted => 'Shared chat started';
+
+  @override
+  String get sharedChatOngoing => 'This chat is shared';
 
   @override
   String sharedChatStartedBody({required int count}) {
@@ -5330,7 +5337,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'leadModerator': 'Leads the moderators of this channel.',
       'vip': 'Named a VIP by this channel.',
       'subscriber':
-          'Subscribes to this channel; the badge changes with the months of subscription.',
+          'Subscribes to this channel; the badge changes with the length of the subscription.',
       'founder': 'Among the first subscribers to this channel.',
       'bits': 'Has sent Bits in this channel; the badge shows the total.',
       'bitsLeader': 'Among the top Bits senders in this channel.',
@@ -5341,11 +5348,37 @@ class AppLocalizationsEn extends AppLocalizations {
       'premium': 'Has Prime Gaming.',
       'turbo': 'Has Twitch Turbo.',
       'artist': 'Makes art for this channel.',
-      'noAudio': 'Watching without sound.',
-      'noVideo': 'Listening without the video.',
+      'noAudio': 'Watches without sound.',
+      'noVideo': 'Listens without the video.',
       'predictions':
           'Took part in the current prediction; the badge shows the outcome picked.',
       'hypeTrain': 'Took part in a Hype Train on this channel.',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatBadgeExplainerElsewhere({
+    required String kind,
+    required String channel,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'broadcaster': 'Streams on $channel.',
+      'moderator': 'Moderates $channel’s chat.',
+      'leadModerator': 'Leads the moderators of $channel.',
+      'vip': 'Named a VIP by $channel.',
+      'subscriber':
+          'Subscribes to $channel; the badge changes with the length of the subscription.',
+      'founder': 'Among the first subscribers to $channel.',
+      'bits': 'Has sent Bits on $channel; the badge shows the total.',
+      'bitsLeader': 'Among the top Bits senders on $channel.',
+      'subGifter': 'Has gifted subs on $channel; the badge shows how many.',
+      'subGiftLeader': 'Among the top sub gifters on $channel.',
+      'artist': 'Makes art for $channel.',
+      'predictions':
+          'Took part in $channel’s current prediction; the badge shows the outcome picked.',
+      'hypeTrain': 'Took part in a Hype Train on $channel.',
       'other': '',
     });
     return '$_temp0';
@@ -5616,7 +5649,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'followersNow': 'Only followers can chat.',
       'followers':
           'Only followers can chat, once they’ve followed for the time shown.',
-      'slow': 'Everyone waits the time shown between two messages.',
+      'slow': 'Everyone must wait the time shown between messages.',
       'subscribers': 'Only subscribers can chat.',
       'uniqueChat':
           'Each message must be unique: repeated messages are refused.',

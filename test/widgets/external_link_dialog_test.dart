@@ -43,7 +43,7 @@ void main() {
     expect(find.text('Open this link?'), findsOneWidget);
     expect(
       find.text(
-        'This link opens example.com, outside ONSET.',
+        'This link leads to example.com, outside ONSET.',
         findRichText: true,
       ),
       findsOneWidget,
@@ -75,6 +75,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(await answer, isTrue);
     expect(stopped, 0);
+  });
+
+  testWidgets('a look-alike host is shown in its ASCII form', (tester) async {
+    final lookAlike = Uri.parse('https://twit\u0441h.tv/login');
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showExternalLinkDialog(context, lookAlike),
+              child: const Text('go'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'This link leads to xn--twith-4ye.tv, outside ONSET.',
+        findRichText: true,
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('https://xn--twith-4ye.tv/login'), findsOneWidget);
+    expect(find.textContaining('%D1'), findsNothing);
   });
 
   testWidgets('with the setting off, nothing is asked', (tester) async {

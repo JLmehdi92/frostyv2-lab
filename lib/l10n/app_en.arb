@@ -1013,7 +1013,7 @@
   "@linkConfirmTitle": {
     "description": "Dialog title before opening a link from chat or a channel’s profile that leaves Twitch."
   },
-  "linkConfirmBody": "This link opens {host}, outside ONSET.",
+  "linkConfirmBody": "This link leads to {host}, outside ONSET.",
   "@linkConfirmBody": {
     "description": "Dialog body before opening an outside link. host is the website's address (example.com), in bold; the full link shows under it.",
     "placeholders": {
@@ -1495,6 +1495,10 @@
   "@settingsReadableNameColorsDetail": {
     "description": "Settings › Chat › Message appearance: under “Readable name colors”."
   },
+  "settingsReadableNameColorsLocked": "Always on while chat contrast is increased.",
+  "@settingsReadableNameColorsLocked": {
+    "description": "Settings › Chat and the chat menu: under “Readable name colors”, greyed out, while “Increase chat contrast” is on (which keeps names readable)."
+  },
   "settingsIncreaseChatContrast": "Increase chat contrast",
   "@settingsIncreaseChatContrast": {
     "description": "Settings › Chat › Message appearance, and the chat menu: a switch that gives name colors a stronger contrast. Off by default."
@@ -1747,7 +1751,7 @@
   "@settingsTapToCloseOverlay": {
     "description": "Settings › Chat › Landscape mode: a switch; when on, tapping the chat drawn over the full-screen video hides it. Off by default."
   },
-  "settingsTapToCloseOverlayDetail": "Tapping an empty part of the chat over the video hides it.",
+  "settingsTapToCloseOverlayDetail": "Tapping an empty part of the chat over the video hides the chat.",
   "@settingsTapToCloseOverlayDetail": {
     "description": "Settings › Chat › Landscape mode: under “Tap to close chat overlay”."
   },
@@ -4251,6 +4255,10 @@
   "sharedChatStarted": "Shared chat started",
   "@sharedChatStarted": {
     "description": "Banner above chat when several channels start sharing one chat (one line, title of the banner); also what a screen reader announces."
+  },
+  "sharedChatOngoing": "This chat is shared",
+  "@sharedChatOngoing": {
+    "description": "Banner above chat, instead of “Shared chat started”, when the chat was already shared with other channels before the viewer joined (one line, title of the banner); also what a screen reader announces."
   },
   "sharedChatStartedBody": "{count, plural, one{Messages from another channel show here too.} other{Messages from {count} other channels show here too.}}",
   "@sharedChatStartedBody": {
@@ -6943,13 +6951,27 @@
       }
     }
   },
-  "chatBadgeExplainer": "{kind, select, broadcaster{Streams on this channel.} moderator{Moderates this channel’s chat.} leadModerator{Leads the moderators of this channel.} vip{Named a VIP by this channel.} subscriber{Subscribes to this channel; the badge changes with the months of subscription.} founder{Among the first subscribers to this channel.} bits{Has sent Bits in this channel; the badge shows the total.} bitsLeader{Among the top Bits senders in this channel.} subGifter{Has gifted subs in this channel; the badge shows how many.} subGiftLeader{Among the top sub gifters in this channel.} partner{A Twitch Partner.} staff{Works at Twitch.} premium{Has Prime Gaming.} turbo{Has Twitch Turbo.} artist{Makes art for this channel.} noAudio{Watching without sound.} noVideo{Listening without the video.} predictions{Took part in the current prediction; the badge shows the outcome picked.} hypeTrain{Took part in a Hype Train on this channel.} other{}}",
+  "chatBadgeExplainer": "{kind, select, broadcaster{Streams on this channel.} moderator{Moderates this channel’s chat.} leadModerator{Leads the moderators of this channel.} vip{Named a VIP by this channel.} subscriber{Subscribes to this channel; the badge changes with the length of the subscription.} founder{Among the first subscribers to this channel.} bits{Has sent Bits in this channel; the badge shows the total.} bitsLeader{Among the top Bits senders in this channel.} subGifter{Has gifted subs in this channel; the badge shows how many.} subGiftLeader{Among the top sub gifters in this channel.} partner{A Twitch Partner.} staff{Works at Twitch.} premium{Has Prime Gaming.} turbo{Has Twitch Turbo.} artist{Makes art for this channel.} noAudio{Watches without sound.} noVideo{Listens without the video.} predictions{Took part in the current prediction; the badge shows the outcome picked.} hypeTrain{Took part in a Hype Train on this channel.} other{}}",
   "@chatBadgeExplainer": {
     "description": "Badge details sheet (tap a badge in chat): what a Twitch badge means, under its kind. kind is the badge set; an unknown set shows nothing.",
     "placeholders": {
       "kind": {
         "type": "String",
         "example": "vip"
+      }
+    }
+  },
+  "chatBadgeExplainerElsewhere": "{kind, select, broadcaster{Streams on {channel}.} moderator{Moderates {channel}’s chat.} leadModerator{Leads the moderators of {channel}.} vip{Named a VIP by {channel}.} subscriber{Subscribes to {channel}; the badge changes with the length of the subscription.} founder{Among the first subscribers to {channel}.} bits{Has sent Bits on {channel}; the badge shows the total.} bitsLeader{Among the top Bits senders on {channel}.} subGifter{Has gifted subs on {channel}; the badge shows how many.} subGiftLeader{Among the top sub gifters on {channel}.} artist{Makes art for {channel}.} predictions{Took part in {channel}’s current prediction; the badge shows the outcome picked.} hypeTrain{Took part in a Hype Train on {channel}.} other{}}",
+  "@chatBadgeExplainerElsewhere": {
+    "description": "Badge details sheet, for a message sent from another channel of a shared chat: what a Twitch badge tied to that channel means. kind is the badge set (only channel badges; others use chatBadgeExplainer); channel is that channel's display name.",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "moderator"
+      },
+      "channel": {
+        "type": "String",
+        "example": "Guest"
       }
     }
   },
@@ -7291,7 +7313,7 @@
       }
     }
   },
-  "chatModeExplainer": "{mode, select, emoteOnly{Messages can only contain emotes.} followersNow{Only followers can chat.} followers{Only followers can chat, once they’ve followed for the time shown.} slow{Everyone waits the time shown between two messages.} subscribers{Only subscribers can chat.} uniqueChat{Each message must be unique: repeated messages are refused.} other{}}",
+  "chatModeExplainer": "{mode, select, emoteOnly{Messages can only contain emotes.} followersNow{Only followers can chat.} followers{Only followers can chat, once they’ve followed for the time shown.} slow{Everyone must wait the time shown between messages.} subscribers{Only subscribers can chat.} uniqueChat{Each message must be unique: repeated messages are refused.} other{}}",
   "@chatModeExplainer": {
     "description": "Chat menu: the tooltip shown when the viewer taps an active chat mode pill. followers has a follow age shown on the pill; followersNow has none.",
     "placeholders": {

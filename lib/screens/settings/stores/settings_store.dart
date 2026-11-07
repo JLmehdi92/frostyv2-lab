@@ -648,6 +648,24 @@ abstract class _SettingsStoreBase with Store {
     }
     if (next.length < minLandscapeChatModes) return;
     landscapeChatModes = LandscapeChatMode.values.where(next.contains).toList();
+    final current = landscapeChatMode;
+    if (!on && current == mode) {
+      showLandscapeChatMode(nextLandscapeChatMode(current, landscapeChatModes));
+    }
+  }
+
+  LandscapeChatMode get landscapeChatMode => !fullScreen
+      ? LandscapeChatMode.column
+      : fullScreenChatOverlay
+      ? LandscapeChatMode.overlay
+      : LandscapeChatMode.hidden;
+
+  @action
+  void showLandscapeChatMode(LandscapeChatMode mode) {
+    fullScreen = mode != LandscapeChatMode.column;
+    if (mode != LandscapeChatMode.column) {
+      fullScreenChatOverlay = mode == LandscapeChatMode.overlay;
+    }
   }
 
   // Autocomplete options
@@ -960,6 +978,19 @@ Object? readPortraitChatHeight(Map<dynamic, dynamic> json, String key) {
 }
 
 const minLandscapeChatModes = 2;
+
+LandscapeChatMode nextLandscapeChatMode(
+  LandscapeChatMode current,
+  List<LandscapeChatMode> switchable,
+) {
+  const order = LandscapeChatMode.values;
+  final start = order.indexOf(current);
+  for (var step = 1; step <= order.length; step++) {
+    final candidate = order[(start + step) % order.length];
+    if (switchable.contains(candidate)) return candidate;
+  }
+  return current;
+}
 
 List<LandscapeChatMode> landscapeChatModesFromJson(List<dynamic>? names) =>
     names == null

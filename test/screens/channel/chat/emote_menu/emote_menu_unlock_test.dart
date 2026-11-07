@@ -9,6 +9,7 @@ import 'package:onset/screens/channel/chat/emote_menu/emote_menu_section.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../helpers/chat_message_harness.dart';
@@ -142,6 +143,16 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(AnimatedEmoteMark), findsOneWidget);
+    final image = tester.getRect(
+      find.descendant(
+        of: find.byWidgetPredicate(
+          (w) => w is EmoteCell && w.emote.name == 'chanDance',
+        ),
+        matching: find.byType(OnsetCachedNetworkImage),
+      ),
+    );
+    final mark = tester.getRect(find.byType(AnimatedEmoteMark));
+    expect((mark.center - image.bottomRight).distance, lessThan(8));
     expect(
       find.bySemanticsLabel(RegExp('chanDance, animated emote')),
       findsOneWidget,

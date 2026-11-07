@@ -48,5 +48,7 @@ MockChatStore chatWidgetStore({
   when(() => chat.textController).thenReturn(TextEditingController());
   when(() => chat.showSendButton).thenReturn(false);
   when(() => chat.userCardRequests).thenAnswer((_) => userCards);
+  when(() => chat.showSharedChatBanner).thenReturn(false);
+  when(() => chat.sharedChatStartedNow).thenReturn(false);
   return chat;
 }

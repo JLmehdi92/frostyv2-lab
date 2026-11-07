@@ -205,6 +205,45 @@ void main() {
       });
     });
 
+    test('without Helix, the sets of the latest USERSTATE are read', () {
+      fakeAsync((async) {
+        final store = open(async, user: me());
+        final assets = store.assetsStore;
+        when(
+          () => assets.userEmotesFromHelix(
+            userId: any(named: 'userId'),
+            broadcasterId: any(named: 'broadcasterId'),
+          ),
+        ).thenAnswer((_) async => false);
+        when(
+          () => assets.userEmotesFuture(
+            emoteSets: any(named: 'emoteSets'),
+            headers: any(named: 'headers'),
+            onError: any(named: 'onError'),
+          ),
+        ).thenAnswer((_) async {});
+        sockets.single.receive(
+          '@emote-sets=0,33 :tmi.twitch.tv GLOBALUSERSTATE',
+        );
+        async.flushMicrotasks();
+        clearInteractions(assets);
+        sockets.single.receive(_userState('0,33'));
+        sockets.single.receive(_userState('0,33,7001'));
+        async.elapse(emoteRefreshDelay * 2);
+        final sets =
+            verify(
+                  () => assets.userEmotesFuture(
+                    emoteSets: captureAny(named: 'emoteSets'),
+                    headers: any(named: 'headers'),
+                    onError: any(named: 'onError'),
+                  ),
+                ).captured.single
+                as List<String>;
+        expect(sets.toSet(), {'0', '33', '7001'});
+        finish(store, async);
+      });
+    });
+
     test('logged out, nothing is asked', () {
       fakeAsync((async) {
         final store = open(async);
@@ -259,6 +298,7 @@ void main() {
         );
         async.flushMicrotasks();
         expect(store.showSharedChatBanner, isTrue);
+        expect(store.sharedChatStartedNow, isTrue);
         expect(store.sharedChatPartners.map((u) => u.login), ['guest']);
 
         async.elapse(sharedChatBannerDuration);
@@ -270,6 +310,32 @@ void main() {
         );
         async.flushMicrotasks();
         expect(store.showSharedChatBanner, isFalse);
+        finish(store, async);
+      });
+    });
+
+    test('joining a chat already shared does not say it started', () {
+      fakeAsync((async) {
+        final store = openShared(async);
+        sockets.single.receive(_privmsg('hi', extra: 'source-room-id=777;'));
+        async.flushMicrotasks();
+        expect(store.showSharedChatBanner, isTrue);
+        expect(store.sharedChatStartedNow, isFalse);
+        finish(store, async);
+      });
+    });
+
+    test('the partners go once the chat is no longer shared', () {
+      fakeAsync((async) {
+        final store = openShared(async);
+        sockets.single.receive(
+          _privmsg('hi', id: 'a', extra: 'source-room-id=777;'),
+        );
+        async.flushMicrotasks();
+        expect(store.sharedChatPartners, isNotEmpty);
+        sockets.single.receive(_privmsg('back alone', id: 'b'));
+        async.flushMicrotasks();
+        expect(store.sharedChatPartners, isEmpty);
         finish(store, async);
       });
     });

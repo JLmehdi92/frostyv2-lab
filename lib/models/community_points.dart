@@ -285,15 +285,6 @@ class CommunityPointsContext {
   }
 }
 
-/// Why a points action ended the way it did.
-///
-/// Twitch reports failures as free-form strings, and one of them matters more
-/// than the rest: `failed integrity check` is an anti-abuse refusal, not a
-/// fault. Collapsing it into a generic "failed" would hide the single most
-/// informative answer the server gives, so it gets its own case.
-///
-/// Anything unrecognised stays [unknown] and carries its raw text through, so a
-/// code we have never seen is shown rather than swallowed.
 const emoteUnlockRewardTypes = {
   'RANDOM_SUB_EMOTE_UNLOCK',
   'CHOSEN_SUB_EMOTE_UNLOCK',

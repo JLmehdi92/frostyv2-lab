@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/l10n/app_localizations.dart';
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/cheermote.dart';
 import 'package:onset/models/irc.dart';
@@ -80,6 +81,26 @@ void main() {
         matching: find.byType(Text),
       ),
       findsOneWidget,
+    );
+  });
+
+  test('a channel badge from a shared chat names that channel', () {
+    final l = lookupAppLocalizations(const Locale('en'));
+    expect(
+      badgeExplainerText(l, 'moderator', (elsewhere: true, channel: 'Guest')),
+      'Moderates Guest’s chat.',
+    );
+    expect(
+      badgeExplainerText(l, 'moderator', (elsewhere: true, channel: null)),
+      isNull,
+    );
+    expect(
+      badgeExplainerText(l, 'staff', (elsewhere: true, channel: null)),
+      'Works at Twitch.',
+    );
+    expect(
+      badgeExplainerText(l, 'moderator', (elsewhere: false, channel: null)),
+      'Moderates this channel’s chat.',
     );
   });
 }

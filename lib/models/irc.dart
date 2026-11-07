@@ -469,6 +469,24 @@ class IRCMessage {
     }
   }
 
+  BadgeOrigin _badgeOrigin(
+    Map<String, UserTwitch>? channels,
+    String? currentChannelId,
+  ) {
+    final source = tags['source-room-id'];
+    final here = currentChannelId ?? tags['room-id'];
+    if (source == null || source == here) {
+      return (elsewhere: false, channel: null);
+    }
+    final user = channels?[source];
+    return (
+      elsewhere: true,
+      channel: user == null
+          ? null
+          : utils.getReadableName(user.displayName, user.login),
+    );
+  }
+
   /// Adds all user badges (Twitch, FFZ, BTTV, 7TV) to the span
   bool _addUserBadges(
     BuildContext context,
@@ -477,6 +495,7 @@ class IRCMessage {
     double badgeSize,
     bool launchExternal,
     bool isHistorical,
+    BadgeOrigin origin,
   ) {
     var skipBot = false;
     final twitchBadgeToObject = assetsStore.twitchBadgesToObject;
@@ -530,6 +549,7 @@ class IRCMessage {
                 backgroundColor: context.onsetColors.subOnly,
                 launchExternal: launchExternal,
                 explainerKind: twitchBadgeExplainerKind(badge),
+                origin: origin,
               ),
             );
             span.add(const TextSpan(text: ' '));
@@ -557,6 +577,7 @@ class IRCMessage {
               size: badgeSize,
               launchExternal: launchExternal,
               explainerKind: twitchBadgeExplainerKind(badge),
+              origin: origin,
             ),
           );
           span.add(const TextSpan(text: ' '));
@@ -1113,6 +1134,7 @@ class IRCMessage {
       badgeSize,
       launchExternal,
       isHistorical,
+      _badgeOrigin(channelIdToUserTwitch, currentChannelId),
     );
 
     _addUsername(span, context, onTapName, nameContrast);
@@ -1200,6 +1222,7 @@ class IRCMessage {
     Color? backgroundColor,
     bool? isSvg,
     String? explainerKind,
+    BadgeOrigin origin = (elsewhere: false, channel: null),
   }) {
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
@@ -1214,7 +1237,11 @@ class IRCMessage {
           ),
           url: badge.url,
           title: badge.name,
-          subtitle: BadgeDetails(badge: badge, explainerKind: explainerKind),
+          subtitle: BadgeDetails(
+            badge: badge,
+            explainerKind: explainerKind,
+            origin: origin,
+          ),
           launchExternal: launchExternal,
           showCopyName: false,
         ),
@@ -1762,23 +1789,29 @@ class IRCMessage {
 }
 
 class BadgeDetails extends StatelessWidget {
-  const BadgeDetails({super.key, required this.badge, this.explainerKind});
+  const BadgeDetails({
+    super.key,
+    required this.badge,
+    this.explainerKind,
+    this.origin = (elsewhere: false, channel: null),
+  });
 
   final ChatBadge badge;
   final String? explainerKind;
+  final BadgeOrigin origin;
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final kind = explainerKind;
+    final explainer = badgeExplainerText(l, explainerKind, origin);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 3,
       children: [
         Text(badge.type.label(l)),
-        if (kind != null)
+        if (explainer != null)
           Text(
-            l.chatBadgeExplainer(kind: kind),
+            explainer,
             style: SheetText.rowDetail.copyWith(
               color: SheetColors.of(context).secondary,
             ),

@@ -121,6 +121,34 @@ void main() {
       store.dispose();
     });
 
+    test(
+      'a redeem that ends after leaving the channel does not throw',
+      () async {
+        final answer = Completer<String?>();
+        when(
+          () => points.redeemReward(
+            channelId: any(named: 'channelId'),
+            reward: any(named: 'reward'),
+            authToken: any(named: 'authToken'),
+            userInput: any(named: 'userInput'),
+          ),
+        ).thenAnswer((_) => answer.future);
+        final store = build(tokenProvider: () async => 'tok');
+        final redeem = store.redeemReward(
+          const PointsReward(
+            id: 'auto',
+            title: '',
+            cost: 100,
+            automaticType: 'RANDOM_SUB_EMOTE_UNLOCK',
+          ),
+        );
+        await pumpEventQueue();
+        store.dispose();
+        answer.complete(null);
+        expect((await redeem).isSuccess, isTrue);
+      },
+    );
+
     test('redeeming an emote unlock says so, other rewards do not', () async {
       final store = build(tokenProvider: () async => 'tok');
       final changes = <void>[];

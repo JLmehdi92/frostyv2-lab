@@ -1328,7 +1328,7 @@ abstract class AppLocalizations {
   /// Dialog body before opening an outside link. host is the website's address (example.com), in bold; the full link shows under it.
   ///
   /// In en, this message translates to:
-  /// **'This link opens {host}, outside ONSET.'**
+  /// **'This link leads to {host}, outside ONSET.'**
   String linkConfirmBody({required String host});
 
   /// Outside-link dialog: a switch; when on, opening the link turns off “Ask before opening links”.
@@ -1994,6 +1994,12 @@ abstract class AppLocalizations {
   /// **'Lightens or darkens name colors that would be hard to read on the background.'**
   String get settingsReadableNameColorsDetail;
 
+  /// Settings › Chat and the chat menu: under “Readable name colors”, greyed out, while “Increase chat contrast” is on (which keeps names readable).
+  ///
+  /// In en, this message translates to:
+  /// **'Always on while chat contrast is increased.'**
+  String get settingsReadableNameColorsLocked;
+
   /// Settings › Chat › Message appearance, and the chat menu: a switch that gives name colors a stronger contrast. Off by default.
   ///
   /// In en, this message translates to:
@@ -2357,7 +2363,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Landscape mode: under “Tap to close chat overlay”.
   ///
   /// In en, this message translates to:
-  /// **'Tapping an empty part of the chat over the video hides it.'**
+  /// **'Tapping an empty part of the chat over the video hides the chat.'**
   String get settingsTapToCloseOverlayDetail;
 
   /// Settings › Chat: the title of the group choosing which chat layouts a double tap on the landscape video moves through. Shown in capitals.
@@ -5189,6 +5195,12 @@ abstract class AppLocalizations {
   /// **'Shared chat started'**
   String get sharedChatStarted;
 
+  /// Banner above chat, instead of “Shared chat started”, when the chat was already shared with other channels before the viewer joined (one line, title of the banner); also what a screen reader announces.
+  ///
+  /// In en, this message translates to:
+  /// **'This chat is shared'**
+  String get sharedChatOngoing;
+
   /// Shared chat banner: under its title. count is the number of other channels in the shared chat (at least 1).
   ///
   /// In en, this message translates to:
@@ -7336,8 +7348,17 @@ abstract class AppLocalizations {
   /// Badge details sheet (tap a badge in chat): what a Twitch badge means, under its kind. kind is the badge set; an unknown set shows nothing.
   ///
   /// In en, this message translates to:
-  /// **'{kind, select, broadcaster{Streams on this channel.} moderator{Moderates this channel’s chat.} leadModerator{Leads the moderators of this channel.} vip{Named a VIP by this channel.} subscriber{Subscribes to this channel; the badge changes with the months of subscription.} founder{Among the first subscribers to this channel.} bits{Has sent Bits in this channel; the badge shows the total.} bitsLeader{Among the top Bits senders in this channel.} subGifter{Has gifted subs in this channel; the badge shows how many.} subGiftLeader{Among the top sub gifters in this channel.} partner{A Twitch Partner.} staff{Works at Twitch.} premium{Has Prime Gaming.} turbo{Has Twitch Turbo.} artist{Makes art for this channel.} noAudio{Watching without sound.} noVideo{Listening without the video.} predictions{Took part in the current prediction; the badge shows the outcome picked.} hypeTrain{Took part in a Hype Train on this channel.} other{}}'**
+  /// **'{kind, select, broadcaster{Streams on this channel.} moderator{Moderates this channel’s chat.} leadModerator{Leads the moderators of this channel.} vip{Named a VIP by this channel.} subscriber{Subscribes to this channel; the badge changes with the length of the subscription.} founder{Among the first subscribers to this channel.} bits{Has sent Bits in this channel; the badge shows the total.} bitsLeader{Among the top Bits senders in this channel.} subGifter{Has gifted subs in this channel; the badge shows how many.} subGiftLeader{Among the top sub gifters in this channel.} partner{A Twitch Partner.} staff{Works at Twitch.} premium{Has Prime Gaming.} turbo{Has Twitch Turbo.} artist{Makes art for this channel.} noAudio{Watches without sound.} noVideo{Listens without the video.} predictions{Took part in the current prediction; the badge shows the outcome picked.} hypeTrain{Took part in a Hype Train on this channel.} other{}}'**
   String chatBadgeExplainer({required String kind});
+
+  /// Badge details sheet, for a message sent from another channel of a shared chat: what a Twitch badge tied to that channel means. kind is the badge set (only channel badges; others use chatBadgeExplainer); channel is that channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, broadcaster{Streams on {channel}.} moderator{Moderates {channel}’s chat.} leadModerator{Leads the moderators of {channel}.} vip{Named a VIP by {channel}.} subscriber{Subscribes to {channel}; the badge changes with the length of the subscription.} founder{Among the first subscribers to {channel}.} bits{Has sent Bits on {channel}; the badge shows the total.} bitsLeader{Among the top Bits senders on {channel}.} subGifter{Has gifted subs on {channel}; the badge shows how many.} subGiftLeader{Among the top sub gifters on {channel}.} artist{Makes art for {channel}.} predictions{Took part in {channel}’s current prediction; the badge shows the outcome picked.} hypeTrain{Took part in a Hype Train on {channel}.} other{}}'**
+  String chatBadgeExplainerElsewhere({
+    required String kind,
+    required String channel,
+  });
 
   /// A row of an emote's, badge's or GIF's details: copies its name.
   ///
@@ -7744,7 +7765,7 @@ abstract class AppLocalizations {
   /// Chat menu: the tooltip shown when the viewer taps an active chat mode pill. followers has a follow age shown on the pill; followersNow has none.
   ///
   /// In en, this message translates to:
-  /// **'{mode, select, emoteOnly{Messages can only contain emotes.} followersNow{Only followers can chat.} followers{Only followers can chat, once they’ve followed for the time shown.} slow{Everyone waits the time shown between two messages.} subscribers{Only subscribers can chat.} uniqueChat{Each message must be unique: repeated messages are refused.} other{}}'**
+  /// **'{mode, select, emoteOnly{Messages can only contain emotes.} followersNow{Only followers can chat.} followers{Only followers can chat, once they’ve followed for the time shown.} slow{Everyone must wait the time shown between messages.} subscribers{Only subscribers can chat.} uniqueChat{Each message must be unique: repeated messages are refused.} other{}}'**
   String chatModeExplainer({required String mode});
 
   /// The placeholder of the chatters list's search field.

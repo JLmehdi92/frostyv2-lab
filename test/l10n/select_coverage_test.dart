@@ -79,6 +79,15 @@ void main() {
         expect(l.chatBadgeExplainer(kind: kind), isNotEmpty, reason: kind);
       }
     },
+    'chatBadgeExplainerElsewhere': (l) {
+      for (final kind in channelBoundBadgeKinds) {
+        expect(
+          l.chatBadgeExplainerElsewhere(kind: kind, channel: 'Guest'),
+          isNotEmpty,
+          reason: kind,
+        );
+      }
+    },
     'chatModeChanged': (l) {
       final fallback = l.chatModeChanged(mode: '?', state: OnOff.on.name);
       for (final mode in ChatMode.values) {

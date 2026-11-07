@@ -2251,6 +2251,18 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   }
 
   @override
+  void showLandscapeChatMode(LandscapeChatMode mode) {
+    final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
+      name: '_SettingsStoreBase.showLandscapeChatMode',
+    );
+    try {
+      return super.showLandscapeChatMode(mode);
+    } finally {
+      _$_SettingsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void resetChatSettings() {
     final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
       name: '_SettingsStoreBase.resetChatSettings',

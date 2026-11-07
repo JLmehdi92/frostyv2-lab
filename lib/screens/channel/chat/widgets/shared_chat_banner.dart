@@ -12,9 +12,11 @@ class SharedChatBanner extends StatelessWidget {
     super.key,
     required this.partners,
     required this.onDismiss,
+    this.startedNow = true,
   });
 
   final List<UserTwitch> partners;
+  final bool startedNow;
   final VoidCallback onDismiss;
 
   @override
@@ -56,7 +58,7 @@ class SharedChatBanner extends StatelessWidget {
                 spacing: 3,
                 children: [
                   Text(
-                    l.sharedChatStarted,
+                    startedNow ? l.sharedChatStarted : l.sharedChatOngoing,
                     style: SheetText.row.copyWith(
                       fontWeight: FontWeight.w700,
                       color: colors.text,

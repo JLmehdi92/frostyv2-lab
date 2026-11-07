@@ -22,6 +22,8 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).first,
     );
+    await tester.ensureVisible(entry);
+    await tester.pumpAndSettle();
     await tester.tap(entry);
     await tester.pumpAndSettle();
 

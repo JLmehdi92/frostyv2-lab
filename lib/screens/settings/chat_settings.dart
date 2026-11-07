@@ -167,10 +167,18 @@ class _ChatSettingsState extends State<ChatSettings> {
                 ),
                 SettingsListSwitch(
                   title: l.settingsReadableNameColors,
-                  subtitle: Text(l.settingsReadableNameColorsDetail),
-                  value: settingsStore.readableNameColors,
-                  onChanged: (newValue) =>
-                      settingsStore.readableNameColors = newValue,
+                  subtitle: Text(
+                    settingsStore.increaseChatContrast
+                        ? l.settingsReadableNameColorsLocked
+                        : l.settingsReadableNameColorsDetail,
+                  ),
+                  value:
+                      settingsStore.readableNameColors ||
+                      settingsStore.increaseChatContrast,
+                  onChanged: settingsStore.increaseChatContrast
+                      ? null
+                      : (newValue) =>
+                            settingsStore.readableNameColors = newValue,
                 ),
                 SettingsListSwitch(
                   title: l.settingsIncreaseChatContrast,
@@ -369,6 +377,7 @@ class _ChatSettingsState extends State<ChatSettings> {
             SettingsGroup(
               title: l.settingsChatSwitching,
               children: [
+                SettingsNote(l.settingsChatSwitchingDetail),
                 for (final mode in LandscapeChatMode.values)
                   _chatSwitchingRow(l, settingsStore, mode),
               ],
@@ -497,9 +506,6 @@ Widget _chatSwitchingRow(
   final lastOnes = on && switchable.length <= minLandscapeChatModes;
   return SettingsListSwitch(
     title: mode.label(l),
-    subtitle: mode == LandscapeChatMode.values.first
-        ? Text(l.settingsChatSwitchingDetail)
-        : null,
     value: on,
     onChanged: lastOnes
         ? null

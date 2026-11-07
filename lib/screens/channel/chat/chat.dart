@@ -82,6 +82,7 @@ class _SharedChatBannerSlot extends StatelessWidget {
             ? SharedChatBanner(
                 key: const ValueKey('shared-chat-banner'),
                 partners: chatStore.sharedChatPartners,
+                startedNow: chatStore.sharedChatStartedNow,
                 onDismiss: chatStore.dismissSharedChatBanner,
               )
             : const SizedBox(width: double.infinity),

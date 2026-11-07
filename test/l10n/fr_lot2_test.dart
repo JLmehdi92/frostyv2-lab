@@ -61,6 +61,9 @@ void main() {
           final chat = chatWidgetStore();
           when(() => chat.showSharedChatBanner).thenReturn(true);
           when(() => chat.sharedChatPartners).thenReturn(_partners);
+          when(
+            () => chat.sharedChatStartedNow,
+          ).thenReturn(sizeName != '360x640');
           await pumpLocalized(
             tester,
             Scaffold(

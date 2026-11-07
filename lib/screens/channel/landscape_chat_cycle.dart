@@ -42,43 +42,15 @@ class LandscapeChatCycle {
     nextLandscapeChatMode(current, settings.switchableLandscapeChatModes),
   );
 
-  LandscapeChatMode get current => !settings.fullScreen
-      ? LandscapeChatMode.column
-      : settings.fullScreenChatOverlay
-      ? LandscapeChatMode.overlay
-      : LandscapeChatMode.hidden;
+  LandscapeChatMode get current => settings.landscapeChatMode;
 
   void _show(LandscapeChatMode mode) {
-    switch (mode) {
-      case LandscapeChatMode.column:
-        _plainSide = true;
-        settings.fullScreen = false;
-      case LandscapeChatMode.hidden:
-        settings
-          ..fullScreen = true
-          ..fullScreenChatOverlay = false;
-      case LandscapeChatMode.overlay:
-        settings
-          ..fullScreen = true
-          ..fullScreenChatOverlay = true;
-    }
+    if (mode == LandscapeChatMode.column) _plainSide = true;
+    settings.showLandscapeChatMode(mode);
   }
 
   /// The screen turned to portrait.
   void reset() => _plainSide = false;
 
   void dispose() => _endOnFullScreen();
-}
-
-LandscapeChatMode nextLandscapeChatMode(
-  LandscapeChatMode current,
-  List<LandscapeChatMode> switchable,
-) {
-  const order = LandscapeChatMode.values;
-  final start = order.indexOf(current);
-  for (var step = 1; step <= order.length; step++) {
-    final candidate = order[(start + step) % order.length];
-    if (switchable.contains(candidate)) return candidate;
-  }
-  return current;
 }

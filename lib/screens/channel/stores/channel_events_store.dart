@@ -265,7 +265,7 @@ abstract class ChannelEventsStoreBase with Store {
     );
     if (result.status == PointsActionStatus.success &&
         unlocksEmotes(reward.automaticType)) {
-      _entitlementChanges.add(null);
+      _sayEntitlementsChanged();
     }
     return result;
   }
@@ -273,6 +273,10 @@ abstract class ChannelEventsStoreBase with Store {
   final _entitlementChanges = StreamController<void>.broadcast();
 
   Stream<void> get entitlementChanges => _entitlementChanges.stream;
+
+  void _sayEntitlementsChanged() {
+    if (!_entitlementChanges.isClosed) _entitlementChanges.add(null);
+  }
 
   /// Collects the bonus chest.
   ///
@@ -399,7 +403,7 @@ abstract class ChannelEventsStoreBase with Store {
     if (!event.topic.endsWith('.$channelId') && !isMine) return;
 
     if (event.topic.startsWith('user-subscribe-events')) {
-      _entitlementChanges.add(null);
+      _sayEntitlementsChanged();
     } else if (event.topic.startsWith('celebration-events')) {
       _applyCelebration(event);
     } else if (event.topic.startsWith('creator-goals-events')) {

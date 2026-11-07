@@ -779,7 +779,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String linkConfirmBody({required String host}) {
-    return 'Ce lien ouvre $host, en dehors d’ONSET.';
+    return 'Ce lien mène à $host, en dehors d’ONSET.';
   }
 
   @override
@@ -1171,6 +1171,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsReadableNameColorsDetail =>
       'Éclaircit ou assombrit les couleurs de pseudo difficiles à lire sur le fond.';
+
+  @override
+  String get settingsReadableNameColorsLocked =>
+      'Toujours activé tant que le contraste du chat est augmenté.';
 
   @override
   String get settingsIncreaseChatContrast => 'Augmenter le contraste du chat';
@@ -3354,6 +3358,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sharedChatStarted => 'Chat partagé lancé';
 
   @override
+  String get sharedChatOngoing => 'Ce chat est partagé';
+
+  @override
   String sharedChatStartedBody({required int count}) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -5397,7 +5404,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'leadModerator': 'Dirige l’équipe de modération de cette chaîne.',
       'vip': 'A reçu le statut de VIP sur cette chaîne.',
       'subscriber':
-          'Abonnement à cette chaîne en cours ; le badge évolue avec les mois d’abonnement.',
+          'Abonnement à cette chaîne en cours ; le badge évolue avec l’ancienneté de l’abonnement.',
       'founder': 'Fait partie des premiers abonnés de cette chaîne.',
       'bits': 'A envoyé des Bits sur cette chaîne ; le badge indique le total.',
       'bitsLeader':
@@ -5416,6 +5423,36 @@ class AppLocalizationsFr extends AppLocalizations {
       'predictions':
           'Participe à la prédiction en cours ; le badge indique la réponse choisie.',
       'hypeTrain': 'A participé à un Hype Train sur cette chaîne.',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatBadgeExplainerElsewhere({
+    required String kind,
+    required String channel,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'broadcaster': 'Diffuse sur la chaîne $channel.',
+      'moderator': 'Modère le chat de la chaîne $channel.',
+      'leadModerator': 'Dirige l’équipe de modération de la chaîne $channel.',
+      'vip': 'A reçu le statut de VIP sur la chaîne $channel.',
+      'subscriber':
+          'Abonnement à la chaîne $channel en cours ; le badge évolue avec l’ancienneté de l’abonnement.',
+      'founder': 'Fait partie des premiers abonnés de la chaîne $channel.',
+      'bits':
+          'A envoyé des Bits sur la chaîne $channel ; le badge indique le total.',
+      'bitsLeader':
+          'Fait partie des personnes qui envoient le plus de Bits sur la chaîne $channel.',
+      'subGifter':
+          'A offert des abonnements sur la chaîne $channel ; le badge indique combien.',
+      'subGiftLeader':
+          'Fait partie des personnes qui offrent le plus d’abonnements sur la chaîne $channel.',
+      'artist': 'Crée des illustrations pour la chaîne $channel.',
+      'predictions':
+          'Participe à la prédiction en cours de la chaîne $channel ; le badge indique la réponse choisie.',
+      'hypeTrain': 'A participé à un Hype Train sur la chaîne $channel.',
       'other': '',
     });
     return '$_temp0';

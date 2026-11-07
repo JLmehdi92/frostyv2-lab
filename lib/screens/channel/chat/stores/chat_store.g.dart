@@ -314,6 +314,30 @@ mixin _$ChatStore on ChatStoreBase, Store {
     );
   }
 
+  late final _$_sharedChatStartedNowAtom = Atom(
+    name: 'ChatStoreBase._sharedChatStartedNow',
+    context: context,
+  );
+
+  bool get sharedChatStartedNow {
+    _$_sharedChatStartedNowAtom.reportRead();
+    return super._sharedChatStartedNow;
+  }
+
+  @override
+  bool get _sharedChatStartedNow => sharedChatStartedNow;
+
+  @override
+  set _sharedChatStartedNow(bool value) {
+    _$_sharedChatStartedNowAtom.reportWrite(
+      value,
+      super._sharedChatStartedNow,
+      () {
+        super._sharedChatStartedNow = value;
+      },
+    );
+  }
+
   late final _$_isWaitingForAckAtom = Atom(
     name: 'ChatStoreBase._isWaitingForAck',
     context: context,

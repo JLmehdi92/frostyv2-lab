@@ -68,6 +68,23 @@ void main() {
       expect(store.switchableLandscapeChatModes, hasLength(3));
     });
 
+    test('turning off the layout on screen moves to the next one on', () {
+      final store = SettingsStore.fromJson({})..fullScreen = false;
+      store.setLandscapeChatMode(LandscapeChatMode.column, on: false);
+      expect(store.fullScreen, isTrue);
+      expect(store.fullScreenChatOverlay, isFalse);
+
+      store
+        ..setLandscapeChatMode(LandscapeChatMode.column, on: true)
+        ..fullScreenChatOverlay = true
+        ..setLandscapeChatMode(LandscapeChatMode.hidden, on: false);
+      expect(store.fullScreen, isTrue);
+      expect(store.fullScreenChatOverlay, isTrue);
+      store.setLandscapeChatMode(LandscapeChatMode.overlay, on: false);
+      expect(store.fullScreen, isTrue);
+      expect(store.fullScreenChatOverlay, isTrue);
+    });
+
     test('an unknown or too short saved list reads as all three', () {
       expect(
         SettingsStore.fromJson({

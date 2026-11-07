@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/utils/punycode.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 typedef ExternalLinkChoice = ({bool dontAskAgain});
@@ -31,7 +32,8 @@ class _ExternalLinkDialogState extends State<ExternalLinkDialog> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final colors = SheetColors.of(context);
-    final host = widget.url.host;
+    final host = asciiHost(widget.url.host);
+    final shown = widget.url.replace(host: host).toString();
     final body = SheetText.body.copyWith(color: colors.body);
     return OnsetDialog(
       title: l.linkConfirmTitle,
@@ -54,7 +56,7 @@ class _ExternalLinkDialogState extends State<ExternalLinkDialog> {
             style: body,
           ),
           Text(
-            widget.url.toString(),
+            shown,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: SheetText.rowDetail.copyWith(color: colors.secondary),

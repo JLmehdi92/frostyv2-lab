@@ -210,14 +210,15 @@ class EmoteCell extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         onLongPress: onLongPress,
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Center(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
                 // Dimmed by the image's own colour, not an opacity layer per
                 // cell: a channel's sub emotes can fill the grid.
-                child: OnsetCachedNetworkImage(
+                OnsetCachedNetworkImage(
                   imageUrl: url ?? emote.url,
                   height: emote.height?.toDouble() ?? defaultEmoteSize,
                   width: emote.width?.toDouble(),
@@ -227,15 +228,15 @@ class EmoteCell extends StatelessWidget {
                   colorBlendMode: locked ? BlendMode.modulate : null,
                   semanticLabel: label == null ? emote.name : null,
                 ),
-              ),
+                if (emote.animated)
+                  const PositionedDirectional(
+                    end: -6,
+                    bottom: -4,
+                    child: AnimatedEmoteMark(),
+                  ),
+              ],
             ),
-            if (emote.animated)
-              const PositionedDirectional(
-                end: 3,
-                bottom: 3,
-                child: AnimatedEmoteMark(),
-              ),
-          ],
+          ),
         ),
       ),
     );

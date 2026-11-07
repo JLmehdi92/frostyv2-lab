@@ -363,6 +363,22 @@ void main() {
     expect(find.byType(ChatDetails), findsOneWidget);
   });
 
+  testWidgets('readable colors wait while contrast is increased', (
+    tester,
+  ) async {
+    settings.increaseChatContrast = true;
+    settings.readableNameColors = false;
+    await open(tester);
+    await scrollTo(tester, 'Readable name colors');
+    expect(
+      find.text('Always on while chat contrast is increased.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Readable name colors'));
+    await tester.pump();
+    expect(settings.readableNameColors, isFalse);
+  });
+
   testWidgets('animated GIFs wait for GIFs to be shown', (tester) async {
     settings.showGifs = false;
     await open(tester);

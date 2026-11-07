@@ -60,6 +60,7 @@ MockChatStore fakeChatStore({
   ).thenAnswer((_) => const Stream.empty());
   when(() => store.sharedChatPartners).thenReturn(const []);
   when(() => store.showSharedChatBanner).thenReturn(false);
+  when(() => store.sharedChatStartedNow).thenReturn(false);
   return store;
 }
 

@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:onset/l10n/app_localizations.dart';
 
 part 'badges.g.dart';
 
@@ -150,6 +151,39 @@ const twitchBadgeExplainerKinds = {
   'predictions': 'predictions',
   'hype-train': 'hypeTrain',
 };
+
+const channelBoundBadgeKinds = {
+  'broadcaster',
+  'moderator',
+  'leadModerator',
+  'vip',
+  'subscriber',
+  'founder',
+  'bits',
+  'bitsLeader',
+  'subGifter',
+  'subGiftLeader',
+  'artist',
+  'predictions',
+  'hypeTrain',
+};
+
+typedef BadgeOrigin = ({bool elsewhere, String? channel});
+
+String? badgeExplainerText(
+  AppLocalizations l,
+  String? kind,
+  BadgeOrigin origin,
+) {
+  if (kind == null) return null;
+  if (!origin.elsewhere || !channelBoundBadgeKinds.contains(kind)) {
+    return l.chatBadgeExplainer(kind: kind);
+  }
+  final channel = origin.channel;
+  return channel == null
+      ? null
+      : l.chatBadgeExplainerElsewhere(kind: kind, channel: channel);
+}
 
 String? twitchBadgeExplainerKind(String badgeKey) =>
     twitchBadgeExplainerKinds[badgeKey.split('/').first];

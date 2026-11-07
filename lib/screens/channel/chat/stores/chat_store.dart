@@ -398,14 +398,20 @@ abstract class ChatStoreBase with Store {
   @readonly
   var _showSharedChatBanner = false;
 
+  @readonly
+  var _sharedChatStartedNow = false;
+
+  var _sawUnsharedMessage = false;
+
   var _sharedChatAnnounced = false;
 
   Timer? _sharedChatBannerTimer;
 
   @computed
   List<UserTwitch> get sharedChatPartners => [
-    for (final id in assetsStore.sharedChatChannelIds)
-      if (id != channelId) ?assetsStore.channelIdToUserTwitch[id],
+    if (_isInSharedChatMode)
+      for (final id in assetsStore.sharedChatChannelIds)
+        if (id != channelId) ?assetsStore.channelIdToUserTwitch[id],
   ];
 
   @action
@@ -421,6 +427,7 @@ abstract class ChatStoreBase with Store {
       return;
     }
     _sharedChatAnnounced = true;
+    _sharedChatStartedNow = _sawUnsharedMessage;
     _showSharedChatBanner = true;
     _sharedChatBannerTimer?.cancel();
     _sharedChatBannerTimer = Timer(
@@ -678,8 +685,15 @@ abstract class ChatStoreBase with Store {
     if (_shouldDisconnect || auth.user.details == null) return;
     _emoteRefreshTimer?.cancel();
     _emoteRefreshTimer = Timer(emoteRefreshDelay, () {
-      if (!_shouldDisconnect) unawaited(_loadUserEmotes(_globalEmoteSets));
+      if (!_shouldDisconnect) unawaited(_loadUserEmotes(_currentEmoteSets));
     });
+  }
+
+  List<String>? get _currentEmoteSets {
+    final latest = _userStateEmoteSets?.split(',');
+    final global = _globalEmoteSets;
+    if (latest == null) return global;
+    return {...?global, ...latest}.toList();
   }
 
   void _noteEmoteSets(IRCMessage userState) {
@@ -1116,7 +1130,11 @@ abstract class ChatStoreBase with Store {
             _isInSharedChatMode = parsedIRCMessage.tags.containsKey(
               'source-room-id',
             );
-            if (_isInSharedChatMode) _announceSharedChat(parsedIRCMessage);
+            if (_isInSharedChatMode) {
+              _announceSharedChat(parsedIRCMessage);
+            } else if (parsedIRCMessage.command == Command.privateMessage) {
+              _sawUnsharedMessage = true;
+            }
             // On transition into shared chat mode, fetch assets for participants.
             if (!wasShared && _isInSharedChatMode) {
               assetsStore.fetchSharedChatAssets(
