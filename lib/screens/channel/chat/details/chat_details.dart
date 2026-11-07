@@ -15,6 +15,7 @@ import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dar
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:onset/screens/settings/settings.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/twitch_links.dart';
@@ -40,6 +41,89 @@ Future<void> showChatDetails(
     onAddChat: onAddChat,
   ),
 );
+
+List<Widget> chatPreferenceRows(BuildContext context, SettingsStore settings) {
+  final l = context.l10n;
+  return [
+    SheetSectionLabel(l.chatDetailsPreferences),
+    ChatPreferenceSwitch(
+      glyph: SheetGlyphKind.emote,
+      label: l.settingsAnimateEmotes,
+      read: () => settings.animateEmotes,
+      write: (value) => settings.animateEmotes = value,
+    ),
+    ChatPreferenceSwitch(
+      glyph: SheetGlyphKind.videos,
+      label: l.settingsShowGifs,
+      read: () => settings.showGifs,
+      write: (value) => settings.showGifs = value,
+    ),
+    ChatPreferenceSwitch(
+      glyph: SheetGlyphKind.videos,
+      label: l.settingsAnimatedGifs,
+      read: () => settings.animateGifs,
+      write: (value) => settings.animateGifs = value,
+      enabled: () => settings.showGifs,
+    ),
+    ChatPreferenceSwitch(
+      glyph: SheetGlyphKind.filter,
+      label: l.chatDetailsHideOffensive,
+      read: () => settings.chatFiltersEnabled,
+      write: (value) => settings.chatFiltersEnabled = value,
+    ),
+    ChatPreferenceSwitch(
+      glyph: SheetGlyphKind.palette,
+      label: l.settingsReadableNameColors,
+      read: () => settings.readableNameColors,
+      write: (value) => settings.readableNameColors = value,
+    ),
+    ChatPreferenceSwitch(
+      glyph: SheetGlyphKind.contrast,
+      label: l.settingsIncreaseChatContrast,
+      read: () => settings.increaseChatContrast,
+      write: (value) => settings.increaseChatContrast = value,
+    ),
+  ];
+}
+
+class ChatPreferenceSwitch extends StatelessWidget {
+  const ChatPreferenceSwitch({
+    super.key,
+    required this.glyph,
+    required this.label,
+    required this.read,
+    required this.write,
+    this.enabled,
+  });
+
+  final SheetGlyphKind glyph;
+  final String label;
+  final bool Function() read;
+  final ValueChanged<bool> write;
+  final bool Function()? enabled;
+
+  @override
+  Widget build(BuildContext context) => Observer(
+    builder: (context) {
+      final on = read();
+      final active = enabled?.call() ?? true;
+      void toggle(bool value) => write(value);
+      return MergeSemantics(
+        child: SheetRow(
+          glyph: glyph,
+          label: label,
+          trailing: OnsetSwitch(value: on, onChanged: active ? toggle : null),
+          onTap: active
+              ? () {
+                  HapticFeedback.selectionClick();
+                  toggle(!on);
+                }
+              : null,
+        ),
+      );
+    },
+  );
+}
 
 /// The views of the chat's details: the menu, and what opens in place of
 /// it (a back chevron returns to the menu).
@@ -455,6 +539,7 @@ class _ChatDetailsState extends State<ChatDetails> {
               );
             },
           ),
+          ...chatPreferenceRows(context, store.settings),
           SheetRow(
             glyph: SheetGlyphKind.settings,
             label: context.l10n.settingsTitle,

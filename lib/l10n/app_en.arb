@@ -1457,6 +1457,22 @@
   "@settingsTimestamps": {
     "description": "Settings › Chat › Message appearance: the timestamp options."
   },
+  "settingsReadableNameColors": "Readable name colors",
+  "@settingsReadableNameColors": {
+    "description": "Settings › Chat › Message appearance, and the chat menu: a switch that adjusts viewers’ name colors that are hard to read on the background. On by default."
+  },
+  "settingsReadableNameColorsDetail": "Lightens or darkens name colors that would be hard to read on the background.",
+  "@settingsReadableNameColorsDetail": {
+    "description": "Settings › Chat › Message appearance: under “Readable name colors”."
+  },
+  "settingsIncreaseChatContrast": "Increase chat contrast",
+  "@settingsIncreaseChatContrast": {
+    "description": "Settings › Chat › Message appearance, and the chat menu: a switch that gives name colors a stronger contrast. Off by default."
+  },
+  "settingsIncreaseChatContrastDetail": "Gives name colors a stronger contrast with the background.",
+  "@settingsIncreaseChatContrastDetail": {
+    "description": "Settings › Chat › Message appearance: under “Increase chat contrast”."
+  },
   "timestampDisabled": "Disabled",
   "@timestampDisabled": {
     "description": "Message timestamp option (Settings › Chat): none."
@@ -1522,6 +1538,30 @@
   "settingsPersistTabsDetail": "Secondary chat tabs are remembered when switching channels.",
   "@settingsPersistTabsDetail": {
     "description": "Settings › Chat › Layout: what « Persist chat tabs » does."
+  },
+  "settingsPortraitChatHeight": "Chat height in portrait",
+  "@settingsPortraitChatHeight": {
+    "description": "Settings › Chat › Layout: the title of the three chat heights under the video in portrait (Low, Medium, High)."
+  },
+  "settingsPortraitChatHeightDetail": "You can also drag the bar under the video.",
+  "@settingsPortraitChatHeightDetail": {
+    "description": "Settings › Chat › Layout: under “Chat height in portrait”, the bar between the video and chat sets any height."
+  },
+  "portraitChatHeightLow": "Low",
+  "@portraitChatHeightLow": {
+    "description": "Settings › Chat › Layout, “Chat height in portrait”: the least room for chat (the video takes the full width). One segment of a three-part pill."
+  },
+  "portraitChatHeightMedium": "Medium",
+  "@portraitChatHeightMedium": {
+    "description": "Settings › Chat › Layout, “Chat height in portrait”: halfway. One segment of a three-part pill."
+  },
+  "portraitChatHeightHigh": "High",
+  "@portraitChatHeightHigh": {
+    "description": "Settings › Chat › Layout, “Chat height in portrait”: the most room for chat (the smallest video). One segment of a three-part pill."
+  },
+  "portraitChatHeightCustom": "Custom",
+  "@portraitChatHeightCustom": {
+    "description": "Settings › Chat › Layout, “Chat height in portrait”: a height set by dragging the bar under the video (feminine in French: la hauteur)."
   },
   "settingsAlerts": "Alerts",
   "@settingsAlerts": {
@@ -1672,6 +1712,34 @@
   "settingsOverlayOpacityDetail": "Sets the opacity of the chat overlay in full-screen mode.",
   "@settingsOverlayOpacityDetail": {
     "description": "Settings › Chat › Landscape mode: what the chat overlay opacity slider does."
+  },
+  "settingsTapToCloseOverlay": "Tap to close chat overlay",
+  "@settingsTapToCloseOverlay": {
+    "description": "Settings › Chat › Landscape mode: a switch; when on, tapping the chat drawn over the full-screen video hides it. Off by default."
+  },
+  "settingsTapToCloseOverlayDetail": "Tapping an empty part of the chat over the video hides it.",
+  "@settingsTapToCloseOverlayDetail": {
+    "description": "Settings › Chat › Landscape mode: under “Tap to close chat overlay”."
+  },
+  "settingsChatSwitching": "Double-tap the video in landscape",
+  "@settingsChatSwitching": {
+    "description": "Settings › Chat: the title of the group choosing which chat layouts a double tap on the landscape video moves through. Shown in capitals."
+  },
+  "settingsChatSwitchingOverlay": "Chat over the video",
+  "@settingsChatSwitchingOverlay": {
+    "description": "Settings › Chat › Double-tap the video in landscape: a switch for the layout with chat drawn over the full-screen video."
+  },
+  "settingsChatSwitchingDetail": "Double-tapping the video moves to the next layout turned on here. Keep at least two on.",
+  "@settingsChatSwitchingDetail": {
+    "description": "Settings › Chat › Double-tap the video in landscape: under the first switch, how the three switches work."
+  },
+  "settingsChatSwitchingColumn": "Chat beside the video",
+  "@settingsChatSwitchingColumn": {
+    "description": "Settings › Chat › Double-tap the video in landscape: a switch for the layout with chat in a column beside the video."
+  },
+  "settingsChatSwitchingHidden": "No chat",
+  "@settingsChatSwitchingHidden": {
+    "description": "Settings › Chat › Double-tap the video in landscape: a switch for the layout with the video alone, chat hidden."
   },
   "settingsFiltersGroup": "Chat filters and muted keywords",
   "@settingsFiltersGroup": {
@@ -7034,6 +7102,14 @@
   "chatDetailsOpensTwitch": "Opens twitch.tv",
   "@chatDetailsOpensTwitch": {
     "description": "The line under the Subscribe and Gift a Sub rows of the chat's details sheet."
+  },
+  "chatDetailsPreferences": "Preferences",
+  "@chatDetailsPreferences": {
+    "description": "Chat menu (the “⋯” sheet): the label above the quick switches for how chat looks (animated emotes, GIFs, offensive language, name colors)."
+  },
+  "chatDetailsHideOffensive": "Hide offensive language",
+  "@chatDetailsHideOffensive": {
+    "description": "Chat menu, under Preferences: a switch that turns Twitch’s chat filters on or off (Settings › Chat › Edit chat filters picks what is filtered). One line in a 360 dp sheet."
   },
   "chatDetailsGiftSub": "Gift a sub",
   "@chatDetailsGiftSub": {

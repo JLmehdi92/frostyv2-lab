@@ -1145,6 +1145,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsTimestamps => 'Horodatage des messages';
 
   @override
+  String get settingsReadableNameColors => 'Couleurs de pseudo lisibles';
+
+  @override
+  String get settingsReadableNameColorsDetail =>
+      'Éclaircit ou assombrit les couleurs de pseudo difficiles à lire sur le fond.';
+
+  @override
+  String get settingsIncreaseChatContrast => 'Augmenter le contraste du chat';
+
+  @override
+  String get settingsIncreaseChatContrastDetail =>
+      'Renforce le contraste entre les couleurs de pseudo et le fond.';
+
+  @override
   String get timestampDisabled => 'Désactivé';
 
   @override
@@ -1202,6 +1216,25 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsPersistTabsDetail =>
       'Les onglets de chat secondaires sont conservés quand vous changez de chaîne.';
+
+  @override
+  String get settingsPortraitChatHeight => 'Hauteur du chat en portrait';
+
+  @override
+  String get settingsPortraitChatHeightDetail =>
+      'Vous pouvez aussi faire glisser la barre sous la vidéo.';
+
+  @override
+  String get portraitChatHeightLow => 'Basse';
+
+  @override
+  String get portraitChatHeightMedium => 'Moyenne';
+
+  @override
+  String get portraitChatHeightHigh => 'Haute';
+
+  @override
+  String get portraitChatHeightCustom => 'Personnalisée';
 
   @override
   String get settingsAlerts => 'Alertes';
@@ -1327,6 +1360,31 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsOverlayOpacityDetail =>
       'Règle l’opacité (la transparence) du chat superposé à la vidéo en plein écran.';
+
+  @override
+  String get settingsTapToCloseOverlay =>
+      'Appuyer pour fermer le chat superposé';
+
+  @override
+  String get settingsTapToCloseOverlayDetail =>
+      'Un appui sur une zone vide du chat superposé à la vidéo le masque.';
+
+  @override
+  String get settingsChatSwitching =>
+      'Appuyer deux fois sur la vidéo en paysage';
+
+  @override
+  String get settingsChatSwitchingOverlay => 'Chat superposé à la vidéo';
+
+  @override
+  String get settingsChatSwitchingDetail =>
+      'Un double appui sur la vidéo passe à la disposition suivante parmi celles activées ici. Gardez-en au moins deux.';
+
+  @override
+  String get settingsChatSwitchingColumn => 'Chat à côté de la vidéo';
+
+  @override
+  String get settingsChatSwitchingHidden => 'Sans chat';
 
   @override
   String get settingsFiltersGroup => 'Filtres du chat et mots-clés masqués';
@@ -5439,6 +5497,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatDetailsOpensTwitch => 'Ouvre twitch.tv';
+
+  @override
+  String get chatDetailsPreferences => 'Préférences';
+
+  @override
+  String get chatDetailsHideOffensive => 'Masquer les propos choquants';
 
   @override
   String get chatDetailsGiftSub => 'Offrir un abonnement';

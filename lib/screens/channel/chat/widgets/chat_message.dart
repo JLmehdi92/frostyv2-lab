@@ -261,6 +261,8 @@ class ChatMessage extends StatelessWidget {
                     animateEmotes: chatStore.settings.animateEmotes,
                     showGifs: chatStore.settings.showGifs,
                     animateGifs: chatStore.settings.animateGifs,
+
+                    nameContrast: chatStore.settings.nameColorContrast,
                     launchExternal: chatStore.settings.launchUrlExternal,
                     timestamp: chatStore.settings.timestampType,
                     channelIdToUserTwitch:
@@ -384,6 +386,8 @@ class ChatMessage extends StatelessWidget {
                   animateEmotes: chatStore.settings.animateEmotes,
                   showGifs: chatStore.settings.showGifs,
                   animateGifs: chatStore.settings.animateGifs,
+
+                  nameContrast: chatStore.settings.nameColorContrast,
                   launchExternal: chatStore.settings.launchUrlExternal,
                   timestamp: chatStore.settings.timestampType,
                   channelIdToUserTwitch:
@@ -596,6 +600,8 @@ class ChatMessage extends StatelessWidget {
                         animateEmotes: chatStore.settings.animateEmotes,
                         showGifs: chatStore.settings.showGifs,
                         animateGifs: chatStore.settings.animateGifs,
+
+                        nameContrast: chatStore.settings.nameColorContrast,
                         showMessage:
                             chatStore.settings.showDeletedMessages ||
                             chatStore.revealedMessageIds.contains(
@@ -815,6 +821,8 @@ class ChatMessage extends StatelessWidget {
         animateEmotes: chatStore.settings.animateEmotes,
         showGifs: chatStore.settings.showGifs,
         animateGifs: chatStore.settings.animateGifs,
+
+        nameContrast: chatStore.settings.nameColorContrast,
         showMessage: showMessage,
         onTapDeletedMessage: onTapDeletedMessage,
         launchExternal: chatStore.settings.launchUrlExternal,

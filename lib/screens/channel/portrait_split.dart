@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 /// The smallest share of the width the portrait video can take.
 const kMinPortraitVideoScale = 0.4;
@@ -19,6 +20,23 @@ double minPortraitVideoScale(double width) => width <= kMinPortraitVideoWidth
 /// [scale] kept between [minPortraitVideoScale] and full width.
 double clampPortraitVideoScale(double scale, double width) =>
     scale.isFinite ? scale.clamp(minPortraitVideoScale(width), 1.0) : 1.0;
+
+double portraitScaleFor(
+  PortraitChatHeight height, {
+  required double customScale,
+  required double width,
+}) {
+  final smallest = minPortraitVideoScale(width);
+  return switch (height) {
+    PortraitChatHeight.low => 1.0,
+    PortraitChatHeight.medium => (1.0 + smallest) / 2,
+    PortraitChatHeight.high => smallest,
+    PortraitChatHeight.custom => clampPortraitVideoScale(customScale, width),
+  };
+}
+
+PortraitChatHeight portraitChatHeightAfterDrag(double scale) =>
+    scale >= 1.0 ? PortraitChatHeight.low : PortraitChatHeight.custom;
 
 /// The video's height in portrait for a screen [width] at [scale].
 double portraitVideoHeight(double width, double scale) =>

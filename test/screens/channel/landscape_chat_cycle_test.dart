@@ -245,6 +245,53 @@ void main() {
       expect(cycle.plainSide, isTrue);
     });
 
+    test('a layout turned off in Settings is skipped', () {
+      settings.setLandscapeChatMode(LandscapeChatMode.hidden, on: false);
+      overlay();
+      cycle.next();
+      expect(settings.fullScreen, isFalse);
+      expect(cycle.plainSide, isTrue);
+      cycle.next();
+      expect(settings.fullScreen, isTrue);
+      expect(settings.fullScreenChatOverlay, isTrue);
+    });
+
+    test('without the side column, overlay and hidden swap', () {
+      settings.setLandscapeChatMode(LandscapeChatMode.column, on: false);
+      overlay();
+      cycle.next();
+      expect(settings.fullScreen, isTrue);
+      expect(settings.fullScreenChatOverlay, isFalse);
+      cycle.next();
+      expect(settings.fullScreenChatOverlay, isTrue);
+      settings.fullScreen = false;
+      cycle.next();
+      expect(settings.fullScreen, isTrue);
+      expect(settings.fullScreenChatOverlay, isFalse);
+    });
+
+    test('the next mode wraps around the cycle order', () {
+      const all = LandscapeChatMode.values;
+      expect(
+        nextLandscapeChatMode(LandscapeChatMode.hidden, all),
+        LandscapeChatMode.overlay,
+      );
+      expect(
+        nextLandscapeChatMode(LandscapeChatMode.column, const [
+          LandscapeChatMode.overlay,
+          LandscapeChatMode.column,
+        ]),
+        LandscapeChatMode.overlay,
+      );
+      expect(
+        nextLandscapeChatMode(LandscapeChatMode.hidden, const [
+          LandscapeChatMode.overlay,
+          LandscapeChatMode.column,
+        ]),
+        LandscapeChatMode.overlay,
+      );
+    });
+
     test("from a tablet's side column the double tap hides the chat", () {
       cycle.next();
       expect(settings.fullScreen, isTrue);

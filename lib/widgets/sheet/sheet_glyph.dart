@@ -52,6 +52,7 @@ enum SheetGlyphKind {
   cake,
   diamond,
   lock,
+  contrast,
 }
 
 /// The elements of each glyph: path data, `c:cx,cy,r` circles and
@@ -184,6 +185,7 @@ const Map<SheetGlyphKind, List<String>> _shapes = {
   ],
   SheetGlyphKind.diamond: ['M12 3l7.5 7.5L12 21 4.5 10.5z', 'M4.5 10.5h15'],
   SheetGlyphKind.lock: ['r:6,11,12,9,2', 'M9 11V8a3 3 0 0 1 6 0v3'],
+  SheetGlyphKind.contrast: ['c:12,12,8', 'M12 4v16', 'M12 8h4M12 12h6M12 16h4'],
 };
 
 /// Parsed once per glyph.

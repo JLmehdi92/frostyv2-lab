@@ -1634,6 +1634,7 @@ class _VideoChatState extends State<VideoChat>
               // Read here, not in the LayoutBuilder below: the Observer only
               // tracks what its own build reads.
               final videoScale = settingsStore.portraitVideoScale;
+              final chatHeight = settingsStore.portraitChatHeight;
               // What the SafeArea below takes at the top: inside it the
               // padding reads 0, and the video starts under it.
               final safeTop = MediaQuery.paddingOf(context).top;
@@ -1647,7 +1648,13 @@ class _VideoChatState extends State<VideoChat>
                   builder: (context, dragScale, _) => LayoutBuilder(
                     builder: (context, constraints) {
                       final width = constraints.maxWidth;
-                      final scale = dragScale ?? videoScale;
+                      final scale =
+                          dragScale ??
+                          portraitScaleFor(
+                            chatHeight,
+                            customScale: videoScale,
+                            width: width,
+                          );
                       final videoHeight = portraitVideoHeight(width, scale);
                       final large = context.isLargeScreen;
                       // On a phone, sheets start under the video so the
@@ -1672,7 +1679,10 @@ class _VideoChatState extends State<VideoChat>
                                     onChanged: (scale) =>
                                         _portraitDragScale.value = scale,
                                     onChangeEnd: (scale) {
-                                      settingsStore.portraitVideoScale = scale;
+                                      settingsStore
+                                        ..portraitVideoScale = scale
+                                        ..portraitChatHeight =
+                                            portraitChatHeightAfterDrag(scale);
                                       _portraitDragScale.value = null;
                                     },
                                   ),

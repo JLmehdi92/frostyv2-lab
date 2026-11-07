@@ -898,11 +898,41 @@ void main() {
           await tester.tap(find.text('⋯'));
           await tester.pumpAndSettle();
           await expectFrenchThroughout(tester, 'chat details, $at');
+          final menu = find
+              .descendant(
+                of: find.byType(ChatDetails),
+                matching: find.byType(Scrollable),
+              )
+              .first;
+          await tester.scrollUntilVisible(
+            find.text(words.settingsIncreaseChatContrast),
+            80,
+            scrollable: menu,
+          );
+          await tester.pumpAndSettle();
+          await expectFrenchThroughout(tester, 'chat preferences, $at');
+          await tester.scrollUntilVisible(
+            find.text(words.chatDetailsSleepTimer),
+            -80,
+            scrollable: menu,
+          );
+          await tester.pumpAndSettle();
           await tester.tap(find.text(words.chatDetailsSleepTimer));
           await tester.pumpAndSettle();
           await expectFrenchThroughout(tester, 'sleep timer, $at');
           // Back to the menu, as the system back does.
           await tester.state<NavigatorState>(find.byType(Navigator)).maybePop();
+          await tester.pumpAndSettle();
+          await tester.scrollUntilVisible(
+            find.text(words.chatDetailsUsernameColor),
+            -80,
+            scrollable: find
+                .descendant(
+                  of: find.byType(ChatDetails),
+                  matching: find.byType(Scrollable),
+                )
+                .first,
+          );
           await tester.pumpAndSettle();
           await tester.tap(find.text(words.chatDetailsUsernameColor));
           await tester.pumpAndSettle();

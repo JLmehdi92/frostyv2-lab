@@ -172,6 +172,8 @@ class ChatBottomBar extends StatelessWidget {
                                     launchExternal:
                                         chatStore.settings.launchUrlExternal,
                                     timestamp: chatStore.settings.timestampType,
+                                    nameContrast:
+                                        chatStore.settings.nameColorContrast,
                                     currentChannelId: chatStore.channelId,
                                   ),
                             ),

@@ -18,6 +18,27 @@ void main() {
     expect(portraitVideoHeight(360, 0.4) * 16 / 9, closeTo(300, 1e-9));
   });
 
+  test('chat height presets span what the screen allows', () {
+    double scale(PortraitChatHeight height, double width) =>
+        portraitScaleFor(height, customScale: 0.5, width: width);
+
+    expect(scale(PortraitChatHeight.low, 390), 1.0);
+    expect(scale(PortraitChatHeight.high, 390), closeTo(300 / 390, 1e-9));
+    expect(
+      scale(PortraitChatHeight.medium, 390),
+      closeTo((1 + 300 / 390) / 2, 1e-9),
+    );
+    expect(scale(PortraitChatHeight.high, 1067), kMinPortraitVideoScale);
+    expect(scale(PortraitChatHeight.medium, 1067), closeTo(0.7, 1e-9));
+    expect(scale(PortraitChatHeight.custom, 1067), 0.5);
+    expect(scale(PortraitChatHeight.custom, 390), closeTo(300 / 390, 1e-9));
+  });
+
+  test('a drag to full width is the low preset, any other size custom', () {
+    expect(portraitChatHeightAfterDrag(1.0), PortraitChatHeight.low);
+    expect(portraitChatHeightAfterDrag(0.8), PortraitChatHeight.custom);
+  });
+
   Future<({List<double> live, List<double> kept})> pump(
     WidgetTester tester,
     double scale,

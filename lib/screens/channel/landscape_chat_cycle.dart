@@ -38,19 +38,29 @@ class LandscapeChatCycle {
   bool get plainSide => _plainSide && !settings.fullScreen;
 
   /// The next layout.
-  void next() {
-    if (!settings.fullScreen) {
-      // Column → Hidden
-      settings
-        ..fullScreen = true
-        ..fullScreenChatOverlay = false;
-    } else if (settings.fullScreenChatOverlay) {
-      // Overlay → Column: before the layout reads it.
-      _plainSide = true;
-      settings.fullScreen = false;
-    } else {
-      // Hidden → Overlay
-      settings.fullScreenChatOverlay = true;
+  void next() => _show(
+    nextLandscapeChatMode(current, settings.switchableLandscapeChatModes),
+  );
+
+  LandscapeChatMode get current => !settings.fullScreen
+      ? LandscapeChatMode.column
+      : settings.fullScreenChatOverlay
+      ? LandscapeChatMode.overlay
+      : LandscapeChatMode.hidden;
+
+  void _show(LandscapeChatMode mode) {
+    switch (mode) {
+      case LandscapeChatMode.column:
+        _plainSide = true;
+        settings.fullScreen = false;
+      case LandscapeChatMode.hidden:
+        settings
+          ..fullScreen = true
+          ..fullScreenChatOverlay = false;
+      case LandscapeChatMode.overlay:
+        settings
+          ..fullScreen = true
+          ..fullScreenChatOverlay = true;
     }
   }
 
@@ -58,4 +68,17 @@ class LandscapeChatCycle {
   void reset() => _plainSide = false;
 
   void dispose() => _endOnFullScreen();
+}
+
+LandscapeChatMode nextLandscapeChatMode(
+  LandscapeChatMode current,
+  List<LandscapeChatMode> switchable,
+) {
+  const order = LandscapeChatMode.values;
+  final start = order.indexOf(current);
+  for (var step = 1; step <= order.length; step++) {
+    final candidate = order[(start + step) % order.length];
+    if (switchable.contains(candidate)) return candidate;
+  }
+  return current;
 }

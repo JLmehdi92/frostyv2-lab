@@ -69,6 +69,13 @@ SettingsStore _$SettingsStoreFromJson(
       CaptionBackground.black
   ..captionLanguage = json['captionLanguage'] as String? ?? ''
   ..portraitVideoScale = (json['portraitVideoScale'] as num?)?.toDouble() ?? 1.0
+  ..portraitChatHeight =
+      $enumDecodeNullable(
+        _$PortraitChatHeightEnumMap,
+        readPortraitChatHeight(json, 'portraitChatHeight'),
+        unknownValue: PortraitChatHeight.low,
+      ) ??
+      PortraitChatHeight.low
   ..defaultToHighestQuality = json['defaultToHighestQuality'] as bool? ?? false
   ..useTextureRendering = json['useTextureRendering'] as bool? ?? true
   ..keepScreenAwake = json['keepScreenAwake'] as bool? ?? true
@@ -124,6 +131,8 @@ SettingsStore _$SettingsStoreFromJson(
         unknownValue: TimestampType.disabled,
       ) ??
       TimestampType.disabled
+  ..readableNameColors = json['readableNameColors'] as bool? ?? true
+  ..increaseChatContrast = json['increaseChatContrast'] as bool? ?? false
   ..autoSyncChatDelay = json['autoSyncChatDelay'] as bool? ?? true
   ..chatDelay = (json['chatDelay'] as num?)?.toDouble() ?? 0.0
   ..chatSyncDefaultApplied = json['chatSyncDefaultApplied'] as bool? ?? false
@@ -156,6 +165,10 @@ SettingsStore _$SettingsStoreFromJson(
   ..chatWidth = (json['chatWidth'] as num?)?.toDouble() ?? 0.2
   ..fullScreenChatOverlayOpacity =
       (json['fullScreenChatOverlayOpacity'] as num?)?.toDouble() ?? 0.5
+  ..tapToCloseOverlayChat = json['tapToCloseOverlayChat'] as bool? ?? false
+  ..landscapeChatModes = landscapeChatModesFromJson(
+    json['landscapeChatModes'] as List?,
+  )
   ..autocomplete = json['autocomplete'] as bool? ?? true
   ..showTwitchEmotes = json['showTwitchEmotes'] as bool? ?? true
   ..showTwitchBadges = json['showTwitchBadges'] as bool? ?? true
@@ -216,6 +229,8 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'captionBackground': _$CaptionBackgroundEnumMap[instance.captionBackground]!,
   'captionLanguage': instance.captionLanguage,
   'portraitVideoScale': instance.portraitVideoScale,
+  'portraitChatHeight':
+      _$PortraitChatHeightEnumMap[instance.portraitChatHeight]!,
   'defaultToHighestQuality': instance.defaultToHighestQuality,
   'useTextureRendering': instance.useTextureRendering,
   'keepScreenAwake': instance.keepScreenAwake,
@@ -241,6 +256,8 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'showModerationNotices': instance.showModerationNotices,
   'showChatMessageDividers': instance.showChatMessageDividers,
   'timestampType': _$TimestampTypeEnumMap[instance.timestampType]!,
+  'readableNameColors': instance.readableNameColors,
+  'increaseChatContrast': instance.increaseChatContrast,
   'autoSyncChatDelay': instance.autoSyncChatDelay,
   'chatDelay': instance.chatDelay,
   'chatSyncDefaultApplied': instance.chatSyncDefaultApplied,
@@ -260,6 +277,10 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'landscapeCutout': _$LandscapeCutoutTypeEnumMap[instance.landscapeCutout]!,
   'chatWidth': instance.chatWidth,
   'fullScreenChatOverlayOpacity': instance.fullScreenChatOverlayOpacity,
+  'tapToCloseOverlayChat': instance.tapToCloseOverlayChat,
+  'landscapeChatModes': instance.landscapeChatModes
+      .map((e) => _$LandscapeChatModeEnumMap[e]!)
+      .toList(),
   'autocomplete': instance.autocomplete,
   'showTwitchEmotes': instance.showTwitchEmotes,
   'showTwitchBadges': instance.showTwitchBadges,
@@ -324,6 +345,13 @@ const _$CaptionBackgroundEnumMap = {
   CaptionBackground.none: 'none',
 };
 
+const _$PortraitChatHeightEnumMap = {
+  PortraitChatHeight.low: 'low',
+  PortraitChatHeight.medium: 'medium',
+  PortraitChatHeight.high: 'high',
+  PortraitChatHeight.custom: 'custom',
+};
+
 const _$PlayerEngineEnumMap = {
   PlayerEngine.ivs: 'ivs',
   PlayerEngine.nativeLowLatency: 'nativeLowLatency',
@@ -364,6 +392,12 @@ const _$LandscapeCutoutTypeEnumMap = {
   LandscapeCutoutType.both: 'both',
 };
 
+const _$LandscapeChatModeEnumMap = {
+  LandscapeChatMode.overlay: 'overlay',
+  LandscapeChatMode.column: 'column',
+  LandscapeChatMode.hidden: 'hidden',
+};
+
 // **************************************************************************
 // StoreGenerator
 // **************************************************************************
@@ -371,6 +405,14 @@ const _$LandscapeCutoutTypeEnumMap = {
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$SettingsStore on _SettingsStoreBase, Store {
+  Computed<double?>? _$nameColorContrastComputed;
+
+  @override
+  double? get nameColorContrast =>
+      (_$nameColorContrastComputed ??= Computed<double?>(
+        () => super.nameColorContrast,
+        name: '_SettingsStoreBase.nameColorContrast',
+      )).value;
   Computed<double>? _$effectiveChatDelayComputed;
 
   @override
@@ -379,6 +421,16 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
         () => super.effectiveChatDelay,
         name: '_SettingsStoreBase.effectiveChatDelay',
       )).value;
+  Computed<List<LandscapeChatMode>>? _$switchableLandscapeChatModesComputed;
+
+  @override
+  List<LandscapeChatMode> get switchableLandscapeChatModes =>
+      (_$switchableLandscapeChatModesComputed ??=
+              Computed<List<LandscapeChatMode>>(
+                () => super.switchableLandscapeChatModes,
+                name: '_SettingsStoreBase.switchableLandscapeChatModes',
+              ))
+          .value;
 
   late final _$themeTypeAtom = Atom(
     name: '_SettingsStoreBase.themeType',
@@ -727,6 +779,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set portraitVideoScale(double value) {
     _$portraitVideoScaleAtom.reportWrite(value, super.portraitVideoScale, () {
       super.portraitVideoScale = value;
+    });
+  }
+
+  late final _$portraitChatHeightAtom = Atom(
+    name: '_SettingsStoreBase.portraitChatHeight',
+    context: context,
+  );
+
+  @override
+  PortraitChatHeight get portraitChatHeight {
+    _$portraitChatHeightAtom.reportRead();
+    return super.portraitChatHeight;
+  }
+
+  @override
+  set portraitChatHeight(PortraitChatHeight value) {
+    _$portraitChatHeightAtom.reportWrite(value, super.portraitChatHeight, () {
+      super.portraitChatHeight = value;
     });
   }
 
@@ -1192,6 +1262,46 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$readableNameColorsAtom = Atom(
+    name: '_SettingsStoreBase.readableNameColors',
+    context: context,
+  );
+
+  @override
+  bool get readableNameColors {
+    _$readableNameColorsAtom.reportRead();
+    return super.readableNameColors;
+  }
+
+  @override
+  set readableNameColors(bool value) {
+    _$readableNameColorsAtom.reportWrite(value, super.readableNameColors, () {
+      super.readableNameColors = value;
+    });
+  }
+
+  late final _$increaseChatContrastAtom = Atom(
+    name: '_SettingsStoreBase.increaseChatContrast',
+    context: context,
+  );
+
+  @override
+  bool get increaseChatContrast {
+    _$increaseChatContrastAtom.reportRead();
+    return super.increaseChatContrast;
+  }
+
+  @override
+  set increaseChatContrast(bool value) {
+    _$increaseChatContrastAtom.reportWrite(
+      value,
+      super.increaseChatContrast,
+      () {
+        super.increaseChatContrast = value;
+      },
+    );
+  }
+
   late final _$autoSyncChatDelayAtom = Atom(
     name: '_SettingsStoreBase.autoSyncChatDelay',
     context: context,
@@ -1538,6 +1648,46 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
         super.fullScreenChatOverlayOpacity = value;
       },
     );
+  }
+
+  late final _$tapToCloseOverlayChatAtom = Atom(
+    name: '_SettingsStoreBase.tapToCloseOverlayChat',
+    context: context,
+  );
+
+  @override
+  bool get tapToCloseOverlayChat {
+    _$tapToCloseOverlayChatAtom.reportRead();
+    return super.tapToCloseOverlayChat;
+  }
+
+  @override
+  set tapToCloseOverlayChat(bool value) {
+    _$tapToCloseOverlayChatAtom.reportWrite(
+      value,
+      super.tapToCloseOverlayChat,
+      () {
+        super.tapToCloseOverlayChat = value;
+      },
+    );
+  }
+
+  late final _$landscapeChatModesAtom = Atom(
+    name: '_SettingsStoreBase.landscapeChatModes',
+    context: context,
+  );
+
+  @override
+  List<LandscapeChatMode> get landscapeChatModes {
+    _$landscapeChatModesAtom.reportRead();
+    return super.landscapeChatModes;
+  }
+
+  @override
+  set landscapeChatModes(List<LandscapeChatMode> value) {
+    _$landscapeChatModesAtom.reportWrite(value, super.landscapeChatModes, () {
+      super.landscapeChatModes = value;
+    });
   }
 
   late final _$autocompleteAtom = Atom(
@@ -2016,6 +2166,18 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   }
 
   @override
+  void setLandscapeChatMode(LandscapeChatMode mode, {required bool on}) {
+    final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
+      name: '_SettingsStoreBase.setLandscapeChatMode',
+    );
+    try {
+      return super.setLandscapeChatMode(mode, on: on);
+    } finally {
+      _$_SettingsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void resetChatSettings() {
     final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
       name: '_SettingsStoreBase.resetChatSettings',
@@ -2085,6 +2247,7 @@ captionSize: ${captionSize},
 captionBackground: ${captionBackground},
 captionLanguage: ${captionLanguage},
 portraitVideoScale: ${portraitVideoScale},
+portraitChatHeight: ${portraitChatHeight},
 defaultToHighestQuality: ${defaultToHighestQuality},
 useTextureRendering: ${useTextureRendering},
 keepScreenAwake: ${keepScreenAwake},
@@ -2110,6 +2273,8 @@ showLinkPreviews: ${showLinkPreviews},
 showModerationNotices: ${showModerationNotices},
 showChatMessageDividers: ${showChatMessageDividers},
 timestampType: ${timestampType},
+readableNameColors: ${readableNameColors},
+increaseChatContrast: ${increaseChatContrast},
 autoSyncChatDelay: ${autoSyncChatDelay},
 chatDelay: ${chatDelay},
 syncedChatDelay: ${syncedChatDelay},
@@ -2128,6 +2293,8 @@ landscapeForceVerticalChat: ${landscapeForceVerticalChat},
 landscapeCutout: ${landscapeCutout},
 chatWidth: ${chatWidth},
 fullScreenChatOverlayOpacity: ${fullScreenChatOverlayOpacity},
+tapToCloseOverlayChat: ${tapToCloseOverlayChat},
+landscapeChatModes: ${landscapeChatModes},
 autocomplete: ${autocomplete},
 showTwitchEmotes: ${showTwitchEmotes},
 showTwitchBadges: ${showTwitchBadges},
@@ -2151,7 +2318,9 @@ telemetryConsentVersion: ${telemetryConsentVersion},
 fullScreen: ${fullScreen},
 fullScreenChatOverlay: ${fullScreenChatOverlay},
 pinnedChannelIds: ${pinnedChannelIds},
-effectiveChatDelay: ${effectiveChatDelay}
+nameColorContrast: ${nameColorContrast},
+effectiveChatDelay: ${effectiveChatDelay},
+switchableLandscapeChatModes: ${switchableLandscapeChatModes}
     ''';
   }
 }

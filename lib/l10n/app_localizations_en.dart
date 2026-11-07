@@ -1124,6 +1124,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTimestamps => 'Message timestamps';
 
   @override
+  String get settingsReadableNameColors => 'Readable name colors';
+
+  @override
+  String get settingsReadableNameColorsDetail =>
+      'Lightens or darkens name colors that would be hard to read on the background.';
+
+  @override
+  String get settingsIncreaseChatContrast => 'Increase chat contrast';
+
+  @override
+  String get settingsIncreaseChatContrastDetail =>
+      'Gives name colors a stronger contrast with the background.';
+
+  @override
   String get timestampDisabled => 'Disabled';
 
   @override
@@ -1180,6 +1194,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsPersistTabsDetail =>
       'Secondary chat tabs are remembered when switching channels.';
+
+  @override
+  String get settingsPortraitChatHeight => 'Chat height in portrait';
+
+  @override
+  String get settingsPortraitChatHeightDetail =>
+      'You can also drag the bar under the video.';
+
+  @override
+  String get portraitChatHeightLow => 'Low';
+
+  @override
+  String get portraitChatHeightMedium => 'Medium';
+
+  @override
+  String get portraitChatHeightHigh => 'High';
+
+  @override
+  String get portraitChatHeightCustom => 'Custom';
 
   @override
   String get settingsAlerts => 'Alerts';
@@ -1302,6 +1335,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsOverlayOpacityDetail =>
       'Sets the opacity of the chat overlay in full-screen mode.';
+
+  @override
+  String get settingsTapToCloseOverlay => 'Tap to close chat overlay';
+
+  @override
+  String get settingsTapToCloseOverlayDetail =>
+      'Tapping an empty part of the chat over the video hides it.';
+
+  @override
+  String get settingsChatSwitching => 'Double-tap the video in landscape';
+
+  @override
+  String get settingsChatSwitchingOverlay => 'Chat over the video';
+
+  @override
+  String get settingsChatSwitchingDetail =>
+      'Double-tapping the video moves to the next layout turned on here. Keep at least two on.';
+
+  @override
+  String get settingsChatSwitchingColumn => 'Chat beside the video';
+
+  @override
+  String get settingsChatSwitchingHidden => 'No chat';
 
   @override
   String get settingsFiltersGroup => 'Chat filters and muted keywords';
@@ -5374,6 +5430,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatDetailsOpensTwitch => 'Opens twitch.tv';
+
+  @override
+  String get chatDetailsPreferences => 'Preferences';
+
+  @override
+  String get chatDetailsHideOffensive => 'Hide offensive language';
 
   @override
   String get chatDetailsGiftSub => 'Gift a sub';

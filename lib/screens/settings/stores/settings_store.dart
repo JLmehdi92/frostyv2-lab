@@ -167,6 +167,7 @@ abstract class _SettingsStoreBase with Store {
   // Player defaults
   static const defaultShowVideo = true;
   static const defaultPortraitVideoScale = 1.0;
+  static const defaultPortraitChatHeight = PortraitChatHeight.low;
   static const defaultShowCaptions = false;
   static const defaultCaptionSize = CaptionSize.medium;
   static const defaultCaptionBackground = CaptionBackground.black;
@@ -232,6 +233,14 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultPortraitVideoScale)
   @observable
   var portraitVideoScale = defaultPortraitVideoScale;
+
+  @JsonKey(
+    defaultValue: defaultPortraitChatHeight,
+    unknownEnumValue: defaultPortraitChatHeight,
+    readValue: readPortraitChatHeight,
+  )
+  @observable
+  var portraitChatHeight = defaultPortraitChatHeight;
 
   @JsonKey(defaultValue: defaultDefaultToHighestQuality)
   @observable
@@ -308,6 +317,7 @@ abstract class _SettingsStoreBase with Store {
   void resetVideoSettings() {
     showVideo = defaultShowVideo;
     portraitVideoScale = defaultPortraitVideoScale;
+    portraitChatHeight = defaultPortraitChatHeight;
     showCaptions = defaultShowCaptions;
     captionSize = defaultCaptionSize;
     captionBackground = defaultCaptionBackground;
@@ -345,6 +355,8 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowLinkPreviews = true;
   static const defaultShowChatMessageDividers = false;
   static const defaultTimestampType = TimestampType.disabled;
+  static const defaultReadableNameColors = true;
+  static const defaultIncreaseChatContrast = false;
 
   // Delay defaults
   /// Chat waits as long as the video is behind live, so answers to the
@@ -375,6 +387,12 @@ abstract class _SettingsStoreBase with Store {
   static const defaultLandscapeCutout = LandscapeCutoutType.none;
   static const defaultChatWidth = 0.2;
   static const defaultFullScreenChatOverlayOpacity = 0.5;
+  static const defaultTapToCloseOverlayChat = false;
+  static const defaultLandscapeChatModes = [
+    LandscapeChatMode.overlay,
+    LandscapeChatMode.column,
+    LandscapeChatMode.hidden,
+  ];
 
   // mute words defaults
   static const defaultMutedWords = <String>[];
@@ -476,6 +494,21 @@ abstract class _SettingsStoreBase with Store {
   )
   @observable
   var timestampType = defaultTimestampType;
+
+  @JsonKey(defaultValue: defaultReadableNameColors)
+  @observable
+  var readableNameColors = defaultReadableNameColors;
+
+  @JsonKey(defaultValue: defaultIncreaseChatContrast)
+  @observable
+  var increaseChatContrast = defaultIncreaseChatContrast;
+
+  @computed
+  double? get nameColorContrast => increaseChatContrast
+      ? highNameColorContrast
+      : readableNameColors
+      ? readableNameColorContrast
+      : null;
 
   // Delay options
   @JsonKey(defaultValue: defaultAutoSyncChatDelay)
@@ -582,6 +615,36 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var fullScreenChatOverlayOpacity = defaultFullScreenChatOverlayOpacity;
 
+  @JsonKey(defaultValue: defaultTapToCloseOverlayChat)
+  @observable
+  var tapToCloseOverlayChat = defaultTapToCloseOverlayChat;
+
+  @JsonKey(fromJson: landscapeChatModesFromJson)
+  @observable
+  List<LandscapeChatMode> landscapeChatModes = defaultLandscapeChatModes;
+
+  @computed
+  List<LandscapeChatMode> get switchableLandscapeChatModes {
+    final chosen = LandscapeChatMode.values
+        .where(landscapeChatModes.contains)
+        .toList();
+    return chosen.length < minLandscapeChatModes
+        ? defaultLandscapeChatModes
+        : chosen;
+  }
+
+  @action
+  void setLandscapeChatMode(LandscapeChatMode mode, {required bool on}) {
+    final next = {...switchableLandscapeChatModes};
+    if (on) {
+      next.add(mode);
+    } else {
+      next.remove(mode);
+    }
+    if (next.length < minLandscapeChatModes) return;
+    landscapeChatModes = LandscapeChatMode.values.where(next.contains).toList();
+  }
+
   // Autocomplete options
   @JsonKey(defaultValue: defaultAutocomplete)
   @observable
@@ -676,6 +739,8 @@ abstract class _SettingsStoreBase with Store {
     showLinkPreviews = defaultShowLinkPreviews;
     showChatMessageDividers = defaultShowChatMessageDividers;
     timestampType = defaultTimestampType;
+    readableNameColors = defaultReadableNameColors;
+    increaseChatContrast = defaultIncreaseChatContrast;
 
     autoSyncChatDelay = defaultAutoSyncChatDelay;
     chatDelay = defaultChatDelay;
@@ -698,6 +763,8 @@ abstract class _SettingsStoreBase with Store {
     landscapeCutout = defaultLandscapeCutout;
     chatWidth = defaultChatWidth;
     fullScreenChatOverlayOpacity = defaultFullScreenChatOverlayOpacity;
+    tapToCloseOverlayChat = defaultTapToCloseOverlayChat;
+    landscapeChatModes = defaultLandscapeChatModes;
 
     mutedWords = defaultMutedWords;
     matchWholeWord = defaultMatchWholeWord;
@@ -844,6 +911,37 @@ enum FollowedSort { viewers, recent, name, category }
 enum TimestampType { disabled, twelve, twentyFour }
 
 enum LandscapeCutoutType { none, left, right, both }
+
+const readableNameColorContrast = 4.5;
+const highNameColorContrast = 7.0;
+
+enum LandscapeChatMode { overlay, column, hidden }
+
+enum PortraitChatHeight {
+  low,
+  medium,
+  high,
+  custom;
+
+  static const presets = [low, medium, high];
+}
+
+Object? readPortraitChatHeight(Map<dynamic, dynamic> json, String key) {
+  final stored = json[key];
+  if (stored != null) return stored;
+  final scale = json['portraitVideoScale'];
+  return scale is num && scale != 1.0 ? PortraitChatHeight.custom.name : null;
+}
+
+const minLandscapeChatModes = 2;
+
+List<LandscapeChatMode> landscapeChatModesFromJson(List<dynamic>? names) =>
+    names == null
+    ? _SettingsStoreBase.defaultLandscapeChatModes
+    : [
+        for (final mode in LandscapeChatMode.values)
+          if (names.contains(mode.name)) mode,
+      ];
 
 /// How the IVS player returns to the live edge after falling behind.
 enum LiveCatchUpMode {

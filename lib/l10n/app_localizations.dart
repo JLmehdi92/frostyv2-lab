@@ -1946,6 +1946,30 @@ abstract class AppLocalizations {
   /// **'Message timestamps'**
   String get settingsTimestamps;
 
+  /// Settings › Chat › Message appearance, and the chat menu: a switch that adjusts viewers’ name colors that are hard to read on the background. On by default.
+  ///
+  /// In en, this message translates to:
+  /// **'Readable name colors'**
+  String get settingsReadableNameColors;
+
+  /// Settings › Chat › Message appearance: under “Readable name colors”.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightens or darkens name colors that would be hard to read on the background.'**
+  String get settingsReadableNameColorsDetail;
+
+  /// Settings › Chat › Message appearance, and the chat menu: a switch that gives name colors a stronger contrast. Off by default.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase chat contrast'**
+  String get settingsIncreaseChatContrast;
+
+  /// Settings › Chat › Message appearance: under “Increase chat contrast”.
+  ///
+  /// In en, this message translates to:
+  /// **'Gives name colors a stronger contrast with the background.'**
+  String get settingsIncreaseChatContrastDetail;
+
   /// Message timestamp option (Settings › Chat): none.
   ///
   /// In en, this message translates to:
@@ -2035,6 +2059,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Secondary chat tabs are remembered when switching channels.'**
   String get settingsPersistTabsDetail;
+
+  /// Settings › Chat › Layout: the title of the three chat heights under the video in portrait (Low, Medium, High).
+  ///
+  /// In en, this message translates to:
+  /// **'Chat height in portrait'**
+  String get settingsPortraitChatHeight;
+
+  /// Settings › Chat › Layout: under “Chat height in portrait”, the bar between the video and chat sets any height.
+  ///
+  /// In en, this message translates to:
+  /// **'You can also drag the bar under the video.'**
+  String get settingsPortraitChatHeightDetail;
+
+  /// Settings › Chat › Layout, “Chat height in portrait”: the least room for chat (the video takes the full width). One segment of a three-part pill.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get portraitChatHeightLow;
+
+  /// Settings › Chat › Layout, “Chat height in portrait”: halfway. One segment of a three-part pill.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get portraitChatHeightMedium;
+
+  /// Settings › Chat › Layout, “Chat height in portrait”: the most room for chat (the smallest video). One segment of a three-part pill.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get portraitChatHeightHigh;
+
+  /// Settings › Chat › Layout, “Chat height in portrait”: a height set by dragging the bar under the video (feminine in French: la hauteur).
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get portraitChatHeightCustom;
 
   /// Settings › Chat: the group about highlighted messages and events.
   ///
@@ -2251,6 +2311,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sets the opacity of the chat overlay in full-screen mode.'**
   String get settingsOverlayOpacityDetail;
+
+  /// Settings › Chat › Landscape mode: a switch; when on, tapping the chat drawn over the full-screen video hides it. Off by default.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to close chat overlay'**
+  String get settingsTapToCloseOverlay;
+
+  /// Settings › Chat › Landscape mode: under “Tap to close chat overlay”.
+  ///
+  /// In en, this message translates to:
+  /// **'Tapping an empty part of the chat over the video hides it.'**
+  String get settingsTapToCloseOverlayDetail;
+
+  /// Settings › Chat: the title of the group choosing which chat layouts a double tap on the landscape video moves through. Shown in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-tap the video in landscape'**
+  String get settingsChatSwitching;
+
+  /// Settings › Chat › Double-tap the video in landscape: a switch for the layout with chat drawn over the full-screen video.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat over the video'**
+  String get settingsChatSwitchingOverlay;
+
+  /// Settings › Chat › Double-tap the video in landscape: under the first switch, how the three switches work.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-tapping the video moves to the next layout turned on here. Keep at least two on.'**
+  String get settingsChatSwitchingDetail;
+
+  /// Settings › Chat › Double-tap the video in landscape: a switch for the layout with chat in a column beside the video.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat beside the video'**
+  String get settingsChatSwitchingColumn;
+
+  /// Settings › Chat › Double-tap the video in landscape: a switch for the layout with the video alone, chat hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'No chat'**
+  String get settingsChatSwitchingHidden;
 
   /// Settings › Chat: the group of the chat filters and muted keywords.
   ///
@@ -7428,6 +7530,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Opens twitch.tv'**
   String get chatDetailsOpensTwitch;
+
+  /// Chat menu (the “⋯” sheet): the label above the quick switches for how chat looks (animated emotes, GIFs, offensive language, name colors).
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get chatDetailsPreferences;
+
+  /// Chat menu, under Preferences: a switch that turns Twitch’s chat filters on or off (Settings › Chat › Edit chat filters picks what is filtered). One line in a 360 dp sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide offensive language'**
+  String get chatDetailsHideOffensive;
 
   /// A row of the chat's details sheet (opens the channel's subscription page on twitch.tv), and that page's title.
   ///

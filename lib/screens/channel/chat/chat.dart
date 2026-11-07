@@ -10,6 +10,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
+import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -159,6 +160,9 @@ class _ChatState extends State<Chat> {
     return Observer(
       builder: (context) {
         final showEmoteMenu = chatStore.assetsStore.showEmoteMenu;
+        final tapClosesOverlay =
+            chatStore.settings.tapToCloseOverlayChat &&
+            OverlayChatScope.of(context);
         // A tablet's emote menu is a panel over the chat when it fits.
         final tablet = context.isLargeScreen;
         final emoteMenuInline =
@@ -181,6 +185,8 @@ class _ChatState extends State<Chat> {
                           chatStore.assetsStore.showEmoteMenu = false;
                         } else if (chatStore.textFieldFocusNode.hasFocus) {
                           chatStore.unfocusInput();
+                        } else if (tapClosesOverlay) {
+                          chatStore.settings.fullScreenChatOverlay = false;
                         }
                       },
                       child: _MessageTextScale(

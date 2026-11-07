@@ -77,11 +77,15 @@ void main() {
   });
 
   Future<void> scrollTo(WidgetTester tester, String label) async {
-    await tester.dragUntilVisible(
-      find.text(label),
-      find.byType(ListView).first,
-      const Offset(0, -80),
-    );
+    for (
+      var step = 0;
+      step < 50 && find.text(label).evaluate().isEmpty;
+      step++
+    ) {
+      await tester.drag(find.byType(ListView).first, const Offset(0, -80));
+      await tester.pumpAndSettle();
+    }
+    await tester.ensureVisible(find.text(label));
     await tester.pumpAndSettle();
   }
 
@@ -133,11 +137,7 @@ void main() {
           'Sleep timer',
           'Settings',
         ]) {
-          await tester.dragUntilVisible(
-            find.text(label),
-            find.byType(ListView).first,
-            const Offset(0, -80),
-          );
+          await scrollTo(tester, label);
           expect(find.text(label), findsOneWidget, reason: label);
         }
         // Not a moderator: no chat modes.
@@ -328,6 +328,53 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Be kind'), findsNothing);
     expect(find.text('Chat rules'), findsOneWidget);
+  });
+
+  testWidgets('the preferences switch chat settings in place', (tester) async {
+    await open(tester);
+    final switches = <String, bool Function()>{
+      'Animate emotes': () => settings.animateEmotes,
+      'Animated GIFs': () => settings.animateGifs,
+      'Show GIFs in chat': () => settings.showGifs,
+      'Hide offensive language': () => settings.chatFiltersEnabled,
+      'Readable name colors': () => settings.readableNameColors,
+      'Increase chat contrast': () => settings.increaseChatContrast,
+    };
+    await scrollTo(tester, 'Preferences'.toUpperCase());
+    for (final MapEntry(key: label, value: read) in switches.entries) {
+      await scrollTo(tester, label);
+      final before = read();
+      expect(
+        tester
+            .widget<OnsetSwitch>(
+              find.descendant(
+                of: find.widgetWithText(SheetRow, label),
+                matching: find.byType(OnsetSwitch),
+              ),
+            )
+            .value,
+        before,
+        reason: label,
+      );
+      await tester.tap(find.text(label));
+      await tester.pump();
+      expect(read(), !before, reason: label);
+    }
+    expect(find.byType(ChatDetails), findsOneWidget);
+  });
+
+  testWidgets('animated GIFs wait for GIFs to be shown', (tester) async {
+    settings.showGifs = false;
+    await open(tester);
+    await scrollTo(tester, 'Animated GIFs');
+    await tester.tap(find.text('Animated GIFs'));
+    await tester.pump();
+    expect(settings.animateGifs, isTrue);
+    await tester.tap(find.text('Show GIFs in chat'));
+    await tester.pump();
+    await tester.tap(find.text('Animated GIFs'));
+    await tester.pump();
+    expect(settings.animateGifs, isFalse);
   });
 
   testWidgets('add chat runs the callback', (tester) async {

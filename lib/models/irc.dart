@@ -636,13 +636,19 @@ class IRCMessage {
     List<InlineSpan> span,
     BuildContext context,
     void Function()? onTapName,
+    double? nameContrast,
   ) {
     var color = Color(
       int.parse((tags['color'] ?? '#868686').replaceFirst('#', '0xFF')),
     );
 
-    // Adjust color for theme contrast using the common utility
-    color = utils.adjustChatNameColor(context, color);
+    if (nameContrast != null) {
+      color = utils.adjustChatNameColor(
+        context,
+        color,
+        targetContrast: nameContrast,
+      );
+    }
 
     final displayName = tags['display-name']!;
     span.add(
@@ -1078,6 +1084,7 @@ class IRCMessage {
     bool animateGifs = true,
     ChatFilterSettings? chatFilters,
     VoidCallback? onTapFiltered,
+    double? nameContrast = readableNameColorContrast,
   }) {
     final emoteToObject = assetsStore.emoteToObject;
     final badgeSize = defaultBadgeSize * badgeScale;
@@ -1106,7 +1113,7 @@ class IRCMessage {
       isHistorical,
     );
 
-    _addUsername(span, context, onTapName);
+    _addUsername(span, context, onTapName, nameContrast);
 
     // Italicize the text if it was called with an IRC Action (e.g., "/me").
     final textStyle = action == true

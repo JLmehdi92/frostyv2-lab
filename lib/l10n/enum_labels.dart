@@ -145,6 +145,23 @@ extension LandscapeCutoutTypeLabel on LandscapeCutoutType {
   };
 }
 
+extension LandscapeChatModeLabel on LandscapeChatMode {
+  String label(AppLocalizations l) => switch (this) {
+    LandscapeChatMode.overlay => l.settingsChatSwitchingOverlay,
+    LandscapeChatMode.column => l.settingsChatSwitchingColumn,
+    LandscapeChatMode.hidden => l.settingsChatSwitchingHidden,
+  };
+}
+
+extension PortraitChatHeightLabel on PortraitChatHeight {
+  String label(AppLocalizations l) => switch (this) {
+    PortraitChatHeight.low => l.portraitChatHeightLow,
+    PortraitChatHeight.medium => l.portraitChatHeightMedium,
+    PortraitChatHeight.high => l.portraitChatHeightHigh,
+    PortraitChatHeight.custom => l.portraitChatHeightCustom,
+  };
+}
+
 extension LiveCatchUpModeLabel on LiveCatchUpMode {
   String label(AppLocalizations l) => switch (this) {
     LiveCatchUpMode.speedUp => l.liveCatchUpSpeedUp,

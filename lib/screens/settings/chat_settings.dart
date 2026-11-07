@@ -165,6 +165,20 @@ class _ChatSettingsState extends State<ChatSettings> {
                   labelOf: (type) => type.label(l),
                   onChanged: (type) => settingsStore.timestampType = type,
                 ),
+                SettingsListSwitch(
+                  title: l.settingsReadableNameColors,
+                  subtitle: Text(l.settingsReadableNameColorsDetail),
+                  value: settingsStore.readableNameColors,
+                  onChanged: (newValue) =>
+                      settingsStore.readableNameColors = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsIncreaseChatContrast,
+                  subtitle: Text(l.settingsIncreaseChatContrastDetail),
+                  value: settingsStore.increaseChatContrast,
+                  onChanged: (newValue) =>
+                      settingsStore.increaseChatContrast = newValue,
+                ),
               ],
             ),
             SettingsGroup(
@@ -213,6 +227,15 @@ class _ChatSettingsState extends State<ChatSettings> {
                       settingsStore.secondaryTabs = [];
                     }
                   },
+                ),
+                SettingsListSelect<PortraitChatHeight>(
+                  title: l.settingsPortraitChatHeight,
+                  subtitle: l.settingsPortraitChatHeightDetail,
+                  value: settingsStore.portraitChatHeight,
+                  values: PortraitChatHeight.presets,
+                  labelOf: (height) => height.label(l),
+                  onChanged: (height) =>
+                      settingsStore.portraitChatHeight = height,
                 ),
               ],
             ),
@@ -334,6 +357,20 @@ class _ChatSettingsState extends State<ChatSettings> {
                   onChanged: (newValue) =>
                       settingsStore.fullScreenChatOverlayOpacity = newValue,
                 ),
+                SettingsListSwitch(
+                  title: l.settingsTapToCloseOverlay,
+                  subtitle: Text(l.settingsTapToCloseOverlayDetail),
+                  value: settingsStore.tapToCloseOverlayChat,
+                  onChanged: (newValue) =>
+                      settingsStore.tapToCloseOverlayChat = newValue,
+                ),
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsChatSwitching,
+              children: [
+                for (final mode in LandscapeChatMode.values)
+                  _chatSwitchingRow(l, settingsStore, mode),
               ],
             ),
             SettingsGroup(
@@ -448,6 +485,26 @@ class _ChatSettingsState extends State<ChatSettings> {
       },
     );
   }
+}
+
+Widget _chatSwitchingRow(
+  AppLocalizations l,
+  SettingsStore settingsStore,
+  LandscapeChatMode mode,
+) {
+  final switchable = settingsStore.switchableLandscapeChatModes;
+  final on = switchable.contains(mode);
+  final lastOnes = on && switchable.length <= minLandscapeChatModes;
+  return SettingsListSwitch(
+    title: mode.label(l),
+    subtitle: mode == LandscapeChatMode.values.first
+        ? Text(l.settingsChatSwitchingDetail)
+        : null,
+    value: on,
+    onChanged: lastOnes
+        ? null
+        : (value) => settingsStore.setLandscapeChatMode(mode, on: value),
+  );
 }
 
 /// The third party asked for recent messages when Twitch has none.
