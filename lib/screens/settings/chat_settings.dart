@@ -240,6 +240,20 @@ class _ChatSettingsState extends State<ChatSettings> {
                       settingsStore.collapseGiftBombs = newValue,
                 ),
                 SettingsListSwitch(
+                  title: l.settingsHideGiftSubNotices,
+                  subtitle: Text(l.settingsHideGiftSubNoticesDetail),
+                  value: settingsStore.hideGiftSubNotices,
+                  onChanged: (newValue) =>
+                      settingsStore.hideGiftSubNotices = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsHideGiftCount,
+                  subtitle: Text(l.settingsHideGiftCountDetail),
+                  value: settingsStore.hideGiftCount,
+                  onChanged: (newValue) =>
+                      settingsStore.hideGiftCount = newValue,
+                ),
+                SettingsListSwitch(
                   title: l.settingsShowHypeTrains,
                   subtitle: Text(l.settingsShowHypeTrainsDetail),
                   value: settingsStore.showHypeTrain,

@@ -207,4 +207,23 @@ void main() {
     expect(matchCommands('hello /co'), isEmpty);
     expect(matchCommands('/zzz'), isEmpty);
   });
+
+  test('/user takes one login and /disconnect takes nothing', () {
+    expect(
+      (parseChatCommand('/user @Friend_1') as UserCardCommand).login,
+      'friend_1',
+    );
+    expect(parseChatCommand('/disconnect'), isA<DisconnectCommand>());
+    for (final line in ['/user', '/user a b', '/disconnect now']) {
+      final command = parseChatCommand(line);
+      expect(command, isA<UnsupportedCommand>(), reason: line);
+      expect(
+        (command as UnsupportedCommand).problem,
+        isA<UsageProblem>(),
+        reason: line,
+      );
+    }
+    expect(matchCommands('/us').map((c) => c.name), ['user']);
+    expect(matchCommands('/dis').map((c) => c.name), ['disconnect']);
+  });
 }

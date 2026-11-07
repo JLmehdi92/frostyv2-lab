@@ -23,6 +23,7 @@ import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dar
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
 import 'package:onset/screens/channel/chat/moderation_notice.dart';
+import 'package:onset/screens/channel/chat/server_notice.dart';
 import 'package:onset/screens/channel/chat/widgets/channel_points_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
@@ -180,6 +181,24 @@ void main() {
       notice(l.chatBlockFailed(login: 'troll')),
       notice(l.chatUnblockFailed(login: 'troll')),
       notice(l.chatLogInToModerate),
+      notice(l.chatUserCardNoUser(login: 'ghost')),
+      notice(l.chatUserCardFailed(login: 'friend')),
+      for (final kind in kPlainServerNotices.values)
+        notice(l.chatServerNotice(notice: kind)),
+      for (final kind in kNamedServerNotices.values)
+        notice(l.chatServerNoticeName(notice: kind, name: 'friend_1')),
+      notice(l.chatServerNoticeTimedOut(wait: timeoutLength(600, l))),
+      notice(l.chatServerNoticeSlowMode(wait: timeoutLength(12, l))),
+      notice(l.chatServerNoticeMods(names: 'alice, bob')),
+      notice(l.chatServerNoticeUnknownCommand(command: '/\u2060dance')),
+      notice(l.chatServerNoticeCommercial(seconds: 30)),
+      ?ownDeletedMessageNotice(
+        IRCMessage.fromString(
+          '@login=me;room-id=12345;target-msg-id=m1;tmi-sent-ts=1 '
+          ':tmi.twitch.tv CLEARMSG #channel :salut tout le monde',
+        ),
+        ownLogin: 'me',
+      ),
       for (final decision in const ['approved', 'denied', 'invalid']) ...[
         notice('${l.chatHeldDecision(decision: decision)}.'),
         notice(
@@ -295,6 +314,47 @@ void main() {
         '@display-name=Pay;msg-id=highlighted-message;id=h1;user-id=3;'
             'tmi-sent-ts=1700000000403 '
             ':pay!pay@pay.tmi.twitch.tv PRIVMSG #channel :regardez-moi',
+        '@display-name=Pass;msg-id=skip-subs-mode-message;id=h2;user-id=4;'
+            'tmi-sent-ts=1700000000404 '
+            ':pass!pass@pass.tmi.twitch.tv PRIVMSG #channel :coucou',
+        '@display-name=Anim;msg-id=animated-message;id=h3;user-id=6;'
+            'tmi-sent-ts=1700000000405 '
+            ':anim!anim@anim.tmi.twitch.tv PRIVMSG #channel :bravo',
+        '@display-name=Upgrader;login=upgrader;id=n4;msg-id=giftpaidupgrade;'
+            'msg-param-sender-name=Gifter;msg-param-sender-login=gifter;'
+            'system-msg=x;tmi-sent-ts=1700000000500 '
+            ':tmi.twitch.tv USERNOTICE #channel',
+        '@display-name=Upgrader;login=upgrader;id=n5;'
+            'msg-id=anongiftpaidupgrade;system-msg=x;'
+            'tmi-sent-ts=1700000000501 :tmi.twitch.tv USERNOTICE #channel',
+        '@display-name=Kind;login=kind;id=n6;msg-id=standardpayforward;'
+            'msg-param-prior-gifter-display-name=First;'
+            'msg-param-recipient-display-name=Lucky;system-msg=x;'
+            'tmi-sent-ts=1700000000502 :tmi.twitch.tv USERNOTICE #channel',
+        '@display-name=Kind;login=kind;id=n7;msg-id=communitypayforward;'
+            'msg-param-prior-gifter-display-name=First;system-msg=x;'
+            'tmi-sent-ts=1700000000503 :tmi.twitch.tv USERNOTICE #channel',
+        '@id=n8;msg-id=giftsubbasematch;msg-param-advertiser-name=Brand;'
+            'msg-param-gift-sub-match-quantity=5;system-msg=x;'
+            'tmi-sent-ts=1700000000504 :tmi.twitch.tv USERNOTICE #channel',
+        '@display-name=Fan;login=fan;id=n9;msg-id=rewardgift;'
+            'msg-param-selected-count=10;system-msg=x;'
+            'tmi-sent-ts=1700000000505 :tmi.twitch.tv USERNOTICE #channel',
+        '@display-name=Fan;login=fan;id=n10;msg-id=viewermilestone;'
+            'msg-param-category=watch-streak;msg-param-value=7;'
+            'msg-param-copoReward=1450;system-msg=x;'
+            'tmi-sent-ts=1700000000506 :tmi.twitch.tv USERNOTICE #channel',
+        '@display-name=Fan;login=fan;id=n11;msg-id=charitydonation;'
+            'msg-param-charity-name=Save\\sthe\\sKids;'
+            'msg-param-donation-amount=500;msg-param-exponent=2;'
+            'msg-param-donation-currency=EUR;system-msg=x;'
+            'tmi-sent-ts=1700000000507 :tmi.twitch.tv USERNOTICE #channel',
+        '@display-name=X;login=x;id=n12;msg-id=resub;msg-param-sub-plan=1000;'
+            'msg-param-cumulative-months=3;msg-param-multimonth-duration=6;'
+            'msg-param-was-gifted=true;msg-param-gift-months=6;'
+            'msg-param-gift-month-being-redeemed=2;'
+            'msg-param-gifter-name=Santa;system-msg=x;'
+            'tmi-sent-ts=1700000000508 :tmi.twitch.tv USERNOTICE #channel',
       ])
         IRCMessage.fromString(raw),
       ...moderated,
@@ -490,6 +550,21 @@ void main() {
                   delay: 0,
                   values: [words.chatRestrictionBanned],
                 ),
+                for (final kind in const [
+                  ChatRestrictionKind.verifiedEmail,
+                  ChatRestrictionKind.verifiedPhone,
+                  ChatRestrictionKind.emailAliasBanned,
+                  ChatRestrictionKind.phoneAliasBanned,
+                  ChatRestrictionKind.accountRestricted,
+                  ChatRestrictionKind.channelRestricted,
+                  ChatRestrictionKind.followRequired,
+                ])
+                  kind.name: (
+                    restriction: () => ChatRestriction(kind),
+                    reply: false,
+                    delay: 0,
+                    values: [ChatRestriction(kind).describe(null, words)],
+                  ),
               };
           for (final MapEntry(key: name, value: setup) in cases.entries) {
             final chat = fakeChatStore();

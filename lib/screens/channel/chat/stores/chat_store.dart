@@ -28,6 +28,7 @@ import 'package:onset/screens/channel/chat/incoming_raid.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
 import 'package:onset/screens/channel/chat/moderation_notice.dart';
 import 'package:onset/screens/channel/chat/muted_words.dart';
+import 'package:onset/screens/channel/chat/server_notice.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_character_counter.dart';
@@ -41,6 +42,8 @@ import 'package:onset/utils/common_utils.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 part 'chat_store.g.dart';
+
+typedef ChatUserCardRequest = ({String login, String id, String displayName});
 
 /// The store and view-model for chat-related activities.
 class ChatStore = ChatStoreBase with _$ChatStore;
@@ -59,34 +62,6 @@ abstract class ChatStoreBase with Store {
     'GLOBALUSERSTATE',
     'ROOMSTATE',
     'NOTICE', // Rejection notices need immediate feedback
-  };
-
-  /// NOTICE msg-id values indicating message was rejected (from Twitch IRC docs).
-  /// https://dev.twitch.tv/docs/irc/msg-id/
-  static const _rejectionMsgIds = {
-    // Rate limiting
-    'msg_slowmode',
-    'msg_ratelimit',
-    'msg_duplicate',
-    // User restrictions
-    'msg_banned',
-    'msg_timedout',
-    'msg_channel_blocked',
-    'msg_suspended',
-    // Room mode restrictions
-    'msg_emoteonly',
-    'msg_subsonly',
-    'msg_followersonly',
-    'msg_followersonly_followed',
-    'msg_followersonly_zero',
-    'msg_r9k',
-    // Verification requirements
-    'msg_verified_email',
-    'msg_requires_verified_phone_number',
-    // Moderation
-    'msg_rejected',
-    'msg_rejected_mandatory',
-    'msg_bad_characters',
   };
 
   /// Base height of the bottom bar (input field area).
@@ -440,6 +415,7 @@ abstract class ChatStoreBase with Store {
   var _banned = false;
   DateTime? _timedOutUntil;
   DateTime? _lastSentAt;
+  ChatRestrictionKind? _refusedFor;
   Timer? _restrictionTimer;
 
   /// Adds Twitch's "X has been timed out / banned" line for a targeted
@@ -455,6 +431,16 @@ abstract class ChatStoreBase with Store {
       newestFirst: buffer.reversed.followedBy(_messages.reversed),
     );
     if (notice != null) buffer.add(notice);
+  }
+
+  void _wordServerNotice(IRCMessage notice) {
+    final text = notice.message;
+    if (text == null) return;
+    notice.message = serverNoticeText(
+      notice.tags['msg-id'],
+      text,
+      L10n.current,
+    );
   }
 
   /// Whether the viewer moderates this chat (the broadcaster does too).
@@ -474,6 +460,7 @@ abstract class ChatStoreBase with Store {
       banned: _banned,
       timedOutUntil: _timedOutUntil,
       lastSentAt: _lastSentAt,
+      refusedFor: _refusedFor,
     );
     _restriction = restriction;
     final until = restriction?.until;
@@ -557,6 +544,12 @@ abstract class ChatStoreBase with Store {
           Telemetry.recordError(e, stack, reason: '/w');
           if (!_shouldDisconnect) say(l.chatWhisperFailed);
         }
+      case UserCardCommand(:final login):
+        await _openUserCard(login, say);
+        if (!_shouldDisconnect) done();
+      case DisconnectCommand():
+        done();
+        _channel?.sink.close(1000);
       case ColorCommand(:final color):
         if (me == null) return say(l.chatLogInToChangeColor);
         final ok = await twitchApi.updateUserChatColor(
@@ -613,6 +606,28 @@ abstract class ChatStoreBase with Store {
     }
   }
 
+  final _userCardRequests = StreamController<ChatUserCardRequest>.broadcast();
+
+  Stream<ChatUserCardRequest> get userCardRequests => _userCardRequests.stream;
+
+  Future<void> _openUserCard(String login, void Function(String) say) async {
+    final l = L10n.current;
+    try {
+      final user = await twitchApi.getUser(userLogin: login);
+      if (_shouldDisconnect) return;
+      _userCardRequests.add((
+        login: user.login,
+        id: user.id,
+        displayName: user.displayName,
+      ));
+    } on NotFoundException {
+      if (!_shouldDisconnect) say(l.chatUserCardNoUser(login: login));
+    } catch (e) {
+      debugPrint('/user $login failed: $e');
+      if (!_shouldDisconnect) say(l.chatUserCardFailed(login: login));
+    }
+  }
+
   /// Every emote the viewer can use (Helix, follower emotes included), or
   /// the emote sets GLOBALUSERSTATE named when Helix will not say.
   Future<void> _loadUserEmotes(List<String>? setIds) async {
@@ -662,6 +677,7 @@ abstract class ChatStoreBase with Store {
 
   void _resetOwnRestrictions() {
     _banned = false;
+    _refusedFor = null;
     _timedOutUntil = null;
     _lastSentAt = null;
     _updateRestriction();
@@ -669,6 +685,11 @@ abstract class ChatStoreBase with Store {
 
   /// A send refused for a ban, a timeout or slow mode tells how long.
   void _applyRejection(String msgId, String? message) {
+    if (accountRestrictionOf(msgId) case final kind?) {
+      _refusedFor = kind;
+      _updateRestriction();
+      return;
+    }
     final seconds = int.tryParse(
       RegExp(r'(\d+) (?:more )?seconds?').firstMatch(message ?? '')?[1] ?? '',
     );
@@ -981,19 +1002,23 @@ abstract class ChatStoreBase with Store {
             if (parsedIRCMessage.command == Command.notice &&
                 _isWaitingForAck) {
               final msgId = parsedIRCMessage.tags['msg-id'];
-              if (msgId != null && _rejectionMsgIds.contains(msgId)) {
+              if (msgId != null && isSendRejection(msgId)) {
                 // Message was rejected - clear pending but preserve text field for retry
                 _sendingTimeoutTimer?.cancel();
                 _isWaitingForAck = false;
                 toSend = null;
 
-                // Show notification with Twitch's rejection message
-                if (parsedIRCMessage.message != null) {
+                if (parsedIRCMessage.message case final text?) {
                   HapticFeedback.heavyImpact();
-                  updateNotification(parsedIRCMessage.message!);
+                  updateNotification(
+                    serverNoticeText(msgId, text, L10n.current),
+                  );
                 }
                 _applyRejection(msgId, parsedIRCMessage.message);
               }
+            }
+            if (parsedIRCMessage.command == Command.notice) {
+              _wordServerNotice(parsedIRCMessage);
             }
 
             // Update shared chat mode based on source-room-id tag presence
@@ -1029,14 +1054,15 @@ abstract class ChatStoreBase with Store {
                 : null;
             if (notice != null) {
               final decision = _trackGiftBomb(parsedIRCMessage, notice);
-              if (decision.banner case final banner?) {
+              final hidden = _hidesGift(notice);
+              if (decision.banner case final banner? when !hidden) {
                 _latestGiftBomb = banner;
               }
               if (IncomingRaid.fromNotice(notice, channelId: channelId)
                   case final raid?) {
                 _latestIncomingRaid = raid;
               }
-              if (!decision.show) continue;
+              if (!decision.show || hidden) continue;
             }
 
             unawaited(
@@ -1085,6 +1111,13 @@ abstract class ChatStoreBase with Store {
             )) {
               _linesMarkedInPlace = true;
             }
+            if (ownDeletedMessageNotice(
+                  parsedIRCMessage,
+                  ownLogin: auth.user.details?.login,
+                )
+                case final notice?) {
+              messageBuffer.add(notice);
+            }
             break;
           case Command.roomState:
             chatDetailsStore.roomState = chatDetailsStore.roomState
@@ -1113,6 +1146,7 @@ abstract class ChatStoreBase with Store {
               replyingToMessage = null;
               // Sent: not banned, and slow mode counts from now.
               _banned = false;
+              _refusedFor = null;
               _lastSentAt = DateTime.now();
             }
             _updateRestriction();
@@ -1873,6 +1907,9 @@ abstract class ChatStoreBase with Store {
     return rest.isEmpty ? '@historical=1$tail' : '@historical=1;$rest$tail';
   }
 
+  bool _hidesGift(UserNotice notice) =>
+      settings.hideGiftSubNotices && notice.isGiftNotice;
+
   /// Hands [notice] (of [message]) to the gift-bomb tracker, remembering
   /// its id so the same notice is never counted twice.
   GiftBombDecision _trackGiftBomb(IRCMessage message, UserNotice notice) {
@@ -2017,12 +2054,14 @@ abstract class ChatStoreBase with Store {
         case Command.userNotice:
           final text = message.message;
           if (text != null && _muted(text)) continue;
+          if (message.command == Command.notice) _wordServerNotice(message);
           // A gift bomb's gifts fold into its header as live ones do; a
           // historical bomb never earns the pinned banner.
           final notice = message.command == Command.userNotice
               ? message.notice
               : null;
-          if (notice != null && !_trackGiftBomb(message, notice).show) {
+          if (notice != null &&
+              (!_trackGiftBomb(message, notice).show || _hidesGift(notice))) {
             // Folded into its bomb: its live copy must not count again.
             if (message.tags['id'] case final id?) _historyIds.add(id);
             continue;
@@ -2119,6 +2158,7 @@ abstract class ChatStoreBase with Store {
     _restrictionTimer?.cancel();
     _cancelChatDelayCountdown();
     sleepTimer?.cancel();
+    _userCardRequests.close();
 
     _heldMessages?.dispose();
     chatRules?.dispose();

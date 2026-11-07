@@ -59,6 +59,32 @@ IRCMessage? moderationNoticeLine(
   return notice;
 }
 
+IRCMessage? ownDeletedMessageNotice(
+  IRCMessage clearMessage, {
+  required String? ownLogin,
+}) {
+  final login = clearMessage.tags['login'];
+  final text = clearMessage.message;
+  if (ownLogin == null ||
+      login == null ||
+      login.toLowerCase() != ownLogin.toLowerCase() ||
+      clearMessage.tags['historical'] == '1' ||
+      text == null ||
+      text.isEmpty) {
+    return null;
+  }
+  final notice = IRCMessage.createNotice(
+    message: L10n.current.chatNoticeOwnMessageDeleted(message: text),
+  );
+  if (clearMessage.tags['tmi-sent-ts'] case final sentAt?) {
+    notice.tags['tmi-sent-ts'] = sentAt;
+  }
+  if (clearMessage.tags['target-msg-id'] case final targetId?) {
+    notice.tags['id'] = 'clearmsg-$targetId';
+  }
+  return notice;
+}
+
 /// [seconds] as Twitch words it, in [l]'s language (the one on screen by
 /// default): "1 second", "10 minutes", "2 weeks"…
 String timeoutLength(int seconds, [AppLocalizations? l]) {

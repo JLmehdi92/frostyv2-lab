@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/chat_restrictions.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/link_router.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
@@ -60,7 +61,14 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
     ChatRestrictionKind.slowMode => SheetGlyphKind.hourglass,
     ChatRestrictionKind.emoteOnly => SheetGlyphKind.emote,
     ChatRestrictionKind.subscribersOnly => SheetGlyphKind.star,
-    ChatRestrictionKind.followersOnly => SheetGlyphKind.heart,
+    ChatRestrictionKind.followersOnly ||
+    ChatRestrictionKind.followRequired => SheetGlyphKind.heart,
+    ChatRestrictionKind.verifiedEmail ||
+    ChatRestrictionKind.verifiedPhone => SheetGlyphKind.shield,
+    ChatRestrictionKind.emailAliasBanned ||
+    ChatRestrictionKind.phoneAliasBanned ||
+    ChatRestrictionKind.accountRestricted ||
+    ChatRestrictionKind.channelRestricted => SheetGlyphKind.block,
   };
 
   @override
@@ -74,9 +82,11 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
     final until = restriction.until;
     final left = until?.difference(widget.now());
     final color = SheetColors.of(context).danger;
-    return Semantics(
+    final helpUrl = restriction.helpUrl;
+    final bar = Semantics(
       liveRegion: until == null,
       container: true,
+      button: helpUrl != null,
       // A fixed height: the chat list pads for it.
       child: Container(
         height: kRestrictionBarHeight,
@@ -99,9 +109,17 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
                 ),
               ),
             ),
+            if (helpUrl != null)
+              SheetGlyph(SheetGlyphKind.external, size: 14, color: color),
           ],
         ),
       ),
+    );
+    if (helpUrl == null) return bar;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => LinkRouter.open(helpUrl, launchExternal: false),
+      child: bar,
     );
   }
 }

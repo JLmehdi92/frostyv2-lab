@@ -211,6 +211,7 @@ class IRCMessage {
   List<NoticeSegment>? _noticeText;
   String? _noticeTextChannel;
   String? _noticeTextLanguage;
+  bool? _noticeTextShowsGiftCount;
 
   /// The notice's sentence in [l]'s language (the one on screen by
   /// default), worded on first use and kept for as long as [channelName]
@@ -220,16 +221,24 @@ class IRCMessage {
   List<NoticeSegment> noticeText({
     required String channelName,
     AppLocalizations? l,
+    bool showGiftCount = true,
   }) {
     final notice = this.notice;
     if (notice == null) return const [];
     final words = l ?? L10n.current;
     if (_noticeText == null ||
         _noticeTextChannel != channelName ||
-        _noticeTextLanguage != words.localeName) {
-      _noticeText = userNoticeText(notice, channelName: channelName, l: words);
+        _noticeTextLanguage != words.localeName ||
+        _noticeTextShowsGiftCount != showGiftCount) {
+      _noticeText = userNoticeText(
+        notice,
+        channelName: channelName,
+        l: words,
+        showGiftCount: showGiftCount,
+      );
       _noticeTextChannel = channelName;
       _noticeTextLanguage = words.localeName;
+      _noticeTextShowsGiftCount = showGiftCount;
     }
     return _noticeText!;
   }

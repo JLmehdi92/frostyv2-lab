@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/l10n.dart';
@@ -7,6 +9,7 @@ import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -47,6 +50,40 @@ class _ChatState extends State<Chat> {
   ChatTabsStore? get chatTabsStore => widget.chatTabsStore;
 
   bool get _isMerged => chatTabsStore != null;
+
+  StreamSubscription<ChatUserCardRequest>? _userCards;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenUserCards();
+  }
+
+  @override
+  void didUpdateWidget(Chat oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.chatStore != widget.chatStore) _listenUserCards();
+  }
+
+  @override
+  void dispose() {
+    _userCards?.cancel();
+    super.dispose();
+  }
+
+  void _listenUserCards() {
+    _userCards?.cancel();
+    _userCards = chatStore.userCardRequests.listen((user) {
+      if (!mounted) return;
+      showChatUserCard(
+        context,
+        chatStore: chatStore,
+        username: user.login,
+        userId: user.id,
+        displayName: user.displayName,
+      );
+    });
+  }
 
   /// Whether the last build put the emote menu under the input.
   bool _builtInline = false;

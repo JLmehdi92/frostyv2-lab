@@ -131,6 +131,8 @@ SettingsStore _$SettingsStoreFromJson(
       json['highlightFirstTimeChatter'] as bool? ?? true
   ..showUserNotices = json['showUserNotices'] as bool? ?? true
   ..collapseGiftBombs = json['collapseGiftBombs'] as bool? ?? true
+  ..hideGiftSubNotices = json['hideGiftSubNotices'] as bool? ?? false
+  ..hideGiftCount = json['hideGiftCount'] as bool? ?? false
   ..showHypeTrain = json['showHypeTrain'] as bool? ?? true
   ..showCommunityHighlights = json['showCommunityHighlights'] as bool? ?? true
   ..showCelebrations = json['showCelebrations'] as bool? ?? true
@@ -245,6 +247,8 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'highlightFirstTimeChatter': instance.highlightFirstTimeChatter,
   'showUserNotices': instance.showUserNotices,
   'collapseGiftBombs': instance.collapseGiftBombs,
+  'hideGiftSubNotices': instance.hideGiftSubNotices,
+  'hideGiftCount': instance.hideGiftCount,
   'showHypeTrain': instance.showHypeTrain,
   'showCommunityHighlights': instance.showCommunityHighlights,
   'showCelebrations': instance.showCelebrations,
@@ -1300,6 +1304,42 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$hideGiftSubNoticesAtom = Atom(
+    name: '_SettingsStoreBase.hideGiftSubNotices',
+    context: context,
+  );
+
+  @override
+  bool get hideGiftSubNotices {
+    _$hideGiftSubNoticesAtom.reportRead();
+    return super.hideGiftSubNotices;
+  }
+
+  @override
+  set hideGiftSubNotices(bool value) {
+    _$hideGiftSubNoticesAtom.reportWrite(value, super.hideGiftSubNotices, () {
+      super.hideGiftSubNotices = value;
+    });
+  }
+
+  late final _$hideGiftCountAtom = Atom(
+    name: '_SettingsStoreBase.hideGiftCount',
+    context: context,
+  );
+
+  @override
+  bool get hideGiftCount {
+    _$hideGiftCountAtom.reportRead();
+    return super.hideGiftCount;
+  }
+
+  @override
+  set hideGiftCount(bool value) {
+    _$hideGiftCountAtom.reportWrite(value, super.hideGiftCount, () {
+      super.hideGiftCount = value;
+    });
+  }
+
   late final _$showHypeTrainAtom = Atom(
     name: '_SettingsStoreBase.showHypeTrain',
     context: context,
@@ -2076,6 +2116,8 @@ syncedChatDelay: ${syncedChatDelay},
 highlightFirstTimeChatter: ${highlightFirstTimeChatter},
 showUserNotices: ${showUserNotices},
 collapseGiftBombs: ${collapseGiftBombs},
+hideGiftSubNotices: ${hideGiftSubNotices},
+hideGiftCount: ${hideGiftCount},
 showHypeTrain: ${showHypeTrain},
 showCommunityHighlights: ${showCommunityHighlights},
 showCelebrations: ${showCelebrations},

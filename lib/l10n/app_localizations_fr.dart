@@ -1225,6 +1225,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Réduit à sa première ligne tout envoi d’au moins cinq abonnements offerts à la communauté ; appuyez sur « destinataires » pour voir qui en a reçu un.';
 
   @override
+  String get settingsHideGiftSubNotices => 'Masquer les abonnements offerts';
+
+  @override
+  String get settingsHideGiftSubNoticesDetail =>
+      'Les abonnements offerts, les cadeaux à la communauté et les abonnements bonus des sponsors ne s’affichent plus dans le chat.';
+
+  @override
+  String get settingsHideGiftCount => 'Masquer le total des cadeaux';
+
+  @override
+  String get settingsHideGiftCountDetail =>
+      'N’affiche plus le nombre d’abonnements offerts par un spectateur sur la chaîne.';
+
+  @override
   String get settingsShowHypeTrains => 'Afficher les Hype Trains';
 
   @override
@@ -4779,6 +4793,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String chatUserCardNoUser({required String login}) {
+    return 'Impossible d’ouvrir le profil. Aucun utilisateur nommé $login.';
+  }
+
+  @override
+  String chatUserCardFailed({required String login}) {
+    return 'Impossible d’ouvrir le profil utilisateur ($login).';
+  }
+
+  @override
   String chatWhisperFailedBecause({required String reason}) {
     return 'Impossible de chuchoter. $reason';
   }
@@ -4854,6 +4878,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'block': 'Bloquer un utilisateur',
       'unblock': 'Débloquer un utilisateur',
       'w': 'Chuchoter à un utilisateur',
+      'user': 'Afficher le profil d’un utilisateur',
+      'disconnect': 'Se reconnecter au chat',
       'help': 'Afficher la liste des commandes',
       'ban': 'Bannir un utilisateur du chat',
       'unban': 'Lever le bannissement d’un utilisateur',
@@ -5075,6 +5101,131 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String chatServerNotice({required String notice}) {
+    String _temp0 = intl.Intl.selectLogic(notice, {
+      'rateLimit':
+          'Impossible d’envoyer votre message. Vous envoyez des messages trop vite.',
+      'duplicate':
+          'Impossible d’envoyer votre message. Il est identique à un message envoyé il y a moins de 30 s.',
+      'subsOnly':
+          'Impossible d’envoyer votre message. Le chat est en mode abonnés uniquement : abonnez-vous à la chaîne pour écrire.',
+      'emoteOnly':
+          'Impossible d’envoyer votre message. Le chat est en mode emotes uniquement.',
+      'uniqueChat':
+          'Impossible d’envoyer votre message. Le chat est en mode chat unique et votre message n’est pas original.',
+      'followersOnly':
+          'Impossible d’envoyer votre message. Le chat est en mode followers uniquement.',
+      'followRequired':
+          'Impossible d’envoyer votre message. Le chat est en mode followers uniquement : suivez la chaîne pour écrire.',
+      'followedTooRecently':
+          'Impossible d’envoyer votre message. Vous ne suivez pas cette chaîne depuis assez longtemps pour écrire.',
+      'verifiedEmail':
+          'Impossible d’envoyer votre message. Cette chaîne exige une adresse e-mail vérifiée : vérifiez la vôtre dans les paramètres de sécurité de Twitch.',
+      'verifiedPhone':
+          'Impossible d’envoyer votre message. Cette chaîne exige un numéro de téléphone vérifié : vérifiez le vôtre dans les paramètres de sécurité de Twitch.',
+      'emailAliasBanned':
+          'Impossible d’envoyer votre message. Votre adresse e-mail est bannie de cette chaîne.',
+      'phoneAliasBanned':
+          'Impossible d’envoyer votre message. Votre numéro de téléphone est banni de cette chaîne.',
+      'channelSuspended':
+          'Impossible d’envoyer votre message. Cette chaîne est suspendue.',
+      'accountSuspended':
+          'Impossible d’envoyer votre message. Votre compte est suspendu.',
+      'channelBlocked':
+          'Impossible d’envoyer votre message. Votre compte n’est pas en règle sur cette chaîne.',
+      'userRestricted':
+          'Impossible d’envoyer votre message. Votre compte ne peut pas envoyer de messages pour le moment. En savoir plus sur appeals.twitch.tv.',
+      'channelRestricted':
+          'Impossible d’envoyer votre message. Cette chaîne ne peut pas recevoir de messages pour le moment.',
+      'invalidReply':
+          'Impossible d’envoyer votre réponse. Il n’est pas possible de répondre à ce message.',
+      'unexpected': 'Impossible d’envoyer votre message. Réessayez.',
+      'badCharacters':
+          'Impossible d’envoyer votre message. Il contient trop de caractères que Twitch ne peut pas traiter.',
+      'rejectedBySettings':
+          'Impossible d’envoyer votre message. Il est contraire aux paramètres de modération de la chaîne.',
+      'tooManyChats':
+          'Trop de chats sont ouverts en même temps. Quittez-en un pour rejoindre celui-ci.',
+      'warned':
+          'Impossible d’envoyer votre message. Vous avez reçu un avertissement d’un modérateur : confirmez-en la lecture sur twitch.tv pour écrire de nouveau.',
+      'banned':
+          'Bannissement définitif : vous ne pouvez plus écrire dans ce chat.',
+      'followersOnNow': 'Le chat est maintenant en mode followers uniquement.',
+      'noHelp': 'Aucune aide n’est disponible pour cette commande.',
+      'noPermission': 'Vous n’avez pas l’autorisation de faire cela.',
+      'noMods': 'Cette chaîne n’a aucun modérateur.',
+      'banBroadcaster':
+          'Impossible de bannir la personne qui diffuse sur la chaîne.',
+      'maxMods':
+          'Cette chaîne a déjà atteint le nombre maximal de modérateurs.',
+      'modInvalid': 'Impossible d’ajouter cette personne aux modérateurs.',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatServerNoticeName({required String notice, required String name}) {
+    String _temp0 = intl.Intl.selectLogic(notice, {
+      'modAdded': 'Ajout aux modérateurs de la chaîne : $name.',
+      'modRemoved': 'Retrait des modérateurs de la chaîne : $name.',
+      'alreadyMod': '$name fait déjà partie des modérateurs de cette chaîne.',
+      'notMod': '$name ne fait pas partie des modérateurs de cette chaîne.',
+      'modBanned':
+          '$name fait l’objet d’un bannissement sur cette chaîne. Levez-le avant d’ajouter cette personne aux modérateurs.',
+      'notBanned': 'Aucun bannissement à lever pour $name.',
+      'notTimedOut': 'Aucune exclusion temporaire à lever pour $name.',
+      'alreadyBanned':
+          '$name fait déjà l’objet d’un bannissement sur cette chaîne.',
+      'banMod':
+          'Impossible de bannir $name : seule la personne qui diffuse peut bannir un modérateur.',
+      'timeoutMod':
+          'Impossible d’exclure temporairement $name : seule la personne qui diffuse peut exclure temporairement un modérateur.',
+      'invalidUser': 'Nom d’utilisateur inconnu : $name.',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatServerNoticeTimedOut({required String wait}) {
+    return 'Exclusion temporaire : vous pourrez écrire de nouveau dans $wait.';
+  }
+
+  @override
+  String chatServerNoticeSlowMode({required String wait}) {
+    return 'Impossible d’envoyer votre message. Le chat est en mode lent : vous pourrez écrire de nouveau dans $wait.';
+  }
+
+  @override
+  String chatServerNoticeMods({required String names}) {
+    return 'Modérateurs de cette chaîne : $names.';
+  }
+
+  @override
+  String chatServerNoticeUnknownCommand({required String command}) {
+    return 'Commande inconnue : $command.';
+  }
+
+  @override
+  String chatServerNoticeCommercial({required int seconds}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other:
+          'Pause publicitaire de $seconds s lancée. Le live continue et certains spectateurs ne verront pas de publicité.',
+      one:
+          'Pause publicitaire de $seconds s lancée. Le live continue et certains spectateurs ne verront pas de publicité.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatNoticeOwnMessageDeleted({required String message}) {
+    return 'Un modérateur a supprimé votre message : « $message »';
+  }
+
+  @override
   String get chatRestrictionBanned => 'Bannissement définitif';
 
   @override
@@ -5102,6 +5253,21 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String chatRestrictionFollowersFor({required String duration}) {
     return 'Followers depuis $duration';
+  }
+
+  @override
+  String chatRestrictionAccount({required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'verifiedEmail': 'E-mail vérifié requis',
+      'verifiedPhone': 'Téléphone vérifié requis',
+      'emailAliasBanned': 'E-mail banni ici',
+      'phoneAliasBanned': 'Téléphone banni ici',
+      'accountRestricted': 'Compte restreint',
+      'channelRestricted': 'Chat suspendu ici',
+      'followRequired': 'Suivez la chaîne',
+      'other': '',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -5190,6 +5356,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatHighlightedMessage => 'Message mis en avant';
+
+  @override
+  String chatCheeredIn({required String channel}) {
+    return 'Bits envoyés sur la chaîne $channel';
+  }
+
+  @override
+  String get chatSubsOnlyRedemption =>
+      'Envoyé avec des points de chaîne en mode abonnés uniquement';
+
+  @override
+  String get chatAnimatedMessage => 'Message animé';
 
   @override
   String get chatMessageDeleted => 'Message supprimé';
@@ -6132,6 +6310,116 @@ class AppLocalizationsFr extends AppLocalizations {
       one: '$name lance un raid avec $countString spectateur !',
     );
     return '$_temp0';
+  }
+
+  @override
+  String noticeSubMultiMonth({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mois payés d’avance.',
+      one: '$count mois payé d’avance.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeGiftRedeemed({
+    required int month,
+    required int total,
+    required String gifter,
+  }) {
+    return 'Mois $month sur $total d’un abonnement offert par $gifter.';
+  }
+
+  @override
+  String noticeGiftRedeemedAnonymous({required int month, required int total}) {
+    return 'Mois $month sur $total d’un abonnement offert anonymement.';
+  }
+
+  @override
+  String noticeGiftPaidUpgrade({required String name, required String gifter}) {
+    return '$name prolonge l’abonnement offert par $gifter !';
+  }
+
+  @override
+  String noticeGiftPaidUpgradeAnonymous({required String name}) {
+    return '$name prolonge un abonnement offert anonymement !';
+  }
+
+  @override
+  String noticePayForward({
+    required String name,
+    required String gifter,
+    required String recipient,
+  }) {
+    return '$name transmet le cadeau offert par $gifter à $recipient !';
+  }
+
+  @override
+  String noticePayForwardCommunity({
+    required String name,
+    required String gifter,
+  }) {
+    return '$name transmet le cadeau offert par $gifter à la communauté !';
+  }
+
+  @override
+  String noticeSponsorBonus({required String sponsor, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$sponsor ajoute $count abonnements offerts en bonus !',
+      one: '$sponsor ajoute $count abonnement offert en bonus !',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeRewardGift({required String name, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Grâce à $name, $count autres spectateurs reçoivent une récompense !',
+      one: 'Grâce à $name, $count autre spectateur reçoit une récompense !',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeWatchStreak({required String name, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Série de visionnage de $count lives pour $name !',
+      one: 'Série de visionnage de $count live pour $name !',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeWatchStreakPoints({required int points}) {
+    final intl.NumberFormat pointsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String pointsString = pointsNumberFormat.format(points);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      points,
+      locale: localeName,
+      other: '$pointsString points de chaîne gagnés.',
+      one: '$pointsString point de chaîne gagné.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeCharity({
+    required String name,
+    required String amount,
+    required String charity,
+  }) {
+    return '$name a fait un don de $amount à $charity !';
   }
 
   @override

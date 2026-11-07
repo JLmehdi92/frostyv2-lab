@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:onset/l10n/l10n.dart';
@@ -39,14 +41,27 @@ List<NoticeSegment> userNoticeText(
   UserNotice notice, {
   required String channelName,
   AppLocalizations? l,
+  bool showGiftCount = true,
 }) {
   final words = l ?? L10n.current;
   final segments = switch (notice.kind) {
     UserNoticeKind.sub || UserNoticeKind.resub => _sub(notice, words),
-    UserNoticeKind.subGift => _subGift(notice, words),
-    UserNoticeKind.communityGift => _communityGift(notice, channelName, words),
+    UserNoticeKind.subGift => _subGift(notice, words, showGiftCount),
+    UserNoticeKind.communityGift => _communityGift(
+      notice,
+      channelName,
+      words,
+      showGiftCount,
+    ),
     UserNoticeKind.extendSub => _extendSub(notice, words),
     UserNoticeKind.raid => _raid(notice, words),
+    UserNoticeKind.giftPaidUpgrade ||
+    UserNoticeKind.anonGiftPaidUpgrade => _giftPaidUpgrade(notice, words),
+    UserNoticeKind.payItForward => _payItForward(notice, words),
+    UserNoticeKind.giftSubBaseMatch => _sponsorBonus(notice, words),
+    UserNoticeKind.rewardGift => _rewardGift(notice, words),
+    UserNoticeKind.viewerMilestone => _watchStreak(notice, words),
+    UserNoticeKind.charityDonation => _charity(notice, words),
     _ => null,
   };
 
@@ -149,10 +164,147 @@ List<NoticeSegment>? _sub(UserNotice notice, AppLocalizations l) {
     tail = null;
   }
 
-  return _sentences(subscribed, [name], [tail]);
+  return _sentences(
+    subscribed,
+    [name],
+    [tail, _multiMonthSentence(notice, l), _redeemedGiftSentence(notice, l)],
+  );
 }
 
-List<NoticeSegment>? _subGift(UserNotice notice, AppLocalizations l) {
+String? _multiMonthSentence(UserNotice notice, AppLocalizations l) {
+  final duration = notice.multiMonthDuration;
+  if (duration == null || duration < 2) return null;
+  return l.noticeSubMultiMonth(count: duration);
+}
+
+String? _redeemedGiftSentence(UserNotice notice, AppLocalizations l) {
+  final month = notice.giftMonthBeingRedeemed;
+  final total = notice.giftMonths;
+  if (!notice.wasGifted || month == null || total == null || total < 2) {
+    return null;
+  }
+  if (month < 1 || month > total) return null;
+  if (notice.isAnonymousGift) {
+    return l.noticeGiftRedeemedAnonymous(month: month, total: total);
+  }
+  final gifter = notice.gifterName;
+  if (gifter == null) return null;
+  return l.noticeGiftRedeemed(month: month, total: total, gifter: gifter);
+}
+
+List<NoticeSegment>? _giftPaidUpgrade(UserNotice notice, AppLocalizations l) {
+  final name = _senderName(notice);
+  if (name == null) return null;
+  if (notice.kind == UserNoticeKind.anonGiftPaidUpgrade) {
+    return _sentences(l.noticeGiftPaidUpgradeAnonymous(name: l10nMark(0)), [
+      name,
+    ]);
+  }
+  final gifter = notice.senderName ?? notice.senderLogin;
+  if (gifter == null) return null;
+  return _sentences(
+    l.noticeGiftPaidUpgrade(name: l10nMark(0), gifter: l10nMark(1)),
+    [name, readableNoticeName(gifter, notice.senderLogin)],
+  );
+}
+
+List<NoticeSegment>? _payItForward(UserNotice notice, AppLocalizations l) {
+  final name = _senderName(notice);
+  final gifter = notice.priorGifterName;
+  if (name == null || gifter == null || notice.isPriorGifterAnonymous) {
+    return null;
+  }
+  final recipientName = notice.recipientDisplayName;
+  if (recipientName == null) {
+    return _sentences(
+      l.noticePayForwardCommunity(name: l10nMark(0), gifter: l10nMark(1)),
+      [name, gifter],
+    );
+  }
+  return _sentences(
+    l.noticePayForward(
+      name: l10nMark(0),
+      gifter: l10nMark(1),
+      recipient: l10nMark(2),
+    ),
+    [name, gifter, readableNoticeName(recipientName, notice.recipientLogin)],
+  );
+}
+
+List<NoticeSegment>? _sponsorBonus(UserNotice notice, AppLocalizations l) {
+  final sponsor = notice.sponsorName;
+  final count = notice.giftMatchQuantity;
+  if (sponsor == null || count == null || count < 1) return null;
+  return _sentences(l.noticeSponsorBonus(sponsor: l10nMark(0), count: count), [
+    sponsor,
+  ]);
+}
+
+List<NoticeSegment>? _rewardGift(UserNotice notice, AppLocalizations l) {
+  final name = _senderName(notice);
+  final count = notice.rewardRecipientCount;
+  if (name == null || count == null || count < 1) return null;
+  return _sentences(l.noticeRewardGift(name: l10nMark(0), count: count), [
+    name,
+  ]);
+}
+
+List<NoticeSegment>? _watchStreak(UserNotice notice, AppLocalizations l) {
+  final name = _senderName(notice);
+  final streak = notice.milestoneValue;
+  if (notice.milestoneCategory != 'watch-streak' ||
+      name == null ||
+      streak == null ||
+      streak < 1) {
+    return null;
+  }
+  final points = notice.milestonePoints;
+  return _sentences(
+    l.noticeWatchStreak(name: l10nMark(0), count: streak),
+    [name],
+    [
+      if (points != null && points > 0)
+        l.noticeWatchStreakPoints(points: points),
+    ],
+  );
+}
+
+List<NoticeSegment>? _charity(UserNotice notice, AppLocalizations l) {
+  final name = _senderName(notice);
+  final charity = notice.charityName;
+  final amount = notice.donationAmount;
+  final currency = notice.donationCurrency;
+  if (name == null || charity == null || amount == null || currency == null) {
+    return null;
+  }
+  final exponent = notice.donationExponent ?? 2;
+  if (exponent > 6) return null;
+  final value = amount / math.pow(10, exponent);
+  final locale = dateLocaleOf(l);
+  final format = NumberFormat.currency(
+    locale: locale,
+    name: currency,
+    symbol: NumberFormat.simpleCurrency(
+      locale: locale,
+      name: currency,
+    ).currencySymbol,
+    decimalDigits: exponent,
+  );
+  return _sentences(
+    l.noticeCharity(
+      name: l10nMark(0),
+      amount: format.format(value),
+      charity: l10nMark(1),
+    ),
+    [name, charity],
+  );
+}
+
+List<NoticeSegment>? _subGift(
+  UserNotice notice,
+  AppLocalizations l,
+  bool showGiftCount,
+) {
   // Twitch names the gifter by their display name alone (the anonymous
   // gifter account, "AnAnonymousGifter", is worded like the gifter of an
   // anonymous gift bomb: "An anonymous gifter", « Anonyme »); only the
@@ -166,7 +318,9 @@ List<NoticeSegment>? _subGift(UserNotice notice, AppLocalizations l) {
   final recipient = readableNoticeName(recipientName, notice.recipientLogin);
   final tier = _paidTier(notice);
   final months = notice.giftMonths ?? 1;
-  final countSentence = _giftCountSentence(notice.senderCount, l);
+  final countSentence = showGiftCount
+      ? _giftCountSentence(notice.senderCount, l)
+      : null;
 
   if (months > 1) {
     if (tier != null) {
@@ -213,6 +367,7 @@ List<NoticeSegment>? _communityGift(
   UserNotice notice,
   String channelName,
   AppLocalizations l,
+  bool showGiftCount,
 ) {
   final count = notice.massGiftCount;
   final gifter = notice.isAnonymous
@@ -221,7 +376,7 @@ List<NoticeSegment>? _communityGift(
   if (count == null || gifter == null) return null;
 
   final tier = _paidTier(notice);
-  final senderCount = notice.senderCount ?? 0;
+  final senderCount = showGiftCount ? notice.senderCount ?? 0 : 0;
   final more = switch (senderCount) {
     1 => l.noticeCommunityGiftFirst,
     > 1 => l.noticeCommunityGiftTotal(count: senderCount),

@@ -557,11 +557,15 @@ void main() {
 
   group('kinds without a template', () {
     test('show Twitch\'s sentence with the leading name in bold', () {
-      final words = _wordRaw(giftPaidUpgrade);
+      final words = _word({
+        'msg-id': 'primepaidupgrade',
+        'display-name': 'Upgrader',
+        'system-msg': 'Upgrader converted from a Prime sub to a Tier 1 sub!',
+      });
 
       expect(
         _text(words),
-        'Upgrader is continuing the Gift Sub they got from Gifter!',
+        'Upgrader converted from a Prime sub to a Tier 1 sub!',
       );
       expect(_bold(words), ['Upgrader']);
     });
@@ -596,6 +600,193 @@ void main() {
 
     test('give nothing when Twitch sent no sentence', () {
       expect(_word({'msg-id': 'announcement', 'display-name': 'X'}), isEmpty);
+    });
+  });
+
+  group('richer sub notices', () {
+    test('a sub paid months in advance says so', () {
+      final words = _word({
+        ..._sub(cumulative: '3'),
+        'msg-param-multimonth-duration': '6',
+        'msg-param-multimonth-tenure': '0',
+      });
+      expect(
+        _text(words),
+        'X subscribed at Tier 1. They’ve subscribed for 3 months! '
+        'They paid for 6 months in advance.',
+      );
+    });
+
+    test('a single month paid ahead adds nothing', () {
+      expect(
+        _text(_word({..._sub(), 'msg-param-multimonth-duration': '1'})),
+        'X subscribed at Tier 1.',
+      );
+    });
+
+    test('a month of a multi-month gift names the gifter', () {
+      final tags = {
+        ..._sub(),
+        'msg-param-was-gifted': 'true',
+        'msg-param-gift-months': '6',
+        'msg-param-gift-month-being-redeemed': '2',
+        'msg-param-gifter-name': 'Santa',
+      };
+      expect(
+        _text(_word(tags)),
+        'X subscribed at Tier 1. Month 2 of a 6-month gift sub from Santa.',
+      );
+      expect(
+        _text(_word({...tags, 'msg-param-anon-gift': 'true'})),
+        'X subscribed at Tier 1. '
+        'Month 2 of a 6-month gift sub from an anonymous gifter.',
+      );
+      expect(
+        _text(_word({...tags, 'msg-param-gift-month-being-redeemed': '9'})),
+        'X subscribed at Tier 1.',
+      );
+    });
+
+    test('a continued gift names both, in bold', () {
+      final words = _wordRaw(giftPaidUpgrade);
+      expect(
+        _text(words),
+        'Upgrader is continuing the gift sub they got from Gifter!',
+      );
+      expect(_bold(words), ['Upgrader', 'Gifter']);
+      expect(
+        _text(
+          _word({'msg-id': 'anongiftpaidupgrade', 'display-name': 'Upgrader'}),
+        ),
+        'Upgrader is continuing the gift sub they got from an anonymous '
+        'gifter!',
+      );
+    });
+
+    test('a gift paid forward names the earlier gifter', () {
+      final standard = {
+        'msg-id': 'standardpayforward',
+        'display-name': 'Kind',
+        'msg-param-prior-gifter-display-name': 'First',
+        'msg-param-prior-gifter-anonymous': 'false',
+        'msg-param-recipient-display-name': 'Lucky',
+        'system-msg': 'Kind is paying forward the Gift they got from First.',
+      };
+      expect(
+        _text(_word(standard)),
+        'Kind is paying forward the gift sub they got from First to Lucky!',
+      );
+      expect(_bold(_word(standard)), ['Kind', 'First', 'Lucky']);
+      expect(
+        _text(
+          _word({
+            ...standard,
+            'msg-id': 'communitypayforward',
+            'msg-param-recipient-display-name': '',
+          }),
+        ),
+        'Kind is paying forward the gift sub they got from First to the '
+        'community!',
+      );
+      expect(
+        _text(_word({...standard, 'msg-param-prior-gifter-anonymous': 'true'})),
+        'Kind is paying forward the Gift they got from First.',
+      );
+    });
+
+    test('a sponsor’s bonus subs are counted', () {
+      expect(
+        _text(
+          _word({
+            'msg-id': 'giftsubbasematch',
+            'msg-param-advertiser-name': 'Brand',
+            'msg-param-gift-sub-match-quantity': '5',
+            'system-msg': 'Brand matched.',
+          }),
+        ),
+        'Brand added 5 bonus gift subs!',
+      );
+    });
+
+    test('a shared reward counts the viewers it reaches', () {
+      final words = _word({
+        'msg-id': 'rewardgift',
+        'display-name': 'Fan',
+        'msg-param-trigger-type': 'CHEER',
+        'msg-param-selected-count': '10',
+        'msg-param-total-reward-count': '10',
+        'system-msg': 'Fan’s Cheer shared rewards.',
+      });
+      expect(_text(words), 'Thanks to Fan, 10 other viewers get a reward!');
+      expect(_bold(words), ['Fan']);
+    });
+
+    test('a watch streak and its points', () {
+      expect(
+        _text(
+          _word({
+            'msg-id': 'viewermilestone',
+            'display-name': 'Fan',
+            'msg-param-category': 'watch-streak',
+            'msg-param-value': '7',
+            'msg-param-copoReward': '1450',
+            'system-msg': 'Fan watched 7 consecutive streams.',
+          }),
+        ),
+        'Fan reached a 7-stream watch streak! They earned 1,450 channel '
+        'points.',
+      );
+      expect(
+        _text(
+          _word({
+            'msg-id': 'viewermilestone',
+            'display-name': 'Fan',
+            'msg-param-category': 'other',
+            'msg-param-value': '7',
+            'system-msg': 'Fan reached something.',
+          }),
+        ),
+        'Fan reached something.',
+      );
+    });
+
+    test('a charity donation with its amount and currency', () {
+      final words = _word({
+        'msg-id': 'charitydonation',
+        'display-name': 'Fan',
+        'msg-param-charity-name': 'Save\\sthe\\sKids',
+        'msg-param-donation-amount': '500',
+        'msg-param-exponent': '2',
+        'msg-param-donation-currency': 'USD',
+        'system-msg': 'Fan donated.',
+      });
+      expect(_text(words), r'Fan donated $5.00 to Save the Kids!');
+      expect(_bold(words), ['Fan', 'Save the Kids']);
+    });
+
+    test('French words them too', () async {
+      await initializeDateFormatting('fr');
+      final l = lookupAppLocalizations(const Locale('fr'));
+      final words = userNoticeText(
+        UserNotice.fromTags(IRCMessage.fromString(giftPaidUpgrade).tags),
+        channelName: 'Chaîne',
+        l: l,
+      );
+      expect(
+        _text(words),
+        'Upgrader prolonge l’abonnement offert par Gifter !',
+      );
+    });
+
+    test('the gifter’s total can be left out', () {
+      final tags = _gift(senderCount: '12');
+      expect(_text(_word(tags)), contains('12'));
+      final hidden = userNoticeText(
+        UserNotice.fromTags(tags),
+        channelName: 'Channel',
+        showGiftCount: false,
+      );
+      expect(_text(hidden), isNot(contains('12')));
     });
   });
 }

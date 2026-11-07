@@ -42,6 +42,16 @@ final class WhisperCommand extends ChatCommand {
   final String message;
 }
 
+final class UserCardCommand extends ChatCommand {
+  const UserCardCommand(this.login);
+
+  final String login;
+}
+
+final class DisconnectCommand extends ChatCommand {
+  const DisconnectCommand();
+}
+
 final class HelpCommand extends ChatCommand {
   const HelpCommand();
 }
@@ -267,6 +277,8 @@ const kChatCommands = <ChatCommandInfo>[
   ChatCommandInfo('block', required: [ChatCommandArg.user]),
   ChatCommandInfo('unblock', required: [ChatCommandArg.user]),
   ChatCommandInfo('w', required: [ChatCommandArg.user, ChatCommandArg.message]),
+  ChatCommandInfo('user', required: [ChatCommandArg.user]),
+  ChatCommandInfo('disconnect'),
   ChatCommandInfo('help'),
 ];
 
@@ -521,6 +533,15 @@ ChatCommand parseChatCommand(String text) {
         return const UnsupportedCommand(UsageProblem('w'));
       }
       return WhisperCommand(login, args.skip(1).join(' '));
+    case 'user':
+      final login = args.length == 1 ? _loginOf(args.single) : null;
+      if (login == null) return const UnsupportedCommand(UsageProblem('user'));
+      return UserCardCommand(login);
+    case 'disconnect':
+      if (args.isNotEmpty) {
+        return const UnsupportedCommand(UsageProblem('disconnect'));
+      }
+      return const DisconnectCommand();
     case final command when _moderationNames.contains(command):
       return _parseModeration(command, args);
     case final command when _otherModeratorCommands.contains(command):

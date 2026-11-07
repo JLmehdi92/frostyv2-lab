@@ -171,4 +171,74 @@ void main() {
     );
     expect(formatWait(const Duration(seconds: -5)), '0s');
   });
+
+  group('a refusal tied to the account or the channel', () {
+    test('each one Twitch sends is named', () {
+      expect(
+        accountRestrictionOf('msg_verified_email'),
+        ChatRestrictionKind.verifiedEmail,
+      );
+      expect(
+        accountRestrictionOf('msg_requires_verified_phone_number'),
+        ChatRestrictionKind.verifiedPhone,
+      );
+      expect(
+        accountRestrictionOf('msg_banned_email_alias'),
+        ChatRestrictionKind.emailAliasBanned,
+      );
+      expect(
+        accountRestrictionOf('msg_banned_phone_number_alias'),
+        ChatRestrictionKind.phoneAliasBanned,
+      );
+      expect(
+        accountRestrictionOf('msg_user_has_consequence'),
+        ChatRestrictionKind.accountRestricted,
+      );
+      expect(
+        accountRestrictionOf('msg_channel_suspended'),
+        ChatRestrictionKind.channelRestricted,
+      );
+      expect(
+        accountRestrictionOf('msg_followersonly_zero'),
+        ChatRestrictionKind.followRequired,
+      );
+      expect(accountRestrictionOf('msg_slowmode'), isNull);
+      expect(accountRestrictionOf('msg_duplicate'), isNull);
+    });
+
+    test('shows its bar after a ban or timeout, before the room modes', () {
+      final refused = chatRestriction(
+        room: const ROOMSTATE(emoteOnly: '1'),
+        privileged: false,
+        subscriber: false,
+        now: _now,
+        refusedFor: ChatRestrictionKind.verifiedPhone,
+      )!;
+      expect(refused.kind, ChatRestrictionKind.verifiedPhone);
+      expect(refused.showsBar, isTrue);
+      expect(refused.blocksInput, isFalse);
+
+      final banned = chatRestriction(
+        room: const ROOMSTATE(),
+        privileged: false,
+        subscriber: false,
+        now: _now,
+        banned: true,
+        refusedFor: ChatRestrictionKind.verifiedPhone,
+      )!;
+      expect(banned.kind, ChatRestrictionKind.banned);
+    });
+
+    test('says why in each language, and links verification', () {
+      final english = lookupAppLocalizations(const Locale('en'));
+      final french = lookupAppLocalizations(const Locale('fr'));
+      const email = ChatRestriction(ChatRestrictionKind.verifiedEmail);
+      expect(email.describe(null, english), 'Verified email required');
+      expect(email.describe(null, french), 'E-mail vérifié requis');
+      expect(email.helpUrl, kTwitchSecuritySettingsUrl);
+      const follow = ChatRestriction(ChatRestrictionKind.followRequired);
+      expect(follow.describe(null, french), 'Suivez la chaîne');
+      expect(follow.helpUrl, isNull);
+    });
+  });
 }

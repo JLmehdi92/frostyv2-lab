@@ -54,6 +54,7 @@ MockChatStore fakeChatStore({
     revealedFiltered.add(invocation.positionalArguments.first as String);
   });
   when(() => store.updateNotification(any())).thenReturn(null);
+  when(() => store.userCardRequests).thenAnswer((_) => const Stream.empty());
   return store;
 }
 

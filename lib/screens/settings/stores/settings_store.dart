@@ -359,6 +359,8 @@ abstract class _SettingsStoreBase with Store {
   // one row with its recipients inside. Every launch saves the whole store,
   // so an install that already ran keeps the value it saved.
   static const defaultCollapseGiftBombs = true;
+  static const defaultHideGiftSubNotices = false;
+  static const defaultHideGiftCount = false;
   static const defaultShowHypeTrain = true;
   static const defaultShowCommunityHighlights = true;
   static const defaultShowCelebrations = true;
@@ -520,6 +522,14 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var collapseGiftBombs = defaultCollapseGiftBombs;
 
+  @JsonKey(defaultValue: defaultHideGiftSubNotices)
+  @observable
+  var hideGiftSubNotices = defaultHideGiftSubNotices;
+
+  @JsonKey(defaultValue: defaultHideGiftCount)
+  @observable
+  var hideGiftCount = defaultHideGiftCount;
+
   @JsonKey(defaultValue: defaultShowHypeTrain)
   @observable
   var showHypeTrain = defaultShowHypeTrain;
@@ -674,6 +684,8 @@ abstract class _SettingsStoreBase with Store {
     highlightFirstTimeChatter = defaultHighlightFirstTimeChatter;
     showUserNotices = defaultShowUserNotices;
     collapseGiftBombs = defaultCollapseGiftBombs;
+    hideGiftSubNotices = defaultHideGiftSubNotices;
+    hideGiftCount = defaultHideGiftCount;
     showHypeTrain = defaultShowHypeTrain;
     showCommunityHighlights = defaultShowCommunityHighlights;
     showCelebrations = defaultShowCelebrations;

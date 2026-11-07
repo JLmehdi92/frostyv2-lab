@@ -9,7 +9,9 @@ import 'package:onset/models/badges.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/chat_restrictions.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
+import 'package:onset/screens/channel/chat/server_notice.dart';
 
 /// An ICU `select` falls back to its `other` branch for a value it does not
 /// name, silently: an empty text, or a vague one (« do that »). Each select
@@ -121,6 +123,26 @@ void main() {
     'emoteTypeName': (l) {
       for (final type in EmoteType.values) {
         expect(type.label(l), isNotEmpty, reason: type.name);
+      }
+    },
+    'chatServerNotice': (l) {
+      for (final kind in kPlainServerNotices.values) {
+        expect(l.chatServerNotice(notice: kind), isNotEmpty, reason: kind);
+      }
+    },
+    'chatServerNoticeName': (l) {
+      for (final kind in kNamedServerNotices.values) {
+        expect(
+          l.chatServerNoticeName(notice: kind, name: 'friend'),
+          contains('friend'),
+          reason: kind,
+        );
+      }
+    },
+    'chatRestrictionAccount': (l) {
+      for (final kind in ChatRestrictionKind.values) {
+        final restriction = ChatRestriction(kind, minutes: 10);
+        expect(restriction.describe(null, l), isNotEmpty, reason: kind.name);
       }
     },
     'badgeTypeName': (l) {

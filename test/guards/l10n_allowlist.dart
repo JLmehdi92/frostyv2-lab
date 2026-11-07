@@ -90,6 +90,8 @@ const l10nAllowlist = <String, Map<String, String>>{
     'color': _commandName,
     'block': _commandName,
     'unblock': _commandName,
+    'user': _commandName,
+    'disconnect': _commandName,
     'help': _commandName,
     'ban': _commandName,
     'unban': _commandName,

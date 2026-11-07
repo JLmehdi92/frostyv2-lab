@@ -2072,6 +2072,30 @@ abstract class AppLocalizations {
   /// **'Folds a gift bomb of five subs or more into its first line; tap “recipients” to see who got one.'**
   String get settingsCollapseGiftBombsDetail;
 
+  /// Chat settings switch: hides gift sub lines in chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide gift subs'**
+  String get settingsHideGiftSubNotices;
+
+  /// Under settingsHideGiftSubNotices.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift subs, community gifts, and sponsored bonus subs no longer show in chat.'**
+  String get settingsHideGiftSubNoticesDetail;
+
+  /// Chat settings switch: leaves the gifter’s total out of gift lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide gift totals'**
+  String get settingsHideGiftCount;
+
+  /// Under settingsHideGiftCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaves out how many subs a viewer has gifted in the channel.'**
+  String get settingsHideGiftCountDetail;
+
   /// Settings › Chat › Alerts: the switch for the Hype Train above chat.
   ///
   /// In en, this message translates to:
@@ -6670,6 +6694,18 @@ abstract class AppLocalizations {
   /// **'Couldn’t whisper: no user named {login}.'**
   String chatWhisperNoUser({required String login});
 
+  /// Error message. A line in chat after /user names nobody. login is the name as typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t open the user card: no user named {login}.'**
+  String chatUserCardNoUser({required String login});
+
+  /// Error message. A line in chat when /user could not reach Twitch. login is the name as typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t open the user card for {login}.'**
+  String chatUserCardFailed({required String login});
+
   /// Error message. A line in chat: the whisper failed; reason is the error, worded (a sentence; French puts a full stop before it).
   ///
   /// In en, this message translates to:
@@ -6781,7 +6817,7 @@ abstract class AppLocalizations {
   /// What a chat command does, beside its usage in the input's suggestions. command is the command's name (never translated, nor are the lengths « 10m », « 30s » and their units « s, m, h, d, w, mo » that Twitch reads).
   ///
   /// In en, this message translates to:
-  /// **'{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}'**
+  /// **'{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} user{Open a user’s card} disconnect{Reconnect to chat} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}'**
   String chatCommandDescription({required String command});
 
   /// A line in chat when a command is typed wrong: how to type it. usage is the command and its words (/ban <user> [reason]).
@@ -6961,6 +6997,54 @@ abstract class AppLocalizations {
     required String duration,
   });
 
+  /// A chat server notice (IRC NOTICE) worded by the app instead of Twitch’s English: a refused message, or the answer to a command. notice names it.
+  ///
+  /// In en, this message translates to:
+  /// **'{notice, select, rateLimit{Couldn’t send your message. You’re sending messages too quickly.} duplicate{Couldn’t send your message. It’s the same as one you sent less than 30 seconds ago.} subsOnly{Couldn’t send your message. This chat is in subscribers-only mode: subscribe to the channel to chat.} emoteOnly{Couldn’t send your message. This chat is in emote-only mode.} uniqueChat{Couldn’t send your message. This chat is in unique chat mode, and your message isn’t original.} followersOnly{Couldn’t send your message. This chat is in followers-only mode.} followRequired{Couldn’t send your message. This chat is in followers-only mode: follow the channel to chat.} followedTooRecently{Couldn’t send your message. You haven’t followed this channel long enough to chat yet.} verifiedEmail{Couldn’t send your message. This channel requires a verified email address: verify yours in your Twitch security settings.} verifiedPhone{Couldn’t send your message. This channel requires a verified phone number: verify yours in your Twitch security settings.} emailAliasBanned{Couldn’t send your message. Your email address is banned from this channel.} phoneAliasBanned{Couldn’t send your message. Your phone number is banned from this channel.} channelSuspended{Couldn’t send your message. This channel is suspended.} accountSuspended{Couldn’t send your message. Your account is suspended.} channelBlocked{Couldn’t send your message. Your account isn’t in good standing in this channel.} userRestricted{Couldn’t send your message. Your account can’t send chat messages for now. Learn more at appeals.twitch.tv.} channelRestricted{Couldn’t send your message. This channel can’t receive chat messages for now.} invalidReply{Couldn’t send your reply. That message can’t be replied to.} unexpected{Couldn’t send your message. Try again.} badCharacters{Couldn’t send your message. It contains too many characters Twitch can’t process.} rejectedBySettings{Couldn’t send your message. It conflicts with the channel’s moderation settings.} tooManyChats{Too many chats are open at once. Leave one to join this one.} warned{Couldn’t send your message. A moderator warned you: acknowledge the warning on twitch.tv to chat again.} banned{You’re permanently banned from this chat.} followersOnNow{This chat is now in followers-only mode.} noHelp{No help is available for this command.} noPermission{You don’t have permission to do that.} noMods{This channel has no moderators.} banBroadcaster{You can’t ban the broadcaster.} maxMods{This channel already has the maximum number of moderators.} modInvalid{This user can’t be made a moderator.} other{}}'**
+  String chatServerNotice({required String notice});
+
+  /// A chat server notice about someone, worded by the app: name is their login as Twitch sent it. French puts the name where no word agrees with it.
+  ///
+  /// In en, this message translates to:
+  /// **'{notice, select, modAdded{You added {name} as a moderator of this channel.} modRemoved{You removed {name} as a moderator of this channel.} alreadyMod{{name} is already a moderator of this channel.} notMod{{name} isn’t a moderator of this channel.} modBanned{{name} is banned from this channel. Unban them before making them a moderator.} notBanned{{name} isn’t banned from this channel.} notTimedOut{{name} isn’t timed out in this channel.} alreadyBanned{{name} is already banned from this channel.} banMod{You can’t ban {name}: only the broadcaster can ban a moderator.} timeoutMod{You can’t time out {name}: only the broadcaster can time out a moderator.} invalidUser{Unknown username: {name}.} other{}}'**
+  String chatServerNoticeName({required String notice, required String name});
+
+  /// A chat server notice when the viewer, timed out, tries to chat. wait is the time left, worded like chatDuration….
+  ///
+  /// In en, this message translates to:
+  /// **'You’re timed out: you can chat again in {wait}.'**
+  String chatServerNoticeTimedOut({required String wait});
+
+  /// A chat server notice when a message is refused by slow mode. wait is the time left, worded like chatDuration….
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t send your message. This chat is in slow mode: you can chat again in {wait}.'**
+  String chatServerNoticeSlowMode({required String wait});
+
+  /// A chat server notice listing the channel’s moderators. names is Twitch’s comma-separated list of logins.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderators of this channel: {names}.'**
+  String chatServerNoticeMods({required String names});
+
+  /// A chat server notice when Twitch does not know a command. command is the command as typed, with its slash.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown command: {command}.'**
+  String chatServerNoticeUnknownCommand({required String command});
+
+  /// A chat server notice when the broadcaster starts an ad break. seconds is its length.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds, plural, one{Started a {seconds}-second ad break. The stream is still live, and not every viewer will get an ad.} other{Started a {seconds}-second ad break. The stream is still live, and not every viewer will get an ad.}}'**
+  String chatServerNoticeCommercial({required int seconds});
+
+  /// A line in chat when a moderator deletes one of the viewer’s own messages. message is the deleted text, as the viewer wrote it.
+  ///
+  /// In en, this message translates to:
+  /// **'A moderator deleted your message: “{message}”'**
+  String chatNoticeOwnMessageDeleted({required String message});
+
   /// Above the chat input (and as its placeholder, one line each): the viewer is banned. French uses the noun, so nothing agrees with the viewer and the key word comes first.
   ///
   /// In en, this message translates to:
@@ -7008,6 +7092,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Followers-only · {duration}'**
   String chatRestrictionFollowersFor({required String duration});
+
+  /// The one-line bar above the chat input (and its placeholder) after Twitch refused a message for a reason tied to the account or the channel. One line at 360 dp ×1.3.
+  ///
+  /// In en, this message translates to:
+  /// **'{reason, select, verifiedEmail{Verified email required} verifiedPhone{Verified phone required} emailAliasBanned{Email banned here} phoneAliasBanned{Phone banned here} accountRestricted{Account restricted} channelRestricted{Chat suspended here} followRequired{Follow to chat} other{}}'**
+  String chatRestrictionAccount({required String reason});
 
   /// The button over a paused chat: how many messages arrived since; tapping it scrolls back down.
   ///
@@ -7134,6 +7224,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Highlighted message'**
   String get chatHighlightedMessage;
+
+  /// Header above a Bits message sent in another channel of a shared chat. channel is that channel’s display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheered in {channel}'**
+  String chatCheeredIn({required String channel});
+
+  /// Header above a message sent in subscribers-only chat with the channel points reward that allows it.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent with channel points in subscribers-only chat'**
+  String get chatSubsOnlyRedemption;
+
+  /// Header above a message sent with the animated message power-up.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated message'**
+  String get chatAnimatedMessage;
 
   /// Above a message a moderator deleted.
   ///
@@ -8226,6 +8334,93 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{name} is raiding with {count} viewer!} other{{name} is raiding with {count} viewers!}}'**
   String noticeRaid({required String name, required int count});
+
+  /// The sentence after a sub line when the subscriber paid for several months at once.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{They paid for {count} month in advance.} other{They paid for {count} months in advance.}}'**
+  String noticeSubMultiMonth({required int count});
+
+  /// The sentence after a resub line when the sub is a multi-month gift. month is the month reached, total the gift’s length, gifter the gifter’s name.
+  ///
+  /// In en, this message translates to:
+  /// **'Month {month} of a {total}-month gift sub from {gifter}.'**
+  String noticeGiftRedeemed({
+    required int month,
+    required int total,
+    required String gifter,
+  });
+
+  /// The same, from an anonymous gifter.
+  ///
+  /// In en, this message translates to:
+  /// **'Month {month} of a {total}-month gift sub from an anonymous gifter.'**
+  String noticeGiftRedeemedAnonymous({required int month, required int total});
+
+  /// A line in chat when a viewer keeps paying for a gift sub. Names are drawn bold where their placeholder is.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is continuing the gift sub they got from {gifter}!'**
+  String noticeGiftPaidUpgrade({required String name, required String gifter});
+
+  /// The same, when the gift was anonymous.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is continuing the gift sub they got from an anonymous gifter!'**
+  String noticeGiftPaidUpgradeAnonymous({required String name});
+
+  /// A line in chat when a viewer who got a gift sub gifts one to someone. Names are drawn bold where their placeholder is.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is paying forward the gift sub they got from {gifter} to {recipient}!'**
+  String noticePayForward({
+    required String name,
+    required String gifter,
+    required String recipient,
+  });
+
+  /// The same, gifted to the community.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is paying forward the gift sub they got from {gifter} to the community!'**
+  String noticePayForwardCommunity({
+    required String name,
+    required String gifter,
+  });
+
+  /// A line in chat when a sponsor adds gift subs. sponsor is the sponsor’s name, drawn bold.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{sponsor} added {count} bonus gift sub!} other{{sponsor} added {count} bonus gift subs!}}'**
+  String noticeSponsorBonus({required String sponsor, required int count});
+
+  /// A line in chat when a purchase shares rewards with other viewers. name is the buyer, drawn bold.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Thanks to {name}, {count} other viewer gets a reward!} other{Thanks to {name}, {count} other viewers get a reward!}}'**
+  String noticeRewardGift({required String name, required int count});
+
+  /// A line in chat when a viewer shares a watch streak. name is drawn bold.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{name} reached a {count}-stream watch streak!} other{{name} reached a {count}-stream watch streak!}}'**
+  String noticeWatchStreak({required String name, required int count});
+
+  /// The sentence after a watch streak line: the channel points it earned.
+  ///
+  /// In en, this message translates to:
+  /// **'{points, plural, one{They earned {points} channel point.} other{They earned {points} channel points.}}'**
+  String noticeWatchStreakPoints({required int points});
+
+  /// A line in chat when a viewer donates to the channel’s charity. amount is formatted with its currency; name and charity are drawn bold.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} donated {amount} to {charity}!'**
+  String noticeCharity({
+    required String name,
+    required String amount,
+    required String charity,
+  });
 
   /// Copies the video's link at the playback position: the player settings sheet's tile and a tablet's action pill.
   ///

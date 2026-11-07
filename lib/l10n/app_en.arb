@@ -1547,6 +1547,22 @@
   "@settingsCollapseGiftBombsDetail": {
     "description": "Settings › Chat › Alerts: what « Collapse gift bombs » does. \"recipients\" is the link the folded line shows."
   },
+  "settingsHideGiftSubNotices": "Hide gift subs",
+  "@settingsHideGiftSubNotices": {
+    "description": "Chat settings switch: hides gift sub lines in chat."
+  },
+  "settingsHideGiftSubNoticesDetail": "Gift subs, community gifts, and sponsored bonus subs no longer show in chat.",
+  "@settingsHideGiftSubNoticesDetail": {
+    "description": "Under settingsHideGiftSubNotices."
+  },
+  "settingsHideGiftCount": "Hide gift totals",
+  "@settingsHideGiftCount": {
+    "description": "Chat settings switch: leaves the gifter’s total out of gift lines."
+  },
+  "settingsHideGiftCountDetail": "Leaves out how many subs a viewer has gifted in the channel.",
+  "@settingsHideGiftCountDetail": {
+    "description": "Under settingsHideGiftCount."
+  },
   "settingsShowHypeTrains": "Show Hype Trains",
   "@settingsShowHypeTrains": {
     "description": "Settings › Chat › Alerts: the switch for the Hype Train above chat."
@@ -6201,6 +6217,26 @@
       }
     }
   },
+  "chatUserCardNoUser": "Couldn’t open the user card: no user named {login}.",
+  "@chatUserCardNoUser": {
+    "description": "Error message. A line in chat after /user names nobody. login is the name as typed.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "ghost"
+      }
+    }
+  },
+  "chatUserCardFailed": "Couldn’t open the user card for {login}.",
+  "@chatUserCardFailed": {
+    "description": "Error message. A line in chat when /user could not reach Twitch. login is the name as typed.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "friend"
+      }
+    }
+  },
   "chatWhisperFailedBecause": "Couldn’t whisper: {reason}",
   "@chatWhisperFailedBecause": {
     "description": "Error message. A line in chat: the whisper failed; reason is the error, worded (a sentence; French puts a full stop before it).",
@@ -6309,7 +6345,7 @@
   "@chatCommandArgMessageId": {
     "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the id of the message to delete. French joins its words with no-break spaces, so the argument never breaks inside its brackets."
   },
-  "chatCommandDescription": "{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}",
+  "chatCommandDescription": "{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} user{Open a user’s card} disconnect{Reconnect to chat} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}",
   "@chatCommandDescription": {
     "description": "What a chat command does, beside its usage in the input's suggestions. command is the command's name (never translated, nor are the lengths « 10m », « 30s » and their units « s, m, h, d, w, mo » that Twitch reads).",
     "placeholders": {
@@ -6571,6 +6607,90 @@
       }
     }
   },
+  "chatServerNotice": "{notice, select, rateLimit{Couldn’t send your message. You’re sending messages too quickly.} duplicate{Couldn’t send your message. It’s the same as one you sent less than 30 seconds ago.} subsOnly{Couldn’t send your message. This chat is in subscribers-only mode: subscribe to the channel to chat.} emoteOnly{Couldn’t send your message. This chat is in emote-only mode.} uniqueChat{Couldn’t send your message. This chat is in unique chat mode, and your message isn’t original.} followersOnly{Couldn’t send your message. This chat is in followers-only mode.} followRequired{Couldn’t send your message. This chat is in followers-only mode: follow the channel to chat.} followedTooRecently{Couldn’t send your message. You haven’t followed this channel long enough to chat yet.} verifiedEmail{Couldn’t send your message. This channel requires a verified email address: verify yours in your Twitch security settings.} verifiedPhone{Couldn’t send your message. This channel requires a verified phone number: verify yours in your Twitch security settings.} emailAliasBanned{Couldn’t send your message. Your email address is banned from this channel.} phoneAliasBanned{Couldn’t send your message. Your phone number is banned from this channel.} channelSuspended{Couldn’t send your message. This channel is suspended.} accountSuspended{Couldn’t send your message. Your account is suspended.} channelBlocked{Couldn’t send your message. Your account isn’t in good standing in this channel.} userRestricted{Couldn’t send your message. Your account can’t send chat messages for now. Learn more at appeals.twitch.tv.} channelRestricted{Couldn’t send your message. This channel can’t receive chat messages for now.} invalidReply{Couldn’t send your reply. That message can’t be replied to.} unexpected{Couldn’t send your message. Try again.} badCharacters{Couldn’t send your message. It contains too many characters Twitch can’t process.} rejectedBySettings{Couldn’t send your message. It conflicts with the channel’s moderation settings.} tooManyChats{Too many chats are open at once. Leave one to join this one.} warned{Couldn’t send your message. A moderator warned you: acknowledge the warning on twitch.tv to chat again.} banned{You’re permanently banned from this chat.} followersOnNow{This chat is now in followers-only mode.} noHelp{No help is available for this command.} noPermission{You don’t have permission to do that.} noMods{This channel has no moderators.} banBroadcaster{You can’t ban the broadcaster.} maxMods{This channel already has the maximum number of moderators.} modInvalid{This user can’t be made a moderator.} other{}}",
+  "@chatServerNotice": {
+    "description": "A chat server notice (IRC NOTICE) worded by the app instead of Twitch’s English: a refused message, or the answer to a command. notice names it.",
+    "placeholders": {
+      "notice": {
+        "type": "String",
+        "example": "rateLimit"
+      }
+    }
+  },
+  "chatServerNoticeName": "{notice, select, modAdded{You added {name} as a moderator of this channel.} modRemoved{You removed {name} as a moderator of this channel.} alreadyMod{{name} is already a moderator of this channel.} notMod{{name} isn’t a moderator of this channel.} modBanned{{name} is banned from this channel. Unban them before making them a moderator.} notBanned{{name} isn’t banned from this channel.} notTimedOut{{name} isn’t timed out in this channel.} alreadyBanned{{name} is already banned from this channel.} banMod{You can’t ban {name}: only the broadcaster can ban a moderator.} timeoutMod{You can’t time out {name}: only the broadcaster can time out a moderator.} invalidUser{Unknown username: {name}.} other{}}",
+  "@chatServerNoticeName": {
+    "description": "A chat server notice about someone, worded by the app: name is their login as Twitch sent it. French puts the name where no word agrees with it.",
+    "placeholders": {
+      "notice": {
+        "type": "String",
+        "example": "modAdded"
+      },
+      "name": {
+        "type": "String",
+        "example": "friend"
+      }
+    }
+  },
+  "chatServerNoticeTimedOut": "You’re timed out: you can chat again in {wait}.",
+  "@chatServerNoticeTimedOut": {
+    "description": "A chat server notice when the viewer, timed out, tries to chat. wait is the time left, worded like chatDuration….",
+    "placeholders": {
+      "wait": {
+        "type": "String",
+        "example": "5 minutes"
+      }
+    }
+  },
+  "chatServerNoticeSlowMode": "Couldn’t send your message. This chat is in slow mode: you can chat again in {wait}.",
+  "@chatServerNoticeSlowMode": {
+    "description": "A chat server notice when a message is refused by slow mode. wait is the time left, worded like chatDuration….",
+    "placeholders": {
+      "wait": {
+        "type": "String",
+        "example": "12 seconds"
+      }
+    }
+  },
+  "chatServerNoticeMods": "Moderators of this channel: {names}.",
+  "@chatServerNoticeMods": {
+    "description": "A chat server notice listing the channel’s moderators. names is Twitch’s comma-separated list of logins.",
+    "placeholders": {
+      "names": {
+        "type": "String",
+        "example": "alice, bob"
+      }
+    }
+  },
+  "chatServerNoticeUnknownCommand": "Unknown command: {command}.",
+  "@chatServerNoticeUnknownCommand": {
+    "description": "A chat server notice when Twitch does not know a command. command is the command as typed, with its slash.",
+    "placeholders": {
+      "command": {
+        "type": "String",
+        "example": "/dance"
+      }
+    }
+  },
+  "chatServerNoticeCommercial": "{seconds, plural, one{Started a {seconds}-second ad break. The stream is still live, and not every viewer will get an ad.} other{Started a {seconds}-second ad break. The stream is still live, and not every viewer will get an ad.}}",
+  "@chatServerNoticeCommercial": {
+    "description": "A chat server notice when the broadcaster starts an ad break. seconds is its length.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "chatNoticeOwnMessageDeleted": "A moderator deleted your message: “{message}”",
+  "@chatNoticeOwnMessageDeleted": {
+    "description": "A line in chat when a moderator deletes one of the viewer’s own messages. message is the deleted text, as the viewer wrote it.",
+    "placeholders": {
+      "message": {
+        "type": "String",
+        "example": "hello chat"
+      }
+    }
+  },
   "chatRestrictionBanned": "Permanently banned",
   "@chatRestrictionBanned": {
     "description": "Above the chat input (and as its placeholder, one line each): the viewer is banned. French uses the noun, so nothing agrees with the viewer and the key word comes first."
@@ -6618,6 +6738,16 @@
       "duration": {
         "type": "String",
         "example": "10m"
+      }
+    }
+  },
+  "chatRestrictionAccount": "{reason, select, verifiedEmail{Verified email required} verifiedPhone{Verified phone required} emailAliasBanned{Email banned here} phoneAliasBanned{Phone banned here} accountRestricted{Account restricted} channelRestricted{Chat suspended here} followRequired{Follow to chat} other{}}",
+  "@chatRestrictionAccount": {
+    "description": "The one-line bar above the chat input (and its placeholder) after Twitch refused a message for a reason tied to the account or the channel. One line at 360 dp ×1.3.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "verifiedEmail"
       }
     }
   },
@@ -6744,6 +6874,24 @@
   "chatHighlightedMessage": "Highlighted message",
   "@chatHighlightedMessage": {
     "description": "Above a message highlighted with channel points."
+  },
+  "chatCheeredIn": "Cheered in {channel}",
+  "@chatCheeredIn": {
+    "description": "Header above a Bits message sent in another channel of a shared chat. channel is that channel’s display name.",
+    "placeholders": {
+      "channel": {
+        "type": "String",
+        "example": "Streamer"
+      }
+    }
+  },
+  "chatSubsOnlyRedemption": "Sent with channel points in subscribers-only chat",
+  "@chatSubsOnlyRedemption": {
+    "description": "Header above a message sent in subscribers-only chat with the channel points reward that allows it."
+  },
+  "chatAnimatedMessage": "Animated message",
+  "@chatAnimatedMessage": {
+    "description": "Header above a message sent with the animated message power-up."
   },
   "chatMessageDeleted": "Message deleted",
   "@chatMessageDeleted": {
@@ -7966,6 +8114,175 @@
         "type": "int",
         "format": "decimalPattern",
         "example": "15"
+      }
+    }
+  },
+  "noticeSubMultiMonth": "{count, plural, one{They paid for {count} month in advance.} other{They paid for {count} months in advance.}}",
+  "@noticeSubMultiMonth": {
+    "description": "The sentence after a sub line when the subscriber paid for several months at once.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+  "noticeGiftRedeemed": "Month {month} of a {total}-month gift sub from {gifter}.",
+  "@noticeGiftRedeemed": {
+    "description": "The sentence after a resub line when the sub is a multi-month gift. month is the month reached, total the gift’s length, gifter the gifter’s name.",
+    "placeholders": {
+      "month": {
+        "type": "int",
+        "example": "2"
+      },
+      "total": {
+        "type": "int",
+        "example": "6"
+      },
+      "gifter": {
+        "type": "String",
+        "example": "Fan"
+      }
+    }
+  },
+  "noticeGiftRedeemedAnonymous": "Month {month} of a {total}-month gift sub from an anonymous gifter.",
+  "@noticeGiftRedeemedAnonymous": {
+    "description": "The same, from an anonymous gifter.",
+    "placeholders": {
+      "month": {
+        "type": "int",
+        "example": "2"
+      },
+      "total": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+  "noticeGiftPaidUpgrade": "{name} is continuing the gift sub they got from {gifter}!",
+  "@noticeGiftPaidUpgrade": {
+    "description": "A line in chat when a viewer keeps paying for a gift sub. Names are drawn bold where their placeholder is.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "gifter": {
+        "type": "String",
+        "example": "Gifter"
+      }
+    }
+  },
+  "noticeGiftPaidUpgradeAnonymous": "{name} is continuing the gift sub they got from an anonymous gifter!",
+  "@noticeGiftPaidUpgradeAnonymous": {
+    "description": "The same, when the gift was anonymous.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      }
+    }
+  },
+  "noticePayForward": "{name} is paying forward the gift sub they got from {gifter} to {recipient}!",
+  "@noticePayForward": {
+    "description": "A line in chat when a viewer who got a gift sub gifts one to someone. Names are drawn bold where their placeholder is.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "gifter": {
+        "type": "String",
+        "example": "Gifter"
+      },
+      "recipient": {
+        "type": "String",
+        "example": "Friend"
+      }
+    }
+  },
+  "noticePayForwardCommunity": "{name} is paying forward the gift sub they got from {gifter} to the community!",
+  "@noticePayForwardCommunity": {
+    "description": "The same, gifted to the community.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "gifter": {
+        "type": "String",
+        "example": "Gifter"
+      }
+    }
+  },
+  "noticeSponsorBonus": "{count, plural, one{{sponsor} added {count} bonus gift sub!} other{{sponsor} added {count} bonus gift subs!}}",
+  "@noticeSponsorBonus": {
+    "description": "A line in chat when a sponsor adds gift subs. sponsor is the sponsor’s name, drawn bold.",
+    "placeholders": {
+      "sponsor": {
+        "type": "String",
+        "example": "Brand"
+      },
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "noticeRewardGift": "{count, plural, one{Thanks to {name}, {count} other viewer gets a reward!} other{Thanks to {name}, {count} other viewers get a reward!}}",
+  "@noticeRewardGift": {
+    "description": "A line in chat when a purchase shares rewards with other viewers. name is the buyer, drawn bold.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "noticeWatchStreak": "{count, plural, one{{name} reached a {count}-stream watch streak!} other{{name} reached a {count}-stream watch streak!}}",
+  "@noticeWatchStreak": {
+    "description": "A line in chat when a viewer shares a watch streak. name is drawn bold.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "noticeWatchStreakPoints": "{points, plural, one{They earned {points} channel point.} other{They earned {points} channel points.}}",
+  "@noticeWatchStreakPoints": {
+    "description": "The sentence after a watch streak line: the channel points it earned.",
+    "placeholders": {
+      "points": {
+        "type": "int",
+        "example": "450",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "noticeCharity": "{name} donated {amount} to {charity}!",
+  "@noticeCharity": {
+    "description": "A line in chat when a viewer donates to the channel’s charity. amount is formatted with its currency; name and charity are drawn bold.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fan"
+      },
+      "amount": {
+        "type": "String",
+        "example": "$5.00"
+      },
+      "charity": {
+        "type": "String",
+        "example": "Save the Kids"
       }
     }
   },

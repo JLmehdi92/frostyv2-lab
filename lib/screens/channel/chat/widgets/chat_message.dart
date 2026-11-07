@@ -145,10 +145,24 @@ class ChatMessage extends StatelessWidget {
         chatStore.displayName;
   }
 
+  String? get _cheerSourceChannel {
+    if (ircMessage.tags['bits'] == null) return null;
+    final source = ircMessage.tags['source-room-id'];
+    final room =
+        ircMessage.tags['room-id'] ??
+        overrideCurrentChannelId ??
+        chatStore.channelId;
+    if (source == null || source == room) return null;
+    return _channelProfiles[source]?.displayName;
+  }
+
   /// Copies what a notice row shows: its sentence, then the viewer's message.
   Future<void> copyNotice() async {
     final sentence = ircMessage
-        .noticeText(channelName: _noticeChannelName)
+        .noticeText(
+          channelName: _noticeChannelName,
+          showGiftCount: !chatStore.settings.hideGiftCount,
+        )
         .map((segment) => segment.text)
         .join();
     final text = [
@@ -346,6 +360,15 @@ class ChatMessage extends StatelessWidget {
             final shouldHighlightMessage =
                 chatStore.settings.showUserNotices &&
                 ircMessage.tags['msg-id'] == 'highlighted-message';
+            final redemptionHeader = chatStore.settings.showUserNotices
+                ? switch (ircMessage.tags['msg-id']) {
+                    'skip-subs-mode-message' =>
+                      context.l10n.chatSubsOnlyRedemption,
+                    'animated-message' => context.l10n.chatAnimatedMessage,
+                    _ => null,
+                  }
+                : null;
+            final cheerChannel = _cheerSourceChannel;
 
             final messageSpan = Text.rich(
               TextSpan(
@@ -419,6 +442,21 @@ class ChatMessage extends StatelessWidget {
                   ),
                 ),
               );
+            } else if (cheerChannel != null) {
+              messageHeaderIcon = Icon(
+                Icons.diamond_outlined,
+                size: messageHeaderIconSize,
+                color: messageHeaderTextColor,
+              );
+              messageHeader = Text(
+                context.l10n.chatCheeredIn(channel: cheerChannel),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: messageHeaderFontWeight,
+                  color: messageHeaderTextColor,
+                ),
+              );
             } else if (shouldHighlightFirstMessage) {
               highlightColor = context.onsetColors.highlightedMessage;
               messageHeaderIcon = Icon(
@@ -437,6 +475,15 @@ class ChatMessage extends StatelessWidget {
               highlightColor = context.onsetColors.highlightedMessage;
               messageHeader = Text(
                 context.l10n.chatHighlightedMessage,
+                style: TextStyle(
+                  fontWeight: messageHeaderFontWeight,
+                  color: messageHeaderTextColor,
+                ),
+              );
+            } else if (redemptionHeader != null) {
+              highlightColor = context.onsetColors.highlightedMessage;
+              messageHeader = Text(
+                redemptionHeader,
                 style: TextStyle(
                   fontWeight: messageHeaderFontWeight,
                   color: messageHeaderTextColor,
@@ -794,6 +841,7 @@ class ChatMessage extends StatelessWidget {
       segments: ircMessage.noticeText(
         channelName: _noticeChannelName,
         l: context.l10n,
+        showGiftCount: !chatStore.settings.hideGiftCount,
       ),
       presentation: presentation,
       userMessage: ircMessage.message == null

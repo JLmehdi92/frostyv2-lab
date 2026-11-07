@@ -9,7 +9,33 @@ enum ChatRestrictionKind {
   emoteOnly,
   subscribersOnly,
   followersOnly,
+  verifiedEmail,
+  verifiedPhone,
+  emailAliasBanned,
+  phoneAliasBanned,
+  accountRestricted,
+  channelRestricted,
+  followRequired,
 }
+
+const _accountRefusals = {
+  'msg_verified_email': ChatRestrictionKind.verifiedEmail,
+  'msg_requires_verified_phone_number': ChatRestrictionKind.verifiedPhone,
+  'msg_banned_email_alias': ChatRestrictionKind.emailAliasBanned,
+  'msg_banned_phone_number_alias': ChatRestrictionKind.phoneAliasBanned,
+  'msg_user_has_consequence': ChatRestrictionKind.accountRestricted,
+  'msg_suspended': ChatRestrictionKind.accountRestricted,
+  'msg_channel_blocked': ChatRestrictionKind.accountRestricted,
+  'msg_channel_has_consequence': ChatRestrictionKind.channelRestricted,
+  'msg_channel_suspended': ChatRestrictionKind.channelRestricted,
+  'msg_followersonly': ChatRestrictionKind.followRequired,
+  'msg_followersonly_zero': ChatRestrictionKind.followRequired,
+};
+
+ChatRestrictionKind? accountRestrictionOf(String msgId) =>
+    _accountRefusals[msgId];
+
+const kTwitchSecuritySettingsUrl = 'https://www.twitch.tv/settings/security';
 
 /// One line above the chat input, like the official app's mode banners.
 class ChatRestriction {
@@ -33,7 +59,18 @@ class ChatRestriction {
 
   /// Said on its own line above the input (the rest goes in its
   /// placeholder).
-  bool get showsBar => blocksInput || kind == ChatRestrictionKind.banned;
+  bool get showsBar => switch (kind) {
+    ChatRestrictionKind.emoteOnly ||
+    ChatRestrictionKind.subscribersOnly ||
+    ChatRestrictionKind.followersOnly => false,
+    _ => true,
+  };
+
+  String? get helpUrl => switch (kind) {
+    ChatRestrictionKind.verifiedEmail ||
+    ChatRestrictionKind.verifiedPhone => kTwitchSecuritySettingsUrl,
+    _ => null,
+  };
 
   /// What the banner says, in [l]'s language (the one on screen by
   /// default); [left] is the time to [until].
@@ -57,6 +94,15 @@ class ChatRestriction {
         duration: followAgeShort(Duration(minutes: m), l),
       ),
     },
+    ChatRestrictionKind.verifiedEmail ||
+    ChatRestrictionKind.verifiedPhone ||
+    ChatRestrictionKind.emailAliasBanned ||
+    ChatRestrictionKind.phoneAliasBanned ||
+    ChatRestrictionKind.accountRestricted ||
+    ChatRestrictionKind.channelRestricted ||
+    ChatRestrictionKind.followRequired => l.chatRestrictionAccount(
+      reason: kind.name,
+    ),
   };
 }
 
@@ -107,11 +153,13 @@ ChatRestriction? chatRestriction({
   bool banned = false,
   DateTime? timedOutUntil,
   DateTime? lastSentAt,
+  ChatRestrictionKind? refusedFor,
 }) {
   if (banned) return const ChatRestriction(ChatRestrictionKind.banned);
   if (timedOutUntil != null && timedOutUntil.isAfter(now)) {
     return ChatRestriction(ChatRestrictionKind.timedOut, until: timedOutUntil);
   }
+  if (refusedFor != null) return ChatRestriction(refusedFor);
   if (privileged) return null;
   final slow = int.tryParse(room.slowMode) ?? 0;
   if (slow > 0 && lastSentAt != null) {

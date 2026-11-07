@@ -182,6 +182,23 @@ class UserNotice {
   final String? sponsorName;
   final Color? sponsorColor;
 
+  final int? multiMonthDuration;
+  final bool wasGifted;
+  final int? giftMonthBeingRedeemed;
+  final String? gifterName;
+  final bool isAnonymousGift;
+  final String? priorGifterName;
+  final bool isPriorGifterAnonymous;
+  final int? giftMatchQuantity;
+  final int? rewardRecipientCount;
+  final String? milestoneCategory;
+  final int? milestoneValue;
+  final int? milestonePoints;
+  final String? charityName;
+  final int? donationAmount;
+  final int? donationExponent;
+  final String? donationCurrency;
+
   const UserNotice({
     required this.kind,
     required this.systemMessage,
@@ -216,6 +233,22 @@ class UserNotice {
     this.announcementColor,
     this.sponsorName,
     this.sponsorColor,
+    this.multiMonthDuration,
+    this.wasGifted = false,
+    this.giftMonthBeingRedeemed,
+    this.gifterName,
+    this.isAnonymousGift = false,
+    this.priorGifterName,
+    this.isPriorGifterAnonymous = false,
+    this.giftMatchQuantity,
+    this.rewardRecipientCount,
+    this.milestoneCategory,
+    this.milestoneValue,
+    this.milestonePoints,
+    this.charityName,
+    this.donationAmount,
+    this.donationExponent,
+    this.donationCurrency,
   });
 
   /// Whether this notice is one of the individual gifts belonging to the mass
@@ -223,6 +256,15 @@ class UserNotice {
   bool get isPartOfMassGift =>
       (kind == UserNoticeKind.subGift || kind == UserNoticeKind.anonSubGift) &&
       communityGiftId != null;
+
+  bool get isGiftNotice => switch (kind) {
+    UserNoticeKind.subGift ||
+    UserNoticeKind.anonSubGift ||
+    UserNoticeKind.communityGift ||
+    UserNoticeKind.anonCommunityGift ||
+    UserNoticeKind.giftSubBaseMatch => true,
+    _ => false,
+  };
 
   /// Whether this notice announces a mass gift.
   bool get isMassGiftHeader =>
@@ -263,7 +305,8 @@ class UserNotice {
     'unraid' => UserNoticeKind.unraid,
     'announcement' => UserNoticeKind.announcement,
     'bitsbadgetier' => UserNoticeKind.bitsBadgeTier,
-    'standardpayforward' || 'communitypayforward' => UserNoticeKind.payItForward,
+    'standardpayforward' ||
+    'communitypayforward' => UserNoticeKind.payItForward,
     'viewermilestone' => UserNoticeKind.viewerMilestone,
     'charitydonation' => UserNoticeKind.charityDonation,
     _ => UserNoticeKind.unknown,
@@ -346,9 +389,7 @@ class UserNotice {
       systemMessage: unescapeTag(tags['system-msg']),
       tier: _tierFrom(subPlan),
       isPrime: subPlan == 'Prime',
-      cumulativeMonths: int.tryParse(
-        tags['msg-param-cumulative-months'] ?? '',
-      ),
+      cumulativeMonths: int.tryParse(tags['msg-param-cumulative-months'] ?? ''),
       streakMonths: int.tryParse(tags['msg-param-streak-months'] ?? ''),
       shouldShareStreak: tags['msg-param-should-share-streak'] == '1',
       recipientDisplayName: unescapeTag(
@@ -393,17 +434,46 @@ class UserNotice {
       // Twitch leaves a `%s` where the size goes.
       raiderAvatarUrl: tags['msg-param-profileImageURL']?.nullIfEmpty
           ?.replaceAll('%s', '70x70'),
-      raiderDisplayName: unescapeTag(
-        tags['msg-param-displayName'],
-      ).nullIfEmpty,
+      raiderDisplayName: unescapeTag(tags['msg-param-displayName']).nullIfEmpty,
       announcementColor: _announcementColorFrom(tags['msg-param-color']),
-      sponsorName: unescapeTag(
-        tags['msg-param-advertiser-name'],
-      ).nullIfEmpty,
+      sponsorName: unescapeTag(tags['msg-param-advertiser-name']).nullIfEmpty,
       sponsorColor: _hexColor(tags['msg-param-advertiser-hex-color']),
+      multiMonthDuration: _count(tags['msg-param-multimonth-duration']),
+      wasGifted: tags['msg-param-was-gifted'] == 'true',
+      giftMonthBeingRedeemed: _count(
+        tags['msg-param-gift-month-being-redeemed'],
+      ),
+      gifterName:
+          unescapeTag(tags['msg-param-gifter-display-name']).nullIfEmpty ??
+          unescapeTag(tags['msg-param-gifter-name']).nullIfEmpty ??
+          tags['msg-param-gifter-login']?.nullIfEmpty,
+      isAnonymousGift: tags['msg-param-anon-gift'] == 'true',
+      priorGifterName:
+          unescapeTag(
+            tags['msg-param-prior-gifter-display-name'],
+          ).nullIfEmpty ??
+          tags['msg-param-prior-gifter-user-name']?.nullIfEmpty,
+      isPriorGifterAnonymous:
+          tags['msg-param-prior-gifter-anonymous'] == 'true',
+      giftMatchQuantity:
+          _count(tags['msg-param-gift-sub-match-quantity']) ??
+          _count(tags['msg-param-gift-match-bonus-count']),
+      rewardRecipientCount: _count(tags['msg-param-selected-count']),
+      milestoneCategory: tags['msg-param-category']?.nullIfEmpty,
+      milestoneValue: _count(tags['msg-param-value']),
+      milestonePoints: _count(tags['msg-param-copoReward']),
+      charityName: unescapeTag(tags['msg-param-charity-name']).nullIfEmpty,
+      donationAmount: _count(tags['msg-param-donation-amount']),
+      donationExponent: _count(tags['msg-param-exponent']),
+      donationCurrency: tags['msg-param-donation-currency']?.nullIfEmpty,
     );
   }
 }
+
+int? _count(String? value) => switch (int.tryParse(value ?? '')) {
+  final count? when count >= 0 => count,
+  _ => null,
+};
 
 extension on String? {
   /// Treats an empty tag as absent. Twitch sends `key=` rather than omitting

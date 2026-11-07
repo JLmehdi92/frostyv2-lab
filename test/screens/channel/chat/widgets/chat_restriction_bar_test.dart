@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/chat_restrictions.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
+import 'package:onset/utils/link_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   var now = DateTime.utc(2026, 10, 13, 20);
@@ -73,5 +75,34 @@ void main() {
       IRCMessage.fromString('@badges=;mod=0 :tmi.twitch.tv USERSTATE #channel'),
     );
     expect(none.vip, isFalse);
+  });
+
+  testWidgets('a verification requirement opens Twitch’s security settings', (
+    tester,
+  ) async {
+    final opened = <Uri>[];
+    final previous = LinkRouter.launcher;
+    LinkRouter.launcher = (url, {mode = LaunchMode.platformDefault}) async {
+      opened.add(url);
+      return true;
+    };
+    addTearDown(() => LinkRouter.launcher = previous);
+    await pump(
+      tester,
+      const ChatRestriction(ChatRestrictionKind.verifiedEmail),
+    );
+    expect(find.text('Verified email required'), findsOneWidget);
+    await tester.tap(find.text('Verified email required'));
+    await tester.pump();
+    expect(opened, [Uri.parse(kTwitchSecuritySettingsUrl)]);
+  });
+
+  testWidgets('an account refusal without a fix just says why', (tester) async {
+    await pump(
+      tester,
+      const ChatRestriction(ChatRestrictionKind.phoneAliasBanned),
+    );
+    expect(find.text('Phone banned here'), findsOneWidget);
+    expect(find.byType(GestureDetector), findsNothing);
   });
 }
