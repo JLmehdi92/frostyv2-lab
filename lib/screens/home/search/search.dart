@@ -18,6 +18,7 @@ import 'package:onset/screens/home/search/stores/search_store.dart';
 import 'package:onset/screens/home/search/stores/search_videos_store.dart';
 import 'package:onset/screens/home/shell/shell_tabs.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/home/top/tags/tag_streams.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -609,8 +610,24 @@ class _SearchState extends State<Search> {
     );
     Widget categories({int? limit}) =>
         SearchResultsCategories(searchStore: _searchStore, limit: limit);
+    final tag = searchTagOf(query);
     return switch (_tab) {
       _SearchTab.top => [
+        if (tag != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                OnsetSpacing.gutterPhone,
+                12,
+                OnsetSpacing.gutterPhone,
+                0,
+              ),
+              child: SearchTagLink(
+                tag: tag,
+                onOpen: () => TagStreams.open(context, tag),
+              ),
+            ),
+          ),
         SliverToBoxAdapter(
           child: _sectionTitle(
             _SearchTab.channels.label(context.l10n),
@@ -747,7 +764,20 @@ class _SearchState extends State<Search> {
                   videos,
                 ],
               );
-        return [padded(top)];
+        final tag = searchTagOf(query);
+        return [
+          if (tag != null)
+            padded(
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: SearchTagLink(
+                  tag: tag,
+                  onOpen: () => TagStreams.open(context, tag),
+                ),
+              ),
+            ),
+          padded(top),
+        ];
       case _SearchTab.channels:
         return [
           padded(
@@ -1142,6 +1172,66 @@ class _NoHistory extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+String? searchTagOf(String query) {
+  final tag = query.trim();
+  return TwitchDirectoryService.tagPattern.hasMatch(tag) ? tag : null;
+}
+
+class SearchTagLink extends StatelessWidget {
+  const SearchTagLink({super.key, required this.tag, required this.onOpen});
+
+  final String tag;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FeedColors.of(context);
+    return PressScale(
+      child: Material(
+        color: colors.surface,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: colors.hairline,
+            width: OnsetTokens.hairlineWidth,
+          ),
+        ),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onOpen,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 40),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 6,
+                children: [
+                  Icon(Icons.sell_outlined, size: 16, color: colors.secondary),
+                  Flexible(
+                    child: Text(
+                      context.l10n.searchLiveWithTag(tag: tag),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colors.text,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 18,
+                    color: colors.secondary,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

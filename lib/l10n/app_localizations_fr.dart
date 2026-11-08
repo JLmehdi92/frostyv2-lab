@@ -8406,4 +8406,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String vodSeekValueChapter({required String value, required String chapter}) {
     return '$value, $chapter';
   }
+
+  @override
+  String searchLiveWithTag({required String tag}) {
+    return 'Chaînes en direct avec le tag $tag';
+  }
 }

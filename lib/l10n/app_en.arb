@@ -10636,5 +10636,15 @@
         "example": "Just Chatting"
       }
     }
+  },
+  "searchLiveWithTag": "Live channels tagged {tag}",
+  "@searchLiveWithTag": {
+    "description": "A link at the top of search results when the search is a single word: opens the live channels with that tag.",
+    "placeholders": {
+      "tag": {
+        "type": "String",
+        "example": "Speedrun"
+      }
+    }
   }
 }

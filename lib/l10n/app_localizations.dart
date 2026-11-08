@@ -11072,6 +11072,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{value}, {chapter}'**
   String vodSeekValueChapter({required String value, required String chapter});
+
+  /// A link at the top of search results when the search is a single word: opens the live channels with that tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Live channels tagged {tag}'**
+  String searchLiveWithTag({required String tag});
 }
 
 class _AppLocalizationsDelegate
