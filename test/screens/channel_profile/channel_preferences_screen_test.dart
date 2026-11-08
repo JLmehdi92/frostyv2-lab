@@ -98,7 +98,7 @@ void main() {
     settings.showUserNotices = false;
     await tester.pump();
     expect(
-      find.text('Notices are hidden in every chat in Settings.'),
+      find.text('Notices are turned off for every chat in Settings › Chat.'),
       findsOneWidget,
     );
   });
