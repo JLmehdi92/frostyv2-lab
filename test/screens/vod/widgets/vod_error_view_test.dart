@@ -105,4 +105,40 @@ void main() {
       }
     }
   });
+
+  testWidgets('a subscriber-only video offers to subscribe', (tester) async {
+    var subscribes = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: VodErrorView(
+            problem: VodPlaybackProblem.subscriberOnly,
+            onSubscribe: () => subscribes++,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Subscribe'));
+    expect(subscribes, 1);
+  });
+
+  testWidgets('no subscribe button for other problems or without a channel', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: VodErrorView(
+            problem: VodPlaybackProblem.notFound,
+            onSubscribe: () {},
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Subscribe'), findsNothing);
+
+    await pump(tester, VodPlaybackProblem.subscriberOnly);
+    expect(find.text('Subscribe'), findsNothing);
+  });
 }

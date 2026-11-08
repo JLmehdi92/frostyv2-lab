@@ -587,6 +587,9 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   /// Black area with a back button, for when there is no player yet.
   Widget _withBackButton(Widget child) => VideoBackButtonLayer(child: child);
 
+  VoidCallback? _subscribeAction(String login) =>
+      subscribeOpener(context, login);
+
   Widget _buildPlayerArea({required bool landscape, required bool hasChat}) {
     final player = _player;
     final vod = _vod;
@@ -612,7 +615,11 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
                   ),
                 ),
               )
-            : VodErrorView(problem: problem, onRetry: _retryMetadata),
+            : VodErrorView(
+                problem: problem,
+                onRetry: _retryMetadata,
+                onSubscribe: _subscribeAction(vod?.ownerLogin ?? ''),
+              ),
       );
     }
     return Stack(
@@ -632,6 +639,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
                 VodErrorView(
                   problem: problem,
                   onRetry: () => unawaited(_switchPlayer()),
+                  onSubscribe: _subscribeAction(vod.ownerLogin),
                 ),
               );
             }

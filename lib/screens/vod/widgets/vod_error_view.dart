@@ -3,9 +3,21 @@ import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/twitch_links.dart';
+import 'package:onset/widgets/twitch_web_page.dart';
 
 /// What cannot play, in [VodErrorView]'s messages (each language words a
 /// video and a clip its own way: « Cette vidéo », « Ce clip »).
+VoidCallback? subscribeOpener(BuildContext context, String login) {
+  final url = twitchSubscribeUrl(login);
+  if (url == null) return null;
+  return () => TwitchWebPage.open(
+    context,
+    title: context.l10n.channelSubscribe,
+    url: url,
+  );
+}
+
 enum PlaybackSubject { video, clip }
 
 /// Why a VOD (or a clip) cannot play, over a black player area. Never opens
@@ -15,6 +27,7 @@ class VodErrorView extends StatelessWidget {
     super.key,
     required this.problem,
     this.onRetry,
+    this.onSubscribe,
     this.subject = PlaybackSubject.video,
   });
 
@@ -25,6 +38,8 @@ class VodErrorView extends StatelessWidget {
 
   /// Offered for problems that may be temporary.
   final VoidCallback? onRetry;
+
+  final VoidCallback? onSubscribe;
 
   /// The message for [problem], in [l]'s language.
   static String messageFor(
@@ -63,6 +78,9 @@ class VodErrorView extends StatelessWidget {
     final l = context.l10n;
     final detail = detailFor(problem, l);
     final retry = _retryable ? onRetry : null;
+    final subscribe = problem == VodPlaybackProblem.subscriberOnly
+        ? onSubscribe
+        : null;
     // The player's own ground, as the content warning draws it:
     // a glyph in its disc, the message, the detail, "Try again".
     return ColoredBox(
@@ -112,6 +130,27 @@ class VodErrorView extends StatelessWidget {
                     fontSize: 12.5,
                     height: 1.4,
                     color: OnsetTokens.textBodyDark,
+                  ),
+                ),
+              if (subscribe != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: FilledButton(
+                    onPressed: subscribe,
+                    style: FilledButton.styleFrom(
+                      foregroundColor: OnsetTokens.backgroundDark,
+                      backgroundColor: OnsetTokens.accent,
+                      minimumSize: const Size(0, 44),
+                      padding: const EdgeInsets.symmetric(horizontal: 22),
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(
+                        fontFamily: OnsetTokens.bodyFamily,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(l.channelSubscribe),
                   ),
                 ),
               if (retry != null)

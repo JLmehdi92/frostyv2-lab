@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/cheermote.dart';
 import 'package:onset/models/irc.dart';
@@ -19,6 +20,7 @@ import 'package:onset/screens/vod/widgets/go_to_time_dialog.dart';
 import 'package:onset/screens/vod/widgets/up_next_overlay.dart';
 import 'package:onset/screens/vod/widgets/vod_chat_replay.dart';
 import 'package:onset/screens/vod/widgets/vod_details_panel.dart';
+import 'package:onset/screens/vod/widgets/vod_error_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/fake_vod_controller.dart';
@@ -129,6 +131,23 @@ void main() {
         await tester.pumpAndSettle();
         await expectFrenchThroughout(tester, 'VOD settings, $at');
         expect(find.text(french.vodCopyLinkAtTime), findsOneWidget);
+      });
+
+      testWidgets('a subscriber-only video, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: VodErrorView(
+              problem: VodPlaybackProblem.subscriberOnly,
+              onRetry: () {},
+              onSubscribe: () {},
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        expect(find.text(french.channelSubscribe), findsOneWidget);
+        await expectFrenchThroughout(tester, 'subscriber only, $at');
       });
 
       testWidgets('the go to time dialog, $at', (tester) async {

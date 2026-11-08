@@ -390,6 +390,9 @@ class _ClipScreenState extends State<ClipScreen> {
   /// Black area with a back button, for when nothing can play.
   Widget _withBackButton(Widget child) => VideoBackButtonLayer(child: child);
 
+  VoidCallback? _subscribeAction() =>
+      subscribeOpener(context, _clip?.broadcasterLogin ?? '');
+
   Widget _buildPlayerArea({required bool landscape}) {
     final loadProblem = _loadProblem;
     if (loadProblem != null) {
@@ -398,6 +401,7 @@ class _ClipScreenState extends State<ClipScreen> {
           problem: loadProblem,
           subject: PlaybackSubject.clip,
           onRetry: _retry,
+          onSubscribe: _subscribeAction(),
         ),
       );
     }
@@ -415,6 +419,7 @@ class _ClipScreenState extends State<ClipScreen> {
                   problem: problem,
                   subject: PlaybackSubject.clip,
                   onRetry: _retry,
+                  onSubscribe: _subscribeAction(),
                 ),
               );
             }
