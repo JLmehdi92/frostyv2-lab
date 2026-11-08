@@ -1552,6 +1552,8 @@
   "pointsRewards": "Récompenses",
   "pointsNoRewards": "Cette chaîne n’a configuré aucune récompense.",
   "pointsStreakNote": "C’est Twitch qui gère les séries\u00a0: regarder dans cette application peut ne pas compter.",
+  "streakHelpTitle": "Où est ma série de visionnage\u202f?",
+  "streakHelpBody": "Twitch compte les lives que vous regardez à la suite sur cette chaîne. Une série s’affiche ici une fois comptée par Twitch, ce qui peut prendre quelques minutes après le début d’un live. Si vous manquez un live, la série est suspendue jusqu’au suivant, et le regarder en direct la sauve.",
   "pointsBonusBlocked": "Twitch empêche de récupérer le bonus depuis l’application (sa vérification anti-bot). Récupérez-le sur twitch.tv\u00a0: le solde suivra.",
   "pointsCollectBonus": "Récupérer le bonus",
   "pointsOutcomeTotals": "{count, plural, one{{points} · {count} participant} other{{points} · {count} participants}}",

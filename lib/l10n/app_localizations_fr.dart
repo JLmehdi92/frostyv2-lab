@@ -7137,6 +7137,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'C’est Twitch qui gère les séries : regarder dans cette application peut ne pas compter.';
 
   @override
+  String get streakHelpTitle => 'Où est ma série de visionnage ?';
+
+  @override
+  String get streakHelpBody =>
+      'Twitch compte les lives que vous regardez à la suite sur cette chaîne. Une série s’affiche ici une fois comptée par Twitch, ce qui peut prendre quelques minutes après le début d’un live. Si vous manquez un live, la série est suspendue jusqu’au suivant, et le regarder en direct la sauve.';
+
+  @override
   String get pointsBonusBlocked =>
       'Twitch empêche de récupérer le bonus depuis l’application (sa vérification anti-bot). Récupérez-le sur twitch.tv : le solde suivra.';
 

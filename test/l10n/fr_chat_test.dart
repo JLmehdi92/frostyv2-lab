@@ -1033,6 +1033,29 @@ void main() {
         await expectFrenchThroughout(tester, 'watch streak share, $at');
       });
 
+      testWidgets('the watch streak help, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          const Scaffold(
+            body: SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: WatchStreakCard(
+                streak: WatchStreak(value: 3, threshold: 5, pointsBonus: 450),
+                live: true,
+                channelName: 'Streamer',
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        await tester.tap(find.byKey(WatchStreakCard.helpKey));
+        await tester.pumpAndSettle();
+        expect(find.text(french.streakHelpBody), findsOneWidget);
+        await expectFrenchThroughout(tester, 'watch streak help, $at');
+      });
+
       testWidgets('channel points, a prediction and the bet, $at', (
         tester,
       ) async {

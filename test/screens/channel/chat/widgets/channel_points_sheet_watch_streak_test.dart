@@ -158,4 +158,20 @@ void main() {
     );
     expect(find.byKey(WatchStreakCard.shareKey), findsNothing);
   });
+
+  testWidgets('the streak help opens on a tap and closes again', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const WatchStreak(value: 4, threshold: 5, pointsBonus: 450),
+    );
+    expect(find.byKey(WatchStreakCard.helpBodyKey), findsNothing);
+    await tester.tap(find.byKey(WatchStreakCard.helpKey));
+    await tester.pumpAndSettle();
+    expect(find.byKey(WatchStreakCard.helpBodyKey), findsOneWidget);
+    await tester.tap(find.byKey(WatchStreakCard.helpKey));
+    await tester.pumpAndSettle();
+    expect(find.byKey(WatchStreakCard.helpBodyKey), findsNothing);
+  });
 }

@@ -418,6 +418,8 @@ class WatchStreakCard extends StatelessWidget {
   final VoidCallback? onShare;
 
   static const shareKey = ValueKey('watch-streak-share');
+  static const helpKey = ValueKey('watch-streak-help');
+  static const helpBodyKey = ValueKey('watch-streak-help-body');
 
   @override
   Widget build(BuildContext context) {
@@ -542,9 +544,67 @@ class WatchStreakCard extends StatelessWidget {
                 color: colors.tertiary,
               ),
             ),
+            const _StreakHelp(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StreakHelp extends StatefulWidget {
+  const _StreakHelp();
+
+  @override
+  State<_StreakHelp> createState() => _StreakHelpState();
+}
+
+class _StreakHelpState extends State<_StreakHelp> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextButton(
+          key: WatchStreakCard.helpKey,
+          onPressed: () => setState(() => _open = !_open),
+          style: TextButton.styleFrom(
+            minimumSize: const Size(0, 44),
+            padding: EdgeInsets.zero,
+            foregroundColor: colors.secondary,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            textStyle: const TextStyle(
+              fontFamily: OnsetTokens.bodyFamily,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          child: Semantics(
+            expanded: _open,
+            child: Text(context.l10n.streakHelpTitle),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topLeft,
+          child: _open
+              ? Text(
+                  context.l10n.streakHelpBody,
+                  key: WatchStreakCard.helpBodyKey,
+                  style: TextStyle(
+                    fontFamily: OnsetTokens.bodyFamily,
+                    fontSize: 12.5,
+                    height: 1.45,
+                    color: colors.body,
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
+      ],
     );
   }
 }

@@ -8937,6 +8937,14 @@
   "@pointsStreakNote": {
     "description": "Under the watch streak in the channel points sheet."
   },
+  "streakHelpTitle": "Where’s my streak?",
+  "@streakHelpTitle": {
+    "description": "A toggle under the watch streak card that shows or hides a short explanation of how Twitch counts streaks."
+  },
+  "streakHelpBody": "Twitch counts the live streams you watch in a row on this channel. A streak shows up here once Twitch has counted it, which can take a few minutes after a stream starts. If you miss a stream, the streak is suspended until the next one, and watching that one live saves it.",
+  "@streakHelpBody": {
+    "description": "The explanation shown when the viewer opens “Where’s my streak?”."
+  },
   "pointsBonusBlocked": "Twitch’s anti-bot check blocks collecting the bonus here. Collect it on twitch.tv and your balance updates.",
   "@pointsBonusBlocked": {
     "description": "Error message. The channel points sheet when Twitch refuses the bonus to the app."

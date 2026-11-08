@@ -9504,6 +9504,18 @@ abstract class AppLocalizations {
   /// **'Twitch counts streaks. Watching in this app may not count toward them.'**
   String get pointsStreakNote;
 
+  /// A toggle under the watch streak card that shows or hides a short explanation of how Twitch counts streaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Where’s my streak?'**
+  String get streakHelpTitle;
+
+  /// The explanation shown when the viewer opens “Where’s my streak?”.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch counts the live streams you watch in a row on this channel. A streak shows up here once Twitch has counted it, which can take a few minutes after a stream starts. If you miss a stream, the streak is suspended until the next one, and watching that one live saves it.'**
+  String get streakHelpBody;
+
   /// Error message. The channel points sheet when Twitch refuses the bonus to the app.
   ///
   /// In en, this message translates to:

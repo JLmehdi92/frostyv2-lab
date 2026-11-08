@@ -7044,6 +7044,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Twitch counts streaks. Watching in this app may not count toward them.';
 
   @override
+  String get streakHelpTitle => 'Where’s my streak?';
+
+  @override
+  String get streakHelpBody =>
+      'Twitch counts the live streams you watch in a row on this channel. A streak shows up here once Twitch has counted it, which can take a few minutes after a stream starts. If you miss a stream, the streak is suspended until the next one, and watching that one live saves it.';
+
+  @override
   String get pointsBonusBlocked =>
       'Twitch’s anti-bot check blocks collecting the bonus here. Collect it on twitch.tv and your balance updates.';
 
