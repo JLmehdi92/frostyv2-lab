@@ -422,12 +422,18 @@ class _VodOverlayState extends State<VodOverlay> {
                   opacity: _unlockButtonVisible ? 1 : 0,
                   duration: fade,
                   child: _unlockButtonVisible
-                      ? _OverlayButton(
-                          tooltip: context.l10n.vodUnlockScreen,
-                          glyph: VideoGlyphKind.lock,
-                          selected: true,
-                          color: context.onsetColors.live,
-                          onPressed: _unlock,
+                      ? DecoratedBox(
+                          decoration: const BoxDecoration(
+                            color: Color(0x8C000000),
+                            shape: BoxShape.circle,
+                          ),
+                          child: _OverlayButton(
+                            tooltip: context.l10n.vodUnlockScreen,
+                            glyph: VideoGlyphKind.lock,
+                            selected: true,
+                            color: context.onsetColors.live,
+                            onPressed: _unlock,
+                          ),
                         )
                       : const SizedBox(width: 44, height: 44),
                 ),
