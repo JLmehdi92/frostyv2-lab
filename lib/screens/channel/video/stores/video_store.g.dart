@@ -89,6 +89,24 @@ mixin _$VideoStore on VideoStoreBase, Store {
     });
   }
 
+  late final _$infoUnavailableAtom = Atom(
+    name: 'VideoStoreBase.infoUnavailable',
+    context: context,
+  );
+
+  @override
+  bool get infoUnavailable {
+    _$infoUnavailableAtom.reportRead();
+    return super.infoUnavailable;
+  }
+
+  @override
+  set infoUnavailable(bool value) {
+    _$infoUnavailableAtom.reportWrite(value, super.infoUnavailable, () {
+      super.infoUnavailable = value;
+    });
+  }
+
   late final _$_availableStreamQualitiesAtom = Atom(
     name: 'VideoStoreBase._availableStreamQualities',
     context: context,
@@ -329,7 +347,7 @@ mixin _$VideoStore on VideoStoreBase, Store {
   @override
   String toString() {
     return '''
-
+infoUnavailable: ${infoUnavailable}
     ''';
   }
 }

@@ -24,7 +24,9 @@ part 'video_store.g.dart';
 
 class VideoStore = VideoStoreBase with _$VideoStore implements PlayerController;
 
-abstract class VideoStoreBase with Store implements WebPagePlayer {
+abstract class VideoStoreBase
+    with Store
+    implements WebPagePlayer, StreamInfoStatus {
   final TwitchApi twitchApi;
 
   /// The userlogin of the current channel.
@@ -300,6 +302,10 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
   /// The offline channel info, used for displaying channel details when offline.
   @readonly
   Channel? _offlineChannelInfo;
+
+  @observable
+  @override
+  var infoUnavailable = false;
 
   @readonly
   List<String> _availableStreamQualities = [];
@@ -1146,6 +1152,7 @@ $kTwitchWebGateShownJs
   Future<void> _updateStreamInfoInternal() async {
     try {
       _streamInfo = await twitchApi.getStream(userLogin: userLogin);
+      infoUnavailable = false;
       // Clear offline info when stream is live
       _offlineChannelInfo = null;
     } catch (e) {
@@ -1156,8 +1163,10 @@ $kTwitchWebGateShownJs
       // Try to fetch offline channel information
       try {
         _offlineChannelInfo = await twitchApi.getChannel(userId: userId);
+        infoUnavailable = false;
       } catch (channelError) {
         _offlineChannelInfo = null;
+        infoUnavailable = true;
       }
 
       // Restart overlay timer in chat-only mode even on error

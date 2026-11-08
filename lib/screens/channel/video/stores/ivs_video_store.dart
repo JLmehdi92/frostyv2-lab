@@ -47,7 +47,9 @@ enum IvsPlaybackStatus { loading, playing, reconnecting, offline, failed }
 /// Drives the native Amazon IVS player (the video technology Twitch is built
 /// on) over a MethodChannel, exposing the shared [PlayerController]
 /// surface so the existing overlay/channel can use it unchanged.
-abstract class IvsVideoStoreBase with Store implements PlayerController {
+abstract class IvsVideoStoreBase
+    with Store
+    implements PlayerController, StreamInfoStatus {
   final String userLogin;
   final String userId;
   final TwitchApi twitchApi;
@@ -171,6 +173,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   @readonly
   Channel? _offlineChannelInfo;
+
+  @observable
+  @override
+  var infoUnavailable = false;
 
   @readonly
   String? _latency;
@@ -1684,14 +1690,17 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   Future<void> updateStreamInfo({bool forceUpdate = false}) async {
     try {
       _streamInfo = await twitchApi.getStream(userLogin: userLogin);
+      infoUnavailable = false;
       _offlineChannelInfo = null;
     } catch (e) {
       _streamInfo = null;
       _paused = true;
       try {
         _offlineChannelInfo = await twitchApi.getChannel(userId: userId);
+        infoUnavailable = false;
       } catch (_) {
         _offlineChannelInfo = null;
+        infoUnavailable = true;
       }
     }
   }

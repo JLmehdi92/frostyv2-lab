@@ -24,7 +24,9 @@ class NativeVideoStore = NativeVideoStoreBase with _$NativeVideoStore;
 /// Plays a Twitch stream with a native low-latency HLS player (media_kit /
 /// libmpv) instead of the Twitch web embed, while exposing the same
 /// [PlayerController] surface the overlay/channel expect.
-abstract class NativeVideoStoreBase with Store implements PlayerController {
+abstract class NativeVideoStoreBase
+    with Store
+    implements PlayerController, StreamInfoStatus {
   final String userLogin;
   final String userId;
   final TwitchApi twitchApi;
@@ -75,6 +77,10 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
 
   @readonly
   Channel? _offlineChannelInfo;
+
+  @observable
+  @override
+  var infoUnavailable = false;
 
   @readonly
   String? _latency;
@@ -355,6 +361,7 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
   Future<void> updateStreamInfo({bool forceUpdate = false}) async {
     try {
       _streamInfo = await twitchApi.getStream(userLogin: userLogin);
+      infoUnavailable = false;
       _offlineChannelInfo = null;
     } catch (e) {
       // Stream is offline (or the request failed): reflect a non-playing state
@@ -363,8 +370,10 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
       _paused = true;
       try {
         _offlineChannelInfo = await twitchApi.getChannel(userId: userId);
+        infoUnavailable = false;
       } catch (_) {
         _offlineChannelInfo = null;
+        infoUnavailable = true;
       }
     }
   }

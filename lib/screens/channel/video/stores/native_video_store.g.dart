@@ -133,6 +133,24 @@ mixin _$NativeVideoStore on NativeVideoStoreBase, Store {
     });
   }
 
+  late final _$infoUnavailableAtom = Atom(
+    name: 'NativeVideoStoreBase.infoUnavailable',
+    context: context,
+  );
+
+  @override
+  bool get infoUnavailable {
+    _$infoUnavailableAtom.reportRead();
+    return super.infoUnavailable;
+  }
+
+  @override
+  set infoUnavailable(bool value) {
+    _$infoUnavailableAtom.reportWrite(value, super.infoUnavailable, () {
+      super.infoUnavailable = value;
+    });
+  }
+
   late final _$_latencyAtom = Atom(
     name: 'NativeVideoStoreBase._latency',
     context: context,
@@ -229,7 +247,7 @@ mixin _$NativeVideoStore on NativeVideoStoreBase, Store {
   @override
   String toString() {
     return '''
-
+infoUnavailable: ${infoUnavailable}
     ''';
   }
 }

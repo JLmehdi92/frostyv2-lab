@@ -418,20 +418,28 @@ class VideoOverlay extends StatelessWidget {
                 ),
               ),
               Center(
-                child: switch (latestBroadcast) {
-                  final vod? => FilledButton.tonalIcon(
-                    key: const ValueKey('latest-broadcast'),
-                    onPressed: () =>
-                        VodScreen.open(context, vodId: vod.id, vod: vod),
-                    icon: const Icon(Icons.play_circle_outline_rounded),
-                    label: Text(l.streamWatchLatestBroadcast),
-                  ),
-                  null => FilledButton.tonalIcon(
-                    onPressed: openVideos,
-                    icon: const Icon(Icons.video_library_outlined),
-                    label: Text(l.profilePastBroadcasts),
-                  ),
-                },
+                child: OfflineChannelMessage(
+                  name: name,
+                  failed:
+                      offlineChannelInfo == null &&
+                      videoStore is StreamInfoStatus &&
+                      (videoStore as StreamInfoStatus).infoUnavailable,
+                  onRetry: videoStore.handleRefresh,
+                  action: switch (latestBroadcast) {
+                    final vod? => FilledButton.tonalIcon(
+                      key: const ValueKey('latest-broadcast'),
+                      onPressed: () =>
+                          VodScreen.open(context, vodId: vod.id, vod: vod),
+                      icon: const Icon(Icons.play_circle_outline_rounded),
+                      label: Text(l.streamWatchLatestBroadcast),
+                    ),
+                    null => FilledButton.tonalIcon(
+                      onPressed: openVideos,
+                      icon: const Icon(Icons.video_library_outlined),
+                      label: Text(l.profilePastBroadcasts),
+                    ),
+                  },
+                ),
               ),
               Positioned(
                 right: metrics.right,
@@ -1258,6 +1266,60 @@ class _LongPressListenerState extends State<_LongPressListener> {
       onPointerUp: (_) => _cancel(),
       onPointerCancel: (_) => _cancel(),
       child: widget.child,
+    );
+  }
+}
+
+class OfflineChannelMessage extends StatelessWidget {
+  const OfflineChannelMessage({
+    super.key,
+    required this.name,
+    required this.failed,
+    required this.onRetry,
+    required this.action,
+  });
+
+  final String? name;
+  final bool failed;
+  final Future<void> Function() onRetry;
+  final Widget action;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    const style = TextStyle(
+      fontSize: 14,
+      height: 1.4,
+      color: Colors.white,
+      shadows: [Shadow(blurRadius: 8, color: Colors.black54)],
+    );
+    final name = this.name;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 12,
+        children: [
+          Text(
+            failed
+                ? l.streamOfflineLoadFailed
+                : name == null
+                ? l.streamCheckBackSoonGeneric
+                : l.streamCheckBackSoon(name: name),
+            textAlign: TextAlign.center,
+            style: style,
+          ),
+          if (failed)
+            FilledButton.tonalIcon(
+              key: const ValueKey('offline-retry'),
+              onPressed: () => onRetry(),
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(l.commonTryAgain),
+            )
+          else
+            action,
+        ],
+      ),
     );
   }
 }

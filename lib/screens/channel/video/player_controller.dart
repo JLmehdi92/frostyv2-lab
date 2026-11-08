@@ -79,3 +79,7 @@ ContentGate followContentGate(ContentGate current, ContentGate reported) =>
     current == ContentGate.covering && reported == ContentGate.pending
     ? ContentGate.covering
     : reported;
+
+abstract interface class StreamInfoStatus {
+  bool get infoUnavailable;
+}
