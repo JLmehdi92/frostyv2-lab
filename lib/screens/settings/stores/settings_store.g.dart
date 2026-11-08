@@ -167,6 +167,8 @@ SettingsStore _$SettingsStoreFromJson(
       ) ??
       LandscapeCutoutType.none
   ..chatWidth = (json['chatWidth'] as num?)?.toDouble() ?? 0.2
+  ..overlayChatTop = (json['overlayChatTop'] as num?)?.toDouble() ?? 0.0
+  ..overlayChatHeight = (json['overlayChatHeight'] as num?)?.toDouble() ?? 1.0
   ..fullScreenChatOverlayOpacity =
       (json['fullScreenChatOverlayOpacity'] as num?)?.toDouble() ?? 0.5
   ..tapToCloseOverlayChat = json['tapToCloseOverlayChat'] as bool? ?? false
@@ -291,6 +293,8 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'landscapeForceVerticalChat': instance.landscapeForceVerticalChat,
   'landscapeCutout': _$LandscapeCutoutTypeEnumMap[instance.landscapeCutout]!,
   'chatWidth': instance.chatWidth,
+  'overlayChatTop': instance.overlayChatTop,
+  'overlayChatHeight': instance.overlayChatHeight,
   'fullScreenChatOverlayOpacity': instance.fullScreenChatOverlayOpacity,
   'tapToCloseOverlayChat': instance.tapToCloseOverlayChat,
   'showModActionsInChat': instance.showModActionsInChat,
@@ -1712,6 +1716,42 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$overlayChatTopAtom = Atom(
+    name: '_SettingsStoreBase.overlayChatTop',
+    context: context,
+  );
+
+  @override
+  double get overlayChatTop {
+    _$overlayChatTopAtom.reportRead();
+    return super.overlayChatTop;
+  }
+
+  @override
+  set overlayChatTop(double value) {
+    _$overlayChatTopAtom.reportWrite(value, super.overlayChatTop, () {
+      super.overlayChatTop = value;
+    });
+  }
+
+  late final _$overlayChatHeightAtom = Atom(
+    name: '_SettingsStoreBase.overlayChatHeight',
+    context: context,
+  );
+
+  @override
+  double get overlayChatHeight {
+    _$overlayChatHeightAtom.reportRead();
+    return super.overlayChatHeight;
+  }
+
+  @override
+  set overlayChatHeight(double value) {
+    _$overlayChatHeightAtom.reportWrite(value, super.overlayChatHeight, () {
+      super.overlayChatHeight = value;
+    });
+  }
+
   late final _$fullScreenChatOverlayOpacityAtom = Atom(
     name: '_SettingsStoreBase.fullScreenChatOverlayOpacity',
     context: context,
@@ -2465,6 +2505,8 @@ landscapeChatLeftSide: ${landscapeChatLeftSide},
 landscapeForceVerticalChat: ${landscapeForceVerticalChat},
 landscapeCutout: ${landscapeCutout},
 chatWidth: ${chatWidth},
+overlayChatTop: ${overlayChatTop},
+overlayChatHeight: ${overlayChatHeight},
 fullScreenChatOverlayOpacity: ${fullScreenChatOverlayOpacity},
 tapToCloseOverlayChat: ${tapToCloseOverlayChat},
 showModActionsInChat: ${showModActionsInChat},

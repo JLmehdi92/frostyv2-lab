@@ -3177,6 +3177,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerShowChatOverlay => 'Show chat overlay';
 
   @override
+  String get overlayChatMove => 'Move chat';
+
+  @override
+  String get overlayChatResize => 'Resize chat';
+
+  @override
+  String get followedDrawerTitle => 'Followed channels';
+
+  @override
+  String get followedDrawerLive => 'Live';
+
+  @override
+  String get followedDrawerEmpty => 'You don’t follow any channels yet.';
+
+  @override
+  String get followedDrawerFailed => 'Couldn’t load your followed channels.';
+
+  @override
   String get playerStopLooping => 'Stop looping';
 
   @override

@@ -4032,6 +4032,30 @@
   "@playerShowChatOverlay": {
     "description": "A video's player in full screen: the tooltip of the button that shows the chat over the video."
   },
+  "overlayChatMove": "Move chat",
+  "@overlayChatMove": {
+    "description": "Landscape overlay chat: the handle at the top of the chat that moves it up, down, or to the other side of the screen."
+  },
+  "overlayChatResize": "Resize chat",
+  "@overlayChatResize": {
+    "description": "Landscape overlay chat: the handle at the bottom of the chat that changes its height."
+  },
+  "followedDrawerTitle": "Followed channels",
+  "@followedDrawerTitle": {
+    "description": "The title of the drawer of followed channels in the live player, and the tooltip of the player button that opens it."
+  },
+  "followedDrawerLive": "Live",
+  "@followedDrawerLive": {
+    "description": "The drawer of followed channels in the live player: the section of channels that are live."
+  },
+  "followedDrawerEmpty": "You don’t follow any channels yet.",
+  "@followedDrawerEmpty": {
+    "description": "The drawer of followed channels in the live player, when the viewer follows no channel."
+  },
+  "followedDrawerFailed": "Couldn’t load your followed channels.",
+  "@followedDrawerFailed": {
+    "description": "Error message. The drawer of followed channels in the live player, when the list can’t be loaded."
+  },
   "playerStopLooping": "Stop looping",
   "@playerStopLooping": {
     "description": "A clip's player: the tooltip of the loop button while the clip loops."

@@ -22,6 +22,8 @@ import 'package:onset/screens/channel/channel_top_overlays.dart';
 import 'package:onset/screens/channel/chat/details/chat_details.dart';
 import 'package:onset/screens/channel/chat/incoming_raid.dart';
 import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
+import 'package:onset/screens/channel/chat/overlay_chat_frame.dart';
+import 'package:onset/screens/channel/chat/overlay_chat_placement.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
@@ -33,6 +35,7 @@ import 'package:onset/screens/channel/community_highlights/raid_departure.dart';
 import 'package:onset/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/raid_heading_overlay.dart';
+import 'package:onset/screens/channel/followed_channels_drawer.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:onset/screens/channel/landscape_chat_cycle.dart';
 import 'package:onset/screens/channel/portrait_split.dart';
@@ -637,6 +640,11 @@ class _VideoChatState extends State<VideoChat>
 
   SettingsStore? _showVideoAgainOnLeave;
 
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  bool get _hasFollowedDrawer =>
+      !context.isLargeScreen && context.authStore.isLoggedIn;
+
   void _hideVideoForChatOnlyStart() {
     final settings = context.settingsStore;
     if (!widget.startChatOnly || !settings.showVideo) return;
@@ -1215,6 +1223,9 @@ class _VideoChatState extends State<VideoChat>
             settingsStore: settingsStore,
             onLongPressStats: _eventsStore.playPreviewCelebration,
             latestBroadcast: _latestBroadcast,
+            onOpenFollowedChannels: _hasFollowedDrawer
+                ? () => _scaffoldKey.currentState?.openDrawer()
+                : null,
           );
 
           if (_videoStore.paused || _videoStore.streamInfo == null) {
@@ -1463,6 +1474,11 @@ class _VideoChatState extends State<VideoChat>
         }
 
         return Scaffold(
+          key: _scaffoldKey,
+          drawer: _hasFollowedDrawer
+              ? FollowedChannelsDrawer(currentLogin: widget.userLogin)
+              : null,
+          drawerEnableOpenDragGesture: false,
           extendBody: true,
           extendBodyBehindAppBar: true,
           appBar: chatOnlyBlurredAppBar,
@@ -1501,7 +1517,25 @@ class _VideoChatState extends State<VideoChat>
                         style: context.defaultTextStyle.copyWith(
                           color: context.onsetColors.overlayOnSurface,
                         ),
-                        child: landscapeChat,
+                        child: OverlayChatFrame(
+                          width: _chatStore.expandChat
+                              ? context.screenWidth / 2
+                              : context.screenWidth * settingsStore.chatWidth,
+                          placement: OverlayChatPlacement.clamped(
+                            top: settingsStore.overlayChatTop,
+                            height: settingsStore.overlayChatHeight,
+                          ),
+                          showHandles: _videoStore.overlayVisible,
+                          leftSide: settingsStore.landscapeChatLeftSide,
+                          onPlacementChanged: (placement) {
+                            settingsStore
+                              ..overlayChatTop = placement.top
+                              ..overlayChatHeight = placement.height;
+                          },
+                          onLeftSideChanged: (left) =>
+                              settingsStore.landscapeChatLeftSide = left,
+                          child: landscapeChat,
+                        ),
                       ),
                     ),
                   ),
@@ -1525,6 +1559,13 @@ class _VideoChatState extends State<VideoChat>
                                         builder: (context, constraints) {
                                           final totalWidth =
                                               constraints.maxWidth;
+                                          final placement =
+                                              OverlayChatPlacement.clamped(
+                                                top: settingsStore
+                                                    .overlayChatTop,
+                                                height: settingsStore
+                                                    .overlayChatHeight,
+                                              );
                                           final chatWidth =
                                               _chatStore.expandChat
                                               ? 0.5
@@ -1595,8 +1636,12 @@ class _VideoChatState extends State<VideoChat>
                                               if (settingsStore
                                                   .fullScreenChatOverlay)
                                                 Positioned(
-                                                  top: 0,
-                                                  bottom: 0,
+                                                  top:
+                                                      constraints.maxHeight *
+                                                      placement.top,
+                                                  height:
+                                                      constraints.maxHeight *
+                                                      placement.height,
                                                   left:
                                                       settingsStore
                                                           .landscapeChatLeftSide

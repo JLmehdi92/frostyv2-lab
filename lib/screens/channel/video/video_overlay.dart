@@ -158,6 +158,8 @@ class VideoOverlay extends StatelessWidget {
 
   final Vod? latestBroadcast;
 
+  final VoidCallback? onOpenFollowedChannels;
+
   /// The room the top row keeps for the latency pill.
   static const latencySlotKey = ValueKey('latency-slot');
 
@@ -168,6 +170,7 @@ class VideoOverlay extends StatelessWidget {
     required this.settingsStore,
     this.onLongPressStats,
     this.latestBroadcast,
+    this.onOpenFollowedChannels,
   });
 
   @override
@@ -472,6 +475,12 @@ class VideoOverlay extends StatelessWidget {
               child: Row(
                 children: [
                   backButton,
+                  if (onOpenFollowedChannels case final open?)
+                    _PlayerButton(
+                      tooltip: l.followedDrawerTitle,
+                      glyph: PlayerGlyphKind.sidebar,
+                      onPressed: open,
+                    ),
                   if (showIdentity)
                     Expanded(
                       child: _ChannelIdentity(

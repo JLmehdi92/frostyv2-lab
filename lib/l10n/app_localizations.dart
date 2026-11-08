@@ -4925,6 +4925,42 @@ abstract class AppLocalizations {
   /// **'Show chat overlay'**
   String get playerShowChatOverlay;
 
+  /// Landscape overlay chat: the handle at the top of the chat that moves it up, down, or to the other side of the screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Move chat'**
+  String get overlayChatMove;
+
+  /// Landscape overlay chat: the handle at the bottom of the chat that changes its height.
+  ///
+  /// In en, this message translates to:
+  /// **'Resize chat'**
+  String get overlayChatResize;
+
+  /// The title of the drawer of followed channels in the live player, and the tooltip of the player button that opens it.
+  ///
+  /// In en, this message translates to:
+  /// **'Followed channels'**
+  String get followedDrawerTitle;
+
+  /// The drawer of followed channels in the live player: the section of channels that are live.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get followedDrawerLive;
+
+  /// The drawer of followed channels in the live player, when the viewer follows no channel.
+  ///
+  /// In en, this message translates to:
+  /// **'You don’t follow any channels yet.'**
+  String get followedDrawerEmpty;
+
+  /// Error message. The drawer of followed channels in the live player, when the list can’t be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your followed channels.'**
+  String get followedDrawerFailed;
+
   /// A clip's player: the tooltip of the loop button while the clip loops.
   ///
   /// In en, this message translates to:

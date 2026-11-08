@@ -3226,6 +3226,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerShowChatOverlay => 'Afficher le chat superposé';
 
   @override
+  String get overlayChatMove => 'Déplacer le chat';
+
+  @override
+  String get overlayChatResize => 'Redimensionner le chat';
+
+  @override
+  String get followedDrawerTitle => 'Chaînes suivies';
+
+  @override
+  String get followedDrawerLive => 'En direct';
+
+  @override
+  String get followedDrawerEmpty => 'Vous ne suivez encore aucune chaîne.';
+
+  @override
+  String get followedDrawerFailed =>
+      'Impossible de charger vos chaînes suivies.';
+
+  @override
   String get playerStopLooping => 'Ne plus lire en boucle';
 
   @override
