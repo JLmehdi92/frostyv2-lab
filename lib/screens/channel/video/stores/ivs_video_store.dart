@@ -252,6 +252,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// How often [_rateWatchdog] looks.
   final Duration autoLatencyWatchdog;
 
+  final Duration backgroundPauseDelay;
+
   /// Last time the viewer or the app did something that rebuffers by
   /// itself (pause, resume, picture-in-picture, the mini player, the content
   /// warning, coming back to the app): stalls around it are not the
@@ -328,6 +330,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     @visibleForTesting this.liveStartDelay = const Duration(seconds: 3),
     @visibleForTesting this.offlinePollInterval = const Duration(seconds: 60),
     @visibleForTesting this.autoLatencyWatchdog = const Duration(seconds: 1),
+    @visibleForTesting this.backgroundPauseDelay = const Duration(seconds: 1),
     BackgroundAudio? backgroundAudio,
     AudioFocus? audioFocus,
     @visibleForTesting DateTime Function()? now,
@@ -1579,6 +1582,23 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   @override
   void handleToggleOverlay() {}
+
+  Future<void> handleAppBackground() async {
+    if (!_wantsHeadphonesForBackground) return;
+    await Future<void>.delayed(backgroundPauseDelay);
+    if (!_wantsHeadphonesForBackground) return;
+    final connected = await _audioFocus.headphonesConnected();
+    if (connected == false && _wantsHeadphonesForBackground) {
+      handlePausePlay();
+    }
+  }
+
+  bool get _wantsHeadphonesForBackground =>
+      !_disposed &&
+      !_paused &&
+      !_isInPipMode &&
+      settingsStore.backgroundAudio &&
+      settingsStore.backgroundAudioHeadphonesOnly;
 
   @override
   void handleAppResume() {

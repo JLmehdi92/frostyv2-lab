@@ -930,6 +930,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Poursuit la lecture d’un live quand vous quittez l’application ou éteignez l’écran, avec les commandes de lecture dans une notification.';
 
   @override
+  String get settingsBackgroundAudioHeadphonesOnly =>
+      'Uniquement avec un casque';
+
+  @override
+  String get settingsBackgroundAudioHeadphonesOnlyDetail =>
+      'Met le live en pause quand vous quittez l’application sans casque ni écouteurs connectés.';
+
+  @override
   String get settingsAutoPip => 'Picture-in-picture automatique';
 
   @override

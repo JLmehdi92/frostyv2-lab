@@ -244,6 +244,8 @@
   "settingsKeepAwakeDetail": "Empêche la mise en veille de l’écran tant qu’une chaîne est ouverte.",
   "settingsBackgroundAudio": "Audio en arrière-plan",
   "settingsBackgroundAudioDetail": "Poursuit la lecture d’un live quand vous quittez l’application ou éteignez l’écran, avec les commandes de lecture dans une notification.",
+  "settingsBackgroundAudioHeadphonesOnly": "Uniquement avec un casque",
+  "settingsBackgroundAudioHeadphonesOnlyDetail": "Met le live en pause quand vous quittez l’application sans casque ni écouteurs connectés.",
   "settingsAutoPip": "Picture-in-picture automatique",
   "settingsAutoPipDetail": "Garde une vidéo en cours de lecture dans une fenêtre flottante quand vous quittez l’application.",
   "settingsOverlay": "Interface du lecteur",

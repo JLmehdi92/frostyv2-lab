@@ -914,6 +914,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keeps a live stream playing when you leave the app or turn off the screen, with media controls in a notification.';
 
   @override
+  String get settingsBackgroundAudioHeadphonesOnly => 'Only with headphones';
+
+  @override
+  String get settingsBackgroundAudioHeadphonesOnlyDetail =>
+      'Pauses the live stream when you leave the app with no headphones connected.';
+
+  @override
   String get settingsAutoPip => 'Automatic picture-in-picture';
 
   @override

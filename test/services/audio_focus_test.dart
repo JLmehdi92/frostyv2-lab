@@ -81,4 +81,25 @@ void main() {
     await focus.request(owner, (_) {});
     await focus.abandon(owner);
   });
+
+  test('says whether headphones are connected, unknown elsewhere', () async {
+    expect(await focus.headphonesConnected(), isTrue);
+    expect(calls.single.method, 'headphonesConnected');
+
+    messenger.setMockMethodCallHandler(channel, (call) async => false);
+    expect(await focus.headphonesConnected(), isFalse);
+
+    expect(
+      await AudioFocus(
+        channel: channel,
+        supported: false,
+      ).headphonesConnected(),
+      isNull,
+    );
+    messenger.setMockMethodCallHandler(
+      channel,
+      (call) async => throw PlatformException(code: 'x'),
+    );
+    expect(await focus.headphonesConnected(), isNull);
+  });
 }

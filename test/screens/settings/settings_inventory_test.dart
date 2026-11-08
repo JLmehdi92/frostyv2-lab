@@ -211,6 +211,29 @@ void main() {
     expect(settings.captionBackground, CaptionBackground.translucent);
   });
 
+  testWidgets('Only with headphones shows under Background audio when on', (
+    tester,
+  ) async {
+    await pumpSettings(
+      tester,
+      VideoSettings(settingsStore: settings, isAndroid: true, isIOS: false),
+      settings: settings,
+      auth: auth,
+    );
+    expect(find.text('Only with headphones'), findsNothing);
+    await tapVisible(tester, find.text('Background audio'));
+    expect(settings.backgroundAudio, isTrue);
+    await tapVisible(tester, find.text('Only with headphones'));
+    expect(settings.backgroundAudioHeadphonesOnly, isTrue);
+    expect(
+      find.text(
+        'Pauses the live stream when you leave the app with no headphones '
+        'connected.',
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Video elsewhere than Android: no Android-only setting', (
     tester,
   ) async {

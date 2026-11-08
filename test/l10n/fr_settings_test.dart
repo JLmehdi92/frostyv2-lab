@@ -156,6 +156,18 @@ void main() {
           loggedIn,
         ),
         (
+          'Video (Android), background audio on',
+          (_) => pushed(
+            SettingsPageId.video,
+            VideoSettings(
+              settingsStore: SettingsStore.fromJson({'backgroundAudio': true}),
+              isAndroid: true,
+              isIOS: false,
+            ),
+          ),
+          loggedIn,
+        ),
+        (
           'Chat',
           (_) => pushed(
             SettingsPageId.chat,

@@ -122,6 +122,16 @@ class VideoSettings extends StatelessWidget {
                     onChanged: (newValue) =>
                         settingsStore.backgroundAudio = newValue,
                   ),
+                if (android && settingsStore.backgroundAudio)
+                  SettingsListSwitch(
+                    title: l.settingsBackgroundAudioHeadphonesOnly,
+                    subtitle: Text(
+                      l.settingsBackgroundAudioHeadphonesOnlyDetail,
+                    ),
+                    value: settingsStore.backgroundAudioHeadphonesOnly,
+                    onChanged: (newValue) =>
+                        settingsStore.backgroundAudioHeadphonesOnly = newValue,
+                  ),
                 if (android)
                   SettingsListSwitch(
                     title: l.settingsAutoPip,

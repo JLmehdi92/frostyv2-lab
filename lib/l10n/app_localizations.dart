@@ -1574,6 +1574,18 @@ abstract class AppLocalizations {
   /// **'Keeps a live stream playing when you leave the app or turn off the screen, with media controls in a notification.'**
   String get settingsBackgroundAudioDetail;
 
+  /// Settings › Video › Playback (Android), under « Background audio » while it is on: the switch that keeps the sound playing outside the app only when headphones are connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Only with headphones'**
+  String get settingsBackgroundAudioHeadphonesOnly;
+
+  /// Settings › Video › Playback: what « Only with headphones » does.
+  ///
+  /// In en, this message translates to:
+  /// **'Pauses the live stream when you leave the app with no headphones connected.'**
+  String get settingsBackgroundAudioHeadphonesOnlyDetail;
+
   /// Settings › Video › Playback: switch that lets a playing video move to the floating window when you leave the app (Android).
   ///
   /// In en, this message translates to:

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioAttributes
+import android.media.AudioDeviceInfo
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
@@ -52,9 +53,27 @@ class AudioFocusBridge(private val context: Context, messenger: BinaryMessenger)
                     abandon()
                     result.success(null)
                 }
+                "headphonesConnected" -> result.success(headphonesConnected())
                 else -> result.notImplemented()
             }
         }
+    }
+
+    private fun headphonesConnected(): Boolean {
+        val headphoneTypes = mutableSetOf(
+            AudioDeviceInfo.TYPE_WIRED_HEADSET,
+            AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+            AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            headphoneTypes.add(AudioDeviceInfo.TYPE_USB_HEADSET)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            headphoneTypes.add(AudioDeviceInfo.TYPE_BLE_HEADSET)
+        }
+        return audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            .any { it.type in headphoneTypes }
     }
 
     private fun send(state: String) {

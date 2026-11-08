@@ -1199,6 +1199,14 @@
   "@settingsBackgroundAudioDetail": {
     "description": "Settings › Video › Playback: what « Background audio » does."
   },
+  "settingsBackgroundAudioHeadphonesOnly": "Only with headphones",
+  "@settingsBackgroundAudioHeadphonesOnly": {
+    "description": "Settings › Video › Playback (Android), under « Background audio » while it is on: the switch that keeps the sound playing outside the app only when headphones are connected."
+  },
+  "settingsBackgroundAudioHeadphonesOnlyDetail": "Pauses the live stream when you leave the app with no headphones connected.",
+  "@settingsBackgroundAudioHeadphonesOnlyDetail": {
+    "description": "Settings › Video › Playback: what « Only with headphones » does."
+  },
   "settingsAutoPip": "Automatic picture-in-picture",
   "@settingsAutoPip": {
     "description": "Settings › Video › Playback: switch that lets a playing video move to the floating window when you leave the app (Android)."

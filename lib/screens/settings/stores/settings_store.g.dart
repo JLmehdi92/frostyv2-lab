@@ -81,6 +81,8 @@ SettingsStore _$SettingsStoreFromJson(
   ..useTextureRendering = json['useTextureRendering'] as bool? ?? true
   ..keepScreenAwake = json['keepScreenAwake'] as bool? ?? true
   ..backgroundAudio = json['backgroundAudio'] as bool? ?? false
+  ..backgroundAudioHeadphonesOnly =
+      json['backgroundAudioHeadphonesOnly'] as bool? ?? false
   ..autoPictureInPicture = json['autoPictureInPicture'] as bool? ?? true
   ..playerEngine =
       $enumDecodeNullable(
@@ -246,6 +248,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'useTextureRendering': instance.useTextureRendering,
   'keepScreenAwake': instance.keepScreenAwake,
   'backgroundAudio': instance.backgroundAudio,
+  'backgroundAudioHeadphonesOnly': instance.backgroundAudioHeadphonesOnly,
   'autoPictureInPicture': instance.autoPictureInPicture,
   'playerEngine': _$PlayerEngineEnumMap[instance.playerEngine]!,
   'liveCatchUpMode': _$LiveCatchUpModeEnumMap[instance.liveCatchUpMode]!,
@@ -911,6 +914,28 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     _$backgroundAudioAtom.reportWrite(value, super.backgroundAudio, () {
       super.backgroundAudio = value;
     });
+  }
+
+  late final _$backgroundAudioHeadphonesOnlyAtom = Atom(
+    name: '_SettingsStoreBase.backgroundAudioHeadphonesOnly',
+    context: context,
+  );
+
+  @override
+  bool get backgroundAudioHeadphonesOnly {
+    _$backgroundAudioHeadphonesOnlyAtom.reportRead();
+    return super.backgroundAudioHeadphonesOnly;
+  }
+
+  @override
+  set backgroundAudioHeadphonesOnly(bool value) {
+    _$backgroundAudioHeadphonesOnlyAtom.reportWrite(
+      value,
+      super.backgroundAudioHeadphonesOnly,
+      () {
+        super.backgroundAudioHeadphonesOnly = value;
+      },
+    );
   }
 
   late final _$autoPictureInPictureAtom = Atom(
@@ -2398,6 +2423,7 @@ defaultToHighestQuality: ${defaultToHighestQuality},
 useTextureRendering: ${useTextureRendering},
 keepScreenAwake: ${keepScreenAwake},
 backgroundAudio: ${backgroundAudio},
+backgroundAudioHeadphonesOnly: ${backgroundAudioHeadphonesOnly},
 autoPictureInPicture: ${autoPictureInPicture},
 playerEngine: ${playerEngine},
 liveCatchUpMode: ${liveCatchUpMode},

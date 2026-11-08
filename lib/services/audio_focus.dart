@@ -68,6 +68,11 @@ class AudioFocus {
     await _invoke('abandon');
   }
 
+  Future<bool?> headphonesConnected() async {
+    if (!_supported) return null;
+    return _invoke('headphonesConnected');
+  }
+
   /// The platform's answer, or null when it failed (logged).
   Future<bool?> _invoke(String method) async {
     try {

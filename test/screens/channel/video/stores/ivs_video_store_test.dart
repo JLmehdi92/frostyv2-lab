@@ -84,6 +84,7 @@ void main() {
       now: now,
       bufferFallback: bufferFallback ?? BufferFallback(),
       autoLatencyWatchdog: autoLatencyWatchdog,
+      backgroundPauseDelay: Duration.zero,
     );
     created = s;
     await s.ready;
@@ -1445,6 +1446,81 @@ void main() {
       await settle();
       await change('loss');
       expect(native.callsNamed('pause'), hasLength(2));
+    });
+
+    group('background audio only with headphones', () {
+      var headphones = true;
+
+      setUp(() {
+        headphones = true;
+        messenger.setMockMethodCallHandler(focusChannel, (call) async {
+          focusCalls.add(call.method);
+          return switch (call.method) {
+            'request' => granted,
+            'headphonesConnected' => headphones,
+            _ => null,
+          };
+        });
+        settingsStore
+          ..backgroundAudio = true
+          ..backgroundAudioHeadphonesOnly = true;
+      });
+
+      Future<IvsVideoStore> playing() async {
+        final s = await createStore(audioFocus: focus);
+        await native.emit({'type': 'state', 'state': 'PLAYING'});
+        await settle();
+        return s;
+      }
+
+      test('leaving the app without headphones pauses the stream', () async {
+        headphones = false;
+        store = await playing();
+        await store.handleAppBackground();
+        expect(native.callsNamed('pause'), hasLength(1));
+      });
+
+      test('leaving with headphones keeps it playing', () async {
+        store = await playing();
+        await store.handleAppBackground();
+        expect(native.callsNamed('pause'), isEmpty);
+      });
+
+      test(
+        'the option off, or background audio off, changes nothing',
+        () async {
+          headphones = false;
+          settingsStore.backgroundAudioHeadphonesOnly = false;
+          store = await playing();
+          await store.handleAppBackground();
+          settingsStore
+            ..backgroundAudioHeadphonesOnly = true
+            ..backgroundAudio = false;
+          await store.handleAppBackground();
+          expect(native.callsNamed('pause'), isEmpty);
+          expect(focusCalls, isNot(contains('headphonesConnected')));
+        },
+      );
+
+      test('picture-in-picture keeps it playing', () async {
+        headphones = false;
+        store = await playing();
+        store.onPipEntered();
+        await store.handleAppBackground();
+        expect(native.callsNamed('pause'), isEmpty);
+      });
+
+      test('an unknown answer keeps it playing', () async {
+        messenger.setMockMethodCallHandler(focusChannel, (call) async {
+          if (call.method == 'headphonesConnected') {
+            throw PlatformException(code: 'x');
+          }
+          return call.method == 'request' ? granted : null;
+        });
+        store = await playing();
+        await store.handleAppBackground();
+        expect(native.callsNamed('pause'), isEmpty);
+      });
     });
 
     test('a lasting loss during a call lets the focus go', () async {

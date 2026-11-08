@@ -812,6 +812,9 @@ class _VideoChatState extends State<VideoChat>
       _hypeTrainStore?.handleAppResume();
       unawaited(_eventsStore.resume());
     } else if (state == AppLifecycleState.paused) {
+      if (_videoStore case final IvsVideoStore store) {
+        unawaited(store.handleAppBackground());
+      }
       // Points and celebrations matter only on screen.
       _eventsStore.pause();
       unawaited(_liveProgress.save(report: true));

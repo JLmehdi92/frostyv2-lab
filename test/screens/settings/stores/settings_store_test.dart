@@ -538,6 +538,19 @@ void main() {
     });
   });
 
+  group('backgroundAudioHeadphonesOnly', () {
+    test('off by default, kept, and reset with the video settings', () {
+      expect(SettingsStore.fromJson({}).backgroundAudioHeadphonesOnly, isFalse);
+      final store = SettingsStore.fromJson({
+        'backgroundAudioHeadphonesOnly': true,
+      });
+      expect(store.backgroundAudioHeadphonesOnly, isTrue);
+      expect(store.toJson()['backgroundAudioHeadphonesOnly'], isTrue);
+      store.resetVideoSettings();
+      expect(store.backgroundAudioHeadphonesOnly, isFalse);
+    });
+  });
+
   group('showCaptions', () {
     test('off by default, kept, and reset with the video settings', () {
       expect(SettingsStore.fromJson({}).showCaptions, isFalse);
