@@ -11322,5 +11322,33 @@
         "example": "contributed"
       }
     }
+  },
+  "communityTabTitle": "Community",
+  "@communityTabTitle": {
+    "description": "Title of the channel’s Community sheet (challenges, goals, and top supporters), opened from the points panel."
+  },
+  "communityChallenges": "Challenges",
+  "@communityChallenges": {
+    "description": "Section of the Community sheet listing the community goals viewers fund with channel points."
+  },
+  "communityCreatorGoals": "Goals",
+  "@communityCreatorGoals": {
+    "description": "Section of the Community sheet listing the streamer’s sub and follower goals."
+  },
+  "communityTopSupporters": "Top supporters",
+  "@communityTopSupporters": {
+    "description": "Section of the Community sheet listing the top cheerers and gifters."
+  },
+  "communitySeeAll": "See all",
+  "@communitySeeAll": {
+    "description": "Button under the top supporters that opens the full leaderboards."
+  },
+  "communityNothing": "Nothing here right now.",
+  "@communityNothing": {
+    "description": "A Community sheet section with nothing to show."
+  },
+  "communitySectionFailed": "Couldn’t load this section.",
+  "@communitySectionFailed": {
+    "description": "A Community sheet section Twitch did not answer for."
   }
 }

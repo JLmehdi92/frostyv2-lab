@@ -8833,4 +8833,25 @@ class AppLocalizationsEn extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String get communityTabTitle => 'Community';
+
+  @override
+  String get communityChallenges => 'Challenges';
+
+  @override
+  String get communityCreatorGoals => 'Goals';
+
+  @override
+  String get communityTopSupporters => 'Top supporters';
+
+  @override
+  String get communitySeeAll => 'See all';
+
+  @override
+  String get communityNothing => 'Nothing here right now.';
+
+  @override
+  String get communitySectionFailed => 'Couldn’t load this section.';
 }

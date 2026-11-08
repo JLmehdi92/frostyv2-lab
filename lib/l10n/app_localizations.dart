@@ -11756,6 +11756,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{status, select, contributed{Thank you! Your points went to the goal.} notEnoughPoints{You don’t have enough points for this.} maxPerStream{You’ve given the most allowed for this stream. Try again next stream.} notOpen{This goal isn’t taking points right now.} refused{Twitch declined this contribution.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so contribute on twitch.tv.} signedOut{Log in again to contribute from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
   String goalContributionResult({required String status});
+
+  /// Title of the channel’s Community sheet (challenges, goals, and top supporters), opened from the points panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get communityTabTitle;
+
+  /// Section of the Community sheet listing the community goals viewers fund with channel points.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenges'**
+  String get communityChallenges;
+
+  /// Section of the Community sheet listing the streamer’s sub and follower goals.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get communityCreatorGoals;
+
+  /// Section of the Community sheet listing the top cheerers and gifters.
+  ///
+  /// In en, this message translates to:
+  /// **'Top supporters'**
+  String get communityTopSupporters;
+
+  /// Button under the top supporters that opens the full leaderboards.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get communitySeeAll;
+
+  /// A Community sheet section with nothing to show.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here right now.'**
+  String get communityNothing;
+
+  /// A Community sheet section Twitch did not answer for.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load this section.'**
+  String get communitySectionFailed;
 }
 
 class _AppLocalizationsDelegate

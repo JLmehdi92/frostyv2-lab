@@ -12,6 +12,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
@@ -39,6 +40,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
 import 'package:onset/screens/channel/chat/widgets/community_goals_sheet.dart';
+import 'package:onset/screens/channel/chat/widgets/community_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/drops_card.dart';
 import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
@@ -52,6 +54,7 @@ import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:provider/provider.dart';
 
 import '../fixtures/community_goal_payloads.dart';
+import '../fixtures/community_gql_payloads.dart';
 import '../fixtures/drops_gql_payloads.dart';
 import '../fixtures/irc_messages.dart';
 import '../helpers/chat_message_harness.dart';
@@ -1148,6 +1151,46 @@ void main() {
         expect(find.text(french.communityGoalContributeTitle), findsOneWidget);
         await expectFrenchThroughout(tester, 'goal contribution, $at');
       });
+
+      for (final filled in [true, false]) {
+        testWidgets('the Community sheet, filled $filled, $at', (tester) async {
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: CommunitySheet(
+                loadChallenges: () async => filled
+                    ? CommunityGoal.listFrom(
+                        communityGoalsResponse([communityGoalFixture()]),
+                      )
+                    : null,
+                loadLeaderboards: () async => filled
+                    ? ChannelLeaderboards.tryParse(leaderboardsResponse)
+                    : null,
+                creatorGoals: () => filled
+                    ? const [
+                        CreatorGoal(
+                          id: 'g',
+                          kind: CreatorGoalKind.followers,
+                          state: CreatorGoalState.active,
+                          description: 'Objectif 1k',
+                          current: 640,
+                          target: 1000,
+                        ),
+                      ]
+                    : const [],
+                balance: () => 1000,
+                contribute: (_, _) async => GoalContributionResult.contributed,
+                onSeeAllSupporters: () {},
+              ),
+            ),
+            size: size,
+            textScale: scale,
+          );
+          await tester.pumpAndSettle();
+          expect(find.text(french.communityTabTitle), findsOneWidget);
+          await expectFrenchThroughout(tester, 'community $filled, $at');
+        });
+      }
 
       testWidgets('the streak help without a streak, $at', (tester) async {
         await pumpLocalized(

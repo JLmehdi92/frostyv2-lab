@@ -155,6 +155,29 @@ void main() {
     expect(find.text('Contribute'), findsOneWidget);
   });
 
+  testWidgets('the community row opens the Community sheet', (tester) async {
+    when(
+      () => community.getCommunityGoals(
+        channelId: any(named: 'channelId'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer((_) async => const []);
+    when(
+      () => community.getLeaderboards(
+        channelId: any(named: 'channelId'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer((_) async => null);
+    await pump(tester, noDropCampaignsResponse);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('points-community')));
+    await tester.tap(find.byKey(const ValueKey('points-community')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Top supporters'), findsOneWidget);
+    expect(find.text('Challenges'), findsOneWidget);
+  });
+
   group('communityDropsLine', () {
     final l = AppLocalizationsEn();
     DropCampaign one(Map<String, Object?> drop) => DropCampaign.listFrom(

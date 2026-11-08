@@ -8952,4 +8952,25 @@ class AppLocalizationsFr extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String get communityTabTitle => 'Communauté';
+
+  @override
+  String get communityChallenges => 'Défis';
+
+  @override
+  String get communityCreatorGoals => 'Objectifs';
+
+  @override
+  String get communityTopSupporters => 'Meilleurs soutiens';
+
+  @override
+  String get communitySeeAll => 'Tout voir';
+
+  @override
+  String get communityNothing => 'Rien pour le moment.';
+
+  @override
+  String get communitySectionFailed => 'Impossible de charger cette section.';
 }

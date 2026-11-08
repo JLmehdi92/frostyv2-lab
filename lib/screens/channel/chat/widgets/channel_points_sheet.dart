@@ -12,6 +12,7 @@ import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/watch_streak.dart';
 import 'package:onset/screens/channel/chat/widgets/community_goals_sheet.dart';
+import 'package:onset/screens/channel/chat/widgets/community_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/drops_card.dart';
 import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/points_intro.dart';
@@ -437,6 +438,29 @@ class _PanelState extends State<_Panel> {
                   ),
                 ],
 
+                if (events != null && events.hasCommunityGoals)
+                  SheetRow(
+                    key: const ValueKey('points-community'),
+                    glyph: SheetGlyphKind.people,
+                    label: context.l10n.communityTabTitle,
+                    end: SheetRowEnd.chevron,
+                    onTap: () => showOnsetSheet<void>(
+                      context: context,
+                      panel: true,
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      builder: (sheetContext) => CommunitySheet(
+                        loadChallenges: events.loadCommunityGoals,
+                        loadLeaderboards: events.loadLeaderboards,
+                        creatorGoals: () => events.goals,
+                        contribute: events.contributeToGoal,
+                        balance: () => events.points.balance,
+                        onSeeAllSupporters: () => showLeaderboards(
+                          sheetContext,
+                          events.loadLeaderboards,
+                        ),
+                      ),
+                    ),
+                  ),
                 if (events != null && events.hasCommunityGoals)
                   SheetRow(
                     key: const ValueKey('points-community-goals'),
