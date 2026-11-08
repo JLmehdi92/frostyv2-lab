@@ -2004,6 +2004,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get streamOffline => 'Hors ligne';
 
   @override
+  String get streamWatchLatestBroadcast => 'Voir la dernière diffusion';
+
+  @override
+  String get streamEndedPlayingBroadcast =>
+      'Le live est terminé. Lecture de l’ancienne diffusion.';
+
+  @override
   String streamFollowingForYears({required int count}) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

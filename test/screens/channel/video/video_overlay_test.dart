@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/models/user.dart';
+import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/tablet_video_column.dart';
 import 'package:onset/screens/channel/video/latency_pill.dart';
@@ -40,6 +41,7 @@ void main() {
     required Size video,
     bool dark = true,
     bool? infoBelow,
+    Vod? latestBroadcast,
   }) async {
     tester.view.physicalSize = screen;
     tester.view.devicePixelRatio = 1;
@@ -49,6 +51,7 @@ void main() {
       videoStore: player,
       chatStore: chat,
       settingsStore: player.settingsStore,
+      latestBroadcast: latestBroadcast,
     );
     await tester.pumpWidget(
       Provider<TwitchApi>.value(
@@ -210,6 +213,34 @@ void main() {
       expect(find.byTooltip('Refresh'), findsOneWidget);
       expect(find.text('Offline'), findsOneWidget);
       expect(find.byType(LatencyPill), findsNothing);
+      await done(tester);
+    });
+
+    testWidgets('offline with a past broadcast: a button to watch it', (
+      tester,
+    ) async {
+      final player = FakePlayer(offline: fakeOfflineChannel);
+      await pump(
+        tester,
+        player,
+        screen: const Size(390, 844),
+        video: const Size(390, 220),
+        latestBroadcast: Vod(
+          id: '1000000001',
+          title: 'Last night',
+          lengthSeconds: 3600,
+          createdAt: DateTime.utc(2026, 11, 7),
+          viewCount: 1,
+          ownerId: '42',
+          ownerLogin: 'streamer',
+          ownerDisplayName: 'Streamer',
+          type: VodType.archive,
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('Watch latest broadcast'), findsOneWidget);
+      expect(find.text('Past broadcasts'), findsNothing);
+      expect(find.byTooltip('Videos'), findsOneWidget);
       await done(tester);
     });
   });

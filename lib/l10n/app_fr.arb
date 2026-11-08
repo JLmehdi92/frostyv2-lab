@@ -518,6 +518,8 @@
   "streamTagSemantics": "Tag {tag}",
   "streamWatch": "Regarder",
   "streamOffline": "Hors ligne",
+  "streamWatchLatestBroadcast": "Voir la dernière diffusion",
+  "streamEndedPlayingBroadcast": "Le live est terminé. Lecture de l’ancienne diffusion.",
   "streamFollowingForYears": "{count, plural, one{Suivie depuis {count}\u00a0an} other{Suivie depuis {count}\u00a0ans}}",
   "streamFollowingForMonths": "{count, plural, one{Suivie depuis {count}\u00a0mois} other{Suivie depuis {count}\u00a0mois}}",
   "streamFollowingForDays": "{count, plural, one{Suivie depuis {count}\u00a0jour} other{Suivie depuis {count}\u00a0jours}}",

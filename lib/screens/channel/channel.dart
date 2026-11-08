@@ -37,6 +37,7 @@ import 'package:onset/screens/channel/landscape_chat_cycle.dart';
 import 'package:onset/screens/channel/portrait_split.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
+import 'package:onset/screens/channel/stream_end.dart';
 import 'package:onset/screens/channel/tablet_video_column.dart';
 import 'package:onset/screens/channel/video/content_warning_gate.dart';
 import 'package:onset/screens/channel/video/ivs_stats_panel.dart';
@@ -58,6 +59,7 @@ import 'package:onset/screens/channel/video/web_content_gate.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/vod/channel_videos.dart';
+import 'package:onset/screens/vod/vod_screen.dart';
 import 'package:onset/services/playback_focus.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/stores/whisper_store.dart';
@@ -151,6 +153,15 @@ class _VideoChatState extends State<VideoChat>
   /// Asks about the viewer again when they become known (a cold start) or
   /// change (signed in or out).
   ReactionDisposer? _viewerReaction;
+
+  ReactionDisposer? _streamEndReaction;
+  StreamTwitch? _liveStream;
+  Vod? _latestBroadcast;
+  var _streamEndEpoch = 0;
+  late final _streamEnd = StreamEndLookup(
+    api: context.twitchApi,
+    vods: context.twitchVodService,
+  );
 
   // PiP drag state - essential only
   double _pipDragDistance = 0;
@@ -657,6 +668,7 @@ class _VideoChatState extends State<VideoChat>
     );
     _shoutouts = _eventsStore.shoutouts.listen(_showShoutout);
     _infoStore.start();
+    _watchStreamEnd();
     final auth = context.authStore;
     _viewerReaction = reaction(
       (_) => auth.user.details?.id,
@@ -678,6 +690,7 @@ class _VideoChatState extends State<VideoChat>
           ..setContentGate(_contentGate);
         _liveProgress.attach(_videoStore);
       });
+      _watchStreamEnd();
       if (notice != null) {
         ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           SnackBar(
@@ -802,6 +815,54 @@ class _VideoChatState extends State<VideoChat>
       _reassertScreenState();
     });
   }
+
+  void _watchStreamEnd() {
+    _streamEndReaction?.call();
+    final store = _videoStore;
+    _streamEndReaction = reaction(
+      (_) =>
+          (live: store.streamInfo, offline: store.offlineChannelInfo != null),
+      (state) => _onLiveState(state.live, offline: state.offline),
+      fireImmediately: true,
+    );
+  }
+
+  void _onLiveState(StreamTwitch? live, {required bool offline}) {
+    if (live != null) {
+      _streamEndEpoch++;
+      _liveStream = live;
+      if (_latestBroadcast != null) setState(() => _latestBroadcast = null);
+      return;
+    }
+    if (!offline) return;
+    final epoch = ++_streamEndEpoch;
+    final ended = _liveStream;
+    _liveStream = null;
+    unawaited(_showLatestBroadcast(ended, epoch));
+  }
+
+  Future<void> _showLatestBroadcast(StreamTwitch? ended, int epoch) async {
+    final login = widget.userLogin;
+    final vod = ended == null
+        ? await _streamEnd.latestBroadcast(login)
+        : await _streamEnd.latestBroadcastIfOffline(login);
+    if (!mounted || epoch != _streamEndEpoch || vod == null) return;
+    setState(() => _latestBroadcast = vod);
+    if (ended == null || !isVodOfBroadcast(vod, ended)) return;
+    if (!_canSwitchToBroadcast) return;
+    ScaffoldMessenger.maybeOf(context)
+      ?..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(content: Text(context.l10n.streamEndedPlayingBroadcast)),
+      );
+    unawaited(VodScreen.open(context, vodId: vod.id, vod: vod));
+  }
+
+  bool get _canSwitchToBroadcast =>
+      ModalRoute.of(context)?.isCurrent == true &&
+      !_videoStore.isInPipMode &&
+      _videoStore.settingsStore.showVideo &&
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -1133,6 +1194,7 @@ class _VideoChatState extends State<VideoChat>
             chatStore: _chatStore,
             settingsStore: settingsStore,
             onLongPressStats: _eventsStore.playPreviewCelebration,
+            latestBroadcast: _latestBroadcast,
           );
 
           if (_videoStore.paused || _videoStore.streamInfo == null) {
@@ -1836,6 +1898,7 @@ class _VideoChatState extends State<VideoChat>
 
     // Always: the mini window shows no hype train or highlights, and
     // restoring the channel builds new stores (which refetch).
+    _streamEndReaction?.call();
     _hypeTrainSettingReaction?.call();
     _hypeTrainStore?.dispose();
     _highlightsSettingReaction?.call();

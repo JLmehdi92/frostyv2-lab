@@ -32,6 +32,7 @@ import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/activity/stores/activity_store.dart';
 import 'package:onset/screens/channel/channel.dart';
+import 'package:onset/screens/channel/stream_end.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/clips/clip_screen.dart';
 import 'package:onset/screens/home/home.dart';
@@ -456,8 +457,7 @@ class _MyAppState extends State<MyApp> {
   /// or started from it.
   Future<void> _initGoLive() async {
     // The channel deep link path: looks the channel up and opens it here.
-    void openChannel(String login) =>
-        handleDeepLink(Uri.https('www.twitch.tv', '/$login'));
+    void openChannel(String login) => unawaited(_openGoLiveNotice(login));
     try {
       await GoLiveNotifications.init(
         onOpen: openChannel,
@@ -480,6 +480,28 @@ class _MyAppState extends State<MyApp> {
       debugPrint('Go-live notices unavailable: $e');
       Telemetry.recordError(e, stack, reason: 'go-live init');
     }
+  }
+
+  Future<void> _openGoLiveNotice(String login) async {
+    final lookup = StreamEndLookup(
+      api: context.read<TwitchApi>(),
+      vods: context.read<TwitchVodService>(),
+    );
+    final vod = await lookup.latestBroadcastIfOffline(login);
+    if (!mounted) return;
+    final navigator = navigatorKey.currentState;
+    if (vod == null || navigator == null) {
+      await handleDeepLink(Uri.https('www.twitch.tv', '/$login'));
+      return;
+    }
+    unawaited(
+      navigator.push(
+        MaterialPageRoute(
+          settings: const RouteSettings(name: VodScreen.routeName),
+          builder: (context) => VodScreen(vodId: vod.id, vod: vod),
+        ),
+      ),
+    );
   }
 
   /// A tapped mention notice: its chat back on screen. The channel is

@@ -2514,6 +2514,14 @@
   "@streamOffline": {
     "description": "A channel that is not live: the offline channel card's status and the Offline section of Following."
   },
+  "streamWatchLatestBroadcast": "Watch latest broadcast",
+  "@streamWatchLatestBroadcast": {
+    "description": "The offline live player: the button that opens the channel's most recent past broadcast."
+  },
+  "streamEndedPlayingBroadcast": "The stream ended. Playing its past broadcast.",
+  "@streamEndedPlayingBroadcast": {
+    "description": "Snackbar when the live stream being watched ends and the app opens the past broadcast of that stream."
+  },
   "streamFollowingForYears": "{count, plural, one{Following for {count} year} other{Following for {count} years}}",
   "@streamFollowingForYears": {
     "description": "Offline channel card: how long the viewer has followed the channel (« Suivie » agrees with « chaîne »).",

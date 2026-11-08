@@ -10,6 +10,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/ivs_stats.dart';
 import 'package:onset/models/quality_ladder.dart';
 import 'package:onset/models/user.dart';
+import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
@@ -127,6 +128,10 @@ void main() {
               offline: fakeOfflineChannel,
               settings: settings,
             ),
+            'offline with a broadcast': FakePlayer(
+              offline: fakeOfflineChannel,
+              settings: settings,
+            ),
           };
           for (final MapEntry(key: name, value: player) in players.entries) {
             for (final fullScreen in [false, true]) {
@@ -140,6 +145,19 @@ void main() {
                     videoStore: player,
                     chatStore: chat,
                     settingsStore: settings,
+                    latestBroadcast: name == 'offline with a broadcast'
+                        ? Vod(
+                            id: '1000000001',
+                            title: 'Partie de la veille',
+                            lengthSeconds: 3600,
+                            createdAt: DateTime.utc(2026, 11, 7),
+                            viewCount: 1,
+                            ownerId: '42',
+                            ownerLogin: 'streamer',
+                            ownerDisplayName: 'Streamer',
+                            type: VodType.archive,
+                          )
+                        : null,
                   ),
                   size,
                 ),

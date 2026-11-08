@@ -3218,6 +3218,18 @@ abstract class AppLocalizations {
   /// **'Offline'**
   String get streamOffline;
 
+  /// The offline live player: the button that opens the channel's most recent past broadcast.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch latest broadcast'**
+  String get streamWatchLatestBroadcast;
+
+  /// Snackbar when the live stream being watched ends and the app opens the past broadcast of that stream.
+  ///
+  /// In en, this message translates to:
+  /// **'The stream ended. Playing its past broadcast.'**
+  String get streamEndedPlayingBroadcast;
+
   /// Offline channel card: how long the viewer has followed the channel (« Suivie » agrees with « chaîne »).
   ///
   /// In en, this message translates to:

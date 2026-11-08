@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/chat/details/chat_users_list.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/tablet_video_column.dart';
@@ -21,6 +22,7 @@ import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/vod/channel_videos.dart';
+import 'package:onset/screens/vod/vod_screen.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -154,6 +156,8 @@ class VideoOverlay extends StatelessWidget {
   /// that decides whether it is too loud or too dim.
   final VoidCallback? onLongPressStats;
 
+  final Vod? latestBroadcast;
+
   /// The room the top row keeps for the latency pill.
   static const latencySlotKey = ValueKey('latency-slot');
 
@@ -163,6 +167,7 @@ class VideoOverlay extends StatelessWidget {
     required this.chatStore,
     required this.settingsStore,
     this.onLongPressStats,
+    this.latestBroadcast,
   });
 
   @override
@@ -409,11 +414,20 @@ class VideoOverlay extends StatelessWidget {
                 ),
               ),
               Center(
-                child: FilledButton.tonalIcon(
-                  onPressed: openVideos,
-                  icon: const Icon(Icons.video_library_outlined),
-                  label: Text(l.profilePastBroadcasts),
-                ),
+                child: switch (latestBroadcast) {
+                  final vod? => FilledButton.tonalIcon(
+                    key: const ValueKey('latest-broadcast'),
+                    onPressed: () =>
+                        VodScreen.open(context, vodId: vod.id, vod: vod),
+                    icon: const Icon(Icons.play_circle_outline_rounded),
+                    label: Text(l.streamWatchLatestBroadcast),
+                  ),
+                  null => FilledButton.tonalIcon(
+                    onPressed: openVideos,
+                    icon: const Icon(Icons.video_library_outlined),
+                    label: Text(l.profilePastBroadcasts),
+                  ),
+                },
               ),
               Positioned(
                 right: metrics.right,
