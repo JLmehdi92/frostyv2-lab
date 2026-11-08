@@ -54,8 +54,8 @@ void main() {
       ),
       locale: en,
     );
-    expect(find.text('Goal 1 of 2 · Sub goal'), findsOneWidget);
-    expect(find.text('Goal 2 of 2 · Follower goal'), findsOneWidget);
+    expect(find.text('1/2 · Sub goal'), findsOneWidget);
+    expect(find.text('2/2 · Follower goal'), findsOneWidget);
   });
 
   testWidgets('follows the store and opens the details', (tester) async {

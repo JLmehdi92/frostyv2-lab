@@ -8273,7 +8273,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String goalOrdinal({required int index, required int count}) {
-    return 'Goal $index of $count';
+    return '$index/$count';
   }
 
   @override

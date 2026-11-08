@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/creator_goal.dart';
 import 'package:onset/screens/channel/goals/creator_goal_banner.dart';
+import 'package:onset/screens/home/search/search.dart';
 
 import '../helpers/l10n.dart';
 
@@ -24,6 +25,9 @@ Map<String, Widget Function()> lot6Screens() => {
       ],
     ),
   ),
+  'the search tag link': () => Scaffold(
+    body: Center(child: SearchTagLink(tag: 'Speedrun', onOpen: () {})),
+  ),
   'the goal reached dialog': () => Scaffold(
     body: CreatorGoalDialog(
       goal: _goal('a', CreatorGoalKind.subs, current: 1000),
@@ -42,7 +46,7 @@ void main() {
           await expectFrenchThroughout(
             tester,
             '$name, $at',
-            content: const ['Nouvelle caméra'],
+            content: const ['Nouvelle caméra', 'Speedrun'],
           );
         });
       }

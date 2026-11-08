@@ -1799,7 +1799,7 @@
   "goalKindNewSubPoints": "Objectif de nouveaux points d’abonnement",
   "goalKindFollowers": "Objectif de followers",
   "goalKindOther": "Objectif",
-  "goalOrdinal": "Objectif {index} sur {count}",
+  "goalOrdinal": "{index}/{count}",
   "goalProgress": "{current} sur {target}",
   "goalReachedTitle": "Objectif atteint",
   "goalReachedBody": "La chaîne a atteint cet objectif. Merci à toutes les personnes qui y ont contribué\u202f!",

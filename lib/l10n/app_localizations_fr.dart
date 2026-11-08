@@ -8380,7 +8380,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String goalOrdinal({required int index, required int count}) {
-    return 'Objectif $index sur $count';
+    return '$index/$count';
   }
 
   @override

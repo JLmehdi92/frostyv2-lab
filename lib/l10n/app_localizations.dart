@@ -11043,10 +11043,10 @@ abstract class AppLocalizations {
   /// **'Goal'**
   String get goalKindOther;
 
-  /// Numbers a goal when the channel runs several at once, before its title on the goal banner.
+  /// Numbers a goal when the channel runs several at once, before its title on the goal banner (« 1/2 · Sub goal »).
   ///
   /// In en, this message translates to:
-  /// **'Goal {index} of {count}'**
+  /// **'{index}/{count}'**
   String goalOrdinal({required int index, required int count});
 
   /// How far a creator goal is, on its banner and in its dialog.

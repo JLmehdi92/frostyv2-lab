@@ -16,6 +16,7 @@ const _sameInBothLanguages = {
   'searchSuggestions': '"Suggestions" is the French word too.',
   'blockReasonSpam': '"Spam" is the French word too.',
   'vodSeekValueChapter': 'Two placeholders joined by a comma.',
+  'goalOrdinal': 'Two numbers joined by a slash.',
   'modToolsPredictionPoints':
       '"point(s)" is the French word too; a number leads.',
   'modToolsRedemptionReward':

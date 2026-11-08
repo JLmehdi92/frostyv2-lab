@@ -10585,9 +10585,9 @@
   "@goalKindOther": {
     "description": "The title of a creator goal of a kind ONSET does not know, on the goal banner and in its dialog."
   },
-  "goalOrdinal": "Goal {index} of {count}",
+  "goalOrdinal": "{index}/{count}",
   "@goalOrdinal": {
-    "description": "Numbers a goal when the channel runs several at once, before its title on the goal banner.",
+    "description": "Numbers a goal when the channel runs several at once, before its title on the goal banner (« 1/2 · Sub goal »).",
     "placeholders": {
       "index": {
         "type": "int",
