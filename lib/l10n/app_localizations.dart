@@ -10790,6 +10790,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The intro will show again.'**
   String get settingsPointsIntroReset;
+
+  /// The one-time feedback prompt's title (after a dozen app opens).
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoying ONSET?'**
+  String get feedbackPromptTitle;
+
+  /// The feedback prompt's text.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what works and what doesn’t. Feedback goes to the project’s GitHub page, where you can report a bug or suggest an idea.'**
+  String get feedbackPromptMessage;
+
+  /// Feedback prompt: opens the project's GitHub issue page.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get feedbackPromptSend;
+
+  /// Feedback prompt: asks again much later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get feedbackPromptLater;
+
+  /// Feedback prompt: never asks again.
+  ///
+  /// In en, this message translates to:
+  /// **'Don’t ask again'**
+  String get feedbackPromptNever;
+
+  /// Settings › Other › About: opens the project's GitHub issue page.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get settingsSendFeedback;
+
+  /// Settings › Other › About: opens Twitch's Help Center.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch help and support'**
+  String get settingsTwitchHelp;
+
+  /// Settings › Account › On twitch.tv: the profile settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get settingsTwitchProfile;
+
+  /// Settings › Account: the line under Edit profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name, bio, picture — on twitch.tv'**
+  String get settingsTwitchProfileDetail;
+
+  /// Settings › Account › On twitch.tv: the notification and email settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Email and notifications'**
+  String get settingsTwitchNotifications;
+
+  /// Settings › Account: the line under Email and notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'What Twitch emails and notifies you about — on twitch.tv'**
+  String get settingsTwitchNotificationsDetail;
+
+  /// Settings › Account › On twitch.tv: Twitch's parental supervision page.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Center'**
+  String get settingsTwitchFamilyCenter;
+
+  /// Settings › Account: the line under Family Center.
+  ///
+  /// In en, this message translates to:
+  /// **'Parental supervision tools — on twitch.tv'**
+  String get settingsTwitchFamilyCenterDetail;
+
+  /// Settings › Account › On twitch.tv: the subscriptions page.
+  ///
+  /// In en, this message translates to:
+  /// **'My subscriptions'**
+  String get settingsTwitchSubscriptions;
+
+  /// Settings › Account: the line under My subscriptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your subscriptions — on twitch.tv'**
+  String get settingsTwitchSubscriptionsDetail;
+
+  /// Settings › Account › On twitch.tv: the Drops inventory page.
+  ///
+  /// In en, this message translates to:
+  /// **'Drops inventory'**
+  String get settingsTwitchDrops;
+
+  /// Settings › Account: the line under Drops inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards earned by watching — on twitch.tv'**
+  String get settingsTwitchDropsDetail;
+
+  /// Settings › Account › On twitch.tv: the Turbo page (a brand name).
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch Turbo'**
+  String get settingsTwitchTurbo;
+
+  /// Settings › Account: the line under Twitch Turbo.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad-free viewing — on twitch.tv'**
+  String get settingsTwitchTurboDetail;
+
+  /// Settings › Account › On twitch.tv: the Prime Gaming page (a brand name).
+  ///
+  /// In en, this message translates to:
+  /// **'Prime Gaming'**
+  String get settingsTwitchPrime;
+
+  /// Settings › Account: the line under Prime Gaming.
+  ///
+  /// In en, this message translates to:
+  /// **'Your free monthly subscription — on twitch.tv'**
+  String get settingsTwitchPrimeDetail;
+
+  /// Settings › Account › On twitch.tv: Twitch's annual recap page.
+  ///
+  /// In en, this message translates to:
+  /// **'Year recap'**
+  String get settingsTwitchRecap;
+
+  /// Settings › Account: the line under Year recap.
+  ///
+  /// In en, this message translates to:
+  /// **'Your year on Twitch — on twitch.tv'**
+  String get settingsTwitchRecapDetail;
+
+  /// Settings › Account › On twitch.tv: the sign-up page.
+  ///
+  /// In en, this message translates to:
+  /// **'Create another account'**
+  String get settingsTwitchSignup;
+
+  /// Settings › Account: the line under Create another account.
+  ///
+  /// In en, this message translates to:
+  /// **'A new Twitch account — on twitch.tv'**
+  String get settingsTwitchSignupDetail;
+
+  /// Settings › Account › On twitch.tv: Twitch's account deletion page.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable or delete account'**
+  String get settingsTwitchDeleteAccount;
+
+  /// Settings › Account: the line under Disable or delete account.
+  ///
+  /// In en, this message translates to:
+  /// **'Close your Twitch account — on twitch.tv'**
+  String get settingsTwitchDeleteAccountDetail;
+
+  /// A poll or prediction card: reports it on twitch.tv (the channel's report page).
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get reportOnTwitch;
+
+  /// Chat message long-press menu: reports the message's author on twitch.tv, and that page's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Report message'**
+  String get chatReportMessage;
+
+  /// Emote details: reports a Twitch emote's owner on twitch.tv, and that page's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Report emote'**
+  String get chatReportEmote;
+
+  /// Clip details: opens the clip on twitch.tv to report it, and that page's title is « Report ».
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get clipReport;
+
+  /// Mod tools: opens Twitch's Mod View for this channel on twitch.tv.
+  ///
+  /// In en, this message translates to:
+  /// **'Mod View'**
+  String get modToolsModView;
+
+  /// Clip details: a pill saying the clip comes from a broadcast that still has its video.
+  ///
+  /// In en, this message translates to:
+  /// **'From a past broadcast'**
+  String get clipFromPastBroadcast;
+
+  /// The player of an offline channel: the line above the past broadcasts button. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is offline. Check back soon!'**
+  String streamCheckBackSoon({required String name});
+
+  /// The player of an offline channel whose name is not known yet.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel is offline. Check back soon!'**
+  String get streamCheckBackSoonGeneric;
+
+  /// Error message. The player when neither the stream nor the channel could be read; « Try again » follows.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load this channel.'**
+  String get streamOfflineLoadFailed;
 }
 
 class _AppLocalizationsDelegate

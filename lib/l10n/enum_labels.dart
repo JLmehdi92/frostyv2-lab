@@ -249,14 +249,34 @@ extension TokenNoticeLabel on TokenNotice {
 extension TwitchAccountPageLabel on TwitchAccountPage {
   /// Its name, as Twitch calls the page.
   String title(AppLocalizations l) => switch (this) {
+    TwitchAccountPage.profile => l.settingsTwitchProfile,
     TwitchAccountPage.security => l.settingsTwitchSecurity,
+    TwitchAccountPage.notifications => l.settingsTwitchNotifications,
     TwitchAccountPage.connections => l.settingsTwitchConnections,
+    TwitchAccountPage.familyCenter => l.settingsTwitchFamilyCenter,
+    TwitchAccountPage.subscriptions => l.settingsTwitchSubscriptions,
+    TwitchAccountPage.drops => l.settingsTwitchDrops,
+    TwitchAccountPage.turbo => l.settingsTwitchTurbo,
+    TwitchAccountPage.prime => l.settingsTwitchPrime,
+    TwitchAccountPage.recap => l.settingsTwitchRecap,
+    TwitchAccountPage.signup => l.settingsTwitchSignup,
+    TwitchAccountPage.deleteAccount => l.settingsTwitchDeleteAccount,
   };
 
   /// The line under its name: what it holds, and that it is on twitch.tv.
   String detail(AppLocalizations l) => switch (this) {
+    TwitchAccountPage.profile => l.settingsTwitchProfileDetail,
     TwitchAccountPage.security => l.settingsTwitchSecurityDetail,
+    TwitchAccountPage.notifications => l.settingsTwitchNotificationsDetail,
     TwitchAccountPage.connections => l.settingsTwitchConnectionsDetail,
+    TwitchAccountPage.familyCenter => l.settingsTwitchFamilyCenterDetail,
+    TwitchAccountPage.subscriptions => l.settingsTwitchSubscriptionsDetail,
+    TwitchAccountPage.drops => l.settingsTwitchDropsDetail,
+    TwitchAccountPage.turbo => l.settingsTwitchTurboDetail,
+    TwitchAccountPage.prime => l.settingsTwitchPrimeDetail,
+    TwitchAccountPage.recap => l.settingsTwitchRecapDetail,
+    TwitchAccountPage.signup => l.settingsTwitchSignupDetail,
+    TwitchAccountPage.deleteAccount => l.settingsTwitchDeleteAccountDetail,
   };
 }
 

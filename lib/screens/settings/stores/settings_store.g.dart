@@ -62,6 +62,9 @@ SettingsStore _$SettingsStoreFromJson(
   ..dataSaver = json['dataSaver'] as bool? ?? false
   ..followedVideosSeenAt = json['followedVideosSeenAt'] as String? ?? ''
   ..pointsIntroSeen = json['pointsIntroSeen'] as bool? ?? false
+  ..appOpens = (json['appOpens'] as num?)?.toInt() ?? 0
+  ..feedbackPromptAtOpen = (json['feedbackPromptAtOpen'] as num?)?.toInt() ?? 0
+  ..feedbackPromptDone = json['feedbackPromptDone'] as bool? ?? false
   ..seenNewFeatures =
       (json['seenNewFeatures'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -275,6 +278,9 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'dataSaver': instance.dataSaver,
   'followedVideosSeenAt': instance.followedVideosSeenAt,
   'pointsIntroSeen': instance.pointsIntroSeen,
+  'appOpens': instance.appOpens,
+  'feedbackPromptAtOpen': instance.feedbackPromptAtOpen,
+  'feedbackPromptDone': instance.feedbackPromptDone,
   'seenNewFeatures': instance.seenNewFeatures,
   'hideViewerCount': instance.hideViewerCount,
   'streamPreviews': instance.streamPreviews,
@@ -825,6 +831,64 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set pointsIntroSeen(bool value) {
     _$pointsIntroSeenAtom.reportWrite(value, super.pointsIntroSeen, () {
       super.pointsIntroSeen = value;
+    });
+  }
+
+  late final _$appOpensAtom = Atom(
+    name: '_SettingsStoreBase.appOpens',
+    context: context,
+  );
+
+  @override
+  int get appOpens {
+    _$appOpensAtom.reportRead();
+    return super.appOpens;
+  }
+
+  @override
+  set appOpens(int value) {
+    _$appOpensAtom.reportWrite(value, super.appOpens, () {
+      super.appOpens = value;
+    });
+  }
+
+  late final _$feedbackPromptAtOpenAtom = Atom(
+    name: '_SettingsStoreBase.feedbackPromptAtOpen',
+    context: context,
+  );
+
+  @override
+  int get feedbackPromptAtOpen {
+    _$feedbackPromptAtOpenAtom.reportRead();
+    return super.feedbackPromptAtOpen;
+  }
+
+  @override
+  set feedbackPromptAtOpen(int value) {
+    _$feedbackPromptAtOpenAtom.reportWrite(
+      value,
+      super.feedbackPromptAtOpen,
+      () {
+        super.feedbackPromptAtOpen = value;
+      },
+    );
+  }
+
+  late final _$feedbackPromptDoneAtom = Atom(
+    name: '_SettingsStoreBase.feedbackPromptDone',
+    context: context,
+  );
+
+  @override
+  bool get feedbackPromptDone {
+    _$feedbackPromptDoneAtom.reportRead();
+    return super.feedbackPromptDone;
+  }
+
+  @override
+  set feedbackPromptDone(bool value) {
+    _$feedbackPromptDoneAtom.reportWrite(value, super.feedbackPromptDone, () {
+      super.feedbackPromptDone = value;
     });
   }
 
@@ -2793,6 +2857,9 @@ clipDiscovery: ${clipDiscovery},
 dataSaver: ${dataSaver},
 followedVideosSeenAt: ${followedVideosSeenAt},
 pointsIntroSeen: ${pointsIntroSeen},
+appOpens: ${appOpens},
+feedbackPromptAtOpen: ${feedbackPromptAtOpen},
+feedbackPromptDone: ${feedbackPromptDone},
 seenNewFeatures: ${seenNewFeatures},
 hideViewerCount: ${hideViewerCount},
 streamPreviews: ${streamPreviews},

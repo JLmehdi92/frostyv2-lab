@@ -8132,4 +8132,124 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPointsIntroReset => 'The intro will show again.';
+
+  @override
+  String get feedbackPromptTitle => 'Enjoying ONSET?';
+
+  @override
+  String get feedbackPromptMessage =>
+      'Tell us what works and what doesn’t. Feedback goes to the project’s GitHub page, where you can report a bug or suggest an idea.';
+
+  @override
+  String get feedbackPromptSend => 'Send feedback';
+
+  @override
+  String get feedbackPromptLater => 'Later';
+
+  @override
+  String get feedbackPromptNever => 'Don’t ask again';
+
+  @override
+  String get settingsSendFeedback => 'Send feedback';
+
+  @override
+  String get settingsTwitchHelp => 'Twitch help and support';
+
+  @override
+  String get settingsTwitchProfile => 'Edit profile';
+
+  @override
+  String get settingsTwitchProfileDetail =>
+      'Display name, bio, picture — on twitch.tv';
+
+  @override
+  String get settingsTwitchNotifications => 'Email and notifications';
+
+  @override
+  String get settingsTwitchNotificationsDetail =>
+      'What Twitch emails and notifies you about — on twitch.tv';
+
+  @override
+  String get settingsTwitchFamilyCenter => 'Family Center';
+
+  @override
+  String get settingsTwitchFamilyCenterDetail =>
+      'Parental supervision tools — on twitch.tv';
+
+  @override
+  String get settingsTwitchSubscriptions => 'My subscriptions';
+
+  @override
+  String get settingsTwitchSubscriptionsDetail =>
+      'Manage your subscriptions — on twitch.tv';
+
+  @override
+  String get settingsTwitchDrops => 'Drops inventory';
+
+  @override
+  String get settingsTwitchDropsDetail =>
+      'Rewards earned by watching — on twitch.tv';
+
+  @override
+  String get settingsTwitchTurbo => 'Twitch Turbo';
+
+  @override
+  String get settingsTwitchTurboDetail => 'Ad-free viewing — on twitch.tv';
+
+  @override
+  String get settingsTwitchPrime => 'Prime Gaming';
+
+  @override
+  String get settingsTwitchPrimeDetail =>
+      'Your free monthly subscription — on twitch.tv';
+
+  @override
+  String get settingsTwitchRecap => 'Year recap';
+
+  @override
+  String get settingsTwitchRecapDetail => 'Your year on Twitch — on twitch.tv';
+
+  @override
+  String get settingsTwitchSignup => 'Create another account';
+
+  @override
+  String get settingsTwitchSignupDetail =>
+      'A new Twitch account — on twitch.tv';
+
+  @override
+  String get settingsTwitchDeleteAccount => 'Disable or delete account';
+
+  @override
+  String get settingsTwitchDeleteAccountDetail =>
+      'Close your Twitch account — on twitch.tv';
+
+  @override
+  String get reportOnTwitch => 'Report';
+
+  @override
+  String get chatReportMessage => 'Report message';
+
+  @override
+  String get chatReportEmote => 'Report emote';
+
+  @override
+  String get clipReport => 'Report';
+
+  @override
+  String get modToolsModView => 'Mod View';
+
+  @override
+  String get clipFromPastBroadcast => 'From a past broadcast';
+
+  @override
+  String streamCheckBackSoon({required String name}) {
+    return '$name is offline. Check back soon!';
+  }
+
+  @override
+  String get streamCheckBackSoonGeneric =>
+      'This channel is offline. Check back soon!';
+
+  @override
+  String get streamOfflineLoadFailed => 'Couldn’t load this channel.';
 }

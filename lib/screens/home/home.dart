@@ -14,6 +14,7 @@ import 'package:onset/screens/activity/stores/activity_store.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/clips/clips_feed_screen.dart';
 import 'package:onset/screens/clips/stores/clips_feed_store.dart';
+import 'package:onset/screens/home/feedback_prompt.dart';
 import 'package:onset/screens/home/language_prompt.dart';
 import 'package:onset/screens/home/live_feed/live_feed.dart';
 import 'package:onset/screens/home/live_feed/stores/live_feed_store.dart';
@@ -29,6 +30,7 @@ import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/whispers/whisper_conversation.dart';
 import 'package:onset/screens/whispers/whisper_notice.dart';
 import 'package:onset/screens/whispers/whispers_screen.dart';
@@ -297,13 +299,16 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   var _orientationPending = true;
   var _languagePending = true;
   var _notesPending = true;
+  var _feedbackPending = true;
 
   void _inFront() {
     if (_orientationPending) {
       _orientationPending = false;
       SystemChrome.setPreferredOrientations([]);
     }
-    if (_languagePending || _notesPending) unawaited(_greet());
+    if (_languagePending || _notesPending || _feedbackPending) {
+      unawaited(_greet());
+    }
   }
 
   /// The language question, then the release notes; one run at a time
@@ -318,6 +323,17 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
       if (_notesPending && mounted) {
         _notesPending = false;
         await checkAndShowReleaseNotes();
+      }
+      if (_feedbackPending && mounted && !_covered) {
+        _feedbackPending = false;
+        final settings = context.read<SettingsStore>();
+        FeedbackPrompt.countOpen(settings);
+        await askForFeedbackIfDue(
+          context,
+          settings,
+          openUrl: (url) =>
+              launchSettingsLink(url, external: settings.launchUrlExternal),
+        );
       }
     } finally {
       _greeting = false;

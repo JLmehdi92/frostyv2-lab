@@ -135,44 +135,50 @@ void main() {
 
     tearDown(() => store.dispose());
 
-    test('a muted conversation sends no notice and is left out of the unread count', () async {
-      final notices = <IncomingWhisper>[];
-      store.incoming.listen(notices.add);
-      streams.single.add(EventSubData(_event()));
-      await pumpEventQueue();
+    test(
+      'a muted conversation sends no notice and is left out of the unread count',
+      () async {
+        final notices = <IncomingWhisper>[];
+        store.incoming.listen(notices.add);
+        streams.single.add(EventSubData(_event()));
+        await pumpEventQueue();
 
-      store.toggleMute('8');
-      expect(store.isMuted('8'), isTrue);
-      streams.single.add(EventSubData(_event(id: 'w2')));
-      await pumpEventQueue();
+        store.toggleMute('8');
+        expect(store.isMuted('8'), isTrue);
+        streams.single.add(EventSubData(_event(id: 'w2')));
+        await pumpEventQueue();
 
-      expect(notices, hasLength(1));
-      expect(store.threads.single.unread, 2);
-      expect(store.unreadCount, 0);
+        expect(notices, hasLength(1));
+        expect(store.threads.single.unread, 2);
+        expect(store.unreadCount, 0);
 
-      store.toggleMute('8');
-      expect(store.isMuted('8'), isFalse);
-      expect(store.unreadCount, 2);
-    });
+        store.toggleMute('8');
+        expect(store.isMuted('8'), isFalse);
+        expect(store.unreadCount, 2);
+      },
+    );
 
-    test('an archived conversation leaves the list until a whisper brings it back', () async {
-      streams.single.add(EventSubData(_event()));
-      await pumpEventQueue();
+    test(
+      'an archived conversation leaves the list until a whisper brings it back',
+      () async {
+        streams.single.add(EventSubData(_event()));
+        await pumpEventQueue();
 
-      store.archive('8');
-      expect(store.threads, isEmpty);
-      expect(store.archivedThreads.single.userId, '8');
-      expect(store.unreadCount, 0);
+        store.archive('8');
+        expect(store.threads, isEmpty);
+        expect(store.archivedThreads.single.userId, '8');
+        expect(store.unreadCount, 0);
 
-      streams.single.add(EventSubData(_event(id: 'w2')));
-      await pumpEventQueue();
-      expect(store.threads.single.userId, '8');
-      expect(store.archivedThreads, isEmpty);
+        streams.single.add(EventSubData(_event(id: 'w2')));
+        await pumpEventQueue();
+        expect(store.threads.single.userId, '8');
+        expect(store.archivedThreads, isEmpty);
 
-      store.archive('8');
-      store.unarchive('8');
-      expect(store.threads.single.userId, '8');
-    });
+        store.archive('8');
+        store.unarchive('8');
+        expect(store.threads.single.userId, '8');
+      },
+    );
 
     test('hiding a conversation removes it and its whispers', () async {
       streams.single.add(EventSubData(_event()));

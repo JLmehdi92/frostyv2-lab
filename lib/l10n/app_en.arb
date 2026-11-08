@@ -10410,5 +10410,155 @@
   "settingsPointsIntroReset": "The intro will show again.",
   "@settingsPointsIntroReset": {
     "description": "Snackbar after Show the channel points intro again."
+  },
+  "feedbackPromptTitle": "Enjoying ONSET?",
+  "@feedbackPromptTitle": {
+    "description": "The one-time feedback prompt's title (after a dozen app opens)."
+  },
+  "feedbackPromptMessage": "Tell us what works and what doesn’t. Feedback goes to the project’s GitHub page, where you can report a bug or suggest an idea.",
+  "@feedbackPromptMessage": {
+    "description": "The feedback prompt's text."
+  },
+  "feedbackPromptSend": "Send feedback",
+  "@feedbackPromptSend": {
+    "description": "Feedback prompt: opens the project's GitHub issue page."
+  },
+  "feedbackPromptLater": "Later",
+  "@feedbackPromptLater": {
+    "description": "Feedback prompt: asks again much later."
+  },
+  "feedbackPromptNever": "Don’t ask again",
+  "@feedbackPromptNever": {
+    "description": "Feedback prompt: never asks again."
+  },
+  "settingsSendFeedback": "Send feedback",
+  "@settingsSendFeedback": {
+    "description": "Settings › Other › About: opens the project's GitHub issue page."
+  },
+  "settingsTwitchHelp": "Twitch help and support",
+  "@settingsTwitchHelp": {
+    "description": "Settings › Other › About: opens Twitch's Help Center."
+  },
+  "settingsTwitchProfile": "Edit profile",
+  "@settingsTwitchProfile": {
+    "description": "Settings › Account › On twitch.tv: the profile settings page."
+  },
+  "settingsTwitchProfileDetail": "Display name, bio, picture — on twitch.tv",
+  "@settingsTwitchProfileDetail": {
+    "description": "Settings › Account: the line under Edit profile."
+  },
+  "settingsTwitchNotifications": "Email and notifications",
+  "@settingsTwitchNotifications": {
+    "description": "Settings › Account › On twitch.tv: the notification and email settings page."
+  },
+  "settingsTwitchNotificationsDetail": "What Twitch emails and notifies you about — on twitch.tv",
+  "@settingsTwitchNotificationsDetail": {
+    "description": "Settings › Account: the line under Email and notifications."
+  },
+  "settingsTwitchFamilyCenter": "Family Center",
+  "@settingsTwitchFamilyCenter": {
+    "description": "Settings › Account › On twitch.tv: Twitch's parental supervision page."
+  },
+  "settingsTwitchFamilyCenterDetail": "Parental supervision tools — on twitch.tv",
+  "@settingsTwitchFamilyCenterDetail": {
+    "description": "Settings › Account: the line under Family Center."
+  },
+  "settingsTwitchSubscriptions": "My subscriptions",
+  "@settingsTwitchSubscriptions": {
+    "description": "Settings › Account › On twitch.tv: the subscriptions page."
+  },
+  "settingsTwitchSubscriptionsDetail": "Manage your subscriptions — on twitch.tv",
+  "@settingsTwitchSubscriptionsDetail": {
+    "description": "Settings › Account: the line under My subscriptions."
+  },
+  "settingsTwitchDrops": "Drops inventory",
+  "@settingsTwitchDrops": {
+    "description": "Settings › Account › On twitch.tv: the Drops inventory page."
+  },
+  "settingsTwitchDropsDetail": "Rewards earned by watching — on twitch.tv",
+  "@settingsTwitchDropsDetail": {
+    "description": "Settings › Account: the line under Drops inventory."
+  },
+  "settingsTwitchTurbo": "Twitch Turbo",
+  "@settingsTwitchTurbo": {
+    "description": "Settings › Account › On twitch.tv: the Turbo page (a brand name)."
+  },
+  "settingsTwitchTurboDetail": "Ad-free viewing — on twitch.tv",
+  "@settingsTwitchTurboDetail": {
+    "description": "Settings › Account: the line under Twitch Turbo."
+  },
+  "settingsTwitchPrime": "Prime Gaming",
+  "@settingsTwitchPrime": {
+    "description": "Settings › Account › On twitch.tv: the Prime Gaming page (a brand name)."
+  },
+  "settingsTwitchPrimeDetail": "Your free monthly subscription — on twitch.tv",
+  "@settingsTwitchPrimeDetail": {
+    "description": "Settings › Account: the line under Prime Gaming."
+  },
+  "settingsTwitchRecap": "Year recap",
+  "@settingsTwitchRecap": {
+    "description": "Settings › Account › On twitch.tv: Twitch's annual recap page."
+  },
+  "settingsTwitchRecapDetail": "Your year on Twitch — on twitch.tv",
+  "@settingsTwitchRecapDetail": {
+    "description": "Settings › Account: the line under Year recap."
+  },
+  "settingsTwitchSignup": "Create another account",
+  "@settingsTwitchSignup": {
+    "description": "Settings › Account › On twitch.tv: the sign-up page."
+  },
+  "settingsTwitchSignupDetail": "A new Twitch account — on twitch.tv",
+  "@settingsTwitchSignupDetail": {
+    "description": "Settings › Account: the line under Create another account."
+  },
+  "settingsTwitchDeleteAccount": "Disable or delete account",
+  "@settingsTwitchDeleteAccount": {
+    "description": "Settings › Account › On twitch.tv: Twitch's account deletion page."
+  },
+  "settingsTwitchDeleteAccountDetail": "Close your Twitch account — on twitch.tv",
+  "@settingsTwitchDeleteAccountDetail": {
+    "description": "Settings › Account: the line under Disable or delete account."
+  },
+  "reportOnTwitch": "Report",
+  "@reportOnTwitch": {
+    "description": "A poll or prediction card: reports it on twitch.tv (the channel's report page)."
+  },
+  "chatReportMessage": "Report message",
+  "@chatReportMessage": {
+    "description": "Chat message long-press menu: reports the message's author on twitch.tv, and that page's title."
+  },
+  "chatReportEmote": "Report emote",
+  "@chatReportEmote": {
+    "description": "Emote details: reports a Twitch emote's owner on twitch.tv, and that page's title."
+  },
+  "clipReport": "Report",
+  "@clipReport": {
+    "description": "Clip details: opens the clip on twitch.tv to report it, and that page's title is « Report »."
+  },
+  "modToolsModView": "Mod View",
+  "@modToolsModView": {
+    "description": "Mod tools: opens Twitch's Mod View for this channel on twitch.tv."
+  },
+  "clipFromPastBroadcast": "From a past broadcast",
+  "@clipFromPastBroadcast": {
+    "description": "Clip details: a pill saying the clip comes from a broadcast that still has its video."
+  },
+  "streamCheckBackSoon": "{name} is offline. Check back soon!",
+  "@streamCheckBackSoon": {
+    "description": "The player of an offline channel: the line above the past broadcasts button. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Ninja"
+      }
+    }
+  },
+  "streamCheckBackSoonGeneric": "This channel is offline. Check back soon!",
+  "@streamCheckBackSoonGeneric": {
+    "description": "The player of an offline channel whose name is not known yet."
+  },
+  "streamOfflineLoadFailed": "Couldn’t load this channel.",
+  "@streamOfflineLoadFailed": {
+    "description": "Error message. The player when neither the stream nor the channel could be read; « Try again » follows."
   }
 }

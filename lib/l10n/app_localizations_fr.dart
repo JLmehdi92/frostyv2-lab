@@ -8237,4 +8237,126 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsPointsIntroReset =>
       'La présentation s’affichera de nouveau.';
+
+  @override
+  String get feedbackPromptTitle => 'ONSET vous plaît ?';
+
+  @override
+  String get feedbackPromptMessage =>
+      'Dites-nous ce qui fonctionne et ce qui coince. Vos retours vont sur la page GitHub du projet, où vous pouvez signaler un bug ou proposer une idée.';
+
+  @override
+  String get feedbackPromptSend => 'Donner mon avis';
+
+  @override
+  String get feedbackPromptLater => 'Plus tard';
+
+  @override
+  String get feedbackPromptNever => 'Ne plus demander';
+
+  @override
+  String get settingsSendFeedback => 'Envoyer un avis';
+
+  @override
+  String get settingsTwitchHelp => 'Aide et assistance Twitch';
+
+  @override
+  String get settingsTwitchProfile => 'Modifier le profil';
+
+  @override
+  String get settingsTwitchProfileDetail =>
+      'Nom affiché, bio, photo – sur twitch.tv';
+
+  @override
+  String get settingsTwitchNotifications => 'E-mails et notifications';
+
+  @override
+  String get settingsTwitchNotificationsDetail =>
+      'Ce que Twitch vous envoie par e-mail ou en notification – sur twitch.tv';
+
+  @override
+  String get settingsTwitchFamilyCenter => 'Espace famille';
+
+  @override
+  String get settingsTwitchFamilyCenterDetail =>
+      'Outils de supervision parentale – sur twitch.tv';
+
+  @override
+  String get settingsTwitchSubscriptions => 'Mes abonnements';
+
+  @override
+  String get settingsTwitchSubscriptionsDetail =>
+      'Gérer vos abonnements – sur twitch.tv';
+
+  @override
+  String get settingsTwitchDrops => 'Inventaire des drops';
+
+  @override
+  String get settingsTwitchDropsDetail =>
+      'Récompenses gagnées en regardant – sur twitch.tv';
+
+  @override
+  String get settingsTwitchTurbo => 'Twitch Turbo';
+
+  @override
+  String get settingsTwitchTurboDetail =>
+      'Visionnage sans publicité – sur twitch.tv';
+
+  @override
+  String get settingsTwitchPrime => 'Prime Gaming';
+
+  @override
+  String get settingsTwitchPrimeDetail =>
+      'Votre abonnement mensuel gratuit – sur twitch.tv';
+
+  @override
+  String get settingsTwitchRecap => 'Bilan de l’année';
+
+  @override
+  String get settingsTwitchRecapDetail =>
+      'Votre année sur Twitch – sur twitch.tv';
+
+  @override
+  String get settingsTwitchSignup => 'Créer un autre compte';
+
+  @override
+  String get settingsTwitchSignupDetail =>
+      'Un nouveau compte Twitch – sur twitch.tv';
+
+  @override
+  String get settingsTwitchDeleteAccount => 'Désactiver ou supprimer le compte';
+
+  @override
+  String get settingsTwitchDeleteAccountDetail =>
+      'Fermer votre compte Twitch – sur twitch.tv';
+
+  @override
+  String get reportOnTwitch => 'Signaler';
+
+  @override
+  String get chatReportMessage => 'Signaler le message';
+
+  @override
+  String get chatReportEmote => 'Signaler l’emote';
+
+  @override
+  String get clipReport => 'Signaler';
+
+  @override
+  String get modToolsModView => 'Vue modérateur';
+
+  @override
+  String get clipFromPastBroadcast => 'Issu d’une diffusion passée';
+
+  @override
+  String streamCheckBackSoon({required String name}) {
+    return '$name est hors ligne. Revenez bientôt !';
+  }
+
+  @override
+  String get streamCheckBackSoonGeneric =>
+      'Cette chaîne est hors ligne. Revenez bientôt !';
+
+  @override
+  String get streamOfflineLoadFailed => 'Impossible de charger cette chaîne.';
 }

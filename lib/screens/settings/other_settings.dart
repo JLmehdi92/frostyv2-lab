@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/home/feedback_prompt.dart';
+import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
@@ -112,6 +114,24 @@ List<Widget> otherSettingsGroups(
               external: settingsStore.launchUrlExternal,
             ),
           ),
+        SettingsRow(
+          glyph: SettingsGlyphKind.notes,
+          title: l.settingsSendFeedback,
+          end: SettingsRowEnd.external,
+          onTap: () => launchSettingsLink(
+            onsetFeedbackUrl,
+            external: settingsStore.launchUrlExternal,
+          ),
+        ),
+        SettingsRow(
+          glyph: SettingsGlyphKind.link,
+          title: l.settingsTwitchHelp,
+          end: SettingsRowEnd.external,
+          onTap: () => launchSettingsLink(
+            twitchHelpUrl,
+            external: settingsStore.launchUrlExternal,
+          ),
+        ),
         SettingsRow(
           glyph: SettingsGlyphKind.list,
           title: l.settingsLicenses,

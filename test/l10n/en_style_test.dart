@@ -150,6 +150,8 @@ void main() {
 /// Values that keep a capital the checker reads as Title Case, by key, with
 /// the reason.
 const _titleCaseKept = {
+  'settingsTwitchFamilyCenter': 'Family Center is the name of Twitch\'s page.',
+  'modToolsModView': 'Mod View is the name of Twitch\'s moderation page.',
   'chatModActionWithReason':
       'line is a sentence of its own, with its full stop: "Reason" starts '
       'the next one.',

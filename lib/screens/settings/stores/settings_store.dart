@@ -146,6 +146,18 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var pointsIntroSeen = false;
 
+  @JsonKey(defaultValue: 0)
+  @observable
+  var appOpens = 0;
+
+  @JsonKey(defaultValue: 0)
+  @observable
+  var feedbackPromptAtOpen = 0;
+
+  @JsonKey(defaultValue: false)
+  @observable
+  var feedbackPromptDone = false;
+
   @JsonKey(defaultValue: <String>[])
   @observable
   List<String> seenNewFeatures = const [];
