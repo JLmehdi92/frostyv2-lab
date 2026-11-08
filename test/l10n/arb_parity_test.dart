@@ -19,6 +19,8 @@ const _sameInBothLanguages = {
   'goalOrdinal': 'Two numbers joined by a slash.',
   'profileTabCollections': '"Collections" is the French word too.',
   'chatBubblesRaids': '"Raids" is the French word too.',
+  'channelPrefsNotifications': '"Notifications" is the French word too.',
+  'channelPrefsChat': '"Chat" is the French word too.',
   'modToolsPredictionPoints':
       '"point(s)" is the French word too; a number leads.',
   'modToolsRedemptionReward':

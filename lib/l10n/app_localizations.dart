@@ -11288,6 +11288,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other events'**
   String get chatBubblesOther;
+
+  /// The page of one channel's own preferences: its bell, its chat and its place in lists.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel preferences'**
+  String get channelPrefsTitle;
+
+  /// Channel preferences: the note at the top.
+  ///
+  /// In en, this message translates to:
+  /// **'These choices apply to {name} only.'**
+  String channelPrefsIntro({required String name});
+
+  /// Channel preferences: the notifications group.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get channelPrefsNotifications;
+
+  /// Channel preferences: the switch that turns this channel's go-live notification on or off.
+  ///
+  /// In en, this message translates to:
+  /// **'Live notifications'**
+  String get channelPrefsBell;
+
+  /// Channel preferences: what the bell does.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a notification when {name} goes live.'**
+  String channelPrefsBellDetail({required String name});
+
+  /// Channel preferences: the bell when live notifications are off in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on live notifications in Settings to use the bell.'**
+  String get channelPrefsBellOff;
+
+  /// Channel preferences: the bell when logged out.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to get live notifications.'**
+  String get channelPrefsBellLoggedOut;
+
+  /// Channel preferences: the chat group.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get channelPrefsChat;
+
+  /// Channel preferences: shows subs, gifts, raids and announcements in this channel's chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Show notices'**
+  String get channelPrefsNotices;
+
+  /// Channel preferences: what Show notices covers.
+  ///
+  /// In en, this message translates to:
+  /// **'Subs, gifts, raids, and announcements in this chat.'**
+  String get channelPrefsNoticesDetail;
+
+  /// Channel preferences: Show notices when they are off for every chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Notices are hidden in every chat in Settings.'**
+  String get channelPrefsNoticesOff;
+
+  /// Channel preferences: the group about where the channel appears in lists.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists'**
+  String get channelPrefsLists;
+
+  /// Channel preferences: pins the channel at the top of Following.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to the top'**
+  String get channelPrefsPin;
+
+  /// Channel preferences: what Pin to the top does.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows this channel first in Following when it’s live.'**
+  String get channelPrefsPinDetail;
+
+  /// Channel preferences: leaves the channel out of Browse, category and tag lists.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide from Browse'**
+  String get channelPrefsHide;
+
+  /// Channel preferences: what Hide from Browse does.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaves this channel out of Browse, category, and tag lists. Following still shows it.'**
+  String get channelPrefsHideDetail;
+
+  /// A channel's More sheet: opens the channel's own preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel preferences'**
+  String get userActionsChannelPrefs;
 }
 
 class _AppLocalizationsDelegate

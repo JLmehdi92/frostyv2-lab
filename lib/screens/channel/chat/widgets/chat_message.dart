@@ -378,9 +378,10 @@ class ChatMessage extends StatelessWidget {
                 chatStore.settings.highlightFirstTimeChatter &&
                 ircMessage.tags['first-msg'] == '1';
             final shouldHighlightMessage =
-                chatStore.settings.showUserNotices &&
+                chatStore.settings.showsNoticesIn(chatStore.channelId) &&
                 ircMessage.tags['msg-id'] == 'highlighted-message';
-            final redemptionHeader = chatStore.settings.showUserNotices
+            final redemptionHeader =
+                chatStore.settings.showsNoticesIn(chatStore.channelId)
                 ? switch (ircMessage.tags['msg-id']) {
                     'skip-subs-mode-message' =>
                       context.l10n.chatSubsOnlyRedemption,
@@ -564,7 +565,7 @@ class ChatMessage extends StatelessWidget {
             // A deleted notice, or one whose author was banned, keeps its
             // sentence: only the viewer's own message goes.
             if (_isNoticeRow) {
-              if (chatStore.settings.showUserNotices) {
+              if (chatStore.settings.showsNoticesIn(chatStore.channelId)) {
                 isNoticeRow = true;
                 renderMessage = _noticeRow(
                   context,
@@ -693,7 +694,7 @@ class ChatMessage extends StatelessWidget {
             }
             break;
           case Command.userNotice:
-            if (!chatStore.settings.showUserNotices) {
+            if (!chatStore.settings.showsNoticesIn(chatStore.channelId)) {
               renderMessage = const SizedBox();
             } else if (_isNoticeRow) {
               isNoticeRow = true;
@@ -786,7 +787,7 @@ class ChatMessage extends StatelessWidget {
             : paddedMessage;
 
         final animatedPowerUp =
-            chatStore.settings.showUserNotices &&
+            chatStore.settings.showsNoticesIn(chatStore.channelId) &&
             ircMessage.mention != true &&
             ircMessage.tags['msg-id'] == 'animated-message' &&
             (ircMessage.command == Command.privateMessage ||

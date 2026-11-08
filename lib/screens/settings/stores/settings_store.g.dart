@@ -188,6 +188,16 @@ SettingsStore _$SettingsStoreFromJson(
           ?.map((e) => e as String)
           .toList() ??
       []
+  ..noticesHiddenChannelIds =
+      (json['noticesHiddenChannelIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      []
+  ..hiddenChannelIds =
+      (json['hiddenChannelIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      []
   ..showHypeTrain = json['showHypeTrain'] as bool? ?? true
   ..showCommunityHighlights = json['showCommunityHighlights'] as bool? ?? true
   ..showCelebrations = json['showCelebrations'] as bool? ?? true
@@ -341,6 +351,8 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'hideGiftSubNotices': instance.hideGiftSubNotices,
   'hideGiftCount': instance.hideGiftCount,
   'chatBubbleEvents': instance.chatBubbleEvents,
+  'noticesHiddenChannelIds': instance.noticesHiddenChannelIds,
+  'hiddenChannelIds': instance.hiddenChannelIds,
   'showHypeTrain': instance.showHypeTrain,
   'showCommunityHighlights': instance.showCommunityHighlights,
   'showCelebrations': instance.showCelebrations,
@@ -1928,6 +1940,46 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$noticesHiddenChannelIdsAtom = Atom(
+    name: '_SettingsStoreBase.noticesHiddenChannelIds',
+    context: context,
+  );
+
+  @override
+  List<String> get noticesHiddenChannelIds {
+    _$noticesHiddenChannelIdsAtom.reportRead();
+    return super.noticesHiddenChannelIds;
+  }
+
+  @override
+  set noticesHiddenChannelIds(List<String> value) {
+    _$noticesHiddenChannelIdsAtom.reportWrite(
+      value,
+      super.noticesHiddenChannelIds,
+      () {
+        super.noticesHiddenChannelIds = value;
+      },
+    );
+  }
+
+  late final _$hiddenChannelIdsAtom = Atom(
+    name: '_SettingsStoreBase.hiddenChannelIds',
+    context: context,
+  );
+
+  @override
+  List<String> get hiddenChannelIds {
+    _$hiddenChannelIdsAtom.reportRead();
+    return super.hiddenChannelIds;
+  }
+
+  @override
+  set hiddenChannelIds(List<String> value) {
+    _$hiddenChannelIdsAtom.reportWrite(value, super.hiddenChannelIds, () {
+      super.hiddenChannelIds = value;
+    });
+  }
+
   late final _$showHypeTrainAtom = Atom(
     name: '_SettingsStoreBase.showHypeTrain',
     context: context,
@@ -2939,6 +2991,8 @@ collapseGiftBombs: ${collapseGiftBombs},
 hideGiftSubNotices: ${hideGiftSubNotices},
 hideGiftCount: ${hideGiftCount},
 chatBubbleEvents: ${chatBubbleEvents},
+noticesHiddenChannelIds: ${noticesHiddenChannelIds},
+hiddenChannelIds: ${hiddenChannelIds},
 showHypeTrain: ${showHypeTrain},
 showCommunityHighlights: ${showCommunityHighlights},
 showCelebrations: ${showCelebrations},

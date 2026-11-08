@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/channel_profile/channel_preferences_screen.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -110,6 +111,20 @@ class UserActionsModal extends StatelessWidget {
                 }),
           ),
         if (authStore.isLoggedIn) GoLiveBellTile(channelId: userId, name: name),
+        SheetRow(
+          glyph: SheetGlyphKind.settings,
+          label: l.userActionsChannelPrefs,
+          onTap: () {
+            Navigator.pop(context);
+            ChannelPreferencesScreen.open(
+              context,
+              channelId: userId,
+              name: name,
+              settingsStore: context.read<SettingsStore>(),
+              loggedIn: authStore.isLoggedIn,
+            );
+          },
+        ),
         if (authStore.isLoggedIn)
           SheetRow(
             glyph: SheetGlyphKind.heart,

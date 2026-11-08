@@ -10824,5 +10824,85 @@
   "chatBubblesOther": "Other events",
   "@chatBubblesOther": {
     "description": "Event bubbles: milestones, charity, Bits badges and the rest."
+  },
+  "channelPrefsTitle": "Channel preferences",
+  "@channelPrefsTitle": {
+    "description": "The page of one channel's own preferences: its bell, its chat and its place in lists."
+  },
+  "channelPrefsIntro": "These choices apply to {name} only.",
+  "@channelPrefsIntro": {
+    "description": "Channel preferences: the note at the top.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "channelPrefsNotifications": "Notifications",
+  "@channelPrefsNotifications": {
+    "description": "Channel preferences: the notifications group."
+  },
+  "channelPrefsBell": "Live notifications",
+  "@channelPrefsBell": {
+    "description": "Channel preferences: the switch that turns this channel's go-live notification on or off."
+  },
+  "channelPrefsBellDetail": "Get a notification when {name} goes live.",
+  "@channelPrefsBellDetail": {
+    "description": "Channel preferences: what the bell does.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "channelPrefsBellOff": "Turn on live notifications in Settings to use the bell.",
+  "@channelPrefsBellOff": {
+    "description": "Channel preferences: the bell when live notifications are off in settings."
+  },
+  "channelPrefsBellLoggedOut": "Log in to get live notifications.",
+  "@channelPrefsBellLoggedOut": {
+    "description": "Channel preferences: the bell when logged out."
+  },
+  "channelPrefsChat": "Chat",
+  "@channelPrefsChat": {
+    "description": "Channel preferences: the chat group."
+  },
+  "channelPrefsNotices": "Show notices",
+  "@channelPrefsNotices": {
+    "description": "Channel preferences: shows subs, gifts, raids and announcements in this channel's chat."
+  },
+  "channelPrefsNoticesDetail": "Subs, gifts, raids, and announcements in this chat.",
+  "@channelPrefsNoticesDetail": {
+    "description": "Channel preferences: what Show notices covers."
+  },
+  "channelPrefsNoticesOff": "Notices are hidden in every chat in Settings.",
+  "@channelPrefsNoticesOff": {
+    "description": "Channel preferences: Show notices when they are off for every chat."
+  },
+  "channelPrefsLists": "Lists",
+  "@channelPrefsLists": {
+    "description": "Channel preferences: the group about where the channel appears in lists."
+  },
+  "channelPrefsPin": "Pin to the top",
+  "@channelPrefsPin": {
+    "description": "Channel preferences: pins the channel at the top of Following."
+  },
+  "channelPrefsPinDetail": "Shows this channel first in Following when it’s live.",
+  "@channelPrefsPinDetail": {
+    "description": "Channel preferences: what Pin to the top does."
+  },
+  "channelPrefsHide": "Hide from Browse",
+  "@channelPrefsHide": {
+    "description": "Channel preferences: leaves the channel out of Browse, category and tag lists."
+  },
+  "channelPrefsHideDetail": "Leaves this channel out of Browse, category, and tag lists. Following still shows it.",
+  "@channelPrefsHideDetail": {
+    "description": "Channel preferences: what Hide from Browse does."
+  },
+  "userActionsChannelPrefs": "Channel preferences",
+  "@userActionsChannelPrefs": {
+    "description": "A channel's More sheet: opens the channel's own preferences."
   }
 }

@@ -106,6 +106,10 @@ abstract class ListStoreBase with Store {
   }
 
   bool _matchesFilters(StreamTwitch stream) {
+    if (listType != ListType.followed &&
+        settingsStore.hiddenChannelIds.contains(stream.userId)) {
+      return false;
+    }
     final tag = tagFilter?.toLowerCase();
     if (tag != null && !stream.tags.any((t) => t.toLowerCase() == tag)) {
       return false;

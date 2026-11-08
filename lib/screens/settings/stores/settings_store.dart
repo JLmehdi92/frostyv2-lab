@@ -47,6 +47,8 @@ abstract class _SettingsStoreBase with Store {
   static const defaultStreamLanguage = '';
   static const defaultHiddenContentLabels = <String>[];
   static const defaultChatBubbleEvents = <String>[];
+  static const defaultNoticesHiddenChannelIds = <String>[];
+  static const defaultHiddenChannelIds = <String>[];
   static const defaultStartTab = HomeTab.following;
   static const defaultFollowedSort = FollowedSort.viewers;
 
@@ -692,6 +694,17 @@ abstract class _SettingsStoreBase with Store {
   @observable
   List<String> chatBubbleEvents = defaultChatBubbleEvents;
 
+  @JsonKey(defaultValue: defaultNoticesHiddenChannelIds)
+  @observable
+  List<String> noticesHiddenChannelIds = defaultNoticesHiddenChannelIds;
+
+  @JsonKey(defaultValue: defaultHiddenChannelIds)
+  @observable
+  List<String> hiddenChannelIds = defaultHiddenChannelIds;
+
+  bool showsNoticesIn(String channelId) =>
+      showUserNotices && !noticesHiddenChannelIds.contains(channelId);
+
   @JsonKey(defaultValue: defaultShowHypeTrain)
   @observable
   var showHypeTrain = defaultShowHypeTrain;
@@ -911,6 +924,7 @@ abstract class _SettingsStoreBase with Store {
     hideGiftSubNotices = defaultHideGiftSubNotices;
     hideGiftCount = defaultHideGiftCount;
     chatBubbleEvents = defaultChatBubbleEvents;
+    noticesHiddenChannelIds = defaultNoticesHiddenChannelIds;
     showHypeTrain = defaultShowHypeTrain;
     showCommunityHighlights = defaultShowCommunityHighlights;
     showCelebrations = defaultShowCelebrations;
@@ -1030,6 +1044,7 @@ abstract class _SettingsStoreBase with Store {
     fullScreen = defaultFullScreen;
     fullScreenChatOverlay = defaultFullScreenChatOverlay;
     pinnedChannelIds = defaultPinnedChannelIds;
+    hiddenChannelIds = defaultHiddenChannelIds;
     hiddenPinnedChatIds = defaultHiddenPinnedChatIds;
   }
 

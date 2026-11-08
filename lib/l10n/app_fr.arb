@@ -1839,5 +1839,22 @@
   "chatBubblesGifts": "Abonnements offerts",
   "chatBubblesRaids": "Raids",
   "chatBubblesAnnouncements": "Annonces",
-  "chatBubblesOther": "Autres événements"
+  "chatBubblesOther": "Autres événements",
+  "channelPrefsTitle": "Préférences de la chaîne",
+  "channelPrefsIntro": "Ces choix ne s’appliquent qu’à la chaîne {name}.",
+  "channelPrefsNotifications": "Notifications",
+  "channelPrefsBell": "Notifications de live",
+  "channelPrefsBellDetail": "Recevez une notification quand la chaîne {name} lance un live.",
+  "channelPrefsBellOff": "Activez les notifications de live dans les réglages pour utiliser la cloche.",
+  "channelPrefsBellLoggedOut": "Connectez-vous pour recevoir les notifications de live.",
+  "channelPrefsChat": "Chat",
+  "channelPrefsNotices": "Afficher les événements",
+  "channelPrefsNoticesDetail": "Abonnements, cadeaux, raids et annonces dans ce chat.",
+  "channelPrefsNoticesOff": "Les événements sont masqués dans tous les chats dans les réglages.",
+  "channelPrefsLists": "Listes",
+  "channelPrefsPin": "Épingler en haut",
+  "channelPrefsPinDetail": "Affiche cette chaîne en premier dans Suivis quand elle est en direct.",
+  "channelPrefsHide": "Masquer dans Parcourir",
+  "channelPrefsHideDetail": "Retire cette chaîne de Parcourir et des listes de catégories et de tags. Suivis l’affiche toujours.",
+  "userActionsChannelPrefs": "Préférences de la chaîne"
 }

@@ -292,4 +292,18 @@ void main() {
       store.dispose();
     });
   });
+
+  test(
+    'a channel hidden from Browse is left out of Top, not Following',
+    () async {
+      settings.hiddenChannelIds = ['all', 'f'];
+      final top = build(ListType.top);
+      final followed = build(ListType.followed);
+      await settle();
+      expect(top.streams, isEmpty);
+      expect(followed.streams.map((s) => s.userId), ['f']);
+      top.dispose();
+      followed.dispose();
+    },
+  );
 }

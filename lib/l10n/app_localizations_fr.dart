@@ -8541,4 +8541,65 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatBubblesOther => 'Autres événements';
+
+  @override
+  String get channelPrefsTitle => 'Préférences de la chaîne';
+
+  @override
+  String channelPrefsIntro({required String name}) {
+    return 'Ces choix ne s’appliquent qu’à la chaîne $name.';
+  }
+
+  @override
+  String get channelPrefsNotifications => 'Notifications';
+
+  @override
+  String get channelPrefsBell => 'Notifications de live';
+
+  @override
+  String channelPrefsBellDetail({required String name}) {
+    return 'Recevez une notification quand la chaîne $name lance un live.';
+  }
+
+  @override
+  String get channelPrefsBellOff =>
+      'Activez les notifications de live dans les réglages pour utiliser la cloche.';
+
+  @override
+  String get channelPrefsBellLoggedOut =>
+      'Connectez-vous pour recevoir les notifications de live.';
+
+  @override
+  String get channelPrefsChat => 'Chat';
+
+  @override
+  String get channelPrefsNotices => 'Afficher les événements';
+
+  @override
+  String get channelPrefsNoticesDetail =>
+      'Abonnements, cadeaux, raids et annonces dans ce chat.';
+
+  @override
+  String get channelPrefsNoticesOff =>
+      'Les événements sont masqués dans tous les chats dans les réglages.';
+
+  @override
+  String get channelPrefsLists => 'Listes';
+
+  @override
+  String get channelPrefsPin => 'Épingler en haut';
+
+  @override
+  String get channelPrefsPinDetail =>
+      'Affiche cette chaîne en premier dans Suivis quand elle est en direct.';
+
+  @override
+  String get channelPrefsHide => 'Masquer dans Parcourir';
+
+  @override
+  String get channelPrefsHideDetail =>
+      'Retire cette chaîne de Parcourir et des listes de catégories et de tags. Suivis l’affiche toujours.';
+
+  @override
+  String get userActionsChannelPrefs => 'Préférences de la chaîne';
 }

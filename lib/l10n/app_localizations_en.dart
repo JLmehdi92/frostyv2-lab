@@ -8432,4 +8432,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatBubblesOther => 'Other events';
+
+  @override
+  String get channelPrefsTitle => 'Channel preferences';
+
+  @override
+  String channelPrefsIntro({required String name}) {
+    return 'These choices apply to $name only.';
+  }
+
+  @override
+  String get channelPrefsNotifications => 'Notifications';
+
+  @override
+  String get channelPrefsBell => 'Live notifications';
+
+  @override
+  String channelPrefsBellDetail({required String name}) {
+    return 'Get a notification when $name goes live.';
+  }
+
+  @override
+  String get channelPrefsBellOff =>
+      'Turn on live notifications in Settings to use the bell.';
+
+  @override
+  String get channelPrefsBellLoggedOut => 'Log in to get live notifications.';
+
+  @override
+  String get channelPrefsChat => 'Chat';
+
+  @override
+  String get channelPrefsNotices => 'Show notices';
+
+  @override
+  String get channelPrefsNoticesDetail =>
+      'Subs, gifts, raids, and announcements in this chat.';
+
+  @override
+  String get channelPrefsNoticesOff =>
+      'Notices are hidden in every chat in Settings.';
+
+  @override
+  String get channelPrefsLists => 'Lists';
+
+  @override
+  String get channelPrefsPin => 'Pin to the top';
+
+  @override
+  String get channelPrefsPinDetail =>
+      'Shows this channel first in Following when it’s live.';
+
+  @override
+  String get channelPrefsHide => 'Hide from Browse';
+
+  @override
+  String get channelPrefsHideDetail =>
+      'Leaves this channel out of Browse, category, and tag lists. Following still shows it.';
+
+  @override
+  String get userActionsChannelPrefs => 'Channel preferences';
 }
