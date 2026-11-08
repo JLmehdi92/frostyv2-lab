@@ -10446,7 +10446,7 @@ abstract class AppLocalizations {
   /// Bell level: notify each time the channel goes live.
   ///
   /// In en, this message translates to:
-  /// **'All lives'**
+  /// **'All streams'**
   String get goLiveBellAll;
 
   /// Bell level: never notify for this channel (feminine in French: « aucune notification »).

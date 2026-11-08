@@ -10120,7 +10120,7 @@
       }
     }
   },
-  "goLiveBellAll": "All lives",
+  "goLiveBellAll": "All streams",
   "@goLiveBellAll": {
     "description": "Bell level: notify each time the channel goes live."
   },

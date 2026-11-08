@@ -7908,7 +7908,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get goLiveBellAll => 'All lives';
+  String get goLiveBellAll => 'All streams';
 
   @override
   String get goLiveBellNone => 'None';

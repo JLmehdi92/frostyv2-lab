@@ -181,7 +181,7 @@ void main() {
     expect(all(), isFalse);
     expect((await GoLivePrefs.load()).muted, {'42'});
 
-    await tester.tap(find.text('All lives'));
+    await tester.tap(find.text('All streams'));
     await tester.pumpAndSettle();
     expect(all(), isTrue);
     expect((await GoLivePrefs.load()).muted, isEmpty);

@@ -8202,7 +8202,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pointsEarnWatch =>
-      'Regardez le live : des points s’ajoutent toutes les quelques minutes tant qu’il est en cours.';
+      'Regardez le live : des points s’accumulent régulièrement tant qu’il est en cours.';
 
   @override
   String get pointsEarnBonus =>
@@ -8224,7 +8224,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pointsEarnNote =>
-      'Chaque chaîne fixe ses propres montants. Regarder dans cette application peut ne pas compter partout comme sur Twitch.';
+      'Chaque chaîne fixe ses propres montants. Regarder depuis cette application ne compte pas forcément autant que sur Twitch.';
 
   @override
   String get settingsReplayPointsIntro =>
