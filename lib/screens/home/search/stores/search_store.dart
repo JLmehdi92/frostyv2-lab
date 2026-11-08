@@ -6,6 +6,7 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/channel.dart';
+import 'package:onset/models/stream.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -45,6 +46,38 @@ abstract class SearchStoreBase with Store {
 
   @readonly
   ObservableFuture<CategoriesTwitch?>? _categoryFuture;
+
+  @readonly
+  List<StreamTwitch> _relatedLives = const [];
+
+  static const relatedLivesCount = 6;
+
+  Future<void> _loadRelatedLives(
+    String query,
+    Future<CategoriesTwitch?> categories,
+    Future<List<ChannelQuery>> channels,
+  ) async {
+    try {
+      final category = (await categories)?.data.firstOrNull;
+      if (category == null || _lastQuery != query) return;
+      final shownLive = {
+        for (final channel in await channels)
+          if (channel.isLive) channel.id,
+      };
+      final streams = await twitchApi.getStreamsUnderCategory(
+        gameId: category.id,
+      );
+      if (_lastQuery != query) return;
+      runInAction(
+        () => _relatedLives = [
+          for (final stream in streams.data)
+            if (!shownLive.contains(stream.userId)) stream,
+        ].take(relatedLivesCount).toList(),
+      );
+    } catch (e) {
+      debugPrint('Related lives unavailable: $e');
+    }
+  }
 
   SearchStoreBase({
     required this.authStore,
@@ -138,6 +171,7 @@ abstract class SearchStoreBase with Store {
       _isSearching = false;
       _channelFuture = null;
       _categoryFuture = null;
+      _relatedLives = const [];
       _lastQuery = '';
       return;
     }
@@ -175,6 +209,7 @@ abstract class SearchStoreBase with Store {
     // Futures are now pending, so isSearching can be cleared.
     _isSearching = false;
     _lastQuery = query;
+    _relatedLives = const [];
 
     // Move the query to the most recent result (top of the stack).
     _searchHistory.remove(query);
@@ -200,6 +235,8 @@ abstract class SearchStoreBase with Store {
       }
       return categories;
     }).asObservable();
+
+    unawaited(_loadRelatedLives(query, _categoryFuture!, _channelFuture!));
   }
 
   /// Forgets one past search.

@@ -65,6 +65,62 @@ abstract class ListStoreBase with Store {
   @observable
   StreamSort sort;
 
+  @observable
+  String? languageFilter;
+
+  @observable
+  String? tagFilter;
+
+  @computed
+  String get effectiveLanguage =>
+      languageFilter ?? settingsStore.streamLanguage;
+
+  @computed
+  bool get isFiltered => languageFilter != null || tagFilter != null;
+
+  @action
+  void clearFilters() {
+    languageFilter = null;
+    tagFilter = null;
+  }
+
+  @computed
+  List<String> get topTags {
+    final counts = <String, int>{};
+    final names = <String, String>{};
+    for (final stream in _allStreams) {
+      for (final tag in stream.tags) {
+        final key = tag.toLowerCase();
+        counts[key] = (counts[key] ?? 0) + 1;
+        names.putIfAbsent(key, () => tag);
+      }
+    }
+    final ranked = counts.keys.toList()
+      ..sort((a, b) => counts[b]!.compareTo(counts[a]!));
+    final selected = tagFilter;
+    return [
+      ?selected,
+      for (final key in ranked.take(8))
+        if (selected == null || key != selected.toLowerCase()) names[key]!,
+    ];
+  }
+
+  bool _matchesFilters(StreamTwitch stream) {
+    final tag = tagFilter?.toLowerCase();
+    if (tag != null && !stream.tags.any((t) => t.toLowerCase() == tag)) {
+      return false;
+    }
+    final language = languageFilter;
+    if (listType != ListType.followed || language == null || language.isEmpty) {
+      return true;
+    }
+    if (language == 'other') {
+      return !kStreamLanguageCodes.contains(stream.language) ||
+          stream.language == 'other';
+    }
+    return stream.language == language;
+  }
+
   /// The scroll controller used for handling scroll to top (if provided).
   /// If provided, will use the [ScrollToTop] widget to scroll to the top of the list instead of the bottom tab bar.
   final ScrollController? scrollController;
@@ -139,7 +195,8 @@ abstract class ListStoreBase with Store {
           !authStore.user.blockedUsers
               .map((blockedUser) => blockedUser.userId)
               .contains(streamInfo.userId) &&
-          (_showLabeled || !_labeledIds.contains(streamInfo.userId)),
+          (_showLabeled || !_labeledIds.contains(streamInfo.userId)) &&
+          _matchesFilters(streamInfo),
     );
     // Viewers is Helix's own order: kept as is, so a page loaded while
     // scrolling never reorders the cards above it.
@@ -292,7 +349,7 @@ abstract class ListStoreBase with Store {
     if (listType != ListType.followed && loadStreams) {
       // A new language starts the list over.
       _languageReactionDisposer = reaction(
-        (_) => settingsStore.streamLanguage,
+        (_) => effectiveLanguage,
         (_) => refreshStreams(),
       );
       // So does a new order.
@@ -367,7 +424,7 @@ abstract class ListStoreBase with Store {
         case ListType.top:
           newStreams = await twitchApi.getTopStreams(
             cursor: _streamsCursor,
-            language: streamLanguageOrAll(settingsStore.streamLanguage),
+            language: streamLanguageOrAll(effectiveLanguage),
           );
           break;
         case ListType.category:
@@ -376,19 +433,19 @@ abstract class ListStoreBase with Store {
               ? await twitchApi.getStreamsUnderCategory(
                   gameId: categoryId!,
                   cursor: _streamsCursor,
-                  language: streamLanguageOrAll(settingsStore.streamLanguage),
+                  language: streamLanguageOrAll(effectiveLanguage),
                 )
               : await directory.getCategoryStreams(
                   gameId: categoryId!,
                   sort: sort,
-                  language: streamLanguageOrAll(settingsStore.streamLanguage),
+                  language: streamLanguageOrAll(effectiveLanguage),
                 );
           break;
         case ListType.tag:
           newStreams = await directoryService!.getTagStreams(
             tag: tag!,
             sort: sort,
-            language: streamLanguageOrAll(settingsStore.streamLanguage),
+            language: streamLanguageOrAll(effectiveLanguage),
           );
           break;
       }

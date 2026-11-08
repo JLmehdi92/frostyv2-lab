@@ -200,4 +200,96 @@ void main() {
     expect(store.isLoading, isFalse);
     store.dispose();
   });
+
+  group('per-list filters', () {
+    StreamTwitch tagged(String id, List<String> tags, {String language = ''}) =>
+        StreamTwitch(
+          id,
+          'l$id',
+          'N$id',
+          '1',
+          'Game',
+          'Title',
+          10,
+          '',
+          '',
+          tags: tags,
+          language: language,
+        );
+
+    test('a list language overrides the setting for that list only', () async {
+      settings.streamLanguage = 'fr';
+      final store = build(ListType.top);
+      final other = build(ListType.top);
+      await settle();
+
+      store.languageFilter = 'de';
+      await settle();
+      verify(() => api.getTopStreams(language: 'de')).called(1);
+      expect(store.allStreams.single.userId, 'de');
+      expect(other.allStreams.single.userId, 'fr');
+      expect(store.isFiltered, isTrue);
+
+      store.clearFilters();
+      await settle();
+      expect(store.allStreams.single.userId, 'fr');
+      expect(store.isFiltered, isFalse);
+      store.dispose();
+      other.dispose();
+    });
+
+    test(
+      'tags rank by use, filter the list, and stay listed when picked',
+      () async {
+        when(
+          () => api.getTopStreams(
+            cursor: any(named: 'cursor'),
+            language: any(named: 'language'),
+          ),
+        ).thenAnswer(
+          (_) async => StreamsTwitch([
+            tagged('1', ['English', 'Chill']),
+            tagged('2', ['english']),
+            tagged('3', ['Speedrun']),
+          ], const {}),
+        );
+        final store = build(ListType.top);
+        await settle();
+
+        expect(store.topTags, ['English', 'Chill', 'Speedrun']);
+        store.tagFilter = 'Speedrun';
+        expect(store.streams.map((s) => s.userId), ['3']);
+        expect(store.topTags.first, 'Speedrun');
+        store.tagFilter = 'ENGLISH';
+        expect(store.streams.map((s) => s.userId), ['1', '2']);
+        store.dispose();
+      },
+    );
+
+    test('Following filters its language on the device', () async {
+      when(
+        () => api.getFollowedStreams(
+          id: any(named: 'id'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer(
+        (_) async => StreamsTwitch([
+          tagged('1', [], language: 'fr'),
+          tagged('2', [], language: 'en'),
+          tagged('3', [], language: 'xx'),
+        ], const {}),
+      );
+      final store = build(ListType.followed);
+      await settle();
+
+      store.languageFilter = 'fr';
+      expect(store.streams.map((s) => s.userId), ['1']);
+      store.languageFilter = 'other';
+      expect(store.streams.map((s) => s.userId), ['3']);
+      store.languageFilter = '';
+      expect(store.streams, hasLength(3));
+      verifyNever(() => api.getTopStreams(language: any(named: 'language')));
+      store.dispose();
+    });
+  });
 }

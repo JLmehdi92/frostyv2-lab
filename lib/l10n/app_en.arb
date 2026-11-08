@@ -10752,5 +10752,35 @@
   "myClipsSubtitle": "Your channel’s clips and the ones you made",
   "@myClipsSubtitle": {
     "description": "The settings row that opens My clips: what it lists."
+  },
+  "streamFilterLanguage": "Language",
+  "@streamFilterLanguage": {
+    "description": "A live list's filter chip that opens the languages to show, for this list only."
+  },
+  "streamFilterFollowSetting": "As in settings ({language})",
+  "@streamFilterFollowSetting": {
+    "description": "A live list's language sheet: the first choice, which follows the stream language picked in settings.",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "English"
+      }
+    }
+  },
+  "streamFilterClear": "Clear filters",
+  "@streamFilterClear": {
+    "description": "A live list's chip that removes its language and tag filters."
+  },
+  "streamFilterLabel": "Filters",
+  "@streamFilterLabel": {
+    "description": "Screen readers: the row of language and tag filters above a live list."
+  },
+  "streamFilterNoMatch": "No live channels match these filters",
+  "@streamFilterNoMatch": {
+    "description": "A live list emptied by its language or tag filter."
+  },
+  "searchRelatedLives": "Related live channels",
+  "@searchRelatedLives": {
+    "description": "Search: the shelf of live channels in the category the search matched."
   }
 }

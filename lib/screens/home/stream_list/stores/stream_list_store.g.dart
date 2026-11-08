@@ -9,6 +9,28 @@ part of 'stream_list_store.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$ListStore on ListStoreBase, Store {
+  Computed<String>? _$effectiveLanguageComputed;
+
+  @override
+  String get effectiveLanguage =>
+      (_$effectiveLanguageComputed ??= Computed<String>(
+        () => super.effectiveLanguage,
+        name: 'ListStoreBase.effectiveLanguage',
+      )).value;
+  Computed<bool>? _$isFilteredComputed;
+
+  @override
+  bool get isFiltered => (_$isFilteredComputed ??= Computed<bool>(
+    () => super.isFiltered,
+    name: 'ListStoreBase.isFiltered',
+  )).value;
+  Computed<List<String>>? _$topTagsComputed;
+
+  @override
+  List<String> get topTags => (_$topTagsComputed ??= Computed<List<String>>(
+    () => super.topTags,
+    name: 'ListStoreBase.topTags',
+  )).value;
   Computed<bool>? _$hasMoreComputed;
 
   @override
@@ -75,6 +97,42 @@ mixin _$ListStore on ListStoreBase, Store {
   set sort(StreamSort value) {
     _$sortAtom.reportWrite(value, super.sort, () {
       super.sort = value;
+    });
+  }
+
+  late final _$languageFilterAtom = Atom(
+    name: 'ListStoreBase.languageFilter',
+    context: context,
+  );
+
+  @override
+  String? get languageFilter {
+    _$languageFilterAtom.reportRead();
+    return super.languageFilter;
+  }
+
+  @override
+  set languageFilter(String? value) {
+    _$languageFilterAtom.reportWrite(value, super.languageFilter, () {
+      super.languageFilter = value;
+    });
+  }
+
+  late final _$tagFilterAtom = Atom(
+    name: 'ListStoreBase.tagFilter',
+    context: context,
+  );
+
+  @override
+  String? get tagFilter {
+    _$tagFilterAtom.reportRead();
+    return super.tagFilter;
+  }
+
+  @override
+  set tagFilter(String? value) {
+    _$tagFilterAtom.reportWrite(value, super.tagFilter, () {
+      super.tagFilter = value;
     });
   }
 
@@ -474,6 +532,18 @@ mixin _$ListStore on ListStoreBase, Store {
   );
 
   @override
+  void clearFilters() {
+    final _$actionInfo = _$ListStoreBaseActionController.startAction(
+      name: 'ListStoreBase.clearFilters',
+    );
+    try {
+      return super.clearFilters();
+    } finally {
+      _$ListStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void showLabeledStreams() {
     final _$actionInfo = _$ListStoreBaseActionController.startAction(
       name: 'ListStoreBase.showLabeledStreams',
@@ -489,8 +559,13 @@ mixin _$ListStore on ListStoreBase, Store {
   String toString() {
     return '''
 sort: ${sort},
+languageFilter: ${languageFilter},
+tagFilter: ${tagFilter},
 showJumpButton: ${showJumpButton},
 isOfflineChannelsExpanded: ${isOfflineChannelsExpanded},
+effectiveLanguage: ${effectiveLanguage},
+isFiltered: ${isFiltered},
+topTags: ${topTags},
 hasMore: ${hasMore},
 isLoading: ${isLoading},
 hasMoreOfflineChannels: ${hasMoreOfflineChannels},

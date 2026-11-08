@@ -1824,5 +1824,11 @@
   "myClipsOfMyChannel": "Ma chaîne",
   "myClipsMadeByMe": "Créés par moi",
   "myClipsManage": "Gérer sur Twitch",
-  "myClipsSubtitle": "Les clips de votre chaîne et ceux que vous avez créés"
+  "myClipsSubtitle": "Les clips de votre chaîne et ceux que vous avez créés",
+  "streamFilterLanguage": "Langue",
+  "streamFilterFollowSetting": "Comme dans les réglages ({language})",
+  "streamFilterClear": "Effacer les filtres",
+  "streamFilterLabel": "Filtres",
+  "streamFilterNoMatch": "Aucune chaîne en direct ne correspond à ces filtres",
+  "searchRelatedLives": "Chaînes en direct associées"
 }

@@ -8376,4 +8376,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get myClipsSubtitle => 'Your channel’s clips and the ones you made';
+
+  @override
+  String get streamFilterLanguage => 'Language';
+
+  @override
+  String streamFilterFollowSetting({required String language}) {
+    return 'As in settings ($language)';
+  }
+
+  @override
+  String get streamFilterClear => 'Clear filters';
+
+  @override
+  String get streamFilterLabel => 'Filters';
+
+  @override
+  String get streamFilterNoMatch => 'No live channels match these filters';
+
+  @override
+  String get searchRelatedLives => 'Related live channels';
 }

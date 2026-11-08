@@ -11198,6 +11198,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your channel’s clips and the ones you made'**
   String get myClipsSubtitle;
+
+  /// A live list's filter chip that opens the languages to show, for this list only.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get streamFilterLanguage;
+
+  /// A live list's language sheet: the first choice, which follows the stream language picked in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'As in settings ({language})'**
+  String streamFilterFollowSetting({required String language});
+
+  /// A live list's chip that removes its language and tag filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get streamFilterClear;
+
+  /// Screen readers: the row of language and tag filters above a live list.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get streamFilterLabel;
+
+  /// A live list emptied by its language or tag filter.
+  ///
+  /// In en, this message translates to:
+  /// **'No live channels match these filters'**
+  String get streamFilterNoMatch;
+
+  /// Search: the shelf of live channels in the category the search matched.
+  ///
+  /// In en, this message translates to:
+  /// **'Related live channels'**
+  String get searchRelatedLives;
 }
 
 class _AppLocalizationsDelegate

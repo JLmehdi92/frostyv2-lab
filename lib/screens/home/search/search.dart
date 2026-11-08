@@ -11,6 +11,7 @@ import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
+import 'package:onset/screens/home/search/search_related_lives.dart';
 import 'package:onset/screens/home/search/search_results_categories.dart';
 import 'package:onset/screens/home/search/search_results_channels.dart';
 import 'package:onset/screens/home/search/search_results_videos.dart';
@@ -645,6 +646,7 @@ class _SearchState extends State<Search> {
           ),
         ),
         SliverToBoxAdapter(child: categories(limit: 4)),
+        SliverToBoxAdapter(child: SearchRelatedLives(store: _searchStore)),
       ],
       _SearchTab.channels => [
         const SliverToBoxAdapter(child: SizedBox(height: 12)),
@@ -777,6 +779,13 @@ class _SearchState extends State<Search> {
               ),
             ),
           padded(top),
+          SliverToBoxAdapter(
+            child: SearchRelatedLives(
+              store: _searchStore,
+              gutter: gutter,
+              cardWidth: 300,
+            ),
+          ),
         ];
       case _SearchTab.channels:
         return [

@@ -4,6 +4,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/models/category.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/models/stream.dart';
 import 'package:onset/screens/home/search/search.dart';
 import 'package:onset/screens/home/search/stores/search_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -150,5 +152,70 @@ void main() {
 
     await tester.pumpWidget(const SizedBox());
     controller.dispose();
+  });
+
+  test(
+    'related lives: the matched category\'s live channels, minus those listed',
+    () async {
+      final api = MockTwitchApi();
+      when(() => api.searchChannels(query: any(named: 'query'))).thenAnswer(
+        (_) async => [
+          const ChannelQuery(
+            broadcasterLogin: 'a',
+            displayName: 'A',
+            id: '1',
+            isLive: true,
+            startedAt: '',
+          ),
+        ],
+      );
+      when(() => api.searchCategories(query: any(named: 'query'))).thenAnswer(
+        (_) async =>
+            const CategoriesTwitch([CategoryTwitch('', '33', 'Chess')], null),
+      );
+      when(() => api.getStreamsUnderCategory(gameId: '33')).thenAnswer(
+        (_) async => StreamsTwitch([
+          for (final id in ['1', '2', '3', '4', '5', '6', '7', '8'])
+            StreamTwitch(id, 'l$id', 'N$id', '33', 'Chess', 'T', 5, '', ''),
+        ], const {}),
+      );
+      final store = SearchStore(authStore: MockAuthStore(), twitchApi: api);
+      await pumpEventQueue();
+
+      store.searchFor('chess');
+      await pumpEventQueue();
+
+      expect(store.relatedLives.map((s) => s.userId), [
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+      ]);
+      store.onSearchTextChanged('');
+      expect(store.relatedLives, isEmpty);
+      store.dispose();
+    },
+  );
+
+  test('related lives stay hidden when Twitch fails', () async {
+    final api = MockTwitchApi();
+    when(
+      () => api.searchChannels(query: any(named: 'query')),
+    ).thenAnswer((_) async => []);
+    when(() => api.searchCategories(query: any(named: 'query'))).thenAnswer(
+      (_) async =>
+          const CategoriesTwitch([CategoryTwitch('', '33', 'Chess')], null),
+    );
+    when(
+      () => api.getStreamsUnderCategory(gameId: '33'),
+    ).thenThrow(Exception('down'));
+    final store = SearchStore(authStore: MockAuthStore(), twitchApi: api);
+    await pumpEventQueue();
+    store.searchFor('chess');
+    await pumpEventQueue();
+    expect(store.relatedLives, isEmpty);
+    store.dispose();
   });
 }

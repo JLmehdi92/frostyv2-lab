@@ -28,6 +28,7 @@ import 'package:onset/screens/home/stream_list/offline_channel_card.dart';
 import 'package:onset/screens/home/stream_list/stores/stream_list_store.dart';
 import 'package:onset/screens/home/stream_list/stream_card.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/home/stream_list/stream_filter_chips.dart';
 import 'package:onset/screens/home/stream_list/stream_sort_button.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -227,6 +228,13 @@ class _StreamsListState extends State<StreamsList>
     );
   }
 
+  Widget get _filters => SliverToBoxAdapter(
+    child: StreamFilterChips(
+      store: _listStore,
+      showTags: widget.listType != ListType.tag,
+    ),
+  );
+
   Widget _body(BuildContext context) {
     final settingsStore = context.watch<SettingsStore>();
     final streams = _listStore.streams;
@@ -253,6 +261,13 @@ class _StreamsListState extends State<StreamsList>
       status = FeedStatusView.error(
         message: streamListErrorText(l, error, _listStore.sort),
         onRetry: _retry,
+      );
+    } else if (streams.isEmpty && _listStore.isFiltered) {
+      status = FeedStatusView(
+        message: l.streamFilterNoMatch,
+        action: l.streamFilterClear,
+        onAction: _listStore.clearFilters,
+        signalOff: true,
       );
     } else if (streams.isEmpty) {
       status = _listStore.hiddenByLabels > 0
@@ -282,6 +297,7 @@ class _StreamsListState extends State<StreamsList>
           slivers: [
             SliverTopPadding(extraTopPadding: _extraTopPadding),
             ...widget.leadingSlivers,
+            if (_listStore.isFiltered) _filters,
             // Past videos, videos to resume and the followed categories are
             // worth a look most when nobody is live, and they load on their
             // own: they stay when the live list failed.
@@ -339,6 +355,7 @@ class _StreamsListState extends State<StreamsList>
               slivers: [
                 SliverTopPadding(extraTopPadding: _extraTopPadding),
                 ...widget.leadingSlivers,
+                _filters,
                 ...slivers,
                 // Room for the bottom navigation bar.
                 const SliverBottomPadding(),

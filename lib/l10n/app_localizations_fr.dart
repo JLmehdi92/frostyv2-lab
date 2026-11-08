@@ -8484,4 +8484,25 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get myClipsSubtitle =>
       'Les clips de votre chaîne et ceux que vous avez créés';
+
+  @override
+  String get streamFilterLanguage => 'Langue';
+
+  @override
+  String streamFilterFollowSetting({required String language}) {
+    return 'Comme dans les réglages ($language)';
+  }
+
+  @override
+  String get streamFilterClear => 'Effacer les filtres';
+
+  @override
+  String get streamFilterLabel => 'Filtres';
+
+  @override
+  String get streamFilterNoMatch =>
+      'Aucune chaîne en direct ne correspond à ces filtres';
+
+  @override
+  String get searchRelatedLives => 'Chaînes en direct associées';
 }

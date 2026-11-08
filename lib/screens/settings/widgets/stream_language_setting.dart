@@ -24,7 +24,7 @@ class StreamLanguageSetting extends StatelessWidget {
           end: SettingsRowEnd.chevron,
           onTap: () => showSettingsSheet<void>(
             context: context,
-            builder: (context) => _LanguageList(
+            builder: (context) => StreamLanguageList(
               selected: selected,
               onSelected: (code) {
                 settingsStore.streamLanguage = code;
@@ -38,11 +38,17 @@ class StreamLanguageSetting extends StatelessWidget {
   }
 }
 
-class _LanguageList extends StatelessWidget {
-  const _LanguageList({required this.selected, required this.onSelected});
+class StreamLanguageList extends StatelessWidget {
+  const StreamLanguageList({
+    super.key,
+    required this.selected,
+    required this.onSelected,
+    this.followSetting,
+  });
 
-  final String selected;
+  final String? selected;
   final ValueChanged<String> onSelected;
+  final ({String label, VoidCallback onTap})? followSetting;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +65,12 @@ class _LanguageList extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (followSetting case final follow?)
+                    SettingsChoiceRow(
+                      label: follow.label,
+                      selected: selected == null,
+                      onTap: follow.onTap,
+                    ),
                   for (final code in kStreamLanguageCodes)
                     SettingsChoiceRow(
                       label: streamLanguageName(code, context.l10n),

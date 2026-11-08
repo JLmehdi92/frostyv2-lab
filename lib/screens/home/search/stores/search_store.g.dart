@@ -129,6 +129,26 @@ mixin _$SearchStore on SearchStoreBase, Store {
     });
   }
 
+  late final _$_relatedLivesAtom = Atom(
+    name: 'SearchStoreBase._relatedLives',
+    context: context,
+  );
+
+  List<StreamTwitch> get relatedLives {
+    _$_relatedLivesAtom.reportRead();
+    return super._relatedLives;
+  }
+
+  @override
+  List<StreamTwitch> get _relatedLives => relatedLives;
+
+  @override
+  set _relatedLives(List<StreamTwitch> value) {
+    _$_relatedLivesAtom.reportWrite(value, super._relatedLives, () {
+      super._relatedLives = value;
+    });
+  }
+
   late final _$_suggestionsAtom = Atom(
     name: 'SearchStoreBase._suggestions',
     context: context,
