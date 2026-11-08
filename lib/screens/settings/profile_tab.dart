@@ -331,7 +331,7 @@ class _AccountCard extends StatelessWidget {
             end: SettingsRowEnd.chevron,
             onTap: () => openBlockedUsers(context, authStore),
           ),
-          for (final page in TwitchAccountPage.values)
+          for (final page in TwitchAccountPage.profileTab)
             SettingsRow(
               glyph: page.glyph,
               title: page.title(context.l10n),

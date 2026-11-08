@@ -18,11 +18,25 @@ import 'package:onset/widgets/twitch_web_page.dart';
 /// Account settings only twitch.tv can change: password, email, phone,
 /// two-factor and verification; linked accounts. Named in
 /// lib/l10n/enum_labels.dart.
+const twitchHelpUrl = 'https://link.twitch.tv/help';
+
 enum TwitchAccountPage {
+  profile(SettingsGlyphKind.user, '/settings/profile'),
   security(SettingsGlyphKind.shield, '/settings/security'),
-  connections(SettingsGlyphKind.link, '/settings/connections');
+  notifications(SettingsGlyphKind.bell, '/settings/notifications'),
+  connections(SettingsGlyphKind.link, '/settings/connections'),
+  familyCenter(SettingsGlyphKind.lock, '/settings/family-center'),
+  subscriptions(SettingsGlyphKind.sparkle, '/subscriptions'),
+  drops(SettingsGlyphKind.dice, '/drops/inventory'),
+  turbo(SettingsGlyphKind.play, '/turbo'),
+  prime(SettingsGlyphKind.sparkle, '/prime'),
+  recap(SettingsGlyphKind.calendar, '/annual-recap'),
+  signup(SettingsGlyphKind.user, '/signup'),
+  deleteAccount(SettingsGlyphKind.trash, '/user/delete-account');
 
   const TwitchAccountPage(this.glyph, this.path);
+
+  static const profileTab = [security, connections];
 
   final SettingsGlyphKind glyph;
 

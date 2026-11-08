@@ -10,6 +10,7 @@ import 'package:onset/screens/channel/community_highlights/widgets/highlight_car
 import 'package:onset/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/raid_card.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
@@ -58,6 +59,14 @@ Widget buildHighlightCard(
             title: context.l10n.highlightTwitchChat,
             url: Uri.https('www.twitch.tv', '/popout/$login/chat'),
           ),
+    onReport: switch (login == null ? null : twitchReportUri(login)) {
+      final url? => () => openTwitchReport(
+        context,
+        title: context.l10n.reportOnTwitch,
+        url: url,
+      ),
+      null => null,
+    },
   );
   // Its own Observer: the data changes without the stack changing.
   return Observer(

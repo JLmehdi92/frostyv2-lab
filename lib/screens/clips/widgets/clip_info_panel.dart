@@ -8,6 +8,7 @@ import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/screens/vod/widgets/video_kit.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';
 
@@ -109,6 +110,8 @@ class ClipInfoPanel extends StatelessWidget {
                 ),
                 if (gameId != null && gameName != null)
                   VideoCategoryChip(name: gameName, gameId: gameId, height: 26),
+                if (clip.vodId != null)
+                  ClipOriginPill(label: l.clipFromPastBroadcast),
               ],
             ),
             if (clip.broadcasterLogin.isNotEmpty)
@@ -198,6 +201,17 @@ class ClipInfoPanel extends StatelessWidget {
                   onTap: onCopyLink,
                 ),
                 _ShareDisc(onTap: onShare),
+                VideoActionPill(
+                  key: const ValueKey('clip-report'),
+                  glyph: VideoGlyphKind.alert,
+                  label: l.clipReport,
+                  raised: true,
+                  onTap: () => openTwitchReport(
+                    context,
+                    title: l.clipReport,
+                    url: Uri.https('clips.twitch.tv', '/${clip.slug}'),
+                  ),
+                ),
               ],
             ),
           ],
@@ -244,6 +258,38 @@ class _ShareDisc extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class ClipOriginPill extends StatelessWidget {
+  const ClipOriginPill({super.key, required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FeedColors.of(context);
+    return Container(
+      height: 26,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(
+          color: colors.pillBorder,
+          width: OnsetTokens.hairlineWidth,
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: OnsetTokens.bodyFamily,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: colors.secondary,
         ),
       ),
     );

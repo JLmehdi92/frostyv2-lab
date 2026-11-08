@@ -28,7 +28,10 @@ class HighlightCardContext {
     required this.now,
     this.onDismiss,
     this.onTakePart,
+    this.onReport,
   });
+
+  final VoidCallback? onReport;
 
   final bool expanded;
   final VoidCallback onToggle;
@@ -50,7 +53,36 @@ Widget? _takePart(
   required bool open,
 }) {
   final onTap = card.onTakePart;
-  if (!open || !card.expanded || onTap == null) return null;
+  final onReport = card.onReport;
+  final takePart = !open || onTap == null
+      ? null
+      : _takePartButton(onTap, label);
+  if (!card.expanded || (takePart == null && onReport == null)) return null;
+  return Wrap(
+    alignment: WrapAlignment.end,
+    spacing: 4,
+    children: [
+      if (onReport != null)
+        Builder(
+          builder: (context) => TextButton(
+            key: const ValueKey('highlight-report'),
+            onPressed: onReport,
+            style: TextButton.styleFrom(
+              minimumSize: const Size(0, 40),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              foregroundColor: SheetColors.of(context).secondary,
+              shape: const StadiumBorder(),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(context.l10n.reportOnTwitch),
+          ),
+        ),
+      ?takePart,
+    ],
+  );
+}
+
+Widget _takePartButton(VoidCallback onTap, String label) {
   return Builder(
     builder: (context) {
       final colors = SheetColors.of(context);

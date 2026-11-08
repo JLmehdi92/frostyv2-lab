@@ -13,6 +13,7 @@ import 'package:onset/screens/channel/chat/mod_tools/widgets/mod_queue_sheets.da
 import 'package:onset/screens/channel/chat/mod_tools/widgets/mod_sheet_parts.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
@@ -384,6 +385,19 @@ class _ModToolsSheetState extends State<ModToolsSheet>
                 onTap: _runCommercial,
               ),
             ],
+            if (twitchModViewUri(_chat.channelName) case final url?)
+              SheetRow(
+                key: const ValueKey('mod-view'),
+                glyph: SheetGlyphKind.monitor,
+                label: l.modToolsModView,
+                detail: l.chatDetailsOpensTwitch,
+                end: SheetRowEnd.external,
+                onTap: () => TwitchWebPage.open(
+                  context,
+                  title: l.modToolsModView,
+                  url: url,
+                ),
+              ),
             statusLine(),
           ],
         );

@@ -27,10 +27,12 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart' as utils;
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/link_router.dart';
+import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/onset_photo_view_dialog.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/widgets/twitch_web_page.dart';
 
 // Constants for IRC message rendering
 const String _ircActionPrefix = '\x01';
@@ -1341,6 +1343,21 @@ class IRCMessage {
             onTap: () {
               Navigator.pop(context);
               onSubscribe();
+            },
+          ),
+        if (emote.type.name.startsWith('twitch') &&
+            twitchReportUri(emote.ownerUsername ?? '') != null)
+          SheetRow(
+            key: const ValueKey('report-emote'),
+            glyph: SheetGlyphKind.flag,
+            label: context.l10n.chatReportEmote,
+            end: SheetRowEnd.external,
+            onTap: () {
+              final url = twitchReportUri(emote.ownerUsername!)!;
+              final navigator = Navigator.of(context);
+              final title = context.l10n.chatReportEmote;
+              navigator.pop();
+              TwitchWebPage.open(navigator.context, title: title, url: url);
             },
           ),
         if (onRemoveRecent != null)

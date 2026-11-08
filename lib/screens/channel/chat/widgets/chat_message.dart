@@ -23,6 +23,7 @@ import 'package:onset/screens/channel/chat/widgets/reply_thread.dart';
 import 'package:onset/screens/channel/chat/widgets/user_notice_row.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
@@ -231,6 +232,7 @@ class ChatMessage extends StatelessWidget {
 
     // The message in a card, then what can be
     // done with it.
+    final outerContext = context;
     showOnsetSheet<void>(
       context: context,
       builder: (context) {
@@ -318,6 +320,21 @@ class ChatMessage extends StatelessWidget {
                 Navigator.pop(context);
               },
             ),
+            if (twitchReportUri(ircMessage.user ?? '') case final url?)
+              SheetRow(
+                key: const ValueKey('report-message'),
+                glyph: SheetGlyphKind.flag,
+                label: context.l10n.chatReportMessage,
+                end: SheetRowEnd.external,
+                onTap: () {
+                  Navigator.pop(context);
+                  openTwitchReport(
+                    outerContext,
+                    title: outerContext.l10n.chatReportMessage,
+                    url: url,
+                  );
+                },
+              ),
             if (_canDelete)
               SheetRow(
                 glyph: SheetGlyphKind.trash,
