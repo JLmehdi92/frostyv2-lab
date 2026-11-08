@@ -26,10 +26,11 @@ import 'package:onset/screens/vod/vod_screen.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/utils/share_link.dart';
+import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/widgets/motion/rolling_number.dart';
 import 'package:onset/widgets/motion/signal_ping.dart';
 import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/share_sheet.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/uptime.dart';
@@ -236,7 +237,7 @@ class VideoOverlay extends StatelessWidget {
       builder: (buttonContext) => _PlayerButton(
         tooltip: l.livePlayerShareChannel,
         glyph: PlayerGlyphKind.share,
-        onPressed: () => shareLink(buttonContext, _channelUrl),
+        onPressed: () => _share(buttonContext),
       ),
     );
 
@@ -596,6 +597,13 @@ class VideoOverlay extends StatelessWidget {
 
   String get _channelUrl => 'https://www.twitch.tv/${chatStore.channelName}';
 
+  Future<void> _share(BuildContext context) => showShareSheet(
+    context,
+    url: _channelUrl,
+    channelId: chatStore.channelId,
+    channelName: chatStore.displayName,
+  );
+
   void _openChatters(BuildContext context, String userLogin) =>
       showOnsetSheet<void>(
         context: context,
@@ -743,7 +751,7 @@ class VideoOverlay extends StatelessWidget {
                     SheetRow(
                       glyph: SheetGlyphKind.share,
                       label: context.l10n.livePlayerShareChannel,
-                      onTap: () => shareLink(context, _channelUrl),
+                      onTap: () => _share(context),
                     ),
                   ],
                 ),
@@ -1142,6 +1150,7 @@ class _LiveStats extends StatelessWidget {
         ),
       ),
     );
+    final hideCount = viewerCountsHidden(context);
     if (large) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -1152,8 +1161,7 @@ class _LiveStats extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                count,
-                Text(' · ', style: style),
+                if (!hideCount) ...[count, Text(' · ', style: style)],
                 Flexible(child: uptime),
               ],
             ),
@@ -1176,7 +1184,7 @@ class _LiveStats extends StatelessWidget {
             ],
           ),
         ),
-        Flexible(child: count),
+        if (!hideCount) Flexible(child: count),
       ],
     );
   }

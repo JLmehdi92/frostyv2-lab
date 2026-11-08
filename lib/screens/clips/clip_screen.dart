@@ -29,8 +29,8 @@ import 'package:onset/services/playback_focus.dart';
 import 'package:onset/stores/mini_player_store.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/pip_callbacks.dart';
-import 'package:onset/utils/share_link.dart';
 import 'package:onset/widgets/alert_message.dart';
+import 'package:onset/widgets/share_sheet.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
@@ -472,7 +472,12 @@ class _ClipScreenState extends State<ClipScreen> {
     return ClipInfoPanel(
       clip: clip,
       onCopyLink: _copyLink,
-      onShare: () => shareLink(context, clipShareLink(widget.slug)),
+      onShare: () => showShareSheet(
+        context,
+        url: clipShareLink(widget.slug),
+        channelId: clip.broadcasterId,
+        channelName: clip.broadcasterDisplayName,
+      ),
       onWatchFullVideo: _watchFullVideo(clip),
     );
   }

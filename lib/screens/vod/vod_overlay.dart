@@ -28,6 +28,7 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/share_sheet.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1191,7 +1192,16 @@ Future<void> showVodSettingsSheet(
   required PlayerMedia media,
 }) => showOnsetSheet<void>(
   context: context,
-  builder: (context) => VodSettingsSheet(controller: controller, media: media),
+  builder: (sheetContext) => VodSettingsSheet(
+    controller: controller,
+    media: media,
+    onShare: (link) => showShareSheet(
+      context,
+      url: link,
+      channelId: media.ownerId,
+      channelName: media.ownerDisplayName,
+    ),
+  ),
 );
 
 /// Quality, volume, captions, playback speed and share-at-time for a VOD or
@@ -1202,10 +1212,12 @@ class VodSettingsSheet extends StatelessWidget {
     super.key,
     required this.controller,
     required this.media,
+    this.onShare,
   });
 
   final VodPlayerController controller;
   final PlayerMedia media;
+  final Future<void> Function(String link)? onShare;
 
   void _pickQuality(BuildContext context, String quality) {
     controller.setQuality(quality);
@@ -1334,11 +1346,14 @@ class VodSettingsSheet extends StatelessWidget {
                     glyph: VideoGlyphKind.share,
                     label: context.l10n.clipShare,
                     onTap: () async {
-                      await shareLink(
-                        context,
-                        media.shareLink(controller.position),
-                        subject: media.title,
-                      );
+                      final link = media.shareLink(controller.position);
+                      final onShare = this.onShare;
+                      if (onShare != null) {
+                        Navigator.pop(context);
+                        await onShare(link);
+                        return;
+                      }
+                      await shareLink(context, link, subject: media.title);
                       if (context.mounted) Navigator.pop(context);
                     },
                   ),

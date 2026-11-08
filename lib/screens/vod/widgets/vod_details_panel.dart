@@ -18,10 +18,10 @@ import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/screens/vod/widgets/video_kit.dart';
 import 'package:onset/screens/vod/widgets/vod_info_strip.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils/share_link.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/share_sheet.dart';
 
 /// A tablet's area around the VOD: the title,
 /// category and views, the channel's card with "Open channel", the player's
@@ -297,10 +297,11 @@ class _Actions extends StatelessWidget {
               glyph: VideoGlyphKind.share,
               label: l.vodShare,
               onTap: () => unawaited(
-                shareLink(
+                showShareSheet(
                   context,
-                  vodShareLink(vod, _position),
-                  subject: vod.title,
+                  url: vodShareLink(vod, _position),
+                  channelId: vod.ownerId,
+                  channelName: vod.ownerDisplayName,
                 ),
               ),
             ),

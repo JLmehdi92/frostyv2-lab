@@ -27,7 +27,7 @@ const onboardingPermissions = [
     glyph: OnboardingGlyphKind.chat,
     title: _chatTitle,
     detail: _chatDetail,
-    scopes: ['chat:read', 'chat:edit', 'user:read:chat'],
+    scopes: ['chat:read', 'chat:edit', 'user:read:chat', 'user:write:chat'],
   ),
   OnboardingPermission(
     glyph: OnboardingGlyphKind.heart,

@@ -11,6 +11,7 @@ void main() {
       'user:read:follows',
       'user:manage:whispers',
       'user:read:chat',
+      'user:write:chat',
       'moderator:manage:banned_users',
     ]) {
       expect(scopes, contains(scope));
