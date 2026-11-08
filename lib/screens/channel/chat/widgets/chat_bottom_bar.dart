@@ -2,6 +2,7 @@ import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
@@ -10,6 +11,7 @@ import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/channel_points_button.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_character_counter.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
 import 'package:onset/screens/channel/chat/widgets/emote_text_span_builder.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
 import 'package:onset/theme.dart';
@@ -19,6 +21,7 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:provider/provider.dart';
 
 class ChatBottomBar extends StatelessWidget {
   final ChatStore chatStore;
@@ -131,8 +134,18 @@ class ChatBottomBar extends StatelessWidget {
           children: [
             if (chatStore.auth.isLoggedIn)
               Observer(
-                builder: (_) =>
-                    ChatRestrictionBar(restriction: chatStore.restriction),
+                builder: (_) => ChatRestrictionBar(
+                  restriction: chatStore.restriction,
+                  onAcknowledge: switch (context
+                      .read<TwitchViewerActionsService?>()) {
+                    final service? => () => acknowledgeChatWarning(
+                      context,
+                      chatStore,
+                      service,
+                    ),
+                    null => null,
+                  },
+                ),
               ),
             if (chatStore.replyingToMessage != null) ...[
               const Divider(),

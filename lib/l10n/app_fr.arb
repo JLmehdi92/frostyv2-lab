@@ -1395,7 +1395,7 @@
   "chatRestrictionSubscribersOnly": "Mode abonnés uniquement",
   "chatRestrictionFollowersOnly": "Followers uniquement",
   "chatRestrictionFollowersFor": "Followers depuis {duration}",
-  "chatRestrictionAccount": "{reason, select, verifiedEmail{E-mail vérifié requis} verifiedPhone{Téléphone vérifié requis} emailAliasBanned{E-mail banni ici} phoneAliasBanned{Téléphone banni ici} accountRestricted{Compte restreint} channelRestricted{Chat suspendu ici} followRequired{Suivez la chaîne} other{}}",
+  "chatRestrictionAccount": "{reason, select, verifiedEmail{E-mail vérifié requis} verifiedPhone{Téléphone vérifié requis} emailAliasBanned{E-mail banni ici} phoneAliasBanned{Téléphone banni ici} accountRestricted{Compte restreint} channelRestricted{Chat suspendu ici} followRequired{Suivez la chaîne} warned{Avertissement reçu} other{}}",
   "chatNewMessages": "{count, plural, one{{count} nouveau message} other{{count} nouveaux messages}}",
   "chatResumeScroll": "Revenir en bas",
   "chatHistoricalMessage": "Message de l’historique",
@@ -1864,5 +1864,8 @@
   "pollVotedFor": "Vous avez voté pour {choice}",
   "viewerActionResult": "{status, select, done{C’est fait.} refused{Twitch a refusé.} integrityRefused{Twitch a refusé\u00a0: vérification anti-bot. ONSET ne peut pas la passer, essayez sur twitch.tv.} signedOut{Reconnectez-vous pour le faire depuis ONSET.} other{Impossible de joindre Twitch. Réessayez.}}",
   "streakShareInChat": "Partager dans le chat",
-  "streakSharedInChat": "Votre série de visionnage a été partagée dans le chat."
+  "streakSharedInChat": "Votre série de visionnage a été partagée dans le chat.",
+  "chatWarningTitle": "Confirmer la lecture de l’avertissement\u202f?",
+  "chatWarningBody": "Un modérateur vous a adressé un avertissement dans ce chat. Lisez-le dans le chat, puis confirmez sa lecture pour écrire à nouveau.",
+  "chatWarningAcknowledge": "Confirmer la lecture"
 }

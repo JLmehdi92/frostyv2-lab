@@ -8553,10 +8553,10 @@ abstract class AppLocalizations {
   /// **'Followers-only · {duration}'**
   String chatRestrictionFollowersFor({required String duration});
 
-  /// The one-line bar above the chat input (and its placeholder) after Twitch refused a message for a reason tied to the account or the channel. One line at 360 dp ×1.3.
+  /// The one-line bar above the chat input (and its placeholder) after Twitch refused a message for a reason tied to the account or the channel. One line at 360 dp ×1.3. warned: a moderator warned the viewer; a tap on the bar opens the dialog that acknowledges it.
   ///
   /// In en, this message translates to:
-  /// **'{reason, select, verifiedEmail{Verified email required} verifiedPhone{Verified phone required} emailAliasBanned{Email banned here} phoneAliasBanned{Phone banned here} accountRestricted{Account restricted} channelRestricted{Chat suspended here} followRequired{Follow to chat} other{}}'**
+  /// **'{reason, select, verifiedEmail{Verified email required} verifiedPhone{Verified phone required} emailAliasBanned{Email banned here} phoneAliasBanned{Phone banned here} accountRestricted{Account restricted} channelRestricted{Chat suspended here} followRequired{Follow to chat} warned{Warning received} other{}}'**
   String chatRestrictionAccount({required String reason});
 
   /// The button over a paused chat: how many messages arrived since; tapping it scrolls back down.
@@ -11438,6 +11438,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your watch streak was shared in chat.'**
   String get streakSharedInChat;
+
+  /// Title of the dialog opened from the bar above the chat input after a moderator warned the viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Acknowledge the warning?'**
+  String get chatWarningTitle;
+
+  /// Text of the dialog that acknowledges a moderator's warning; the warning itself is the notice line in chat.
+  ///
+  /// In en, this message translates to:
+  /// **'A moderator sent you a warning in this chat. Read it in chat, then acknowledge it to chat again.'**
+  String get chatWarningBody;
+
+  /// The dialog's button that tells Twitch the viewer read the moderator's warning, which lets them chat again.
+  ///
+  /// In en, this message translates to:
+  /// **'Acknowledge'**
+  String get chatWarningAcknowledge;
 }
 
 class _AppLocalizationsDelegate

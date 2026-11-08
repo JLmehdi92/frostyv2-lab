@@ -8042,9 +8042,9 @@
       }
     }
   },
-  "chatRestrictionAccount": "{reason, select, verifiedEmail{Verified email required} verifiedPhone{Verified phone required} emailAliasBanned{Email banned here} phoneAliasBanned{Phone banned here} accountRestricted{Account restricted} channelRestricted{Chat suspended here} followRequired{Follow to chat} other{}}",
+  "chatRestrictionAccount": "{reason, select, verifiedEmail{Verified email required} verifiedPhone{Verified phone required} emailAliasBanned{Email banned here} phoneAliasBanned{Phone banned here} accountRestricted{Account restricted} channelRestricted{Chat suspended here} followRequired{Follow to chat} warned{Warning received} other{}}",
   "@chatRestrictionAccount": {
-    "description": "The one-line bar above the chat input (and its placeholder) after Twitch refused a message for a reason tied to the account or the channel. One line at 360 dp ×1.3.",
+    "description": "The one-line bar above the chat input (and its placeholder) after Twitch refused a message for a reason tied to the account or the channel. One line at 360 dp ×1.3. warned: a moderator warned the viewer; a tap on the bar opens the dialog that acknowledges it.",
     "placeholders": {
       "reason": {
         "type": "String",
@@ -10960,5 +10960,17 @@
   "streakSharedInChat": "Your watch streak was shared in chat.",
   "@streakSharedInChat": {
     "description": "Snack bar once the viewer's watch streak milestone was shared in chat."
+  },
+  "chatWarningTitle": "Acknowledge the warning?",
+  "@chatWarningTitle": {
+    "description": "Title of the dialog opened from the bar above the chat input after a moderator warned the viewer."
+  },
+  "chatWarningBody": "A moderator sent you a warning in this chat. Read it in chat, then acknowledge it to chat again.",
+  "@chatWarningBody": {
+    "description": "Text of the dialog that acknowledges a moderator's warning; the warning itself is the notice line in chat."
+  },
+  "chatWarningAcknowledge": "Acknowledge",
+  "@chatWarningAcknowledge": {
+    "description": "The dialog's button that tells Twitch the viewer read the moderator's warning, which lets them chat again."
   }
 }

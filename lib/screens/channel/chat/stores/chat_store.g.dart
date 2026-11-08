@@ -481,6 +481,20 @@ mixin _$ChatStore on ChatStoreBase, Store {
     });
   }
 
+  late final _$acknowledgeWarningAsyncAction = AsyncAction(
+    'ChatStoreBase.acknowledgeWarning',
+    context: context,
+  );
+
+  @override
+  Future<ViewerActionOutcome?> acknowledgeWarning(
+    TwitchViewerActionsService service,
+  ) {
+    return _$acknowledgeWarningAsyncAction.run(
+      () => super.acknowledgeWarning(service),
+    );
+  }
+
   late final _$getAssetsAsyncAction = AsyncAction(
     'ChatStoreBase.getAssets',
     context: context,

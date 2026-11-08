@@ -15,9 +15,12 @@ class ChatRestrictionBar extends StatefulWidget {
     super.key,
     required this.restriction,
     this.now = DateTime.now,
+    this.onAcknowledge,
   });
 
   final ChatRestriction? restriction;
+
+  final VoidCallback? onAcknowledge;
 
   static const lineKey = ValueKey('chat-restriction-line');
   final DateTime Function() now;
@@ -66,7 +69,8 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
     ChatRestrictionKind.followersOnly ||
     ChatRestrictionKind.followRequired => SheetGlyphKind.heart,
     ChatRestrictionKind.verifiedEmail ||
-    ChatRestrictionKind.verifiedPhone => SheetGlyphKind.shield,
+    ChatRestrictionKind.verifiedPhone ||
+    ChatRestrictionKind.warned => SheetGlyphKind.shield,
     ChatRestrictionKind.emailAliasBanned ||
     ChatRestrictionKind.phoneAliasBanned ||
     ChatRestrictionKind.accountRestricted ||
@@ -85,10 +89,16 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
     final left = until?.difference(widget.now());
     final color = SheetColors.of(context).danger;
     final helpUrl = restriction.helpUrl;
+    final onAcknowledge = restriction.acknowledgeable
+        ? widget.onAcknowledge
+        : null;
+    final VoidCallback? onTap = helpUrl != null
+        ? () => LinkRouter.open(helpUrl, launchExternal: false)
+        : onAcknowledge;
     final bar = Semantics(
       liveRegion: until == null,
       container: true,
-      button: helpUrl != null,
+      button: onTap != null,
       // A fixed height: the chat list pads for it.
       child: Container(
         height: restriction.barHeight,
@@ -116,16 +126,18 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
                 ),
               ),
               if (helpUrl != null)
-                SheetGlyph(SheetGlyphKind.external, size: 14, color: color),
+                SheetGlyph(SheetGlyphKind.external, size: 14, color: color)
+              else if (onAcknowledge != null)
+                SheetGlyph(SheetGlyphKind.chevronRight, size: 14, color: color),
             ],
           ),
         ),
       ),
     );
-    if (helpUrl == null) return bar;
+    if (onTap == null) return bar;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => LinkRouter.open(helpUrl, launchExternal: false),
+      onTap: onTap,
       child: bar,
     );
   }

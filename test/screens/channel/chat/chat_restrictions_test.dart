@@ -202,6 +202,7 @@ void main() {
         accountRestrictionOf('msg_followersonly_zero'),
         ChatRestrictionKind.followRequired,
       );
+      expect(accountRestrictionOf('msg_warned'), ChatRestrictionKind.warned);
       expect(accountRestrictionOf('msg_slowmode'), isNull);
       expect(accountRestrictionOf('msg_duplicate'), isNull);
     });

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/user.dart';
@@ -15,6 +16,8 @@ import 'package:onset/screens/settings/stores/user_store.dart';
 import '../../../../helpers/chat_store_harness.dart';
 
 class _MockUserStore extends Mock implements UserStore {}
+
+class _MockViewerActions extends Mock implements TwitchViewerActionsService {}
 
 const _welcome = ':tmi.twitch.tv 001 justinfan :Welcome, GLHF!';
 
@@ -110,6 +113,102 @@ void main() {
         sockets.single.receive(_welcome);
         async.flushMicrotasks();
         expect(store.restriction, isNull);
+        finish(store, async);
+      });
+    });
+  });
+
+  group('a warning', () {
+    ChatStore warned(FakeAsync async, {String? webToken = 'webtok'}) {
+      final store = createTestChatStore(
+        settings: settings,
+        sockets: sockets,
+        webToken: webToken,
+      );
+      async.flushMicrotasks();
+      sockets.single.receive(_welcome);
+      async.flushMicrotasks();
+      store.sendMessage('hello');
+      sockets.single.receive(_notice('msg_warned', 'You were warned.'));
+      async.flushMicrotasks();
+      return store;
+    }
+
+    test('shows the acknowledge bar above the input', () {
+      fakeAsync((async) {
+        final store = warned(async);
+        expect(store.restriction?.kind, ChatRestrictionKind.warned);
+        expect(store.restriction!.showsBar, isTrue);
+        expect(store.restriction!.blocksInput, isFalse);
+        finish(store, async);
+      });
+    });
+
+    test('acknowledged on Twitch, the bar goes', () {
+      fakeAsync((async) {
+        final actions = _MockViewerActions();
+        when(
+          () => actions.acknowledgeWarning(
+            channelId: '12345',
+            authToken: 'webtok',
+          ),
+        ).thenAnswer((_) async => ViewerActionOutcome.done);
+        final store = warned(async);
+        ViewerActionOutcome? outcome;
+        store.acknowledgeWarning(actions).then((o) => outcome = o);
+        async.flushMicrotasks();
+        expect(outcome, ViewerActionOutcome.done);
+        expect(store.restriction, isNull);
+        finish(store, async);
+      });
+    });
+
+    test('a refusal keeps the bar', () {
+      fakeAsync((async) {
+        final actions = _MockViewerActions();
+        when(
+          () => actions.acknowledgeWarning(
+            channelId: any(named: 'channelId'),
+            authToken: any(named: 'authToken'),
+          ),
+        ).thenAnswer((_) async => ViewerActionOutcome.failed);
+        final store = warned(async);
+        ViewerActionOutcome? outcome;
+        store.acknowledgeWarning(actions).then((o) => outcome = o);
+        async.flushMicrotasks();
+        expect(outcome, ViewerActionOutcome.failed);
+        expect(store.restriction?.kind, ChatRestrictionKind.warned);
+        finish(store, async);
+      });
+    });
+
+    test('without a web token nothing is sent', () {
+      fakeAsync((async) {
+        final actions = _MockViewerActions();
+        final store = warned(async, webToken: null);
+        ViewerActionOutcome? outcome;
+        store.acknowledgeWarning(actions).then((o) => outcome = o);
+        async.flushMicrotasks();
+        expect(outcome, ViewerActionOutcome.signedOut);
+        verifyZeroInteractions(actions);
+        finish(store, async);
+      });
+    });
+
+    test('nothing is sent when there is no warning', () {
+      fakeAsync((async) {
+        final actions = _MockViewerActions();
+        final store = createTestChatStore(
+          settings: settings,
+          sockets: sockets,
+          webToken: 'webtok',
+        );
+        async.flushMicrotasks();
+        ViewerActionOutcome? outcome = ViewerActionOutcome.done;
+        store.acknowledgeWarning(actions).then((o) => outcome = o);
+        async.flushMicrotasks();
+        expect(outcome, isNull);
+        verifyZeroInteractions(actions);
         finish(store, async);
       });
     });

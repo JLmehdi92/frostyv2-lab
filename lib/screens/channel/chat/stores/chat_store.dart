@@ -10,6 +10,7 @@ import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_mod_api.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/chat_history.dart';
@@ -857,6 +858,27 @@ abstract class ChatStoreBase with Store {
         followersOnly < 0) {
       _refusedFor = null;
     }
+  }
+
+  @action
+  Future<ViewerActionOutcome?> acknowledgeWarning(
+    TwitchViewerActionsService service,
+  ) async {
+    if (_refusedFor != ChatRestrictionKind.warned) return null;
+    final token = auth.twitchWebToken;
+    if (token == null || token.isEmpty) return ViewerActionOutcome.signedOut;
+    final outcome = await service.acknowledgeWarning(
+      channelId: channelId,
+      authToken: token,
+    );
+    if (outcome == ViewerActionOutcome.done &&
+        _refusedFor == ChatRestrictionKind.warned) {
+      runInAction(() {
+        _refusedFor = null;
+        _updateRestriction();
+      });
+    }
+    return outcome;
   }
 
   void _resetOwnRestrictions() {

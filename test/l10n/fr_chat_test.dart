@@ -31,6 +31,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -562,6 +563,7 @@ void main() {
                   ChatRestrictionKind.accountRestricted,
                   ChatRestrictionKind.channelRestricted,
                   ChatRestrictionKind.followRequired,
+                  ChatRestrictionKind.warned,
                 ])
                   kind.name: (
                     restriction: () => ChatRestriction(kind),
@@ -990,6 +992,18 @@ void main() {
           await expectFrenchThroughout(tester, 'name colours, $at');
         });
       }
+
+      testWidgets('the warning dialog, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          const Scaffold(body: ChatWarningDialog()),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        expect(find.text(french.chatWarningAcknowledge), findsOneWidget);
+        await expectFrenchThroughout(tester, 'warning dialog, $at');
+      });
 
       testWidgets('a watch streak to share, $at', (tester) async {
         await pumpLocalized(

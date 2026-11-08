@@ -6336,6 +6336,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'accountRestricted': 'Account restricted',
       'channelRestricted': 'Chat suspended here',
       'followRequired': 'Follow to chat',
+      'warned': 'Warning received',
       'other': '',
     });
     return '$_temp0';
@@ -8538,4 +8539,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get streakSharedInChat => 'Your watch streak was shared in chat.';
+
+  @override
+  String get chatWarningTitle => 'Acknowledge the warning?';
+
+  @override
+  String get chatWarningBody =>
+      'A moderator sent you a warning in this chat. Read it in chat, then acknowledge it to chat again.';
+
+  @override
+  String get chatWarningAcknowledge => 'Acknowledge';
 }

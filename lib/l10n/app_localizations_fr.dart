@@ -6420,6 +6420,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'accountRestricted': 'Compte restreint',
       'channelRestricted': 'Chat suspendu ici',
       'followRequired': 'Suivez la chaîne',
+      'warned': 'Avertissement reçu',
       'other': '',
     });
     return '$_temp0';
@@ -8649,4 +8650,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get streakSharedInChat =>
       'Votre série de visionnage a été partagée dans le chat.';
+
+  @override
+  String get chatWarningTitle => 'Confirmer la lecture de l’avertissement ?';
+
+  @override
+  String get chatWarningBody =>
+      'Un modérateur vous a adressé un avertissement dans ce chat. Lisez-le dans le chat, puis confirmez sa lecture pour écrire à nouveau.';
+
+  @override
+  String get chatWarningAcknowledge => 'Confirmer la lecture';
 }

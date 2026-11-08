@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/chat_restrictions.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
 import 'package:onset/utils/link_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -126,5 +127,61 @@ void main() {
     await tester.tapAt(bar.topCenter + const Offset(0, 4));
     await tester.pump();
     expect(opened, hasLength(1));
+  });
+
+  testWidgets('a warning bar asks to acknowledge on a tap', (tester) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ChatRestrictionBar(
+            restriction: const ChatRestriction(ChatRestrictionKind.warned),
+            onAcknowledge: () => taps++,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Warning received'), findsOneWidget);
+    await tester.tap(find.byKey(ChatRestrictionBar.lineKey));
+    expect(taps, 1);
+  });
+
+  testWidgets('without a way to acknowledge, the warning only says so', (
+    tester,
+  ) async {
+    await pump(tester, const ChatRestriction(ChatRestrictionKind.warned));
+    expect(find.text('Warning received'), findsOneWidget);
+    expect(find.byType(GestureDetector), findsNothing);
+  });
+
+  testWidgets('the warning dialog answers true only on Acknowledge', (
+    tester,
+  ) async {
+    bool? answer;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () async => answer = await showDialog<bool>(
+              context: context,
+              builder: (_) => const ChatWarningDialog(),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Acknowledge the warning?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(answer, isFalse);
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(ChatWarningDialog.acknowledgeKey));
+    await tester.pumpAndSettle();
+    expect(answer, isTrue);
   });
 }

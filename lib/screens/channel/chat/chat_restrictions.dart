@@ -16,6 +16,7 @@ enum ChatRestrictionKind {
   accountRestricted,
   channelRestricted,
   followRequired,
+  warned,
 }
 
 const _accountRefusals = {
@@ -30,6 +31,7 @@ const _accountRefusals = {
   'msg_channel_suspended': ChatRestrictionKind.channelRestricted,
   'msg_followersonly': ChatRestrictionKind.followRequired,
   'msg_followersonly_zero': ChatRestrictionKind.followRequired,
+  'msg_warned': ChatRestrictionKind.warned,
 };
 
 ChatRestrictionKind? accountRestrictionOf(String msgId) =>
@@ -66,8 +68,11 @@ class ChatRestriction {
     _ => true,
   };
 
-  double get barHeight =>
-      helpUrl == null ? kRestrictionBarHeight : kRestrictionBarTapHeight;
+  bool get acknowledgeable => kind == ChatRestrictionKind.warned;
+
+  double get barHeight => helpUrl == null && !acknowledgeable
+      ? kRestrictionBarHeight
+      : kRestrictionBarTapHeight;
 
   String? get helpUrl => switch (kind) {
     ChatRestrictionKind.verifiedEmail ||
@@ -103,9 +108,8 @@ class ChatRestriction {
     ChatRestrictionKind.phoneAliasBanned ||
     ChatRestrictionKind.accountRestricted ||
     ChatRestrictionKind.channelRestricted ||
-    ChatRestrictionKind.followRequired => l.chatRestrictionAccount(
-      reason: kind.name,
-    ),
+    ChatRestrictionKind.followRequired ||
+    ChatRestrictionKind.warned => l.chatRestrictionAccount(reason: kind.name),
   };
 }
 
