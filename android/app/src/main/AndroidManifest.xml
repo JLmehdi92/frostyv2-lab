@@ -68,6 +68,24 @@
                 <data android:host="www.twitch.tv" />
                 <data android:host="m.twitch.tv" />
                 <data android:host="clips.twitch.tv" />
+                <data android:host="go.twitch.tv" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="twitch" />
+                <data android:scheme="ttv" />
+                <data android:host="stream" />
+                <data android:host="channel" />
+                <data android:host="profile" />
+                <data android:host="open" />
+                <data android:host="following" />
+                <data android:host="directory" />
+                <data android:host="game" />
+                <data android:host="search" />
+                <data android:host="video" />
+                <data android:host="activity" />
             </intent-filter>
         </activity>
         <service

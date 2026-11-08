@@ -157,6 +157,18 @@ mixin _$SearchStore on SearchStoreBase, Store {
   }
 
   @override
+  void searchFor(String query) {
+    final _$actionInfo = _$SearchStoreBaseActionController.startAction(
+      name: 'SearchStoreBase.searchFor',
+    );
+    try {
+      return super.searchFor(query);
+    } finally {
+      _$SearchStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void handleQuery(String query) {
     final _$actionInfo = _$SearchStoreBaseActionController.startAction(
       name: 'SearchStoreBase.handleQuery',

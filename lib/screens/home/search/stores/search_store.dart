@@ -92,6 +92,13 @@ abstract class SearchStoreBase with Store {
     });
   }
 
+  @action
+  void searchFor(String query) {
+    textEditingController.text = query;
+    _searchText = query;
+    handleQuery(query);
+  }
+
   /// Obtain the channels and categories that match the provided [query].
   @action
   void handleQuery(String query) {

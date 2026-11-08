@@ -118,6 +118,12 @@ class TwitchVodService extends BaseApiClient {
       'query VideoContentLabels(\$id: ID!) { video(id: \$id) { '
       'contentClassificationLabels { id } } }';
 
+  static const _collectionFirstVideoQuery =
+      'query CollectionFirstVideo(\$id: ID!) { collection(id: \$id) { '
+      'items(first: 1) { edges { node { id } } } } }';
+
+  static final _collectionId = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
+
   static const _mutedSegmentsQuery =
       'query VideoMutedSegments(\$id: ID!) { video(id: \$id) { muteInfo { '
       'mutedSegmentConnection { nodes { offset duration } } } } }';
@@ -516,6 +522,28 @@ class TwitchVodService extends BaseApiClient {
       for (final label in labels)
         if (label is Map && label['id'] is String) label['id'] as String,
     ];
+  }
+
+  Future<String?> firstVideoOfCollection(String collectionId) async {
+    if (!_collectionId.hasMatch(collectionId)) return null;
+    try {
+      final data = await _gql(
+        'CollectionFirstVideo',
+        _collectionFirstVideoQuery,
+        {'id': collectionId},
+      );
+      final collection = data['collection'];
+      final items = collection is Map ? collection['items'] : null;
+      final edges = items is Map ? items['edges'] : null;
+      if (edges is! List || edges.isEmpty) return null;
+      final edge = edges.first;
+      final node = edge is Map ? edge['node'] : null;
+      final id = node is Map ? node['id'] : null;
+      return id is String && RegExp(r'^[0-9]{1,20}$').hasMatch(id) ? id : null;
+    } catch (e) {
+      debugPrint('Collection unavailable: ${e.runtimeType}');
+      return null;
+    }
   }
 
   /// Copyright-muted parts of the VOD. Optional data: never throws.

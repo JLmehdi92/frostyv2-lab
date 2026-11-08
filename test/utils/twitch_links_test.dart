@@ -94,10 +94,8 @@ void main() {
 
     test('reserved pages are not channels', () {
       for (final page in [
-        'directory/following',
         'videos',
         'settings',
-        'search',
         'p/en/legal',
         'downloads',
         'subscriptions',
@@ -231,7 +229,6 @@ void main() {
 
     test('not category links', () {
       for (final page in [
-        'directory',
         'directory/category',
         'directory/category/Bad%20Slug!',
         'directory/category/chess/clips/extra/more',
@@ -313,6 +310,163 @@ void main() {
       expect(_p('https://www.twitch.tv/directory/about'), isA<OtherLink>());
       expect(_p('https://www.twitch.tv/team/about'), isA<OtherLink>());
       expect(_p('https://www.twitch.tv/xqc'), const ChannelLink('xqc'));
+    });
+  });
+
+  group('app destinations', () {
+    test('browse, following and activity', () {
+      expect(_p('https://www.twitch.tv/directory'), const BrowseLink());
+      expect(
+        _p('https://www.twitch.tv/directory/following'),
+        const FollowingLink(),
+      );
+      expect(
+        _p('https://www.twitch.tv/directory/following/live'),
+        const FollowingLink(),
+      );
+      expect(_p('https://www.twitch.tv/following'), const FollowingLink());
+      expect(_p('https://www.twitch.tv/activity'), const ActivityLink());
+    });
+
+    test('search with a term', () {
+      expect(
+        _p('https://www.twitch.tv/search?term=speed%20runs'),
+        const SearchLink('speed runs'),
+      );
+      expect(_p('https://www.twitch.tv/search'), const SearchLink(''));
+      expect(
+        _p('https://www.twitch.tv/search?term=${'a' * 300}'),
+        SearchLink('a' * 100),
+      );
+    });
+
+    test("a channel's chat", () {
+      expect(
+        _p('https://www.twitch.tv/Streamer/chat'),
+        const ChannelChatLink('streamer'),
+      );
+      expect(
+        _p('https://www.twitch.tv/popout/streamer/chat'),
+        isA<OtherLink>(),
+      );
+    });
+
+    test('a video with a comment or in a collection', () {
+      expect(
+        _p('https://www.twitch.tv/videos/12?comment=abc'),
+        const VodLink('12'),
+      );
+      expect(
+        _p('https://www.twitch.tv/videos/12?collection=Xy_9-a'),
+        const VodLink('12'),
+      );
+    });
+
+    test('a collection', () {
+      expect(
+        _p('https://www.twitch.tv/collections/Xy_9-a'),
+        const CollectionLink('Xy_9-a'),
+      );
+      expect(_p('https://www.twitch.tv/collections/a%2Fb'), isA<OtherLink>());
+      expect(_p('https://www.twitch.tv/collections'), isA<OtherLink>());
+    });
+
+    test("a category's videos", () {
+      expect(
+        _p('https://www.twitch.tv/directory/category/just-chatting/videos'),
+        const CategoryVideosLink(CategoryLink(slug: 'just-chatting')),
+      );
+      expect(
+        _p('https://www.twitch.tv/directory/game/Just%20Chatting/videos/all'),
+        const CategoryVideosLink(CategoryLink(name: 'Just Chatting')),
+      );
+      expect(
+        _p('https://www.twitch.tv/directory/category/just-chatting/clips'),
+        isA<OtherLink>(),
+      );
+    });
+
+    test('opened by the deep link handler, not from chat', () {
+      for (final link in const <TwitchLink>[
+        BrowseLink(),
+        FollowingLink(),
+        ActivityLink(),
+        SearchLink('x'),
+        ChannelChatLink('x'),
+        CollectionLink('x'),
+        CategoryVideosLink(CategoryLink(slug: 'x')),
+      ]) {
+        expect(link.opensInApp, isFalse, reason: '$link');
+      }
+    });
+  });
+
+  group('app schemes and go.twitch.tv', () {
+    test('twitch:// and ttv:// name the same pages', () {
+      for (final scheme in ['twitch', 'ttv']) {
+        expect(_p('$scheme://stream/Streamer'), const ChannelLink('streamer'));
+        expect(_p('$scheme://channel/streamer'), const ChannelLink('streamer'));
+        expect(_p('$scheme://profile/streamer'), const ChannelLink('streamer'));
+        expect(
+          _p('$scheme://open?stream=streamer'),
+          const ChannelLink('streamer'),
+        );
+        expect(_p('$scheme://open'), const FollowingLink());
+        expect(_p('$scheme://following'), const FollowingLink());
+        expect(_p('$scheme://directory'), const BrowseLink());
+        expect(_p('$scheme://activity'), const ActivityLink());
+        expect(_p('$scheme://search?query=chess'), const SearchLink('chess'));
+        expect(_p('$scheme://search?term=chess'), const SearchLink('chess'));
+        expect(
+          _p('$scheme://video/123?t=1m'),
+          const VodLink('123', startAt: Duration(minutes: 1)),
+        );
+        expect(
+          _p('$scheme://game/Just%20Chatting'),
+          const CategoryLink(name: 'Just Chatting'),
+        );
+        expect(
+          _p('$scheme://directory/game/Chess'),
+          const CategoryLink(name: 'Chess'),
+        );
+        expect(
+          _p('$scheme://game/Chess/videos'),
+          const CategoryVideosLink(CategoryLink(name: 'Chess')),
+        );
+      }
+    });
+
+    test('unknown or unsafe app links are not opened', () {
+      expect(_p('twitch://login'), isA<OtherLink>());
+      expect(_p('twitch://stream'), isA<OtherLink>());
+      expect(_p('twitch://stream/not a login'), isA<OtherLink>());
+      expect(_p('twitch://video/abc'), isA<OtherLink>());
+      expect(_p('ttv://user/x'), isA<OtherLink>());
+      expect(_p('other://stream/streamer'), isA<OtherLink>());
+    });
+
+    test('go.twitch.tv is twitch.tv', () {
+      expect(
+        _p('https://go.twitch.tv/streamer'),
+        const ChannelLink('streamer'),
+      );
+      expect(_p('https://go.twitch.tv/videos/5'), const VodLink('5'));
+    });
+
+    test('the web address of an app link', () {
+      expect(
+        TwitchLink.webUri(Uri.parse('twitch://stream/streamer')),
+        Uri.parse('https://www.twitch.tv/streamer'),
+      );
+      expect(
+        TwitchLink.webUri(Uri.parse('ttv://search?query=a%20b')),
+        Uri.https('www.twitch.tv', '/search', {'term': 'a b'}),
+      );
+      expect(
+        TwitchLink.webUri(Uri.parse('https://m.twitch.tv/x')),
+        Uri.parse('https://m.twitch.tv/x'),
+      );
+      expect(TwitchLink.webUri(Uri.parse('twitch://login')), isNull);
     });
   });
 }

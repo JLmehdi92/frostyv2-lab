@@ -163,6 +163,18 @@ mixin _$HomeStore on HomeStoreBase, Store {
   }
 
   @override
+  void openPlace(ShellPlace place) {
+    final _$actionInfo = _$HomeStoreBaseActionController.startAction(
+      name: 'HomeStoreBase.openPlace',
+    );
+    try {
+      return super.openPlace(place);
+    } finally {
+      _$HomeStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   bool selectActivityTab(ActivityTab tab) {
     final _$actionInfo = _$HomeStoreBaseActionController.startAction(
       name: 'HomeStoreBase.selectActivityTab',

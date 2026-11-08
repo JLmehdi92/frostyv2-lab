@@ -20,6 +20,8 @@ enum BrowseTab { categories, live }
 /// Activity's tabs (Whispers only when logged in).
 enum ActivityTab { notifications, whispers }
 
+enum ShellPlace { browse, following, activity }
+
 /// Where [tab] opens the shell: its section and, for Home, its top tab.
 /// Logged out there is no Following, so it opens on Live.
 ({ShellSection section, HomeFeed feed}) startPlace(
@@ -184,6 +186,22 @@ abstract class HomeStoreBase with Store {
     }
     _scrollToTop(_browseController(tab));
     return false;
+  }
+
+  @action
+  void openPlace(ShellPlace place) {
+    final section = switch (place) {
+      ShellPlace.browse => ShellSection.browse,
+      ShellPlace.following => ShellSection.home,
+      ShellPlace.activity => ShellSection.activity,
+    };
+    if (section != _section) selectSection(section);
+    if (place == ShellPlace.following) {
+      final feed = feeds.contains(HomeFeed.following)
+          ? HomeFeed.following
+          : HomeFeed.live;
+      if (feed != _feed) selectFeed(feed);
+    }
   }
 
   ScrollController _browseController(BrowseTab tab) => switch (tab) {

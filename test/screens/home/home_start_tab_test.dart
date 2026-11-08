@@ -364,4 +364,33 @@ void main() {
       expect(store.categoriesScrollController.offset, 500);
     });
   });
+
+  group('opened from a link', () {
+    test('Browse, Following and Activity', () {
+      final store = HomeStore(authStore: FakeAuthStore(true))
+        ..selectFeed(HomeFeed.live);
+
+      store.openPlace(ShellPlace.browse);
+      expect(store.section, ShellSection.browse);
+
+      store.openPlace(ShellPlace.following);
+      expect(store.section, ShellSection.home);
+      expect(store.feed, HomeFeed.following);
+
+      store.openPlace(ShellPlace.activity);
+      expect(store.section, ShellSection.activity);
+      store.dispose();
+    });
+
+    test('logged out, Following opens Live', () {
+      final store = HomeStore(authStore: FakeAuthStore(false))
+        ..selectSection(ShellSection.profile);
+
+      store.openPlace(ShellPlace.following);
+
+      expect(store.section, ShellSection.home);
+      expect(store.feed, HomeFeed.live);
+      store.dispose();
+    });
+  });
 }

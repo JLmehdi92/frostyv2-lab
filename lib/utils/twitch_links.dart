@@ -16,7 +16,16 @@ sealed class TwitchLink {
     ChannelProfileLink() => true,
     // A category opens in-app from a deep link only (the app's handler);
     // tapped in chat it keeps the browser, as before.
-    ChannelLink() || CategoryLink() || OtherLink() => false,
+    ChannelLink() ||
+    CategoryLink() ||
+    CategoryVideosLink() ||
+    ChannelChatLink() ||
+    CollectionLink() ||
+    SearchLink() ||
+    BrowseLink() ||
+    FollowingLink() ||
+    ActivityLink() ||
+    OtherLink() => false,
   };
 
   /// Parses a link found in text (chat, a deep link). A scheme-less
@@ -37,15 +46,78 @@ sealed class TwitchLink {
     }
   }
 
+  static Uri? webUri(Uri uri) {
+    try {
+      return switch (uri.scheme.toLowerCase()) {
+        'https' || 'http' => uri,
+        'twitch' || 'ttv' => _appToWeb(uri),
+        _ => null,
+      };
+    } on FormatException {
+      return null;
+    }
+  }
+
+  static Uri? _appToWeb(Uri uri) {
+    final segments = [
+      for (final s in uri.pathSegments)
+        if (s.isNotEmpty) s,
+    ];
+    final query = uri.queryParameters;
+    Uri web(List<String> path, [Map<String, String>? parameters]) => Uri(
+      scheme: 'https',
+      host: 'www.twitch.tv',
+      pathSegments: path,
+      queryParameters: parameters == null || parameters.isEmpty
+          ? null
+          : parameters,
+    );
+    switch (uri.host.toLowerCase()) {
+      case 'stream' || 'channel' || 'profile':
+        return segments.isEmpty ? null : web(segments);
+      case 'open':
+        final login = query['stream'] ?? query['channel'];
+        return login == null || login.isEmpty
+            ? web(['directory', 'following'])
+            : web([login]);
+      case 'following':
+        return web(['directory', 'following']);
+      case 'directory':
+        return web(['directory', ...segments]);
+      case 'game':
+        return segments.isEmpty
+            ? null
+            : web(['directory', 'game', ...segments]);
+      case 'search':
+        final term = query['term'] ?? query['query'] ?? '';
+        return web(['search'], {if (term.isNotEmpty) 'term': term});
+      case 'video':
+        final t = query['t'];
+        return segments.isEmpty
+            ? null
+            : web(['videos', ...segments], {'t': ?t});
+      case 'activity':
+        return web(['activity']);
+      default:
+        return null;
+    }
+  }
+
   static TwitchLink _parse(Uri uri) {
-    if (uri.scheme != 'https' && uri.scheme != 'http') {
+    final scheme = uri.scheme.toLowerCase();
+    if (scheme == 'twitch' || scheme == 'ttv') {
+      final web = _appToWeb(uri);
+      return web == null ? const OtherLink() : _parse(web);
+    }
+    if (scheme != 'https' && scheme != 'http') {
       return const OtherLink();
     }
     final host = uri.host.toLowerCase();
     if (host == 'clips.twitch.tv') return _clipsHost(uri);
     if (host != 'twitch.tv' &&
         host != 'www.twitch.tv' &&
-        host != 'm.twitch.tv') {
+        host != 'm.twitch.tv' &&
+        host != 'go.twitch.tv') {
       return const OtherLink();
     }
     final segments = [
@@ -61,25 +133,21 @@ sealed class TwitchLink {
     }
     // /clip/<slug> (mobile web)
     if (first == 'clip' && segments.length == 2) return _clip(segments[1]);
-    // /directory/category/<slug>, /directory/game/<name> (the older form)
-    if (first == 'directory' && segments.length == 3) {
-      final kind = segments[1].toLowerCase();
-      final value = segments[2];
-      if (kind == 'category' && _categorySlug.hasMatch(value)) {
-        return CategoryLink(slug: value.toLowerCase());
+    if (first == 'directory') return _directory(segments);
+    if (segments.length == 1) {
+      switch (first) {
+        case 'following':
+          return const FollowingLink();
+        case 'activity':
+          return const ActivityLink();
+        case 'search':
+          return SearchLink(_searchTerm(uri.queryParameters['term']));
       }
-      final name = value.trim();
-      // A name is one path segment: one that would climb out of the page
-      // ("..", a slash once decoded) is not a category.
-      if (kind == 'game' &&
-          name.isNotEmpty &&
-          name.length <= 100 &&
-          name != '.' &&
-          name != '..' &&
-          !name.contains(RegExp(r'[/\\\x00-\x1f\x7f]'))) {
-        return CategoryLink(name: name);
-      }
-      return const OtherLink();
+    }
+    if (first == 'collections') {
+      return segments.length == 2 && _collectionId.hasMatch(segments[1])
+          ? CollectionLink(segments[1])
+          : const OtherLink();
     }
     if (_reserved.contains(first) || !_login.hasMatch(first)) {
       return const OtherLink();
@@ -121,8 +189,47 @@ sealed class TwitchLink {
           .firstOrNull;
       if (section != null) return ChannelProfileLink(first, section);
     }
+    if (segments.length == 2 && segments[1].toLowerCase() == 'chat') {
+      return ChannelChatLink(first);
+    }
     if (segments.length == 1) return ChannelLink(first);
     return const OtherLink();
+  }
+
+  static TwitchLink _directory(List<String> segments) {
+    if (segments.length == 1) return const BrowseLink();
+    if (segments[1].toLowerCase() == 'following') return const FollowingLink();
+    if (segments.length < 3) return const OtherLink();
+    final category = _category(segments[1].toLowerCase(), segments[2]);
+    if (category == null) return const OtherLink();
+    if (segments.length == 3) return category;
+    if (segments[3].toLowerCase() == 'videos') {
+      return CategoryVideosLink(category);
+    }
+    return const OtherLink();
+  }
+
+  static CategoryLink? _category(String kind, String value) {
+    if (kind == 'category' && _categorySlug.hasMatch(value)) {
+      return CategoryLink(slug: value.toLowerCase());
+    }
+    final name = value.trim();
+    // A name is one path segment: one that would climb out of the page
+    // ("..", a slash once decoded) is not a category.
+    if (kind == 'game' &&
+        name.isNotEmpty &&
+        name.length <= 100 &&
+        name != '.' &&
+        name != '..' &&
+        !name.contains(RegExp(r'[/\\\x00-\x1f\x7f]'))) {
+      return CategoryLink(name: name);
+    }
+    return null;
+  }
+
+  static String _searchTerm(String? raw) {
+    final term = (raw ?? '').replaceAll(RegExp(r'[\x00-\x1f\x7f]'), ' ').trim();
+    return term.length <= 100 ? term : term.substring(0, 100);
   }
 
   /// `clips.twitch.tv/<slug>` and `clips.twitch.tv/embed?clip=<slug>`.
@@ -154,6 +261,7 @@ sealed class TwitchLink {
     caseSensitive: false,
   );
   static final _login = RegExp(r'^[a-z0-9_]{1,25}$');
+  static final _collectionId = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
 
   static const _ranges = {
     '24hr': ClipPeriod.lastDay,
@@ -202,6 +310,8 @@ sealed class TwitchLink {
     'u',
     'embed',
     'products',
+    'activity',
+    'collections',
   };
 }
 
@@ -350,6 +460,99 @@ Uri twitchCategoryUrl(CategoryLink link) => Uri(
 /// Anything the app does not open itself.
 final class OtherLink extends TwitchLink {
   const OtherLink();
+}
+
+final class CategoryVideosLink extends TwitchLink {
+  const CategoryVideosLink(this.category);
+
+  final CategoryLink category;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CategoryVideosLink && other.category == category;
+
+  @override
+  int get hashCode => category.hashCode;
+
+  @override
+  String toString() => 'CategoryVideosLink($category)';
+}
+
+final class ChannelChatLink extends TwitchLink {
+  const ChannelChatLink(this.login);
+
+  final String login;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ChannelChatLink && other.login == login;
+
+  @override
+  int get hashCode => login.hashCode;
+
+  @override
+  String toString() => 'ChannelChatLink($login)';
+}
+
+final class CollectionLink extends TwitchLink {
+  const CollectionLink(this.collectionId);
+
+  final String collectionId;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CollectionLink && other.collectionId == collectionId;
+
+  @override
+  int get hashCode => collectionId.hashCode;
+
+  @override
+  String toString() => 'CollectionLink($collectionId)';
+}
+
+final class SearchLink extends TwitchLink {
+  const SearchLink(this.term);
+
+  final String term;
+
+  @override
+  bool operator ==(Object other) => other is SearchLink && other.term == term;
+
+  @override
+  int get hashCode => term.hashCode;
+
+  @override
+  String toString() => 'SearchLink($term)';
+}
+
+final class BrowseLink extends TwitchLink {
+  const BrowseLink();
+
+  @override
+  bool operator ==(Object other) => other is BrowseLink;
+
+  @override
+  int get hashCode => (BrowseLink).hashCode;
+}
+
+final class FollowingLink extends TwitchLink {
+  const FollowingLink();
+
+  @override
+  bool operator ==(Object other) => other is FollowingLink;
+
+  @override
+  int get hashCode => (FollowingLink).hashCode;
+}
+
+final class ActivityLink extends TwitchLink {
+  const ActivityLink();
+
+  @override
+  bool operator ==(Object other) => other is ActivityLink;
+
+  @override
+  int get hashCode => (ActivityLink).hashCode;
 }
 
 /// [name]'s slug, as twitch.tv writes it in a category's address

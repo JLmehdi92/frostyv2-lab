@@ -48,6 +48,23 @@ import 'package:simple_pip_mode/simple_pip.dart';
 /// around Home (Following, Live, Clips), Browse
 /// (categories and search), Activity and Profile (account and settings).
 class Home extends StatefulWidget {
+  static void Function(ShellPlace place)? _placeOpener;
+  static void Function(String term)? _searchOpener;
+
+  static bool openPlace(ShellPlace place) {
+    final open = _placeOpener;
+    if (open == null) return false;
+    open(place);
+    return true;
+  }
+
+  static bool openSearch(String term) {
+    final open = _searchOpener;
+    if (open == null) return false;
+    open(term);
+    return true;
+  }
+
   const Home({super.key});
 
   @override
@@ -75,13 +92,18 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   /// Search, kept between its opens (it was a tab before the shell).
   SearchSession? _search;
 
-  void _openSearch() => SearchScreen.open(
-    context,
-    session: _search ??= SearchSession(
-      authStore: _authStore,
-      twitchApi: context.read<TwitchApi>(),
-    ),
+  void _openSearch() => SearchScreen.open(context, session: _searchSession);
+
+  SearchSession get _searchSession => _search ??= SearchSession(
+    authStore: _authStore,
+    twitchApi: context.read<TwitchApi>(),
   );
+
+  void _openSearchFor(String term) {
+    final session = _searchSession;
+    if (term.isNotEmpty) session.store.searchFor(term);
+    unawaited(SearchScreen.open(context, session: session));
+  }
 
   /// A page covers the shell: the mini player is not bound by its chrome.
   var _covered = false;
@@ -204,6 +226,8 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   @override
   void initState() {
     super.initState();
+    Home._placeOpener = _homeStore.openPlace;
+    Home._searchOpener = _openSearchFor;
     // Answered before: the update offer has nothing to wait for.
     if (context.read<SettingsStore>().languagePromptVersion >=
         kLanguagePromptVersion) {
@@ -721,6 +745,8 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
 
   @override
   void dispose() {
+    if (Home._placeOpener == _homeStore.openPlace) Home._placeOpener = null;
+    if (Home._searchOpener == _openSearchFor) Home._searchOpener = null;
     OnsetShell.routeObserver.removeListener(_onRoutes);
     LaunchIntro.running.removeListener(_onIntro);
     _disposeTokenNotice();

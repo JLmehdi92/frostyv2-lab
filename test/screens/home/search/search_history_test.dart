@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/category.dart';
 import 'package:onset/screens/home/search/search.dart';
 import 'package:onset/screens/home/search/stores/search_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -32,6 +33,26 @@ void main() {
     expect(store.searchHistory, ['xqc', 'chess']);
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getStringList('search_history'), ['xqc', 'chess']);
+    store.dispose();
+  });
+
+  test('a search asked for by a link fills the field and runs', () async {
+    final api = MockTwitchApi();
+    when(
+      () => api.searchChannels(query: any(named: 'query')),
+    ).thenAnswer((_) async => []);
+    when(
+      () => api.searchCategories(query: any(named: 'query')),
+    ).thenAnswer((_) async => const CategoriesTwitch([], null));
+    final store = SearchStore(authStore: MockAuthStore(), twitchApi: api);
+    await pumpEventQueue();
+
+    store.searchFor('speed runs');
+
+    expect(store.textEditingController.text, 'speed runs');
+    expect(store.searchText, 'speed runs');
+    expect(store.lastQuery, 'speed runs');
+    verify(() => api.searchChannels(query: 'speed runs')).called(1);
     store.dispose();
   });
 

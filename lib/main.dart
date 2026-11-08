@@ -37,6 +37,7 @@ import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/clips/clip_screen.dart';
 import 'package:onset/screens/home/home.dart';
 import 'package:onset/screens/home/shell/onset_shell.dart';
+import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/screens/onboarding/onboarding_flow.dart';
 import 'package:onset/screens/settings/settings.dart';
@@ -558,7 +559,10 @@ class _MyAppState extends State<MyApp> {
 
   /// Opens a category link: its page when Twitch's search finds it, else
   /// the twitch.tv page in the app.
-  Future<void> _openCategoryLink(CategoryLink link) async {
+  Future<void> _openCategoryLink(
+    CategoryLink link, {
+    CategorySection section = CategorySection.live,
+  }) async {
     String? id;
     try {
       id = await CategoryStreams.idOf(context.read<TwitchApi>(), link);
@@ -572,7 +576,10 @@ class _MyAppState extends State<MyApp> {
         (_) => navigatorKey.currentState?.push(
           MaterialPageRoute(
             settings: const RouteSettings(name: CategoryStreams.routeName),
-            builder: (context) => CategoryStreams(categoryId: categoryId),
+            builder: (context) => CategoryStreams(
+              categoryId: categoryId,
+              initialSection: section,
+            ),
           ),
         ),
       );
@@ -585,6 +592,39 @@ class _MyAppState extends State<MyApp> {
       title: link.name ?? navigatorContext.l10n.deepLinkCategoryFallback,
       url: twitchCategoryUrl(link),
     );
+  }
+
+  Future<bool> _openAppDestination(TwitchLink link) async {
+    switch (link) {
+      case BrowseLink():
+        return _openShellPlace(ShellPlace.browse);
+      case FollowingLink():
+        return _openShellPlace(ShellPlace.following);
+      case ActivityLink():
+        return _openShellPlace(ShellPlace.activity);
+      case SearchLink(:final term):
+        _backToShell();
+        return Home.openSearch(term);
+      case CategoryVideosLink(:final category):
+        await _openCategoryLink(category, section: CategorySection.videos);
+        return true;
+      case CollectionLink(:final collectionId):
+        final vodId = await context
+            .read<TwitchVodService>()
+            .firstVideoOfCollection(collectionId);
+        if (vodId == null) return false;
+        return _openTwitchLinkInApp(VodLink(vodId));
+      default:
+        return false;
+    }
+  }
+
+  void _backToShell() =>
+      navigatorKey.currentState?.popUntil((route) => route.isFirst);
+
+  bool _openShellPlace(ShellPlace place) {
+    _backToShell();
+    return Home.openPlace(place);
   }
 
   /// Opens video and clip links in-app (from chat or deep links).
@@ -633,7 +673,16 @@ class _MyAppState extends State<MyApp> {
             },
           ),
         );
-      case ChannelLink() || CategoryLink() || OtherLink():
+      case ChannelLink() ||
+          CategoryLink() ||
+          CategoryVideosLink() ||
+          ChannelChatLink() ||
+          CollectionLink() ||
+          SearchLink() ||
+          BrowseLink() ||
+          FollowingLink() ||
+          ActivityLink() ||
+          OtherLink():
         return false;
     }
     if (navigatorKey.currentState == null) return false;
@@ -749,6 +798,8 @@ class _MyAppState extends State<MyApp> {
       await _openCategoryLink(link);
       return;
     }
+    if (await _openAppDestination(link)) return;
+    if (!mounted) return;
 
     // In the language of the screen the snackbar shows over.
     final l = (navigatorKey.currentContext ?? context).l10n;
@@ -761,17 +812,20 @@ class _MyAppState extends State<MyApp> {
         // Fallback, allow user to open URL outside app
         onTrailingIconPressed: () async {
           await launchUrl(
-            uri,
+            TwitchLink.webUri(uri) ?? uri,
             mode: LaunchMode.inAppWebView, // Force browser
           );
         },
       ),
     );
 
-    // Handle channel links
-    if (uri.pathSegments.isNotEmpty) {
-      final channelName = uri.pathSegments.first;
-
+    final channelName = switch (link) {
+      ChannelLink(:final login) || ChannelChatLink(:final login) => login,
+      _ when TwitchLink.webUri(uri) == uri && uri.pathSegments.isNotEmpty =>
+        uri.pathSegments.first,
+      _ => null,
+    };
+    if (channelName != null) {
       try {
         final twitchApi = context.read<TwitchApi>();
 
@@ -783,6 +837,7 @@ class _MyAppState extends State<MyApp> {
             userId: user.id,
             userName: user.displayName,
             userLogin: user.login,
+            startChatOnly: link is ChannelChatLink,
           ),
         );
 

@@ -39,7 +39,13 @@ class CategoryStreams extends StatelessWidget {
   /// The category id, used for fetching the relevant streams in the [ListStore].
   final String categoryId;
 
-  const CategoryStreams({super.key, required this.categoryId});
+  final CategorySection initialSection;
+
+  const CategoryStreams({
+    super.key,
+    required this.categoryId,
+    this.initialSection = CategorySection.live,
+  });
 
   /// The id of the category a twitch.tv [link] names, found among the
   /// categories Twitch's search gives for it; null when none matches.
@@ -98,6 +104,7 @@ class CategoryStreams extends StatelessWidget {
                 child: CategoryView(
                   categoryId: categoryId,
                   statusBar: padding.top,
+                  initialSection: initialSection,
                 ),
               ),
             ),
@@ -175,7 +182,10 @@ class CategoryView extends StatefulWidget {
     required this.categoryId,
     this.embedded = false,
     this.statusBar = 0,
+    this.initialSection = CategorySection.live,
   });
+
+  final CategorySection initialSection;
 
   final String categoryId;
 
@@ -191,7 +201,7 @@ class CategoryView extends StatefulWidget {
 }
 
 class _CategoryViewState extends State<CategoryView> {
-  var _section = CategorySection.live;
+  late var _section = widget.initialSection;
   var _sort = StreamSort.viewersHigh;
 
   // Made the first time their section shows.

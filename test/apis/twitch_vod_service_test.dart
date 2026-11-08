@@ -885,4 +885,56 @@ void main() {
       );
     });
   });
+
+  group('firstVideoOfCollection', () {
+    test("the first video's id, anonymously", () async {
+      reply({
+        'data': {
+          'collection': {
+            'items': {
+              'edges': [
+                {
+                  'node': {'id': '1000000009'},
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      expect(await service.firstVideoOfCollection('Ab_1-x'), '1000000009');
+      expect(lastVariables(), {'id': 'Ab_1-x'});
+      expect((gqlRequests.last.data as Map)['query'], contains('collection('));
+      expect(gqlRequests.last.headers['Authorization'], isNull);
+    });
+
+    test('an empty, missing or unreadable collection is null', () async {
+      for (final body in [
+        {
+          'data': {
+            'collection': {
+              'items': {'edges': <Object>[]},
+            },
+          },
+        },
+        {
+          'data': {'collection': null},
+        },
+        {
+          'errors': [
+            {'message': 'boom'},
+          ],
+        },
+        {'data': 'junk'},
+      ]) {
+        reply(body);
+        expect(await service.firstVideoOfCollection('a'), isNull);
+      }
+    });
+
+    test('a malformed id is never sent', () async {
+      expect(await service.firstVideoOfCollection('a/b'), isNull);
+      expect(gqlRequests, isEmpty);
+    });
+  });
 }

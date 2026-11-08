@@ -90,12 +90,15 @@ class VideoChat extends StatefulWidget {
   /// overlay fades out, the chat welcomes them and the raid is pinned.
   final RaidArrival? raidArrival;
 
+  final bool startChatOnly;
+
   const VideoChat({
     super.key,
     required this.userId,
     required this.userName,
     required this.userLogin,
     this.raidArrival,
+    this.startChatOnly = false,
   });
 
   /// The page of [login]'s channel when it is open (the latest one), or
@@ -630,10 +633,25 @@ class _VideoChatState extends State<VideoChat>
     );
   }
 
+  SettingsStore? _showVideoAgainOnLeave;
+
+  void _hideVideoForChatOnlyStart() {
+    final settings = context.settingsStore;
+    if (!widget.startChatOnly || !settings.showVideo) return;
+    settings.showVideo = false;
+    _showVideoAgainOnLeave = settings;
+  }
+
+  void _restoreVideoAfterChatOnlyStart() {
+    final settings = _showVideoAgainOnLeave;
+    if (settings != null && !settings.showVideo) settings.showVideo = true;
+  }
+
   @override
   void initState() {
     super.initState();
     _alive.add(this);
+    _hideVideoForChatOnlyStart();
 
     // Build the player first — this adopts the live player back from the mini
     // window when we're restoring this same channel (seamless, no reload).
@@ -1887,6 +1905,7 @@ class _VideoChatState extends State<VideoChat>
 
   @override
   void dispose() {
+    _restoreVideoAfterChatOnlyStart();
     // Remove observer for app lifecycle events
     WidgetsBinding.instance.removeObserver(this);
 
