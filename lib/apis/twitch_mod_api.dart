@@ -73,7 +73,7 @@ class ModTextLimits {
 final _controlCharacters = RegExp(r'[\u0000-\u001f\u007f  ]+');
 final _helixId = RegExp(r'^[0-9]{1,20}$');
 final _opaqueId = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
-final _tagPattern = RegExp(r'^[\p{L}\p{N}]{1,25}$', unicode: true);
+final _tagPattern = RegExp(r'^[\p{L}\p{M}\p{N}]{1,25}$', unicode: true);
 
 String singleLine(String text, {int? maxLength}) {
   final flat = text.replaceAll(_controlCharacters, ' ').trim();

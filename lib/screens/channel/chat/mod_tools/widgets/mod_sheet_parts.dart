@@ -294,8 +294,14 @@ Future<bool> confirmModAction(
   return confirmed ?? false;
 }
 
-void openModLogin(BuildContext context, AuthStore authStore) {
-  Navigator.of(context).push(
+Future<void> openModLogin(
+  BuildContext context,
+  AuthStore authStore,
+  Set<String> scopes,
+) async {
+  final navigator = Navigator.of(context);
+  await authStore.requestScopes(scopes);
+  await navigator.push(
     MaterialPageRoute<void>(
       builder: (context) => Provider<AuthStore>.value(
         value: authStore,

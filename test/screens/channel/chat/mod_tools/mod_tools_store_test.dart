@@ -69,7 +69,13 @@ void main() {
 
   test('logging in asks for every scope the mod tools use', () {
     final asked = AuthBase.loginScopes.split(' ').toSet();
-    expect(asked.containsAll(ModFeature.allScopes), isTrue);
+    for (final feature in ModFeature.values) {
+      expect(
+        {...asked, ...AuthBase.channelToolScopes}.containsAll(feature.scopes),
+        isTrue,
+        reason: feature.name,
+      );
+    }
     expect(asked, hasLength(AuthBase.loginScopes.split(' ').length));
   });
 
@@ -126,7 +132,7 @@ void main() {
       'warn': {'user_id': '33', 'user_name': 'Ana', 'reason': 'be nice'},
     });
     await pumpEventQueue();
-    expect(lines.single.text, 'Mira warned Ana. Reason: “be nice”');
+    expect(lines.single.text, 'Mira warned Ana. Reason: “be nice”.');
     expect(tools.actions.single.action, 'warn');
     expect(tools.statusOf('33').warned, isTrue);
 

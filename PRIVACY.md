@@ -1,6 +1,6 @@
 # ONSET privacy policy
 
-**Effective date:** 1 November 2026
+**Effective date:** 8 November 2026
 
 ONSET is a free, open-source (AGPL-3.0-or-later) Twitch client for Android
 (package `app.onset`). It is an independent project, not affiliated with,
@@ -51,8 +51,13 @@ When you log in, ONSET opens Twitch's own login and authorization page
 (id.twitch.tv) inside the app. You type your password into Twitch's page, not
 into ONSET; ONSET never sees it. Twitch then gives ONSET an access token for
 the permissions shown on that page (reading and sending chat, your followed
-channels, blocked users, chat color, moderation actions if you are a
-moderator, whispers, your emotes, and creating clips).
+channels, blocked users, chat color, moderation actions in chats you moderate
+(bans and timeouts, chat modes, AutoMod, blocked terms, unban requests,
+announcements, shoutouts, and shield mode), whispers, your emotes, and creating
+clips). If you own a channel and turn on its channel tools in Mod tools, ONSET
+asks Twitch again, on the same page, for permission to manage that channel:
+stream info, ads, raids, polls, predictions, reward requests, moderators, and
+VIPs. Until then, the token cannot manage your channel.
 
 Because the login page signs you in to twitch.tv, it also leaves a twitch.tv
 session cookie (`auth-token`) in the app's web view. On Android, ONSET reads
@@ -352,6 +357,8 @@ GitHub repository.
   turn it on again if you want to share crash logs and analytics.
 - 31 October 2026: wording clarified; no change to how data is handled.
 - 1 November 2026: a section about the website was added.
+- 8 November 2026: the moderation permissions are listed, and managing your
+  own channel is asked for only when you turn on its channel tools.
 
 ## 14. Contact
 

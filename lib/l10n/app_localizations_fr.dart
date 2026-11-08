@@ -130,7 +130,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingPermissionModerationDetail =>
-      'Bannissements, AutoMod, rôles, sondages, modes du chat';
+      'Bannissements, AutoMod, termes, mode bouclier, modes du chat';
 
   @override
   String get onboardingPermissionClipsTitle => 'Clips';
@@ -5178,6 +5178,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'refund': 'de rembourser la demande',
       'updateStream': 'd’enregistrer les infos du live',
       'load': 'de charger la liste',
+      'loadStream': 'de charger les infos du live',
       'other': 'd’effectuer cette action',
     });
     return 'Impossible $_temp0. $reason';
@@ -5237,6 +5238,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'refund': 'de rembourser la demande',
       'updateStream': 'd’enregistrer les infos du live',
       'load': 'de charger la liste',
+      'loadStream': 'de charger les infos du live',
       'other': 'd’effectuer cette action',
     });
     return 'Impossible $_temp0 (erreur inattendue).';
@@ -5265,7 +5267,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatAutoModHeld({required String name}) {
-    return 'Message retenu par l’AutoMod, envoyé par $name.';
+    return 'Message de $name retenu par l’AutoMod.';
   }
 
   @override
@@ -5327,7 +5329,7 @@ class AppLocalizationsFr extends AppLocalizations {
     required String line,
     required String reason,
   }) {
-    return '$line Motif : « $reason »';
+    return '$line Motif : « $reason ».';
   }
 
   @override
@@ -5478,7 +5480,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get modToolsAnnounceCaption =>
-      'Mise en avant dans le chat, pour tout le monde.';
+      'L’annonce est mise en avant dans le chat, pour tout le monde.';
 
   @override
   String get modToolsAnnounceColor => 'Couleur';
@@ -5630,7 +5632,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get modToolsLogInToEnable => 'Reconnectez-vous pour l’activer';
+  String get modToolsLogInToEnable => 'Reconnectez-vous pour y accéder';
 
   @override
   String get modToolsMakeModerator => 'Attribuer le rôle de modérateur';
@@ -5724,6 +5726,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get modToolsPredictionLock => 'Verrouiller';
+
+  @override
+  String get modToolsPredictionLockMessage =>
+      'Plus personne ne pourra participer. Ce verrouillage est définitif.';
+
+  @override
+  String get modToolsPredictionLockTitle => 'Verrouiller la prédiction ?';
 
   @override
   String get modToolsPredictionLocked => 'Prédiction verrouillée';
@@ -5862,6 +5871,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String modToolsRemoveTermMessage({required String term}) {
+    return 'Les messages contenant « $term » pourront de nouveau apparaître dans le chat.';
+  }
+
+  @override
+  String get modToolsRemoveTermTitle => 'Retirer ce terme bloqué ?';
+
+  @override
   String get modToolsRemoveVip => 'Retirer le statut VIP';
 
   @override
@@ -5987,7 +6004,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get modToolsTagInvalid =>
-      'Un tag ne peut contenir que des lettres et des chiffres, 25 au maximum.';
+      'Un tag ne peut contenir que des lettres et des chiffres (25 caractères au maximum).';
 
   @override
   String get modToolsTagLabel => 'Ajouter un tag';

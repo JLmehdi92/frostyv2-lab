@@ -320,10 +320,10 @@ abstract class AppLocalizations {
   /// **'Moderation'**
   String get onboardingPermissionModerationTitle;
 
-  /// Onboarding Log in step, permission list: what the moderation permissions allow (moderating a chat, and running one's own channel: polls, raids, stream info).
+  /// Onboarding Log in step, permission list: what the moderation permissions allow in chats the viewer moderates (the channel tools are asked for later, only by a broadcaster who turns them on).
   ///
   /// In en, this message translates to:
-  /// **'Bans, AutoMod, roles, polls, chat modes'**
+  /// **'Bans, AutoMod, terms, shield mode, chat modes'**
   String get onboardingPermissionModerationDetail;
 
   /// Onboarding Log in step, permission list: the clips permission.
@@ -7093,13 +7093,13 @@ abstract class AppLocalizations {
   /// Error message. A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error); French makes it a sentence after a full stop (« Impossible de bannir. … »).
   ///
   /// In en, this message translates to:
-  /// **'Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} announce{send the announcement} shoutout{send the shoutout} mods{list the moderators} vips{list the VIPs} mod{add the moderator} unmod{remove the moderator} vip{add the VIP} unvip{remove the VIP} shieldOn{turn shield mode on} shieldOff{turn shield mode off} marker{add the stream marker} commercial{start the ad break} raid{start the raid} unraid{cancel the raid} monitor{monitor the user} unmonitor{stop monitoring the user} restrict{restrict the user} unrestrict{lift the restriction} blockTerm{add the blocked term} unblockTerm{remove the blocked term} allowMessage{allow the message} denyMessage{deny the message} approveUnban{approve the unban request} denyUnban{deny the unban request} createPoll{start the poll} endPoll{end the poll} createPrediction{start the prediction} lockPrediction{lock the prediction} resolvePrediction{confirm the result} cancelPrediction{cancel the prediction} fulfil{complete the request} refund{refund the request} updateStream{save the stream info} load{load the list} other{do that}}: {reason}'**
+  /// **'Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} announce{send the announcement} shoutout{send the shoutout} mods{list the moderators} vips{list the VIPs} mod{add the moderator} unmod{remove the moderator} vip{add the VIP} unvip{remove the VIP} shieldOn{turn shield mode on} shieldOff{turn shield mode off} marker{add the stream marker} commercial{start the ad break} raid{start the raid} unraid{cancel the raid} monitor{monitor the user} unmonitor{stop monitoring the user} restrict{restrict the user} unrestrict{lift the restriction} blockTerm{add the blocked term} unblockTerm{remove the blocked term} allowMessage{allow the message} denyMessage{deny the message} approveUnban{approve the unban request} denyUnban{deny the unban request} createPoll{start the poll} endPoll{end the poll} createPrediction{start the prediction} lockPrediction{lock the prediction} resolvePrediction{confirm the result} cancelPrediction{cancel the prediction} fulfil{complete the request} refund{refund the request} updateStream{save the stream info} load{load the list} loadStream{load the stream info} other{do that}}: {reason}'**
   String chatModFailed({required String command, required String reason});
 
   /// Error message. A moderation action failed for an unexpected reason. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch.
   ///
   /// In en, this message translates to:
-  /// **'Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} announce{send the announcement} shoutout{send the shoutout} mods{list the moderators} vips{list the VIPs} mod{add the moderator} unmod{remove the moderator} vip{add the VIP} unvip{remove the VIP} shieldOn{turn shield mode on} shieldOff{turn shield mode off} marker{add the stream marker} commercial{start the ad break} raid{start the raid} unraid{cancel the raid} monitor{monitor the user} unmonitor{stop monitoring the user} restrict{restrict the user} unrestrict{lift the restriction} blockTerm{add the blocked term} unblockTerm{remove the blocked term} allowMessage{allow the message} denyMessage{deny the message} approveUnban{approve the unban request} denyUnban{deny the unban request} createPoll{start the poll} endPoll{end the poll} createPrediction{start the prediction} lockPrediction{lock the prediction} resolvePrediction{confirm the result} cancelPrediction{cancel the prediction} fulfil{complete the request} refund{refund the request} updateStream{save the stream info} load{load the list} other{do that}} (unexpected error).'**
+  /// **'Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} announce{send the announcement} shoutout{send the shoutout} mods{list the moderators} vips{list the VIPs} mod{add the moderator} unmod{remove the moderator} vip{add the VIP} unvip{remove the VIP} shieldOn{turn shield mode on} shieldOff{turn shield mode off} marker{add the stream marker} commercial{start the ad break} raid{start the raid} unraid{cancel the raid} monitor{monitor the user} unmonitor{stop monitoring the user} restrict{restrict the user} unrestrict{lift the restriction} blockTerm{add the blocked term} unblockTerm{remove the blocked term} allowMessage{allow the message} denyMessage{deny the message} approveUnban{approve the unban request} denyUnban{deny the unban request} createPoll{start the poll} endPoll{end the poll} createPrediction{start the prediction} lockPrediction{lock the prediction} resolvePrediction{confirm the result} cancelPrediction{cancel the prediction} fulfil{complete the request} refund{refund the request} updateStream{save the stream info} load{load the list} loadStream{load the stream info} other{do that}} (unexpected error).'**
   String chatModFailedUnexpected({required String command});
 
   /// Error message. Why a moderation action failed (after chatModFailed's colon): the viewer is not a moderator here.
@@ -7170,7 +7170,7 @@ abstract class AppLocalizations {
   /// chatModAction followed by the reason the moderator typed (their own words, quoted as written).
   ///
   /// In en, this message translates to:
-  /// **'{line} Reason: “{reason}”'**
+  /// **'{line} Reason: “{reason}”.'**
   String chatModActionWithReason({
     required String line,
     required String reason,
@@ -7554,7 +7554,7 @@ abstract class AppLocalizations {
   /// The second line of a mod tools row whose permission the login does not have yet; a tap opens the login.
   ///
   /// In en, this message translates to:
-  /// **'Log in again to enable'**
+  /// **'Log in again to use this'**
   String get modToolsLogInToEnable;
 
   /// A user card action (the channel's owner) giving the moderator role.
@@ -7718,6 +7718,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lock'**
   String get modToolsPredictionLock;
+
+  /// The body of the dialog confirming that the prediction is locked.
+  ///
+  /// In en, this message translates to:
+  /// **'No one can predict after this, and it can’t be undone.'**
+  String get modToolsPredictionLockMessage;
+
+  /// The title of the dialog confirming that the prediction is locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock the prediction?'**
+  String get modToolsPredictionLockTitle;
 
   /// The section label above a locked prediction.
   ///
@@ -7892,6 +7904,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove {tag}'**
   String modToolsRemoveTag({required String tag});
+
+  /// The body of the dialog confirming a blocked term's removal; term is the term.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages with “{term}” will reach chat again.'**
+  String modToolsRemoveTermMessage({required String term});
+
+  /// The title of the dialog confirming a blocked term's removal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this blocked term?'**
+  String get modToolsRemoveTermTitle;
 
   /// A user card action (the channel's owner) removing the VIP role.
   ///
@@ -8073,7 +8097,7 @@ abstract class AppLocalizations {
   /// Error message. The tag typed has spaces, symbols or more than 25 characters.
   ///
   /// In en, this message translates to:
-  /// **'A tag can only have letters and numbers, up to 25 of them.'**
+  /// **'Tags can only contain letters and numbers, up to 25 characters.'**
   String get modToolsTagInvalid;
 
   /// The label above the field adding a stream tag.

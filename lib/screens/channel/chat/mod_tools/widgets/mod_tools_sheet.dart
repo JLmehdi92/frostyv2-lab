@@ -170,7 +170,7 @@ class _ModToolsSheetState extends State<ModToolsSheet>
         label: label,
         detail: l.modToolsLogInToEnable,
         end: SheetRowEnd.chevron,
-        onTap: () => openModLogin(context, _chat.auth),
+        onTap: () => openModLogin(context, _chat.auth, feature.scopes),
       );
     }
     final ready = _tools.canUse(feature);

@@ -32,7 +32,7 @@ void main() {
       expect(entry.timeoutLength, const Duration(minutes: 10));
       expect(
         modActionLine(L10n.english, entry),
-        'Mira timed out Ana for 10 minutes. Reason: “spam”',
+        'Mira timed out Ana for 10 minutes. Reason: “spam”.',
       );
     });
 
@@ -59,7 +59,7 @@ void main() {
           'user_name': 'Ana',
           'moderator_message': 'ok',
         }),
-        'Mira approved the unban request from Ana. Reason: “ok”',
+        'Mira approved the unban request from Ana. Reason: “ok”.',
       );
       expect(line('vip', {'user_login': 'kai'}), 'Mira made kai a VIP.');
     });

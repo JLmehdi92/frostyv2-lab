@@ -303,6 +303,27 @@ void main() {
       expect(attempt.captured, isFalse);
     });
 
+    test('channel tool scopes are asked only once a broadcaster turns them '
+        'on, added to the base login', () async {
+      expect(
+        AuthBase.loginScopes
+            .split(' ')
+            .toSet()
+            .intersection(AuthBase.channelToolScopes),
+        isEmpty,
+      );
+      await store.requestScopes({'channel:manage:polls', 'user:edit'});
+      final asked = store
+          .startAuthorization()
+          .queryParameters['scope']!
+          .split(' ')
+          .toSet();
+      expect(asked, {
+        ...AuthBase.loginScopes.split(' '),
+        'channel:manage:polls',
+      });
+    });
+
     test('opens the implicit grant with every scope, always confirmed, '
         'with a fresh unguessable state each time', () {
       final uri = store.startAuthorization();

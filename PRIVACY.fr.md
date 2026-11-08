@@ -1,6 +1,6 @@
 # Politique de confidentialité d’ONSET
 
-**Date d’entrée en vigueur :** 1er novembre 2026
+**Date d’entrée en vigueur :** 8 novembre 2026
 
 ONSET est un client Twitch gratuit et open source (AGPL-3.0-or-later) pour
 Android (paquet `app.onset`). C’est un projet indépendant, qui n’est ni
@@ -58,8 +58,15 @@ connexion et d’autorisation de Twitch elle-même (id.twitch.tv). Vous saisisse
 votre mot de passe sur la page de Twitch, pas dans ONSET, qui ne le voit
 jamais. Twitch remet ensuite à ONSET un jeton d’accès pour les autorisations
 affichées sur cette page (lecture et envoi de messages de chat, vos chaînes
-suivies, utilisateurs bloqués, couleur de chat, actions de modération si vous
-êtes modérateur, chuchotements, vos emotes et création de clips).
+suivies, utilisateurs bloqués, couleur de chat, actions de modération dans les
+chats que vous modérez (bannissements et exclusions temporaires, modes du chat,
+AutoMod, termes bloqués, demandes de débannissement, annonces, dédicaces et mode
+bouclier), chuchotements, vos emotes et création de clips). Si vous êtes
+propriétaire d’une chaîne et activez ses outils dans les outils de modération,
+ONSET redemande à Twitch, sur la même page, l’autorisation de gérer cette
+chaîne : infos du live, publicités, raids, sondages, prédictions, demandes de
+récompenses, modérateurs et VIP. Jusque-là, le jeton ne permet pas de gérer
+votre chaîne.
 
 Comme la page de connexion vous connecte à twitch.tv, elle laisse aussi un
 cookie de session twitch.tv (`auth-token`) dans la vue web de l’application.
@@ -409,6 +416,8 @@ politique est public dans le dépôt GitHub d’ONSET.
 - 31 octobre 2026 : formulation clarifiée ; aucun changement dans le
   traitement des données.
 - 1er novembre 2026 : ajout d’une section sur le site web.
+- 8 novembre 2026 : les autorisations de modération sont détaillées, et la
+  gestion de votre propre chaîne n’est demandée que si vous activez ses outils.
 
 ## 14. Contact
 

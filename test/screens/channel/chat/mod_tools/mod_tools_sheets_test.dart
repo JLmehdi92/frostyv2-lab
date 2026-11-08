@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show runInAction;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_mod_api.dart';
 import 'package:onset/models/moderation.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
@@ -70,7 +71,7 @@ void main() {
         scopes: {'moderator:manage:banned_users'},
       );
       await pump(tester, ModToolsSheet(chatStore: h.chat));
-      expect(find.text('Log in again to enable'), findsWidgets);
+      expect(find.text('Log in again to use this'), findsWidgets);
       expect(h.tools.needsLogin(ModFeature.shieldMode), isTrue);
     });
 
@@ -347,12 +348,7 @@ void main() {
     final h = await modToolsHarness(broadcaster: true);
     stubModLists(h.api, h.mod);
     when(
-      () => h.mod.updateStreamInfo(
-        broadcasterId: '12345',
-        title: 'Speedrun practice, any%',
-        gameId: '1',
-        tags: ['English'],
-      ),
+      () => h.mod.updateStreamInfo(broadcasterId: '12345', tags: ['English']),
     ).thenAnswer((_) async {});
     await pump(tester, StreamInfoSheet(chatStore: h.chat));
     expect(find.text('Speedrun'), findsOneWidget);
@@ -413,5 +409,99 @@ void main() {
     h.tools.noteShieldMode(true);
     await tester.pumpAndSettle();
     expect(find.text('Shield mode on'), findsOneWidget);
+  });
+
+  testWidgets('stream info that cannot load offers Retry, never Save', (
+    tester,
+  ) async {
+    final h = await modToolsHarness(broadcaster: true);
+    stubModLists(h.api, h.mod);
+    when(
+      () => h.api.getChannel(userId: '12345'),
+    ).thenThrow(const NetworkException('down'));
+    await pump(tester, StreamInfoSheet(chatStore: h.chat));
+    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('Save'), findsNothing);
+  });
+
+  testWidgets('a new title alone never sends the tags', (tester) async {
+    final h = await modToolsHarness(broadcaster: true);
+    stubModLists(h.api, h.mod);
+    when(
+      () => h.mod.updateStreamInfo(broadcasterId: '12345', title: 'New'),
+    ).thenAnswer((_) async {});
+    await pump(tester, StreamInfoSheet(chatStore: h.chat));
+    final save = find.widgetWithText(FilledButton, 'Save');
+    expect(tester.widget<FilledButton>(save).onPressed, isNull);
+    await tester.enterText(find.byType(TextField).first, 'New');
+    await tester.pump();
+    await tester.ensureVisible(save);
+    await tester.pumpAndSettle();
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+    verify(
+      () => h.mod.updateStreamInfo(broadcasterId: '12345', title: 'New'),
+    ).called(1);
+  });
+
+  testWidgets('removing a blocked term is confirmed first', (tester) async {
+    final h = await modToolsHarness();
+    stubModLists(h.api, h.mod);
+    await pump(tester, BlockedTermsSheet(chatStore: h.chat));
+    await tester.tap(find.text('Remove').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Remove this blocked term?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    verifyNever(
+      () => h.mod.removeBlockedTerm(
+        broadcasterId: any(named: 'broadcasterId'),
+        moderatorId: any(named: 'moderatorId'),
+        termId: any(named: 'termId'),
+      ),
+    );
+  });
+
+  testWidgets('adding a moderator by name is confirmed first', (tester) async {
+    final h = await modToolsHarness(broadcaster: true);
+    stubModLists(h.api, h.mod);
+    await pump(
+      tester,
+      RoleListSheet(chatStore: h.chat, role: ChannelRole.moderator),
+    );
+    await tester.enterText(find.byType(TextField), 'kai');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.pumpAndSettle();
+    expect(find.text('Make moderator?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(h.commands, isEmpty);
+  });
+
+  testWidgets('locking a prediction is confirmed first', (tester) async {
+    final h = await modToolsHarness(broadcaster: true);
+    stubModLists(h.api, h.mod);
+    when(() => h.mod.getLatestPrediction(broadcasterId: '12345')).thenAnswer(
+      (_) async => const ChannelPrediction(
+        id: 'pr-1',
+        title: 'First try?',
+        status: 'ACTIVE',
+        outcomes: [PredictionOutcome(id: 'o-1', title: 'Clean run')],
+      ),
+    );
+    await pump(tester, PredictionSheet(chatStore: h.chat));
+    await tester.tap(find.text('Lock'));
+    await tester.pumpAndSettle();
+    expect(find.text('Lock the prediction?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    verifyNever(
+      () => h.mod.endPrediction(
+        broadcasterId: any(named: 'broadcasterId'),
+        predictionId: any(named: 'predictionId'),
+        end: PredictionEnd.locked,
+      ),
+    );
   });
 }

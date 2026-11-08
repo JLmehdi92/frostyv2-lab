@@ -20,13 +20,13 @@ typedef ModerationOutcome = ({bool ok, String message});
 ModerationOutcome get moderationFailed =>
     (ok: false, message: L10n.current.chatModNotThrough);
 
-/// The login a moderation command named belongs to nobody.
 class _BroadcasterOnly implements Exception {
   const _BroadcasterOnly(this.command);
 
   final String command;
 }
 
+/// The login a moderation command named belongs to nobody.
 class _NoSuchUser extends NotFoundException {
   // The login in the message, so the failure's log names it.
   const _NoSuchUser(this.login) : super('no user named $login');

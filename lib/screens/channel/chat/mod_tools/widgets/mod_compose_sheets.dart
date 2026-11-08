@@ -4,6 +4,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/moderation.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/mod_tools/stores/mod_tools_store.dart';
 import 'package:onset/screens/channel/chat/mod_tools/widgets/mod_sheet_parts.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
 import 'package:onset/screens/channel/chat/moderation_notice.dart';
@@ -465,22 +466,28 @@ class _PredictionSheetState extends State<PredictionSheet>
     PredictionOutcome? winner,
   }) async {
     final l = context.l10n;
-    if (end != PredictionEnd.locked) {
-      final confirmed = await confirmModAction(
-        context,
-        title: end == PredictionEnd.canceled
-            ? l.modToolsPredictionCancelTitle
-            : l.modToolsPredictionResolveTitle,
-        message: end == PredictionEnd.canceled
-            ? l.modToolsPredictionCancelMessage
-            : l.modToolsPredictionResolveMessage(outcome: winner!.title),
-        confirmLabel: end == PredictionEnd.canceled
-            ? l.modToolsPredictionCancel
-            : l.modToolsPredictionResolve,
-        danger: end == PredictionEnd.canceled,
-      );
-      if (!confirmed || !mounted) return;
-    }
+    final confirmed = await confirmModAction(
+      context,
+      title: switch (end) {
+        PredictionEnd.locked => l.modToolsPredictionLockTitle,
+        PredictionEnd.canceled => l.modToolsPredictionCancelTitle,
+        PredictionEnd.resolved => l.modToolsPredictionResolveTitle,
+      },
+      message: switch (end) {
+        PredictionEnd.locked => l.modToolsPredictionLockMessage,
+        PredictionEnd.canceled => l.modToolsPredictionCancelMessage,
+        PredictionEnd.resolved => l.modToolsPredictionResolveMessage(
+          outcome: winner!.title,
+        ),
+      },
+      confirmLabel: switch (end) {
+        PredictionEnd.locked => l.modToolsPredictionLock,
+        PredictionEnd.canceled => l.modToolsPredictionCancel,
+        PredictionEnd.resolved => l.modToolsPredictionResolve,
+      },
+      danger: end != PredictionEnd.resolved,
+    );
+    if (!confirmed || !mounted) return;
     ChannelPrediction? updated;
     await runModAction(
       () async => updated = await _api.endPrediction(
@@ -628,6 +635,10 @@ class _StreamInfoSheetState extends State<StreamInfoSheet>
   List<CategoryTwitch> _results = const [];
   var _loading = true;
   String? _tagProblem;
+  String? _loadFailure;
+  String _loadedTitle = '';
+  String? _loadedGameId;
+  List<String> _loadedTags = const [];
 
   ChatStore get _chat => widget.chatStore;
 
@@ -646,17 +657,40 @@ class _StreamInfoSheetState extends State<StreamInfoSheet>
   }
 
   Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _loadFailure = null;
+    });
+    String? failure;
     try {
       final channel = await _chat.twitchApi.getChannel(userId: _chat.channelId);
       _title.text = channel.title;
+      _loadedTitle = channel.title;
       _gameId = channel.gameId;
+      _loadedGameId = channel.gameId;
       _gameName = channel.gameName;
       _tags = [...channel.tags];
+      _loadedTags = [...channel.tags];
     } catch (error) {
       debugPrint('Stream info unreadable: $error');
+      failure = modToolsFailure(error, 'loadStream');
     }
-    if (mounted) setState(() => _loading = false);
+    if (mounted) {
+      setState(() {
+        _loading = false;
+        _loadFailure = failure;
+      });
+    }
   }
+
+  bool get _tagsChanged =>
+      _tags.length != _loadedTags.length ||
+      _tags.indexed.any((entry) => _loadedTags[entry.$1] != entry.$2);
+
+  bool get _changed =>
+      singleLine(_title.text) != _loadedTitle ||
+      _gameId != _loadedGameId ||
+      _tagsChanged;
 
   Future<void> _search(String query) async {
     final term = query.trim();
@@ -696,12 +730,19 @@ class _StreamInfoSheetState extends State<StreamInfoSheet>
   Future<void> _save() async {
     final l = context.l10n;
     await runModAction(
-      () => _chat.twitchApi.moderation.updateStreamInfo(
-        broadcasterId: _chat.channelId,
-        title: _title.text,
-        gameId: _gameId,
-        tags: _tags,
-      ),
+      () async {
+        final title = singleLine(_title.text);
+        final tags = [..._tags];
+        await _chat.twitchApi.moderation.updateStreamInfo(
+          broadcasterId: _chat.channelId,
+          title: title == _loadedTitle ? null : title,
+          gameId: _gameId == _loadedGameId ? null : _gameId,
+          tags: _tagsChanged ? tags : null,
+        );
+        _loadedTitle = title;
+        _loadedGameId = _gameId;
+        _loadedTags = tags;
+      },
       command: 'updateStream',
       success: l.modToolsStreamInfoSaved,
     );
@@ -717,6 +758,25 @@ class _StreamInfoSheetState extends State<StreamInfoSheet>
           const Padding(
             padding: EdgeInsets.all(20),
             child: Center(child: CircularProgressIndicator()),
+          ),
+        ],
+      );
+    }
+    if (_loadFailure case final failure?) {
+      return ModSheetBody(
+        children: [
+          ModSheetTitle(l.modToolsStreamInfo),
+          ModNote(failure),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: SheetButton(
+                label: l.commonRetry,
+                tone: SheetButtonTone.text,
+                onPressed: _load,
+              ),
+            ),
           ),
         ],
       );
@@ -793,7 +853,9 @@ class _StreamInfoSheetState extends State<StreamInfoSheet>
             label: l.modToolsSave,
             expand: true,
             large: true,
-            onPressed: busy || singleLine(_title.text).isEmpty ? null : _save,
+            onPressed: busy || singleLine(_title.text).isEmpty || !_changed
+                ? null
+                : _save,
           ),
         ),
         statusLine(),

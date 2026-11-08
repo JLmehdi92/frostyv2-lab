@@ -341,12 +341,20 @@ class _ChatState extends State<Chat> {
                       top: 0,
                       left: 0,
                       right: 0,
-                      child: _SharedChatBannerSlot(chatStore: chatStore),
-                    ),
-                    PositionedDirectional(
-                      top: 8,
-                      end: 8,
-                      child: ShieldModeIndicator(chatStore: chatStore),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _SharedChatBannerSlot(chatStore: chatStore),
+                          Align(
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: ShieldModeIndicator(chatStore: chatStore),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Positioned(
                       left: 0,

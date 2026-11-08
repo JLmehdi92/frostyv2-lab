@@ -97,17 +97,29 @@ class _RoleListSheetState
       .getRoleUsers(broadcasterId: chat.channelId, role: widget.role);
 
   Future<bool> _add(String login) async {
-    final ok = await _change(login.replaceFirst('@', ''), granted: true);
+    final l = context.l10n;
+    final name = login.replaceFirst('@', '');
+    final change = _mods ? 'addModerator' : 'addVip';
+    final confirmed = await confirmModAction(
+      context,
+      title: l.modToolsRoleConfirmTitle(change: change),
+      message: l.modToolsRoleConfirmMessage(change: change, name: name),
+      confirmLabel: l.modToolsConfirm,
+    );
+    if (!confirmed || !mounted) return false;
+    final ok = await _change(name, granted: true);
     if (ok) await reload();
     return ok;
   }
 
   Future<bool> _change(String login, {required bool granted}) async {
+    setState(() => busy = true);
     final outcome = await chat.moderate(
       RoleCommand(login.toLowerCase(), widget.role, granted: granted),
     );
     if (!mounted) return false;
     setState(() {
+      busy = false;
       statusOk = outcome?.ok ?? false;
       statusMessage = outcome?.message;
     });
@@ -162,7 +174,7 @@ class _RoleListSheetState
               ModCompactButton(
                 label: l.modToolsRemove,
                 danger: true,
-                onPressed: () => _remove(user),
+                onPressed: busy ? null : () => _remove(user),
               ),
             ],
           ),
@@ -221,6 +233,14 @@ class _BlockedTermsSheetState
 
   Future<void> _remove(BlockedTerm term) async {
     final l = context.l10n;
+    final confirmed = await confirmModAction(
+      context,
+      title: l.modToolsRemoveTermTitle,
+      message: l.modToolsRemoveTermMessage(term: term.text),
+      confirmLabel: l.modToolsRemove,
+      danger: true,
+    );
+    if (!confirmed || !mounted) return;
     final ok = await runModAction(
       () => chat.twitchApi.moderation.removeBlockedTerm(
         broadcasterId: chat.channelId,

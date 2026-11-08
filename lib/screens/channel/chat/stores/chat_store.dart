@@ -471,12 +471,6 @@ abstract class ChatStoreBase with Store {
   /// Adds Twitch's "X has been timed out / banned" line for a targeted
   /// CLEARCHAT, at the time Twitch sent it.
   void _addModerationNotice(IRCMessage clearChat, List<IRCMessage> buffer) {
-    if (canModerate) {
-      modTools.noteClearChat(
-        clearChat.tags['target-user-id'],
-        int.tryParse(clearChat.tags['ban-duration'] ?? ''),
-      );
-    }
     // Blocked people stay out of chat, notices included (moderators and the
     // channel owner see them, as they see their messages).
     final notice = moderationNoticeLine(
@@ -1301,6 +1295,12 @@ abstract class ChatStoreBase with Store {
               ircMessage: parsedIRCMessage,
             )) {
               _linesMarkedInPlace = true;
+            }
+            if (canModerate) {
+              modTools.noteClearChat(
+                parsedIRCMessage.tags['target-user-id'],
+                int.tryParse(parsedIRCMessage.tags['ban-duration'] ?? ''),
+              );
             }
             if (settings.showModerationNotices) {
               _addModerationNotice(parsedIRCMessage, messageBuffer);

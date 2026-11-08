@@ -40,6 +40,7 @@ void main() {
   test('stream tags are letters and numbers only', () {
     expect(isValidStreamTag('English'), isTrue);
     expect(isValidStreamTag('Français2'), isTrue);
+    expect(isValidStreamTag('हिंदी'), isTrue);
     expect(isValidStreamTag('no spaces'), isFalse);
     expect(isValidStreamTag('a-b'), isFalse);
     expect(isValidStreamTag('x' * 26), isFalse);

@@ -129,7 +129,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingPermissionModerationDetail =>
-      'Bans, AutoMod, roles, polls, chat modes';
+      'Bans, AutoMod, terms, shield mode, chat modes';
 
   @override
   String get onboardingPermissionClipsTitle => 'Clips';
@@ -5111,6 +5111,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'refund': 'refund the request',
       'updateStream': 'save the stream info',
       'load': 'load the list',
+      'loadStream': 'load the stream info',
       'other': 'do that',
     });
     return 'Couldn’t $_temp0: $reason';
@@ -5170,6 +5171,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'refund': 'refund the request',
       'updateStream': 'save the stream info',
       'load': 'load the list',
+      'loadStream': 'load the stream info',
       'other': 'do that',
     });
     return 'Couldn’t $_temp0 (unexpected error).';
@@ -5258,7 +5260,7 @@ class AppLocalizationsEn extends AppLocalizations {
     required String line,
     required String reason,
   }) {
-    return '$line Reason: “$reason”';
+    return '$line Reason: “$reason”.';
   }
 
   @override
@@ -5558,7 +5560,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get modToolsLogInToEnable => 'Log in again to enable';
+  String get modToolsLogInToEnable => 'Log in again to use this';
 
   @override
   String get modToolsMakeModerator => 'Make moderator';
@@ -5651,6 +5653,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modToolsPredictionLock => 'Lock';
+
+  @override
+  String get modToolsPredictionLockMessage =>
+      'No one can predict after this, and it can’t be undone.';
+
+  @override
+  String get modToolsPredictionLockTitle => 'Lock the prediction?';
 
   @override
   String get modToolsPredictionLocked => 'Prediction locked';
@@ -5788,6 +5797,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String modToolsRemoveTermMessage({required String term}) {
+    return 'Messages with “$term” will reach chat again.';
+  }
+
+  @override
+  String get modToolsRemoveTermTitle => 'Remove this blocked term?';
+
+  @override
   String get modToolsRemoveVip => 'Remove VIP';
 
   @override
@@ -5910,7 +5927,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modToolsTagInvalid =>
-      'A tag can only have letters and numbers, up to 25 of them.';
+      'Tags can only contain letters and numbers, up to 25 characters.';
 
   @override
   String get modToolsTagLabel => 'Add a tag';

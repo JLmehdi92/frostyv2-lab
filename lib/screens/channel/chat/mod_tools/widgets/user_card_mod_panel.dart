@@ -161,7 +161,7 @@ class _UserCardModActionsState extends State<UserCardModActions>
         label: label,
         detail: context.l10n.modToolsLogInToEnable,
         end: SheetRowEnd.chevron,
-        onTap: () => openModLogin(context, _chat.auth),
+        onTap: () => openModLogin(context, _chat.auth, feature.scopes),
       );
     }
     return SheetRow(

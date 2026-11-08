@@ -81,10 +81,36 @@ abstract class AuthBase with Store {
       'moderator:manage:shield_mode moderator:manage:automod '
       'moderator:manage:blocked_terms moderator:manage:unban_requests '
       'moderator:manage:suspicious_users moderator:read:moderators '
-      'moderator:read:vips channel:manage:moderators channel:manage:vips '
-      'channel:manage:broadcast channel:edit:commercial channel:manage:raids '
-      'channel:manage:polls channel:manage:predictions '
-      'channel:manage:redemptions';
+      'moderator:read:vips';
+
+  static const channelToolScopes = {
+    'channel:manage:moderators',
+    'channel:manage:vips',
+    'channel:manage:broadcast',
+    'channel:edit:commercial',
+    'channel:manage:raids',
+    'channel:manage:polls',
+    'channel:manage:predictions',
+    'channel:manage:redemptions',
+  };
+
+  static const _extraScopesKey = 'extra_login_scopes';
+
+  final _extraScopes = <String>{};
+
+  Set<String> get extraScopes => Set.unmodifiable(_extraScopes);
+
+  String get requestedScopes =>
+      {...loginScopes.split(' '), ..._extraScopes}.join(' ');
+
+  Future<void> requestScopes(Set<String> scopes) async {
+    _extraScopes.addAll(scopes.where(channelToolScopes.contains));
+    try {
+      await _storage.write(key: _extraScopesKey, value: _extraScopes.join(' '));
+    } catch (error) {
+      debugPrint('Extra scopes not saved: $error');
+    }
+  }
 
   /// Where the user token is kept, for the go-live background check (its
   /// own isolate, without this store).
@@ -663,7 +689,7 @@ abstract class AuthBase with Store {
         'client_id': clientId,
         'redirect_uri': 'https://twitch.tv/login',
         'response_type': 'token',
-        'scope': loginScopes,
+        'scope': requestedScopes,
         'force_verify': 'true',
         'state': state,
       },
@@ -839,6 +865,10 @@ abstract class AuthBase with Store {
     try {
       // Read and set the currently stored user token, if any.
       _token = await _storage.read(key: _userTokenKey);
+      final extra = await _storage.read(key: _extraScopesKey);
+      _extraScopes.addAll(
+        (extra ?? '').split(' ').where(channelToolScopes.contains),
+      );
 
       // Restore the optional twitch.tv web token used for enhanced-broadcast
       // renditions; its absence is not an error.

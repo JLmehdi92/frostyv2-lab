@@ -152,6 +152,7 @@ void main() {
         api: api,
         user: owner(),
       );
+      settings.showModerationNotices = false;
       async.flushMicrotasks();
       sockets.single.receive(':tmi.twitch.tv 001 justinfan :Welcome, GLHF!');
       sockets.single.receive(
@@ -160,6 +161,7 @@ void main() {
       );
       async.elapse(const Duration(milliseconds: 500));
       expect(store.modTools.statusOf('33').timeoutUntil, isNotNull);
+      expect(settings.showModerationNotices, isFalse);
       finish(store, async);
     });
   });

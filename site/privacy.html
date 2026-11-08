@@ -97,7 +97,7 @@
 
         <article class="policy" id="policy" tabindex="-1" aria-labelledby="policy-title">
 <h1 id="policy-title">ONSET privacy policy</h1>
-<p><strong>Effective date:</strong> 1 November 2026</p>
+<p><strong>Effective date:</strong> 8 November 2026</p>
 <p>ONSET is a free, open-source (AGPL-3.0-or-later) Twitch client for Android
 (package <code>app.onset</code>). It is an independent project, not affiliated with,
 endorsed by, or sponsored by Twitch Interactive, Inc.</p>
@@ -162,8 +162,13 @@ policies apply to it.</p>
 (id.twitch.tv) inside the app. You type your password into Twitch's page, not
 into ONSET; ONSET never sees it. Twitch then gives ONSET an access token for
 the permissions shown on that page (reading and sending chat, your followed
-channels, blocked users, chat color, moderation actions if you are a
-moderator, whispers, your emotes, and creating clips).</p>
+channels, blocked users, chat color, moderation actions in chats you moderate
+(bans and timeouts, chat modes, AutoMod, blocked terms, unban requests,
+announcements, shoutouts, and shield mode), whispers, your emotes, and creating
+clips). If you own a channel and turn on its channel tools in Mod tools, ONSET
+asks Twitch again, on the same page, for permission to manage that channel:
+stream info, ads, raids, polls, predictions, reward requests, moderators, and
+VIPs. Until then, the token cannot manage your channel.</p>
 <p>Because the login page signs you in to twitch.tv, it also leaves a twitch.tv
 session cookie (<code>auth-token</code>) in the app's web view. On Android, ONSET reads
 that cookie and keeps it as a "web token" (you can also paste or clear it in
@@ -457,6 +462,8 @@ where the setting was on by default, had it turned off by this update:
 turn it on again if you want to share crash logs and analytics.</li>
 <li>31 October 2026: wording clarified; no change to how data is handled.</li>
 <li>1 November 2026: a section about the website was added.</li>
+<li>8 November 2026: the moderation permissions are listed, and managing your
+own channel is asked for only when you turn on its channel tools.</li>
 </ul>
 <h2 id="contact">14. Contact</h2>
 <p><a href="mailto:contact@onsetapp.app">contact@onsetapp.app</a></p>
