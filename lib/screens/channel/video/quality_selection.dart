@@ -77,3 +77,15 @@ bool isQualityDownSwitch(String from, String to) {
   if (match == null) return null;
   return (int.parse(match.group(1)!), int.parse(match.group(2) ?? '30'));
 }
+
+const kDataSaverMaxHeight = 480;
+
+String? dataSaverQuality(List<String> available) {
+  for (final quality in available) {
+    final rank = _qualityRank(quality);
+    if (rank != null && rank.$1 > 0 && rank.$1 <= kDataSaverMaxHeight) {
+      return quality;
+    }
+  }
+  return null;
+}

@@ -10,6 +10,7 @@ import 'package:onset/screens/home/top/tags/tag_streams.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/uptime.dart';
@@ -204,7 +205,7 @@ class StreamCard extends StatelessWidget {
             style: TextStyle(fontSize: 13, color: colors.body),
           ),
         // A category's list names no category: its viewers instead.
-        if (!showCategory && showThumbnail)
+        if (!showCategory && showThumbnail && !viewerCountsHidden(context))
           Text(
             context.l10n.streamViewers(count: streamInfo.viewerCount),
             maxLines: 1,
@@ -244,8 +245,12 @@ class StreamCard extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                 ),
-                Text(context.l10n.streamViewers(count: streamInfo.viewerCount)),
-                const Text('·'),
+                if (!viewerCountsHidden(context)) ...[
+                  Text(
+                    context.l10n.streamViewers(count: streamInfo.viewerCount),
+                  ),
+                  const Text('·'),
+                ],
                 Flexible(
                   child: Uptime(
                     startTime: streamInfo.startedAt,

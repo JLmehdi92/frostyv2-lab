@@ -4,7 +4,6 @@ import 'package:onset/models/celebration.dart';
 import 'package:onset/screens/channel/celebrations/particles/celebration_particles.dart';
 import 'package:onset/screens/channel/celebrations/particles/celebration_view.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
-import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 
@@ -33,7 +32,7 @@ class CelebrationOverlay extends StatelessWidget {
         // chat, see feedSubtleCelebrations): a celebration cut short by the
         // switch is over, never kept to replay when it is switched back.
         if (!settings.showCelebrations ||
-            settings.celebrationsOnVideo == CelebrationsOnVideo.subtle) {
+            settings.celebrationsSubtle(landscape: context.isLandscape)) {
           if (celebration != null) _clearAfterFrame(context, celebration);
           return const SizedBox.shrink();
         }
@@ -181,12 +180,14 @@ class _CelebrationPlayerState extends State<_CelebrationPlayer>
         final isLandscape = constraints.maxWidth > constraints.maxHeight;
 
         final alignment = switch (celebration.area) {
-          CelebrationArea.chat => isLandscape
-              ? (chatOnLeft ? Alignment.centerLeft : Alignment.centerRight)
-              : Alignment.bottomCenter,
-          CelebrationArea.video => isLandscape
-              ? (chatOnLeft ? Alignment.centerRight : Alignment.centerLeft)
-              : Alignment.topCenter,
+          CelebrationArea.chat =>
+            isLandscape
+                ? (chatOnLeft ? Alignment.centerLeft : Alignment.centerRight)
+                : Alignment.bottomCenter,
+          CelebrationArea.video =>
+            isLandscape
+                ? (chatOnLeft ? Alignment.centerRight : Alignment.centerLeft)
+                : Alignment.topCenter,
           CelebrationArea.everywhere => Alignment.center,
         };
 

@@ -5,6 +5,7 @@ import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/new_feature_pill.dart';
 
 /// A setting with a few options: a segmented pill, or
 /// with [stacked] one option per line (Video Autoplaying). A pill whose
@@ -46,7 +47,10 @@ class SettingsListSelect<T> extends StatelessWidget {
     required this.onChanged,
     this.stacked = false,
     this.groupLabel,
+    this.isNew = false,
   });
+
+  final bool isNew;
 
   void _pick(T option) {
     if (option == value) return;
@@ -67,7 +71,17 @@ class SettingsListSelect<T> extends StatelessWidget {
         spacing: 10,
         children: [
           if (title != null)
-            Text(title, style: SettingsText.row.copyWith(color: colors.text)),
+            Wrap(
+              spacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: SettingsText.row.copyWith(color: colors.text),
+                ),
+                if (isNew) const NewFeaturePill(),
+              ],
+            ),
           Semantics(
             label: title ?? groupLabel,
             container: true,

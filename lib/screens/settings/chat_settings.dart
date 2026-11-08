@@ -17,6 +17,7 @@ import 'package:onset/screens/settings/widgets/settings_muted_words.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/new_feature_pill.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// Settings › Chat: sizing with its preview, how
@@ -315,6 +316,39 @@ class _ChatSettingsState extends State<ChatSettings> {
                     onChanged: (option) =>
                         settingsStore.celebrationsOnVideo = option,
                   ),
+                if (settingsStore.showCelebrations &&
+                    settingsStore.celebrationsOnVideo ==
+                        CelebrationsOnVideo.full)
+                  SettingsListSwitch(
+                    title: l.settingsAlertsOverLandscapeVideo,
+                    isNew: settingsStore.isNewFeature(
+                      NewFeature.landscapeAlerts.name,
+                    ),
+                    subtitle: Text(l.settingsAlertsOverLandscapeVideoDetail),
+                    value: settingsStore.alertsOverLandscapeVideo,
+                    onChanged: (newValue) {
+                      settingsStore
+                        ..alertsOverLandscapeVideo = newValue
+                        ..markFeatureSeen(NewFeature.landscapeAlerts.name);
+                    },
+                  ),
+              ],
+            ),
+            SettingsGroup(
+              title: l.pointsChannelPoints,
+              children: [
+                SettingsRow(
+                  title: l.settingsReplayPointsIntro,
+                  subtitle: Text(l.settingsReplayPointsIntroDetail),
+                  onTap: () {
+                    settingsStore.pointsIntroSeen = false;
+                    ScaffoldMessenger.maybeOf(context)
+                      ?..clearSnackBars()
+                      ..showSnackBar(
+                        SnackBar(content: Text(l.settingsPointsIntroReset)),
+                      );
+                  },
+                ),
               ],
             ),
             SettingsGroup(

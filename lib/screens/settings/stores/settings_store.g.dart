@@ -52,6 +52,25 @@ SettingsStore _$SettingsStoreFromJson(
           ?.map((e) => e as String)
           .toList() ??
       []
+  ..clipDiscovery =
+      $enumDecodeNullable(
+        _$ClipDiscoveryEnumMap,
+        json['clipDiscovery'],
+        unknownValue: ClipDiscovery.all,
+      ) ??
+      ClipDiscovery.all
+  ..dataSaver = json['dataSaver'] as bool? ?? false
+  ..followedVideosSeenAt = json['followedVideosSeenAt'] as String? ?? ''
+  ..pointsIntroSeen = json['pointsIntroSeen'] as bool? ?? false
+  ..seenNewFeatures =
+      (json['seenNewFeatures'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      []
+  ..hideViewerCount = json['hideViewerCount'] as bool? ?? false
+  ..streamPreviews = json['streamPreviews'] as bool? ?? true
+  ..mutePreviews = json['mutePreviews'] as bool? ?? true
+  ..alertsOverLandscapeVideo = json['alertsOverLandscapeVideo'] as bool? ?? true
   ..notInterestedChannels =
       (json['notInterestedChannels'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
@@ -252,6 +271,15 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'mentionNotifications': instance.mentionNotifications,
   'mutedWhisperUserIds': instance.mutedWhisperUserIds,
   'archivedWhisperUserIds': instance.archivedWhisperUserIds,
+  'clipDiscovery': _$ClipDiscoveryEnumMap[instance.clipDiscovery]!,
+  'dataSaver': instance.dataSaver,
+  'followedVideosSeenAt': instance.followedVideosSeenAt,
+  'pointsIntroSeen': instance.pointsIntroSeen,
+  'seenNewFeatures': instance.seenNewFeatures,
+  'hideViewerCount': instance.hideViewerCount,
+  'streamPreviews': instance.streamPreviews,
+  'mutePreviews': instance.mutePreviews,
+  'alertsOverLandscapeVideo': instance.alertsOverLandscapeVideo,
   'notInterestedChannels': instance.notInterestedChannels,
   'appLanguage': _$AppLanguageEnumMap[instance.appLanguage]!,
   'languagePromptVersion': instance.languagePromptVersion,
@@ -364,6 +392,12 @@ const _$FollowedSortEnumMap = {
   FollowedSort.recent: 'recent',
   FollowedSort.name: 'name',
   FollowedSort.category: 'category',
+  FollowedSort.recommended: 'recommended',
+};
+
+const _$ClipDiscoveryEnumMap = {
+  ClipDiscovery.all: 'all',
+  ClipDiscovery.featured: 'featured',
 };
 
 const _$AppLanguageEnumMap = {
@@ -714,6 +748,176 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
       super.archivedWhisperUserIds,
       () {
         super.archivedWhisperUserIds = value;
+      },
+    );
+  }
+
+  late final _$clipDiscoveryAtom = Atom(
+    name: '_SettingsStoreBase.clipDiscovery',
+    context: context,
+  );
+
+  @override
+  ClipDiscovery get clipDiscovery {
+    _$clipDiscoveryAtom.reportRead();
+    return super.clipDiscovery;
+  }
+
+  @override
+  set clipDiscovery(ClipDiscovery value) {
+    _$clipDiscoveryAtom.reportWrite(value, super.clipDiscovery, () {
+      super.clipDiscovery = value;
+    });
+  }
+
+  late final _$dataSaverAtom = Atom(
+    name: '_SettingsStoreBase.dataSaver',
+    context: context,
+  );
+
+  @override
+  bool get dataSaver {
+    _$dataSaverAtom.reportRead();
+    return super.dataSaver;
+  }
+
+  @override
+  set dataSaver(bool value) {
+    _$dataSaverAtom.reportWrite(value, super.dataSaver, () {
+      super.dataSaver = value;
+    });
+  }
+
+  late final _$followedVideosSeenAtAtom = Atom(
+    name: '_SettingsStoreBase.followedVideosSeenAt',
+    context: context,
+  );
+
+  @override
+  String get followedVideosSeenAt {
+    _$followedVideosSeenAtAtom.reportRead();
+    return super.followedVideosSeenAt;
+  }
+
+  @override
+  set followedVideosSeenAt(String value) {
+    _$followedVideosSeenAtAtom.reportWrite(
+      value,
+      super.followedVideosSeenAt,
+      () {
+        super.followedVideosSeenAt = value;
+      },
+    );
+  }
+
+  late final _$pointsIntroSeenAtom = Atom(
+    name: '_SettingsStoreBase.pointsIntroSeen',
+    context: context,
+  );
+
+  @override
+  bool get pointsIntroSeen {
+    _$pointsIntroSeenAtom.reportRead();
+    return super.pointsIntroSeen;
+  }
+
+  @override
+  set pointsIntroSeen(bool value) {
+    _$pointsIntroSeenAtom.reportWrite(value, super.pointsIntroSeen, () {
+      super.pointsIntroSeen = value;
+    });
+  }
+
+  late final _$seenNewFeaturesAtom = Atom(
+    name: '_SettingsStoreBase.seenNewFeatures',
+    context: context,
+  );
+
+  @override
+  List<String> get seenNewFeatures {
+    _$seenNewFeaturesAtom.reportRead();
+    return super.seenNewFeatures;
+  }
+
+  @override
+  set seenNewFeatures(List<String> value) {
+    _$seenNewFeaturesAtom.reportWrite(value, super.seenNewFeatures, () {
+      super.seenNewFeatures = value;
+    });
+  }
+
+  late final _$hideViewerCountAtom = Atom(
+    name: '_SettingsStoreBase.hideViewerCount',
+    context: context,
+  );
+
+  @override
+  bool get hideViewerCount {
+    _$hideViewerCountAtom.reportRead();
+    return super.hideViewerCount;
+  }
+
+  @override
+  set hideViewerCount(bool value) {
+    _$hideViewerCountAtom.reportWrite(value, super.hideViewerCount, () {
+      super.hideViewerCount = value;
+    });
+  }
+
+  late final _$streamPreviewsAtom = Atom(
+    name: '_SettingsStoreBase.streamPreviews',
+    context: context,
+  );
+
+  @override
+  bool get streamPreviews {
+    _$streamPreviewsAtom.reportRead();
+    return super.streamPreviews;
+  }
+
+  @override
+  set streamPreviews(bool value) {
+    _$streamPreviewsAtom.reportWrite(value, super.streamPreviews, () {
+      super.streamPreviews = value;
+    });
+  }
+
+  late final _$mutePreviewsAtom = Atom(
+    name: '_SettingsStoreBase.mutePreviews',
+    context: context,
+  );
+
+  @override
+  bool get mutePreviews {
+    _$mutePreviewsAtom.reportRead();
+    return super.mutePreviews;
+  }
+
+  @override
+  set mutePreviews(bool value) {
+    _$mutePreviewsAtom.reportWrite(value, super.mutePreviews, () {
+      super.mutePreviews = value;
+    });
+  }
+
+  late final _$alertsOverLandscapeVideoAtom = Atom(
+    name: '_SettingsStoreBase.alertsOverLandscapeVideo',
+    context: context,
+  );
+
+  @override
+  bool get alertsOverLandscapeVideo {
+    _$alertsOverLandscapeVideoAtom.reportRead();
+    return super.alertsOverLandscapeVideo;
+  }
+
+  @override
+  set alertsOverLandscapeVideo(bool value) {
+    _$alertsOverLandscapeVideoAtom.reportWrite(
+      value,
+      super.alertsOverLandscapeVideo,
+      () {
+        super.alertsOverLandscapeVideo = value;
       },
     );
   }
@@ -2414,6 +2618,18 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   );
 
   @override
+  void markFeatureSeen(String id) {
+    final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
+      name: '_SettingsStoreBase.markFeatureSeen',
+    );
+    try {
+      return super.markFeatureSeen(id);
+    } finally {
+      _$_SettingsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void markNotInterested(String userId, String name) {
     final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
       name: '_SettingsStoreBase.markNotInterested',
@@ -2573,6 +2789,15 @@ launchUrlExternal: ${launchUrlExternal},
 mentionNotifications: ${mentionNotifications},
 mutedWhisperUserIds: ${mutedWhisperUserIds},
 archivedWhisperUserIds: ${archivedWhisperUserIds},
+clipDiscovery: ${clipDiscovery},
+dataSaver: ${dataSaver},
+followedVideosSeenAt: ${followedVideosSeenAt},
+pointsIntroSeen: ${pointsIntroSeen},
+seenNewFeatures: ${seenNewFeatures},
+hideViewerCount: ${hideViewerCount},
+streamPreviews: ${streamPreviews},
+mutePreviews: ${mutePreviews},
+alertsOverLandscapeVideo: ${alertsOverLandscapeVideo},
 notInterestedChannels: ${notInterestedChannels},
 appLanguage: ${appLanguage},
 languagePromptVersion: ${languagePromptVersion},

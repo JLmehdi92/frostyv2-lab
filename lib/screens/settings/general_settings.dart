@@ -15,6 +15,7 @@ import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/settings/widgets/stream_language_setting.dart';
 import 'package:onset/screens/settings/widgets/theme_selection_setting.dart';
+import 'package:onset/widgets/new_feature_pill.dart';
 
 /// Settings › General: the language, theme and accent, stream cards,
 /// browsing, links. The notifications moved to their own page.
@@ -70,17 +71,51 @@ class GeneralSettings extends StatelessWidget {
                 ),
                 StreamLanguageSetting(settingsStore: settingsStore),
                 HiddenContentLabelsSetting(settingsStore: settingsStore),
+                SettingsListSelect(
+                  title: l.settingsClipDiscovery,
+                  isNew: settingsStore.isNewFeature(
+                    NewFeature.clipDiscovery.name,
+                  ),
+                  value: settingsStore.clipDiscovery,
+                  values: ClipDiscovery.values,
+                  labelOf: (option) => option.label(l),
+                  onChanged: (option) {
+                    settingsStore
+                      ..clipDiscovery = option
+                      ..markFeatureSeen(NewFeature.clipDiscovery.name);
+                  },
+                ),
+                SettingsListSwitch(
+                  title: l.settingsHideViewerCount,
+                  isNew: settingsStore.isNewFeature(
+                    NewFeature.hideViewerCount.name,
+                  ),
+                  value: settingsStore.hideViewerCount,
+                  onChanged: (newValue) {
+                    settingsStore
+                      ..hideViewerCount = newValue
+                      ..markFeatureSeen(NewFeature.hideViewerCount.name);
+                  },
+                ),
                 SettingsRow(
                   glyph: SettingsGlyphKind.list,
                   title: l.settingsPageNotInterested,
+                  isNew: settingsStore.isNewFeature(
+                    NewFeature.notInterested.name,
+                  ),
                   value: '${settingsStore.notInterestedChannels.length}',
                   end: SettingsRowEnd.chevron,
-                  onTap: () => openSettingsPage(
-                    context,
-                    id: SettingsPageId.notInterested,
-                    builder: (context) =>
-                        NotInterestedChannels(settingsStore: settingsStore),
-                  ),
+                  onTap: () {
+                    settingsStore.markFeatureSeen(
+                      NewFeature.notInterested.name,
+                    );
+                    openSettingsPage(
+                      context,
+                      id: SettingsPageId.notInterested,
+                      builder: (context) =>
+                          NotInterestedChannels(settingsStore: settingsStore),
+                    );
+                  },
                 ),
               ],
             ),

@@ -13,6 +13,7 @@ import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/settings/widgets/settings_twitch_web_token.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/new_feature_pill.dart';
 
 /// Settings › Video: the low-latency player, playback,
 /// the overlay, videos and content, captions.
@@ -177,6 +178,37 @@ class VideoSettings extends StatelessWidget {
                   values: VodAutoplay.values,
                   labelOf: (option) => option.label(l),
                   onChanged: (option) => settingsStore.vodAutoplay = option,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsStreamPreviews,
+                  isNew: settingsStore.isNewFeature(
+                    NewFeature.streamPreviews.name,
+                  ),
+                  subtitle: Text(l.settingsStreamPreviewsDetail),
+                  value: settingsStore.streamPreviews,
+                  onChanged: (newValue) {
+                    settingsStore
+                      ..streamPreviews = newValue
+                      ..markFeatureSeen(NewFeature.streamPreviews.name);
+                  },
+                ),
+                if (settingsStore.streamPreviews)
+                  SettingsListSwitch(
+                    title: l.settingsMutePreviews,
+                    value: settingsStore.mutePreviews,
+                    onChanged: (newValue) =>
+                        settingsStore.mutePreviews = newValue,
+                  ),
+                SettingsListSwitch(
+                  title: l.settingsDataSaver,
+                  isNew: settingsStore.isNewFeature(NewFeature.dataSaver.name),
+                  subtitle: Text(l.settingsDataSaverDetail),
+                  value: settingsStore.dataSaver,
+                  onChanged: (newValue) {
+                    settingsStore
+                      ..dataSaver = newValue
+                      ..markFeatureSeen(NewFeature.dataSaver.name);
+                  },
                 ),
                 SettingsListSwitch(
                   title: l.settingsWarnMature,

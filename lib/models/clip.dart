@@ -53,6 +53,7 @@ class Clip {
     this.gameName,
     this.vodId,
     this.vodOffsetSeconds,
+    this.isFeatured = false,
   });
 
   /// Parses a GQL `Clip` node. Optional fields that are missing or of the
@@ -100,6 +101,7 @@ class Clip {
       vodOffsetSeconds: vodId == null || offset == null || offset < 0
           ? null
           : _nonNegative(offset),
+      isFeatured: node['isFeatured'] == true,
     );
   }
 
@@ -123,6 +125,7 @@ class Clip {
   /// The VOD the clip was cut from, while it still exists.
   final String? vodId;
   final int? vodOffsetSeconds;
+  final bool isFeatured;
 
   Duration get duration => Duration(seconds: durationSeconds);
 

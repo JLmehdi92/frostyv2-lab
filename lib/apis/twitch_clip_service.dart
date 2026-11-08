@@ -47,7 +47,7 @@ class TwitchClipService extends BaseApiClient {
       'query ChannelClips(\$login: String!, \$first: Int, '
       '\$period: ClipsPeriod, \$sort: ClipsSort) { user(login: \$login) { '
       'id login displayName clips(first: \$first, criteria: {period: '
-      '\$period, sort: \$sort}) { edges { node { $_clipFields } } '
+      '\$period, sort: \$sort}) { edges { node { $_clipFields isFeatured } } '
       'pageInfo { hasNextPage } } } }';
 
   static const _categoryClipsQuery =

@@ -124,7 +124,11 @@ class LivePreviewController extends ChangeNotifier {
     required this.resolveUrl,
     LivePreviewBackend Function()? createBackend,
     this.settle = const Duration(milliseconds: 350),
-  }) : _createBackend = createBackend ?? MediaKitPreviewBackend.new;
+    bool Function()? startMuted,
+  }) : _createBackend = createBackend ?? MediaKitPreviewBackend.new,
+       _startMuted = startMuted;
+
+  final bool Function()? _startMuted;
 
   final PreviewUrlResolver resolveUrl;
   final LivePreviewBackend Function() _createBackend;
@@ -208,7 +212,7 @@ class LivePreviewController extends ChangeNotifier {
     final generation = ++_generation;
     _release();
     _failed = false;
-    _muted = true;
+    _muted = _startMuted?.call() ?? true;
     if (!_disposed) notifyListeners();
     final login = _target;
     if (!_active || login == null || _disposed) return;
@@ -254,6 +258,9 @@ class LivePreviewController extends ChangeNotifier {
     notifyListeners();
     try {
       await backend.open(url);
+      if (!_muted && generation == _generation && !_disposed) {
+        await backend.setVolume(1);
+      }
     } catch (e) {
       debugPrint('Preview failed to play: ${e.runtimeType}');
       if (generation == _generation && !_disposed) {

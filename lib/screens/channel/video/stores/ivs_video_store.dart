@@ -29,6 +29,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/audio_focus.dart';
 import 'package:onset/services/background_audio.dart';
+import 'package:onset/services/network_metering.dart';
 import 'package:onset/services/playback_token_cache.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/services/telemetry.dart';
@@ -336,7 +337,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     AudioFocus? audioFocus,
     @visibleForTesting DateTime Function()? now,
     @visibleForTesting BufferFallback? bufferFallback,
+    @visibleForTesting Future<bool?> Function()? isMetered,
   }) : _ownsStreamService = streamService == null,
+       _isMetered = isMetered ?? NetworkMetering.shared.isMetered,
        _now = now ?? clock.now,
        _liveEdge = LiveEdgeGuard(now: now),
        _backgroundAudio = backgroundAudio ?? BackgroundAudio.shared,
@@ -1460,6 +1463,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     }
   }
 
+  final Future<bool?> Function() _isMetered;
+
   /// Quality the user picked during this session; re-applied after reloads.
   String? _sessionQuality;
 
@@ -1485,13 +1490,23 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       _applyQuality('Auto');
       return;
     }
+    final sessionPick = pickInitialQuality(
+      available: available,
+      defaultToHighest: false,
+      lastQuality: session,
+      keepAudioOnly: true,
+    );
+    if (sessionPick == null && settingsStore.dataSaver) {
+      final metered = await _isMetered().catchError((Object _) => null);
+      if (_disposed || generation != _qualityGeneration) return;
+      final capped = metered == true ? dataSaverQuality(available) : null;
+      if (capped != null) {
+        _applyQuality(capped);
+        return;
+      }
+    }
     final quality =
-        pickInitialQuality(
-          available: available,
-          defaultToHighest: false,
-          lastQuality: session,
-          keepAudioOnly: true,
-        ) ??
+        sessionPick ??
         pickInitialQuality(
           available: available,
           defaultToHighest: settingsStore.defaultToHighestQuality,

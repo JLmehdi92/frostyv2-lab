@@ -83,6 +83,33 @@ void main() {
     });
   });
 
+  test('previews can start with sound when the setting says so', () {
+    fakeAsync((async) {
+      var startMuted = false;
+      final c = LivePreviewController(
+        resolveUrl: (login, cancel) async => 'https://usher/$login.m3u8',
+        startMuted: () => startMuted,
+        createBackend: () {
+          final backend = FakePreviewBackend(log);
+          made.add(backend);
+          return backend;
+        },
+      )..setActive(true);
+      c.show('one');
+      async.elapse(const Duration(seconds: 1));
+      expect(c.muted, isFalse);
+      expect(made.single.volume, 1);
+
+      startMuted = true;
+      c.show('two');
+      async.elapse(const Duration(seconds: 1));
+      expect(c.muted, isTrue);
+      expect(made.last.volume, 0);
+      c.dispose();
+      async.flushMicrotasks();
+    });
+  });
+
   test('a fast swipe starts no decoder for the channels passed', () {
     fakeAsync((async) {
       final c = controller()..setActive(true);

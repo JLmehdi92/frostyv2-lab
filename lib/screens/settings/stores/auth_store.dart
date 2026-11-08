@@ -82,7 +82,7 @@ abstract class AuthBase with Store {
       'moderator:manage:shield_mode moderator:manage:automod '
       'moderator:manage:blocked_terms moderator:manage:unban_requests '
       'moderator:manage:suspicious_users moderator:read:moderators '
-      'moderator:read:vips';
+      'moderator:read:vips user:write:chat';
 
   static const channelToolScopes = {
     'channel:manage:moderators',

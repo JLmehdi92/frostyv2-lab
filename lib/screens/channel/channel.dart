@@ -302,6 +302,7 @@ class _VideoChatState extends State<VideoChat>
   /// null while the setting is off. Never handed to the mini window.
   HypeTrainStore? _hypeTrainStore;
   ReactionDisposer? _hypeTrainSettingReaction;
+  var _landscape = false;
 
   void _syncHypeTrainStore() {
     final show = context.settingsStore.showHypeTrain;
@@ -790,7 +791,7 @@ class _VideoChatState extends State<VideoChat>
       latest: () => _eventsStore.celebration,
       subtle: () =>
           settings.showCelebrations &&
-          settings.celebrationsOnVideo == CelebrationsOnVideo.subtle,
+          settings.celebrationsSubtle(landscape: _landscape),
       post: (line) => _primaryChatStore?.addLocalNotice(line),
       clear: _eventsStore.clearCelebration,
     );
@@ -1197,6 +1198,7 @@ class _VideoChatState extends State<VideoChat>
 
   @override
   Widget build(BuildContext context) {
+    _landscape = context.isLandscape;
     final settingsStore = _chatTabsStore.settingsStore;
 
     final store = _videoStore;

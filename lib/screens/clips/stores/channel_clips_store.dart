@@ -18,6 +18,7 @@ abstract class ChannelClipsStoreBase with Store {
     required this.clipService,
     ClipPeriod period = ClipPeriod.lastWeek,
     ClipSort sort = ClipSort.top,
+    this.featuredOnly,
   }) : _period = period,
        _sort = sort;
 
@@ -26,6 +27,7 @@ abstract class ChannelClipsStoreBase with Store {
   /// A category instead of a channel ([login] is then unused).
   final String? gameId;
   final TwitchClipService clipService;
+  final bool Function()? featuredOnly;
 
   final scrollController = ScrollController();
 
@@ -100,7 +102,13 @@ abstract class ChannelClipsStoreBase with Store {
 
   @action
   void _show(ClipPage page) {
-    _clips = page.items;
+    final featured = gameId == null && (featuredOnly?.call() ?? false);
+    _clips = featured
+        ? [
+            for (final clip in page.items)
+              if (clip.isFeatured) clip,
+          ]
+        : page.items;
     _hasMore = page.hasMore;
     _error = null;
     _isLoading = false;

@@ -30,6 +30,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/content_labels.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/utils/share_link.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:onset/widgets/launch/launch_intro.dart';
@@ -125,6 +126,7 @@ class _LiveFeedState extends State<LiveFeed> {
   late final LivePreviewController _preview =
       widget.preview ??
       LivePreviewController(
+        startMuted: () => _settings.mutePreviews,
         resolveUrl: (login, cancel) async {
           final service = _service ??= TwitchStreamService(
             Dio(
@@ -322,7 +324,9 @@ class _LiveFeedState extends State<LiveFeed> {
 
   bool get _autoplay {
     final setting = _settings.vodAutoplay;
-    if (setting == VodAutoplay.wifiOnly && !_meterAsked) {
+    if (!_settings.streamPreviews) return false;
+    if ((setting == VodAutoplay.wifiOnly || _settings.dataSaver) &&
+        !_meterAsked) {
       _meterAsked = true;
       final ask = widget.isMetered ?? NetworkMetering.shared.isMetered;
       unawaited(
@@ -333,6 +337,7 @@ class _LiveFeedState extends State<LiveFeed> {
         }),
       );
     }
+    if (_settings.dataSaver && _metered != false) return false;
     return autoplayAllowed(setting, metered: _metered);
   }
 
@@ -1224,6 +1229,7 @@ class _Watching extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (viewerCountsHidden(context)) return const SizedBox.shrink();
     final text = Semantics(
       label: context.l10n.streamWatching(count: viewers),
       child: ExcludeSemantics(

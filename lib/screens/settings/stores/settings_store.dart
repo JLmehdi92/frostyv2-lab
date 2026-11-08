@@ -130,6 +130,54 @@ abstract class _SettingsStoreBase with Store {
   @observable
   List<String> archivedWhisperUserIds = const [];
 
+  @JsonKey(defaultValue: ClipDiscovery.all, unknownEnumValue: ClipDiscovery.all)
+  @observable
+  var clipDiscovery = ClipDiscovery.all;
+
+  @JsonKey(defaultValue: false)
+  @observable
+  var dataSaver = false;
+
+  @JsonKey(defaultValue: '')
+  @observable
+  var followedVideosSeenAt = '';
+
+  @JsonKey(defaultValue: false)
+  @observable
+  var pointsIntroSeen = false;
+
+  @JsonKey(defaultValue: <String>[])
+  @observable
+  List<String> seenNewFeatures = const [];
+
+  bool isNewFeature(String id) => !seenNewFeatures.contains(id);
+
+  @action
+  void markFeatureSeen(String id) {
+    if (seenNewFeatures.contains(id)) return;
+    seenNewFeatures = [...seenNewFeatures, id];
+  }
+
+  @JsonKey(defaultValue: false)
+  @observable
+  var hideViewerCount = false;
+
+  @JsonKey(defaultValue: true)
+  @observable
+  var streamPreviews = true;
+
+  @JsonKey(defaultValue: true)
+  @observable
+  var mutePreviews = true;
+
+  @JsonKey(defaultValue: true)
+  @observable
+  var alertsOverLandscapeVideo = true;
+
+  bool celebrationsSubtle({required bool landscape}) =>
+      celebrationsOnVideo == CelebrationsOnVideo.subtle ||
+      (landscape && !alertsOverLandscapeVideo);
+
   @JsonKey(defaultValue: <String, String>{})
   @observable
   Map<String, String> notInterestedChannels = const {};
@@ -188,6 +236,9 @@ abstract class _SettingsStoreBase with Store {
     launchUrlExternal = defaultLaunchUrlExternal;
 
     mentionNotifications = defaultMentionNotifications;
+
+    clipDiscovery = ClipDiscovery.all;
+    hideViewerCount = false;
   }
 
   // * Video Settings
@@ -389,6 +440,11 @@ abstract class _SettingsStoreBase with Store {
     showOverlay = defaultShowOverlay;
     toggleableOverlay = defaultToggleableOverlay;
     showLatency = defaultShowLatency;
+
+    dataSaver = false;
+    streamPreviews = true;
+    mutePreviews = true;
+    alertsOverLandscapeVideo = true;
   }
 
   // * Chat Settings
@@ -1016,7 +1072,9 @@ enum HomeTab {
 /// How Following orders its live channels. Twitch's other order,
 /// "Recommended For You", is its own server ranking, which Helix does not
 /// give.
-enum FollowedSort { viewers, recent, name, category }
+enum FollowedSort { viewers, recent, name, category, recommended }
+
+enum ClipDiscovery { all, featured }
 
 enum TimestampType { disabled, twelve, twentyFour }
 

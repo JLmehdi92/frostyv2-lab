@@ -13,6 +13,7 @@ import 'package:onset/screens/vod/widgets/channel_videos_tab.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';
 
@@ -81,6 +82,7 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen>
     login: widget.userLogin,
     clipService: context.twitchClipService,
     period: widget.clipPeriod,
+    featuredOnly: () => featuredClipsOnly(context),
   );
 
   late final TabController _tabController = TabController(

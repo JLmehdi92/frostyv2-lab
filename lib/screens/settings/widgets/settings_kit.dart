@@ -5,6 +5,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/new_feature_pill.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 /// The colours of the profile and settings screens. The design is dark;
@@ -406,9 +407,11 @@ class SettingsRow extends StatelessWidget {
     this.enabled = true,
     this.minHeight = 56,
     this.semanticsLabel,
+    this.isNew = false,
   });
 
   final String title;
+  final bool isNew;
   final SettingsGlyphKind? glyph;
   final Widget? subtitle;
 
@@ -491,7 +494,17 @@ class SettingsRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 3,
             children: [
-              Text(title, style: titleStyle),
+              if (isNew)
+                Wrap(
+                  spacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(title, style: titleStyle),
+                    const NewFeaturePill(),
+                  ],
+                )
+              else
+                Text(title, style: titleStyle),
               if (subtitle case final subtitle?)
                 DefaultTextStyle.merge(
                   style: SettingsText.detail.copyWith(color: colors.secondary),

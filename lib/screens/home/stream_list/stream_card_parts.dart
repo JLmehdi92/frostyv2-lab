@@ -15,6 +15,7 @@ import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/image_size.dart';
 import 'package:onset/utils/modal_bottom_sheet.dart';
+import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/widgets/motion/rolling_number.dart';
 import 'package:onset/widgets/motion/signal_ping.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
@@ -327,6 +328,7 @@ class ViewerPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (viewerCountsHidden(context)) return const SizedBox.shrink();
     return Semantics(
       label: context.l10n.streamViewers(count: viewers),
       child: ExcludeSemantics(

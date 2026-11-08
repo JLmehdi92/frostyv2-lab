@@ -17,7 +17,10 @@ class SettingsListSwitch extends StatelessWidget {
     this.subtitle,
     this.onChanged,
     required this.value,
+    this.isNew = false,
   });
+
+  final bool isNew;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +36,7 @@ class SettingsListSwitch extends StatelessWidget {
         enabled: onChanged != null,
         child: SettingsRow(
           title: title,
+          isNew: isNew,
           subtitle: subtitle,
           enabled: onChanged != null,
           onTap: onChanged == null ? null : toggle,
