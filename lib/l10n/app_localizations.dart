@@ -11394,7 +11394,7 @@ abstract class AppLocalizations {
   /// The channel points panel: the viewer's Bits balance, live from Twitch.
   ///
   /// In en, this message translates to:
-  /// **'{bits} Bits'**
+  /// **'Bits balance: {bits}'**
   String pointsBitsBalance({required String bits});
 
   /// The channel points panel: how many subs viewers gifted in this channel since the viewer opened it.

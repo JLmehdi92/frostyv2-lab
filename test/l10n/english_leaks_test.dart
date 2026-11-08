@@ -692,7 +692,7 @@ void main() {
     expect(clashes, [
       'languageInTextEnglish "English" is the French of languageNameEnglish',
       'clipCreateButton "Clip" is the French of chatLinkClip',
-      'chatInputPlaceholder "Chat" is the French of channelChat',
+      'chatInputPlaceholder "Chat" is the French of channelPrefsChat',
     ]);
   });
 }

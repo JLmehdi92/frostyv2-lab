@@ -10905,7 +10905,7 @@
   "@userActionsChannelPrefs": {
     "description": "A channel's More sheet: opens the channel's own preferences."
   },
-  "pointsBitsBalance": "{bits} Bits",
+  "pointsBitsBalance": "Bits balance: {bits}",
   "@pointsBitsBalance": {
     "description": "The channel points panel: the viewer's Bits balance, live from Twitch.",
     "placeholders": {

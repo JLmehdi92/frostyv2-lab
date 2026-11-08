@@ -8495,7 +8495,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pointsBitsBalance({required String bits}) {
-    return '$bits Bits';
+    return 'Bits balance: $bits';
   }
 
   @override

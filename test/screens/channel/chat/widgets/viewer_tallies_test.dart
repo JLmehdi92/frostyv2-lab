@@ -13,7 +13,7 @@ void main() {
       const Scaffold(body: ViewerTallies(bitsBalance: 1250, giftedHere: 25)),
       locale: en,
     );
-    expect(find.text('1 250 Bits'), findsOneWidget);
+    expect(find.text('Bits balance: 1 250'), findsOneWidget);
     expect(find.text('25 subs gifted here since you joined'), findsOneWidget);
 
     await pumpLocalized(
