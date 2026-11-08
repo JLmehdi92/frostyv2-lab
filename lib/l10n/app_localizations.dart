@@ -11678,6 +11678,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{channel} turned on Drops for the community! Watch the stream and buy subs to claim the rewards.'**
   String communityDropsSeveral({required String channel});
+
+  /// Title of the sheet and the points panel row listing the channel’s community goals, which viewers fund with channel points.
+  ///
+  /// In en, this message translates to:
+  /// **'Community goals'**
+  String get communityGoalsTitle;
+
+  /// Community goals sheet when the channel has none.
+  ///
+  /// In en, this message translates to:
+  /// **'No community goal is running.'**
+  String get communityGoalsEmpty;
+
+  /// Community goals sheet when Twitch did not answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load the community goals.'**
+  String get communityGoalsFailed;
+
+  /// How far a community goal is, under its progress bar.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% raised'**
+  String communityGoalRaised({required int percent});
+
+  /// Points given so far to a community goal, out of its target.
+  ///
+  /// In en, this message translates to:
+  /// **'{raised} of {needed} points'**
+  String communityGoalAmount({required String raised, required String needed});
+
+  /// State of a community goal that is over.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get communityGoalEnded;
+
+  /// State of a community goal the viewer already gave the most allowed to this stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Max contribution per stream reached'**
+  String get communityGoalMaxReached;
+
+  /// Button that gives channel points to a community goal; it asks for the amount first.
+  ///
+  /// In en, this message translates to:
+  /// **'Contribute'**
+  String get communityGoalContribute;
+
+  /// Title of the dialog asking how many points to give to a community goal.
+  ///
+  /// In en, this message translates to:
+  /// **'Contribute to this goal'**
+  String get communityGoalContributeTitle;
+
+  /// Hint of the amount field in the contribute dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Points (up to {max})'**
+  String communityGoalAmountHint({required String max});
+
+  /// Chip in the contribute dialog that fills in the most points the viewer can give.
+  ///
+  /// In en, this message translates to:
+  /// **'Max {amount}'**
+  String communityGoalMax({required String amount});
+
+  /// Line in the community goals sheet for a logged-out viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to contribute.'**
+  String get communityGoalLogIn;
+
+  /// Snack bar after giving channel points to a community goal.
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, contributed{Thank you! Your points went to the goal.} notEnoughPoints{You don’t have enough points for this.} maxPerStream{You’ve given the most allowed for this stream. Try again next stream.} notOpen{This goal isn’t taking points right now.} refused{Twitch declined this contribution.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so contribute on twitch.tv.} signedOut{Log in again to contribute from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  String goalContributionResult({required String status});
 }
 
 class _AppLocalizationsDelegate

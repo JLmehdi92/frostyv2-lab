@@ -5,6 +5,7 @@ import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/app_localizations_en.dart';
+import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/screens/channel/chat/widgets/channel_points_sheet.dart';
@@ -12,6 +13,7 @@ import 'package:onset/screens/channel/chat/widgets/drops_card.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/services/hermes_client.dart';
 
+import '../../../../fixtures/community_goal_payloads.dart';
 import '../../../../fixtures/drops_gql_payloads.dart';
 
 class MockPointsService extends Mock implements TwitchPointsService {}
@@ -128,6 +130,29 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
+
+  testWidgets('the community goals row opens the goals', (tester) async {
+    when(
+      () => community.getCommunityGoals(
+        channelId: any(named: 'channelId'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer(
+      (_) async => CommunityGoal.listFrom(
+        communityGoalsResponse([communityGoalFixture()]),
+      ),
+    );
+    await pump(tester, noDropCampaignsResponse);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('points-community-goals')),
+    );
+    await tester.tap(find.byKey(const ValueKey('points-community-goals')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Kids cam'), findsOneWidget);
+    expect(find.text('Contribute'), findsOneWidget);
   });
 
   group('communityDropsLine', () {

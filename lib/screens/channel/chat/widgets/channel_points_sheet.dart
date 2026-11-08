@@ -11,6 +11,7 @@ import 'package:onset/models/community_points.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/watch_streak.dart';
+import 'package:onset/screens/channel/chat/widgets/community_goals_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/drops_card.dart';
 import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/points_intro.dart';
@@ -436,6 +437,19 @@ class _PanelState extends State<_Panel> {
                   ),
                 ],
 
+                if (events != null && events.hasCommunityGoals)
+                  SheetRow(
+                    key: const ValueKey('points-community-goals'),
+                    glyph: SheetGlyphKind.star,
+                    label: context.l10n.communityGoalsTitle,
+                    end: SheetRowEnd.chevron,
+                    onTap: () => showCommunityGoals(
+                      context,
+                      load: events.loadCommunityGoals,
+                      contribute: events.contributeToGoal,
+                      balance: () => events.points.balance,
+                    ),
+                  ),
                 if (events != null && events.hasLeaderboards)
                   SheetRow(
                     key: const ValueKey('points-leaderboards'),

@@ -6,6 +6,7 @@ import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/models/channel_leaderboards.dart';
 
+import '../fixtures/community_goal_payloads.dart';
 import '../fixtures/community_gql_payloads.dart';
 import '../fixtures/drops_gql_payloads.dart';
 
@@ -205,6 +206,59 @@ void main() {
 
       reply({'error': 'boom'}, status: 500);
       expect(await service.getDropCampaigns(channelId: '42'), isNull);
+    });
+  });
+  group('getCommunityGoals', () {
+    test('reads the goals, then the viewer contributions', () async {
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            final data = options.data;
+            final body = data is String ? jsonDecode(data) : data;
+            handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: body['operationName'] == 'CommunityGoalQuery'
+                    ? communityGoalsResponse([communityGoalFixture()])
+                    : goalContributionsResponse({'goal-1': 500}),
+              ),
+            );
+          },
+        ),
+      );
+
+      final goals = await service.getCommunityGoals(
+        channelId: '42',
+        authToken: 'tok',
+      );
+
+      expect(goals!.single.contributedThisStream, 500);
+      expect(requests, hasLength(2));
+      expect(requests.first.headers.containsKey('Authorization'), isFalse);
+      expect(requests.last.headers['Authorization'], 'OAuth tok');
+      final second = requests.last.data;
+      expect(
+        (second is String ? jsonDecode(second) : second)['operationName'],
+        'CommunityGoalUserContributionsQuery',
+      );
+    });
+
+    test('logged out, asks only for the goals', () async {
+      reply(communityGoalsResponse([communityGoalFixture()]));
+
+      final goals = await service.getCommunityGoals(channelId: '42');
+
+      expect(goals!.single.contributedThisStream, 0);
+      expect(sent()['operationName'], 'CommunityGoalQuery');
+      expect(sent()['variables'], {'id': '42'});
+    });
+
+    test('a bad id sends nothing, a failure is null', () async {
+      expect(await service.getCommunityGoals(channelId: 'x'), isNull);
+      expect(requests, isEmpty);
+      reply({'error': 'boom'}, status: 500);
+      expect(await service.getCommunityGoals(channelId: '42'), isNull);
     });
   });
 }

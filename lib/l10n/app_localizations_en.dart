@@ -8772,4 +8772,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String communityDropsSeveral({required String channel}) {
     return '$channel turned on Drops for the community! Watch the stream and buy subs to claim the rewards.';
   }
+
+  @override
+  String get communityGoalsTitle => 'Community goals';
+
+  @override
+  String get communityGoalsEmpty => 'No community goal is running.';
+
+  @override
+  String get communityGoalsFailed => 'Couldn’t load the community goals.';
+
+  @override
+  String communityGoalRaised({required int percent}) {
+    return '$percent% raised';
+  }
+
+  @override
+  String communityGoalAmount({required String raised, required String needed}) {
+    return '$raised of $needed points';
+  }
+
+  @override
+  String get communityGoalEnded => 'Ended';
+
+  @override
+  String get communityGoalMaxReached => 'Max contribution per stream reached';
+
+  @override
+  String get communityGoalContribute => 'Contribute';
+
+  @override
+  String get communityGoalContributeTitle => 'Contribute to this goal';
+
+  @override
+  String communityGoalAmountHint({required String max}) {
+    return 'Points (up to $max)';
+  }
+
+  @override
+  String communityGoalMax({required String amount}) {
+    return 'Max $amount';
+  }
+
+  @override
+  String get communityGoalLogIn => 'Log in to contribute.';
+
+  @override
+  String goalContributionResult({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'contributed': 'Thank you! Your points went to the goal.',
+      'notEnoughPoints': 'You don’t have enough points for this.',
+      'maxPerStream':
+          'You’ve given the most allowed for this stream. Try again next stream.',
+      'notOpen': 'This goal isn’t taking points right now.',
+      'refused': 'Twitch declined this contribution.',
+      'integrityRefused':
+          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so contribute on twitch.tv.',
+      'signedOut': 'Log in again to contribute from ONSET.',
+      'other': 'Couldn’t reach Twitch. Try again.',
+    });
+    return '$_temp0';
+  }
 }

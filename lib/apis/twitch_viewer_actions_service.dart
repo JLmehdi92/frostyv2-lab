@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 
 enum ViewerActionOutcome { done, refused, integrityRefused, signedOut, failed }
@@ -179,6 +180,54 @@ class TwitchViewerActionsService extends BaseApiClient {
       input: raidId,
       succeeded: (payload) => payload['raidID'] == raidId,
     );
+  }
+
+  static const _contributeToGoalDocument =
+      'mutation CommunityGoalMutation(\$input: '
+      'ContributeCommunityPointsCommunityGoalInput!) { '
+      'contributeCommunityPointsCommunityGoal(input: \$input) { error { code '
+      '} } }';
+
+  Future<GoalContributionResult> contributeToGoal({
+    required String channelId,
+    required String goalId,
+    required int amount,
+    required String authToken,
+  }) async {
+    if (authToken.isEmpty) return GoalContributionResult.signedOut;
+    if (!_numericId.hasMatch(channelId) ||
+        !_opaqueId.hasMatch(goalId) ||
+        amount <= 0) {
+      return GoalContributionResult.failed;
+    }
+    try {
+      return GoalContributionResult.fromBody(
+        await post<dynamic>(
+          _gqlUrl,
+          headers: {
+            'Client-ID': kTwitchWebClientId,
+            'Authorization': 'OAuth $authToken',
+          },
+          data: {
+            'operationName': 'CommunityGoalMutation',
+            'query': _contributeToGoalDocument,
+            'variables': {
+              'input': {
+                'amount': amount,
+                'channelID': channelId,
+                'goalID': goalId,
+                'transactionID': _freshId(),
+              },
+            },
+          },
+        ),
+      );
+    } on UnauthorizedException {
+      return GoalContributionResult.signedOut;
+    } catch (e) {
+      if (kDebugMode) debugPrint('CommunityGoalMutation failed: $e');
+      return GoalContributionResult.failed;
+    }
   }
 
   static const _claimDropDocument =

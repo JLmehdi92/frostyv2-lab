@@ -8889,4 +8889,67 @@ class AppLocalizationsFr extends AppLocalizations {
   String communityDropsSeveral({required String channel}) {
     return '$channel a activé les Drops pour la communauté ! Regardez le live et achetez des abonnements pour récupérer les récompenses.';
   }
+
+  @override
+  String get communityGoalsTitle => 'Objectifs de la communauté';
+
+  @override
+  String get communityGoalsEmpty => 'Aucun objectif de la communauté en cours.';
+
+  @override
+  String get communityGoalsFailed =>
+      'Impossible de charger les objectifs de la communauté.';
+
+  @override
+  String communityGoalRaised({required int percent}) {
+    return '$percent % atteint';
+  }
+
+  @override
+  String communityGoalAmount({required String raised, required String needed}) {
+    return '$raised points sur $needed';
+  }
+
+  @override
+  String get communityGoalEnded => 'Terminé';
+
+  @override
+  String get communityGoalMaxReached =>
+      'Contribution maximale atteinte pour ce live';
+
+  @override
+  String get communityGoalContribute => 'Contribuer';
+
+  @override
+  String get communityGoalContributeTitle => 'Contribuer à cet objectif';
+
+  @override
+  String communityGoalAmountHint({required String max}) {
+    return 'Points (jusqu’à $max)';
+  }
+
+  @override
+  String communityGoalMax({required String amount}) {
+    return 'Max $amount';
+  }
+
+  @override
+  String get communityGoalLogIn => 'Connectez-vous pour contribuer.';
+
+  @override
+  String goalContributionResult({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'contributed': 'Merci ! Vos points ont été ajoutés à l’objectif.',
+      'notEnoughPoints': 'Vous n’avez pas assez de points pour cela.',
+      'maxPerStream':
+          'Vous avez donné le maximum autorisé pour ce live. Réessayez au prochain live.',
+      'notOpen': 'Cet objectif n’accepte pas de points pour le moment.',
+      'refused': 'Twitch a refusé cette contribution.',
+      'integrityRefused':
+          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer, contribuez sur twitch.tv.',
+      'signedOut': 'Reconnectez-vous pour contribuer depuis ONSET.',
+      'other': 'Impossible de joindre Twitch. Réessayez.',
+    });
+    return '$_temp0';
+  }
 }

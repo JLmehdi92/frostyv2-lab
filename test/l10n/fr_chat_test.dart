@@ -10,6 +10,7 @@ import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_leaderboards.dart';
+import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/emotes.dart';
@@ -37,6 +38,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
+import 'package:onset/screens/channel/chat/widgets/community_goals_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/drops_card.dart';
 import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
@@ -49,6 +51,7 @@ import 'package:onset/services/hermes_client.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:provider/provider.dart';
 
+import '../fixtures/community_goal_payloads.dart';
 import '../fixtures/drops_gql_payloads.dart';
 import '../fixtures/irc_messages.dart';
 import '../helpers/chat_message_harness.dart';
@@ -1102,6 +1105,49 @@ void main() {
           await expectFrenchThroughout(tester, 'drops $signedIn, $at');
         });
       }
+
+      testWidgets('the community goals, $at', (tester) async {
+        final goals = CommunityGoal.listFrom(
+          communityGoalsResponse([
+            communityGoalFixture(),
+            communityGoalFixture(id: 'goal-2', status: 'ENDED'),
+          ]),
+        )!;
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: CommunityGoalsSheet(
+              load: () async => [
+                goals.first,
+                goals.last,
+                goals.first.withContributedThisStream(2000),
+              ],
+              balance: () => 5000,
+              contribute: (_, _) async => GoalContributionResult.contributed,
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text(french.communityGoalsTitle), findsOneWidget);
+        await expectFrenchThroughout(tester, 'community goals, $at');
+      });
+
+      testWidgets('the goal contribution dialog, $at', (tester) async {
+        final goal = CommunityGoal.listFrom(
+          communityGoalsResponse([communityGoalFixture()]),
+        )!.single;
+        await pumpLocalized(
+          tester,
+          Scaffold(body: GoalContributionDialog(goal: goal, maximum: 2000)),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        expect(find.text(french.communityGoalContributeTitle), findsOneWidget);
+        await expectFrenchThroughout(tester, 'goal contribution, $at');
+      });
 
       testWidgets('the streak help without a streak, $at', (tester) async {
         await pumpLocalized(

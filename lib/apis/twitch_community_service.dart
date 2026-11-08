@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/channel_leaderboards.dart';
+import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/shoutout_profile.dart';
@@ -163,6 +164,51 @@ class TwitchCommunityService extends BaseApiClient {
         authToken: authToken,
       ),
     );
+  }
+
+  static const _communityGoalsQuery =
+      'query CommunityGoalQuery(\$id: ID!) { user(id: \$id) { channel { '
+      'communityPointsSettings { goals { __typename '
+      '...CommunityGoalItemFragment } } } } }  fragment '
+      'CommunityPointsImageFragment on CommunityPointsImage { url url2x url4x '
+      '}  fragment CommunityGoalItemFragment on CommunityPointsCommunityGoal { '
+      'id status backgroundColor durationDays title description image { '
+      '__typename ...CommunityPointsImageFragment } defaultImage { __typename '
+      '...CommunityPointsImageFragment } amountNeeded pointsContributed '
+      'smallContribution perStreamUserMaximumContribution isInStock startedAt '
+      'endedAt type }';
+
+  static const _goalContributionsQuery =
+      'query CommunityGoalUserContributionsQuery(\$id: ID!) { user(id: \$id) '
+      '{ channel { self { communityPoints { goalContributions { goal { id } '
+      'userPointsContributedThisStream } } } } } }';
+
+  Future<List<CommunityGoal>?> getCommunityGoals({
+    required String channelId,
+    String? authToken,
+  }) async {
+    if (!_numericId.hasMatch(channelId)) return null;
+    final goals = CommunityGoal.listFrom(
+      await _ask('CommunityGoalQuery', _communityGoalsQuery, {'id': channelId}),
+    );
+    if (goals == null ||
+        goals.isEmpty ||
+        authToken == null ||
+        authToken.isEmpty) {
+      return goals;
+    }
+    final mine = CommunityGoal.contributionsFrom(
+      await _ask(
+        'CommunityGoalUserContributionsQuery',
+        _goalContributionsQuery,
+        {'id': channelId},
+        authToken: authToken,
+      ),
+    );
+    return [
+      for (final goal in goals)
+        goal.withContributedThisStream(mine[goal.id] ?? 0),
+    ];
   }
 
   Future<Object?> _ask(

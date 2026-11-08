@@ -10,6 +10,7 @@ import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/models/celebration.dart';
 import 'package:onset/models/channel_leaderboards.dart';
+import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
@@ -152,6 +153,35 @@ abstract class ChannelEventsStoreBase with Store {
           ? null
           : resub,
     );
+  }
+
+  bool get hasCommunityGoals => _communityService != null;
+
+  Future<List<CommunityGoal>?> loadCommunityGoals() async {
+    final service = _communityService;
+    if (service == null) return null;
+    return service.getCommunityGoals(
+      channelId: channelId,
+      authToken: await _tokenProvider?.call(),
+    );
+  }
+
+  Future<GoalContributionResult> contributeToGoal(
+    CommunityGoal goal,
+    int amount,
+  ) async {
+    final service = _viewerActionsService;
+    if (service == null) return GoalContributionResult.failed;
+    final token = await _tokenProvider?.call();
+    if (token == null || token.isEmpty) return GoalContributionResult.signedOut;
+    final result = await service.contributeToGoal(
+      channelId: channelId,
+      goalId: goal.id,
+      amount: amount,
+      authToken: token,
+    );
+    if (result == GoalContributionResult.contributed) await refreshPoints();
+    return result;
   }
 
   bool get hasLeaderboards => _communityService != null;

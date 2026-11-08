@@ -4,8 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
+import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 
+import '../fixtures/community_goal_payloads.dart';
 import '../fixtures/drops_gql_payloads.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
@@ -405,6 +407,72 @@ void main() {
         await service.claimDrop(dropInstanceId: 'instance-a', authToken: 'tok'),
         DropClaimResult.failed,
       );
+    });
+  });
+  group('contributeToGoal', () {
+    test('sends the amount with a fresh transaction id', () async {
+      reply(goalContributionResponse());
+
+      expect(
+        await service.contributeToGoal(
+          channelId: '42',
+          goalId: 'goal-1',
+          amount: 250,
+          authToken: 'tok',
+        ),
+        GoalContributionResult.contributed,
+      );
+      final input = sent()['variables']['input'] as Map;
+      expect(sent()['operationName'], 'CommunityGoalMutation');
+      expect(input['amount'], 250);
+      expect(input['channelID'], '42');
+      expect(input['goalID'], 'goal-1');
+      expect(input['transactionID'], matches(RegExp(r'^[0-9a-f]{32}$')));
+    });
+
+    test('reports a Twitch refusal code', () async {
+      reply(goalContributionResponse(errorCode: 'MAX_PER_STREAM'));
+
+      expect(
+        await service.contributeToGoal(
+          channelId: '42',
+          goalId: 'goal-1',
+          amount: 250,
+          authToken: 'tok',
+        ),
+        GoalContributionResult.maxPerStream,
+      );
+    });
+
+    test('sends nothing signed out, for a bad id or a zero amount', () async {
+      expect(
+        await service.contributeToGoal(
+          channelId: '42',
+          goalId: 'goal-1',
+          amount: 1,
+          authToken: '',
+        ),
+        GoalContributionResult.signedOut,
+      );
+      expect(
+        await service.contributeToGoal(
+          channelId: 'x',
+          goalId: 'goal-1',
+          amount: 1,
+          authToken: 'tok',
+        ),
+        GoalContributionResult.failed,
+      );
+      expect(
+        await service.contributeToGoal(
+          channelId: '42',
+          goalId: 'goal-1',
+          amount: 0,
+          authToken: 'tok',
+        ),
+        GoalContributionResult.failed,
+      );
+      expect(requests, isEmpty);
     });
   });
 }

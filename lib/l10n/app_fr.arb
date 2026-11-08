@@ -1904,5 +1904,18 @@
   "communityDropsWatch": "{minutes, plural, one{{channel} a activé les Drops pour la communauté\u202f! Regardez pendant {minutes} minute pour récupérer la récompense.} other{{channel} a activé les Drops pour la communauté\u202f! Regardez pendant {minutes} minutes pour récupérer la récompense.}}",
   "communityDropsSubs": "{count, plural, one{{channel} a activé les Drops pour la communauté\u202f! Achetez ou offrez {count} abonnement pendant le live pour obtenir la récompense.} other{{channel} a activé les Drops pour la communauté\u202f! Achetez ou offrez {count} abonnements pendant le live pour obtenir la récompense.}}",
   "communityDropsTurbo": "{channel} a activé les Drops pour la communauté\u202f! Prenez Turbo pour gagner les récompenses.",
-  "communityDropsSeveral": "{channel} a activé les Drops pour la communauté\u202f! Regardez le live et achetez des abonnements pour récupérer les récompenses."
+  "communityDropsSeveral": "{channel} a activé les Drops pour la communauté\u202f! Regardez le live et achetez des abonnements pour récupérer les récompenses.",
+  "communityGoalsTitle": "Objectifs de la communauté",
+  "communityGoalsEmpty": "Aucun objectif de la communauté en cours.",
+  "communityGoalsFailed": "Impossible de charger les objectifs de la communauté.",
+  "communityGoalRaised": "{percent}\u202f% atteint",
+  "communityGoalAmount": "{raised} points sur {needed}",
+  "communityGoalEnded": "Terminé",
+  "communityGoalMaxReached": "Contribution maximale atteinte pour ce live",
+  "communityGoalContribute": "Contribuer",
+  "communityGoalContributeTitle": "Contribuer à cet objectif",
+  "communityGoalAmountHint": "Points (jusqu’à {max})",
+  "communityGoalMax": "Max {amount}",
+  "communityGoalLogIn": "Connectez-vous pour contribuer.",
+  "goalContributionResult": "{status, select, contributed{Merci\u202f! Vos points ont été ajoutés à l’objectif.} notEnoughPoints{Vous n’avez pas assez de points pour cela.} maxPerStream{Vous avez donné le maximum autorisé pour ce live. Réessayez au prochain live.} notOpen{Cet objectif n’accepte pas de points pour le moment.} refused{Twitch a refusé cette contribution.} integrityRefused{Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer, contribuez sur twitch.tv.} signedOut{Reconnectez-vous pour contribuer depuis ONSET.} other{Impossible de joindre Twitch. Réessayez.}}"
 }

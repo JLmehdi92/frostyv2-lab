@@ -11236,5 +11236,91 @@
         "example": "Streamer"
       }
     }
+  },
+  "communityGoalsTitle": "Community goals",
+  "@communityGoalsTitle": {
+    "description": "Title of the sheet and the points panel row listing the channel’s community goals, which viewers fund with channel points."
+  },
+  "communityGoalsEmpty": "No community goal is running.",
+  "@communityGoalsEmpty": {
+    "description": "Community goals sheet when the channel has none."
+  },
+  "communityGoalsFailed": "Couldn’t load the community goals.",
+  "@communityGoalsFailed": {
+    "description": "Community goals sheet when Twitch did not answer."
+  },
+  "communityGoalRaised": "{percent}% raised",
+  "@communityGoalRaised": {
+    "description": "How far a community goal is, under its progress bar.",
+    "placeholders": {
+      "percent": {
+        "type": "int",
+        "example": "25"
+      }
+    }
+  },
+  "communityGoalAmount": "{raised} of {needed} points",
+  "@communityGoalAmount": {
+    "description": "Points given so far to a community goal, out of its target.",
+    "placeholders": {
+      "raised": {
+        "type": "String",
+        "example": "2.5M"
+      },
+      "needed": {
+        "type": "String",
+        "example": "10M"
+      }
+    }
+  },
+  "communityGoalEnded": "Ended",
+  "@communityGoalEnded": {
+    "description": "State of a community goal that is over."
+  },
+  "communityGoalMaxReached": "Max contribution per stream reached",
+  "@communityGoalMaxReached": {
+    "description": "State of a community goal the viewer already gave the most allowed to this stream."
+  },
+  "communityGoalContribute": "Contribute",
+  "@communityGoalContribute": {
+    "description": "Button that gives channel points to a community goal; it asks for the amount first."
+  },
+  "communityGoalContributeTitle": "Contribute to this goal",
+  "@communityGoalContributeTitle": {
+    "description": "Title of the dialog asking how many points to give to a community goal."
+  },
+  "communityGoalAmountHint": "Points (up to {max})",
+  "@communityGoalAmountHint": {
+    "description": "Hint of the amount field in the contribute dialog.",
+    "placeholders": {
+      "max": {
+        "type": "String",
+        "example": "1,500"
+      }
+    }
+  },
+  "communityGoalMax": "Max {amount}",
+  "@communityGoalMax": {
+    "description": "Chip in the contribute dialog that fills in the most points the viewer can give.",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "example": "1,500"
+      }
+    }
+  },
+  "communityGoalLogIn": "Log in to contribute.",
+  "@communityGoalLogIn": {
+    "description": "Line in the community goals sheet for a logged-out viewer."
+  },
+  "goalContributionResult": "{status, select, contributed{Thank you! Your points went to the goal.} notEnoughPoints{You don’t have enough points for this.} maxPerStream{You’ve given the most allowed for this stream. Try again next stream.} notOpen{This goal isn’t taking points right now.} refused{Twitch declined this contribution.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so contribute on twitch.tv.} signedOut{Log in again to contribute from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "@goalContributionResult": {
+    "description": "Snack bar after giving channel points to a community goal.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "contributed"
+      }
+    }
   }
 }
