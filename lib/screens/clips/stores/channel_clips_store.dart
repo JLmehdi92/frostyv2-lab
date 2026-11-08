@@ -102,7 +102,8 @@ abstract class ChannelClipsStoreBase with Store {
 
   @action
   void _show(ClipPage page) {
-    final featured = gameId == null && (featuredOnly?.call() ?? false);
+    final featured =
+        gameId == null && page.featuredKnown && (featuredOnly?.call() ?? false);
     _clips = featured
         ? [
             for (final clip in page.items)

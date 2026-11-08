@@ -47,8 +47,13 @@ class TwitchClipService extends BaseApiClient {
       'query ChannelClips(\$login: String!, \$first: Int, '
       '\$period: ClipsPeriod, \$sort: ClipsSort) { user(login: \$login) { '
       'id login displayName clips(first: \$first, criteria: {period: '
-      '\$period, sort: \$sort}) { edges { node { $_clipFields isFeatured } } '
+      '\$period, sort: \$sort}) { edges { node { $_clipFields } } '
       'pageInfo { hasNextPage } } } }';
+
+  static final _channelClipsFeaturedQuery = _channelClipsQuery.replaceFirst(
+    '$_clipFields }',
+    '$_clipFields isFeatured }',
+  );
 
   static const _categoryClipsQuery =
       'query CategoryClips(\$id: ID!, \$first: Int, \$period: ClipsPeriod, '
@@ -82,12 +87,28 @@ class TwitchClipService extends BaseApiClient {
     required ClipPeriod period,
     required ClipSort sort,
   }) async {
-    final data = await _gql('ChannelClips', _channelClipsQuery, {
+    final variables = <String, Object?>{
       'login': login,
       'first': 100,
       'period': period.gqlName,
       'sort': sort.gqlName,
-    });
+    };
+    JsonMap data;
+    var featuredKnown = true;
+    try {
+      data = await _gql('ChannelClips', _channelClipsFeaturedQuery, variables);
+    } on NetworkException {
+      rethrow;
+    } on TimeoutException {
+      rethrow;
+    } on ClipApiException catch (e) {
+      if (e.isIntegrity) rethrow;
+      featuredKnown = false;
+      data = await _gql('ChannelClips', _channelClipsQuery, variables);
+    } on ApiException {
+      featuredKnown = false;
+      data = await _gql('ChannelClips', _channelClipsQuery, variables);
+    }
     final user = data['user'];
     if (user is! Map) throw const NotFoundException('Channel not found');
     final owner = {
@@ -112,6 +133,7 @@ class TwitchClipService extends BaseApiClient {
     return ClipPage(
       items: items,
       hasMore: pageInfo is Map && pageInfo['hasNextPage'] == true,
+      featuredKnown: featuredKnown,
     );
   }
 

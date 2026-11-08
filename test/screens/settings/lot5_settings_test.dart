@@ -108,6 +108,30 @@ void main() {
     expect(store.clips.map((c) => c.id), ['1', '2']);
   });
 
+  test('featured only shows every clip when Twitch could not say', () async {
+    final service = MockClipService();
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenAnswer(
+      (_) async => ClipPage(
+        items: [_clip('1'), _clip('2')],
+        hasMore: false,
+        featuredKnown: false,
+      ),
+    );
+    final store = ChannelClipsStore(
+      login: 'b',
+      clipService: service,
+      featuredOnly: () => true,
+    );
+    await store.load();
+    expect(store.clips.map((c) => c.id), ['1', '2']);
+  });
+
   testWidgets('a hidden viewer count hides the viewer pill', (tester) async {
     final settings = SettingsStore();
     Widget pill() => Provider<SettingsStore>.value(

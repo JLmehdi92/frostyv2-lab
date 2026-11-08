@@ -139,7 +139,13 @@ class Clip {
 /// Anonymous clients cannot page further (cursor paging is integrity-gated),
 /// so this is a single page of up to 100 clips.
 class ClipPage {
-  const ClipPage({required this.items, required this.hasMore});
+  const ClipPage({
+    required this.items,
+    required this.hasMore,
+    this.featuredKnown = true,
+  });
+
+  final bool featuredKnown;
 
   final List<Clip> items;
 
