@@ -19,6 +19,8 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
           ?.map((e) => e as String)
           .toList() ??
       [],
+  tags:
+      (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
 );
 
 ChannelQuery _$ChannelQueryFromJson(Map<String, dynamic> json) => ChannelQuery(

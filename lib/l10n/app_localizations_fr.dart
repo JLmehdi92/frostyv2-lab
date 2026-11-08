@@ -130,7 +130,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingPermissionModerationDetail =>
-      'Bannissements, avertissements, messages, modes du chat';
+      'Bannissements, AutoMod, rôles, sondages, modes du chat';
 
   @override
   String get onboardingPermissionClipsTitle => 'Clips';
@@ -5019,6 +5019,30 @@ class AppLocalizationsFr extends AppLocalizations {
       'emoteonlyoff': 'Désactiver le mode emotes uniquement',
       'uniquechat': 'Activer le mode chat unique (pas de messages répétés)',
       'uniquechatoff': 'Désactiver le mode chat unique',
+      'announce': 'Envoyer une annonce',
+      'announceblue': 'Envoyer une annonce bleue',
+      'announcegreen': 'Envoyer une annonce verte',
+      'announceorange': 'Envoyer une annonce orange',
+      'announcepurple': 'Envoyer une annonce violette',
+      'shoutout': 'Faire une dédicace à une chaîne',
+      'shield': 'Activer le mode bouclier',
+      'shieldoff': 'Désactiver le mode bouclier',
+      'monitor': 'Surveiller les messages d’un utilisateur',
+      'unmonitor': 'Arrêter de surveiller un utilisateur',
+      'restrict':
+          'Restreindre un utilisateur (seuls les modérateurs voient ses messages)',
+      'unrestrict': 'Lever la restriction d’un utilisateur',
+      'mods': 'Afficher la liste des modérateurs',
+      'vips': 'Afficher la liste des VIP',
+      'mod': 'Attribuer le rôle de modérateur',
+      'unmod': 'Retirer le rôle de modérateur',
+      'vip': 'Attribuer le statut VIP',
+      'unvip': 'Retirer le statut VIP',
+      'marker': 'Ajouter un repère au live',
+      'commercial':
+          'Lancer une publicité (30, 60, 90, 120, 150 ou 180 secondes)',
+      'raid': 'Lancer un raid vers une chaîne',
+      'unraid': 'Annuler le raid',
       'other': '',
     });
     return '$_temp0';
@@ -5120,6 +5144,40 @@ class AppLocalizationsFr extends AppLocalizations {
       'emoteOnlyOff': 'de désactiver le mode emotes uniquement',
       'uniqueChatOn': 'd’activer le mode chat unique',
       'uniqueChatOff': 'de désactiver le mode chat unique',
+      'announce': 'd’envoyer l’annonce',
+      'shoutout': 'd’envoyer la dédicace',
+      'mods': 'd’afficher les modérateurs',
+      'vips': 'd’afficher les VIP',
+      'mod': 'd’attribuer le rôle de modérateur',
+      'unmod': 'de retirer le rôle de modérateur',
+      'vip': 'd’attribuer le statut VIP',
+      'unvip': 'de retirer le statut VIP',
+      'shieldOn': 'd’activer le mode bouclier',
+      'shieldOff': 'de désactiver le mode bouclier',
+      'marker': 'd’ajouter le repère',
+      'commercial': 'de lancer la publicité',
+      'raid': 'de lancer le raid',
+      'unraid': 'd’annuler le raid',
+      'monitor': 'de surveiller l’utilisateur',
+      'unmonitor': 'd’arrêter la surveillance',
+      'restrict': 'de restreindre l’utilisateur',
+      'unrestrict': 'de lever la restriction',
+      'blockTerm': 'd’ajouter le terme bloqué',
+      'unblockTerm': 'de retirer le terme bloqué',
+      'allowMessage': 'd’autoriser le message',
+      'denyMessage': 'de refuser le message',
+      'approveUnban': 'd’accepter la demande de débannissement',
+      'denyUnban': 'de refuser la demande de débannissement',
+      'createPoll': 'de lancer le sondage',
+      'endPoll': 'de terminer le sondage',
+      'createPrediction': 'de lancer la prédiction',
+      'lockPrediction': 'de verrouiller la prédiction',
+      'resolvePrediction': 'de confirmer le résultat',
+      'cancelPrediction': 'd’annuler la prédiction',
+      'fulfil': 'de valider la demande',
+      'refund': 'de rembourser la demande',
+      'updateStream': 'd’enregistrer les infos du live',
+      'load': 'de charger la liste',
       'other': 'd’effectuer cette action',
     });
     return 'Impossible $_temp0. $reason';
@@ -5145,6 +5203,40 @@ class AppLocalizationsFr extends AppLocalizations {
       'emoteOnlyOff': 'de désactiver le mode emotes uniquement',
       'uniqueChatOn': 'd’activer le mode chat unique',
       'uniqueChatOff': 'de désactiver le mode chat unique',
+      'announce': 'd’envoyer l’annonce',
+      'shoutout': 'd’envoyer la dédicace',
+      'mods': 'd’afficher les modérateurs',
+      'vips': 'd’afficher les VIP',
+      'mod': 'd’attribuer le rôle de modérateur',
+      'unmod': 'de retirer le rôle de modérateur',
+      'vip': 'd’attribuer le statut VIP',
+      'unvip': 'de retirer le statut VIP',
+      'shieldOn': 'd’activer le mode bouclier',
+      'shieldOff': 'de désactiver le mode bouclier',
+      'marker': 'd’ajouter le repère',
+      'commercial': 'de lancer la publicité',
+      'raid': 'de lancer le raid',
+      'unraid': 'd’annuler le raid',
+      'monitor': 'de surveiller l’utilisateur',
+      'unmonitor': 'd’arrêter la surveillance',
+      'restrict': 'de restreindre l’utilisateur',
+      'unrestrict': 'de lever la restriction',
+      'blockTerm': 'd’ajouter le terme bloqué',
+      'unblockTerm': 'de retirer le terme bloqué',
+      'allowMessage': 'd’autoriser le message',
+      'denyMessage': 'de refuser le message',
+      'approveUnban': 'd’accepter la demande de débannissement',
+      'denyUnban': 'de refuser la demande de débannissement',
+      'createPoll': 'de lancer le sondage',
+      'endPoll': 'de terminer le sondage',
+      'createPrediction': 'de lancer la prédiction',
+      'lockPrediction': 'de verrouiller la prédiction',
+      'resolvePrediction': 'de confirmer le résultat',
+      'cancelPrediction': 'd’annuler la prédiction',
+      'fulfil': 'de valider la demande',
+      'refund': 'de rembourser la demande',
+      'updateStream': 'd’enregistrer les infos du live',
+      'load': 'de charger la liste',
       'other': 'd’effectuer cette action',
     });
     return 'Impossible $_temp0 (erreur inattendue).';
@@ -5170,6 +5262,863 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatModNotThrough => 'L’action n’a pas abouti. Réessayez.';
+
+  @override
+  String chatAutoModHeld({required String name}) {
+    return 'Message retenu par l’AutoMod, envoyé par $name.';
+  }
+
+  @override
+  String get chatAutoModReview => 'Examiner';
+
+  @override
+  String get chatCommandArgChannel => 'chaîne';
+
+  @override
+  String get chatCommandArgDescription => 'texte';
+
+  @override
+  String chatModAction({
+    required String action,
+    required String moderator,
+    required String user,
+    required String duration,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(action, {
+      'ban': '$moderator a banni $user.',
+      'timeout': '$moderator a exclu temporairement $user ($duration).',
+      'timeoutUnknown': '$moderator a exclu temporairement $user.',
+      'unban': '$moderator a débanni $user.',
+      'untimeout': '$moderator a levé l’exclusion temporaire visant $user.',
+      'warn': '$moderator a averti $user.',
+      'delete': '$moderator a supprimé un message envoyé par $user.',
+      'clear': '$moderator a effacé le chat.',
+      'mod': '$moderator a attribué le rôle de modérateur à $user.',
+      'unmod': '$moderator a retiré le rôle de modérateur à $user.',
+      'vip': '$moderator a attribué le statut VIP à $user.',
+      'unvip': '$moderator a retiré le statut VIP à $user.',
+      'raid': '$moderator a lancé un raid vers la chaîne $user.',
+      'unraid': '$moderator a annulé le raid vers la chaîne $user.',
+      'addBlockedTerm': '$moderator a ajouté un terme bloqué.',
+      'removeBlockedTerm': '$moderator a retiré un terme bloqué.',
+      'addPermittedTerm': '$moderator a ajouté un terme autorisé.',
+      'removePermittedTerm': '$moderator a retiré un terme autorisé.',
+      'approveUnbanRequest':
+          '$moderator a accepté la demande de débannissement envoyée par $user.',
+      'denyUnbanRequest':
+          '$moderator a refusé la demande de débannissement envoyée par $user.',
+      'emoteonly': '$moderator a activé le mode emotes uniquement.',
+      'emoteonlyoff': '$moderator a désactivé le mode emotes uniquement.',
+      'followers': '$moderator a activé le mode followers uniquement.',
+      'followersoff': '$moderator a désactivé le mode followers uniquement.',
+      'slow': '$moderator a activé le mode lent.',
+      'slowoff': '$moderator a désactivé le mode lent.',
+      'subscribers': '$moderator a activé le mode abonnés uniquement.',
+      'subscribersoff': '$moderator a désactivé le mode abonnés uniquement.',
+      'uniquechat': '$moderator a activé le mode chat unique.',
+      'uniquechatoff': '$moderator a désactivé le mode chat unique.',
+      'other': '$moderator a effectué une action de modération.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatModActionWithReason({
+    required String line,
+    required String reason,
+  }) {
+    return '$line Motif : « $reason »';
+  }
+
+  @override
+  String get chatModAnnounced => 'Annonce envoyée.';
+
+  @override
+  String chatModBroadcasterOnly({required String command}) {
+    return '$command ne fonctionne que sur votre propre chaîne.';
+  }
+
+  @override
+  String chatModCommercialStarted({required String duration}) {
+    return 'Publicité lancée ($duration).';
+  }
+
+  @override
+  String get chatModMarkerAdded => 'Repère ajouté au live.';
+
+  @override
+  String chatModModeratorList({required int count, required String names}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Modérateurs ($count) : $names',
+      one: 'Modérateur ($count) : $names',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatModRaidCanceled => 'Raid annulé.';
+
+  @override
+  String chatModRaidStarted({required String name}) {
+    return 'Préparation du raid vers la chaîne $name.';
+  }
+
+  @override
+  String chatModRoleChanged({required String change, required String name}) {
+    String _temp0 = intl.Intl.selectLogic(change, {
+      'moderatorAdded': 'Rôle de modérateur attribué : $name.',
+      'moderatorRemoved': 'Rôle de modérateur retiré : $name.',
+      'vipAdded': 'Statut VIP attribué : $name.',
+      'vipRemoved': 'Statut VIP retiré : $name.',
+      'other': 'Rôle modifié : $name.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatModRoleListEmpty({required String role}) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'moderator': 'Cette chaîne n’a aucun modérateur.',
+      'vip': 'Cette chaîne n’a aucun VIP.',
+      'other': 'Personne n’a ce rôle.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatModShield({required String state}) {
+    String _temp0 = intl.Intl.selectLogic(state, {
+      'on': 'Mode bouclier activé.',
+      'other': 'Mode bouclier désactivé.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatModShoutoutSent({required String name}) {
+    return 'Dédicace envoyée à la chaîne $name.';
+  }
+
+  @override
+  String chatModSuspicion({required String change, required String name}) {
+    String _temp0 = intl.Intl.selectLogic(change, {
+      'monitor': 'Surveillance activée : $name.',
+      'unmonitor': 'Surveillance levée : $name.',
+      'restrict': 'Restriction activée : $name.',
+      'unrestrict': 'Restriction levée : $name.',
+      'other': 'Statut modifié : $name.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get chatModViewList => 'Voir la liste';
+
+  @override
+  String chatModVipList({required int count, required String names}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'VIP ($count) : $names',
+      one: 'VIP ($count) : $names',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatShieldModeChangedBy({
+    required String state,
+    required String moderator,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(state, {
+      'on': '$moderator a activé le mode bouclier.',
+      'other': '$moderator a désactivé le mode bouclier.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatShoutoutNotice({required String name}) {
+    return 'Dédicace à la chaîne $name ! Allez la découvrir.';
+  }
+
+  @override
+  String get chatShoutoutView => 'Voir';
+
+  @override
+  String get modToolsActionLog => 'Actions de modération';
+
+  @override
+  String get modToolsActionLogCaption =>
+      'Actions effectuées dans ce chat depuis son ouverture.';
+
+  @override
+  String get modToolsActionLogDetail => 'Qui a fait quoi, en direct';
+
+  @override
+  String get modToolsActionLogEmpty =>
+      'Aucune action de modération pour l’instant';
+
+  @override
+  String get modToolsAdd => 'Ajouter';
+
+  @override
+  String get modToolsAddChoice => 'Ajouter un choix';
+
+  @override
+  String get modToolsAddOutcome => 'Ajouter un résultat';
+
+  @override
+  String get modToolsAllow => 'Autoriser';
+
+  @override
+  String get modToolsAnnounce => 'Envoyer une annonce';
+
+  @override
+  String get modToolsAnnounceCaption =>
+      'Mise en avant dans le chat, pour tout le monde.';
+
+  @override
+  String get modToolsAnnounceColor => 'Couleur';
+
+  @override
+  String modToolsAnnounceColorName({required String color}) {
+    String _temp0 = intl.Intl.selectLogic(color, {
+      'primary': 'Couleur de la chaîne',
+      'blue': 'Bleu',
+      'green': 'Vert',
+      'orange': 'Orange',
+      'purple': 'Violet',
+      'other': 'Couleur de la chaîne',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsAnnounceLabel => 'Texte de l’annonce';
+
+  @override
+  String get modToolsAnnounceSend => 'Envoyer';
+
+  @override
+  String get modToolsApprove => 'Accepter';
+
+  @override
+  String get modToolsAutoModCaption =>
+      'Messages retenus par l’AutoMod, en attente de décision.';
+
+  @override
+  String get modToolsAutoModEmpty => 'Aucun message en attente';
+
+  @override
+  String get modToolsAutoModEmptyDetail => 'Rien à examiner';
+
+  @override
+  String modToolsAutoModPending({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count messages en attente',
+      one: '$count message en attente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsAutoModQueue => 'File de l’AutoMod';
+
+  @override
+  String get modToolsBlockedTermAdded => 'Terme bloqué ajouté.';
+
+  @override
+  String get modToolsBlockedTermRemoved => 'Terme bloqué retiré.';
+
+  @override
+  String get modToolsBlockedTermTooShort =>
+      'Un terme bloqué doit comporter au moins 2 caractères.';
+
+  @override
+  String get modToolsBlockedTerms => 'Termes bloqués';
+
+  @override
+  String get modToolsBlockedTermsCaption =>
+      'Les messages contenant ces termes n’apparaissent jamais dans le chat.';
+
+  @override
+  String get modToolsBlockedTermsEmpty => 'Aucun terme bloqué';
+
+  @override
+  String get modToolsCaptionBroadcaster =>
+      'Vous êtes propriétaire de cette chaîne';
+
+  @override
+  String get modToolsCaptionModerator => 'Vous modérez cette chaîne';
+
+  @override
+  String get modToolsCategoryLabel => 'Catégorie';
+
+  @override
+  String get modToolsCategoryNone => 'Aucune catégorie';
+
+  @override
+  String get modToolsChannelLabel => 'Nom de la chaîne';
+
+  @override
+  String modToolsChoiceLabel({required int number}) {
+    return 'Choix $number';
+  }
+
+  @override
+  String get modToolsClearResolved => 'Effacer les messages traités';
+
+  @override
+  String get modToolsCommercial => 'Lancer une publicité';
+
+  @override
+  String get modToolsCommercialMessage =>
+      'Tous les spectateurs verront la publicité. Choisissez sa durée.';
+
+  @override
+  String get modToolsCommercialStart => 'Lancer';
+
+  @override
+  String get modToolsCommercialTitle => 'Lancer une publicité ?';
+
+  @override
+  String get modToolsConfirm => 'Confirmer';
+
+  @override
+  String get modToolsDeny => 'Refuser';
+
+  @override
+  String get modToolsEntryDetail => 'AutoMod, termes, mode bouclier et plus';
+
+  @override
+  String get modToolsFulfil => 'Valider';
+
+  @override
+  String get modToolsFulfilled => 'Demande validée.';
+
+  @override
+  String modToolsHeldLevel({required String reason, required int level}) {
+    return '$reason · niveau $level';
+  }
+
+  @override
+  String modToolsHeldReason({required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'automod': 'AutoMod',
+      'blockedTerm': 'Terme bloqué',
+      'blockedLink': 'Lien bloqué',
+      'other': 'AutoMod',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modToolsHeldStatus({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'pending': 'En attente',
+      'approved': 'Autorisé',
+      'denied': 'Refusé',
+      'expired': 'Expiré',
+      'other': 'En attente',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsLogInToEnable => 'Reconnectez-vous pour l’activer';
+
+  @override
+  String get modToolsMakeModerator => 'Attribuer le rôle de modérateur';
+
+  @override
+  String get modToolsMakeVip => 'Attribuer le statut VIP';
+
+  @override
+  String get modToolsMarker => 'Ajouter un repère';
+
+  @override
+  String get modToolsMarkerAdd => 'Ajouter';
+
+  @override
+  String get modToolsMarkerLabel => 'Description (facultative)';
+
+  @override
+  String get modToolsMarkerTitle => 'Ajouter un repère';
+
+  @override
+  String modToolsModeratorCount({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modérateurs',
+      one: '$count modérateur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsModerators => 'Modérateurs';
+
+  @override
+  String get modToolsMonitor => 'Surveiller ses messages';
+
+  @override
+  String get modToolsMoreActions => 'Autres actions de modération';
+
+  @override
+  String modToolsOutcomeLabel({required int number}) {
+    return 'Résultat $number';
+  }
+
+  @override
+  String get modToolsPermittedTerms => 'Termes autorisés';
+
+  @override
+  String get modToolsPollDuration => 'Durée';
+
+  @override
+  String get modToolsPollEnd => 'Terminer le sondage';
+
+  @override
+  String get modToolsPollEndMessage =>
+      'Le vote s’arrête maintenant et les résultats s’affichent.';
+
+  @override
+  String get modToolsPollEndTitle => 'Terminer le sondage ?';
+
+  @override
+  String get modToolsPollEnded => 'Sondage terminé.';
+
+  @override
+  String get modToolsPollLive => 'Sondage en cours';
+
+  @override
+  String get modToolsPollStart => 'Lancer le sondage';
+
+  @override
+  String get modToolsPollStarted => 'Sondage lancé.';
+
+  @override
+  String get modToolsPolls => 'Sondages';
+
+  @override
+  String get modToolsPollsCaption => 'Posez une question au chat.';
+
+  @override
+  String get modToolsPredictionCancel => 'Annuler la prédiction';
+
+  @override
+  String get modToolsPredictionCancelMessage =>
+      'Tous les participants récupèrent leurs points de chaîne.';
+
+  @override
+  String get modToolsPredictionCancelTitle => 'Annuler la prédiction ?';
+
+  @override
+  String get modToolsPredictionLive => 'Prédiction en cours';
+
+  @override
+  String get modToolsPredictionLock => 'Verrouiller';
+
+  @override
+  String get modToolsPredictionLocked => 'Prédiction verrouillée';
+
+  @override
+  String get modToolsPredictionPickWinner => 'Choisir ce résultat';
+
+  @override
+  String modToolsPredictionPoints({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString points',
+      one: '$countString point',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsPredictionResolve => 'Confirmer le résultat';
+
+  @override
+  String modToolsPredictionResolveMessage({required String outcome}) {
+    return '« $outcome » l’emporte. Les points de chaîne reviennent aux participants qui l’ont choisi.';
+  }
+
+  @override
+  String get modToolsPredictionResolveTitle => 'Confirmer le résultat ?';
+
+  @override
+  String get modToolsPredictionStart => 'Lancer la prédiction';
+
+  @override
+  String get modToolsPredictionStarted => 'Prédiction lancée.';
+
+  @override
+  String modToolsPredictionUpdated({required String state}) {
+    String _temp0 = intl.Intl.selectLogic(state, {
+      'locked': 'Prédiction verrouillée.',
+      'resolved': 'Résultat confirmé.',
+      'canceled': 'Prédiction annulée.',
+      'other': 'Prédiction mise à jour.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modToolsPredictionUsers({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count participants',
+      one: '$count participant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsPredictionWindow => 'Durée pour participer';
+
+  @override
+  String get modToolsPredictions => 'Prédictions';
+
+  @override
+  String get modToolsPredictionsCaption =>
+      'Laissez le chat miser des points de chaîne.';
+
+  @override
+  String get modToolsQuestionLabel => 'Intitulé';
+
+  @override
+  String get modToolsRaid => 'Lancer un raid';
+
+  @override
+  String get modToolsRaidCancel => 'Annuler le raid';
+
+  @override
+  String get modToolsRaidCancelMessage => 'Vos spectateurs restent ici.';
+
+  @override
+  String get modToolsRaidCancelTitle => 'Annuler le raid ?';
+
+  @override
+  String get modToolsRaidMessage =>
+      'Vos spectateurs rejoindront cette chaîne à la fin du compte à rebours.';
+
+  @override
+  String get modToolsRaidStart => 'Lancer le raid';
+
+  @override
+  String get modToolsRaidTitle => 'Lancer un raid';
+
+  @override
+  String modToolsRedemptionReward({required String reward, required int cost}) {
+    final intl.NumberFormat costNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String costString = costNumberFormat.format(cost);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      cost,
+      locale: localeName,
+      other: '$costString points',
+      one: '$costString point',
+    );
+    return '$reward · $_temp0';
+  }
+
+  @override
+  String get modToolsRefund => 'Rembourser';
+
+  @override
+  String modToolsRefundMessage({required String name, required String reward}) {
+    return 'Les points dépensés pour « $reward » seront rendus à $name.';
+  }
+
+  @override
+  String get modToolsRefundTitle => 'Rembourser cette demande ?';
+
+  @override
+  String get modToolsRefunded => 'Demande remboursée.';
+
+  @override
+  String get modToolsRemove => 'Retirer';
+
+  @override
+  String get modToolsRemoveModerator => 'Retirer le rôle de modérateur';
+
+  @override
+  String modToolsRemoveTag({required String tag}) {
+    return 'Retirer $tag';
+  }
+
+  @override
+  String get modToolsRemoveVip => 'Retirer le statut VIP';
+
+  @override
+  String modToolsRequestedOn({required String date}) {
+    return 'Envoyée le $date';
+  }
+
+  @override
+  String get modToolsRestrict => 'Restreindre';
+
+  @override
+  String modToolsRestrictMessage({required String name}) {
+    return 'Seuls les modérateurs verront les messages envoyés par $name.';
+  }
+
+  @override
+  String get modToolsRestrictTitle => 'Restreindre cet utilisateur ?';
+
+  @override
+  String get modToolsRewardQueueWeb => 'File complète des récompenses';
+
+  @override
+  String get modToolsRewardRequests => 'Demandes de récompenses';
+
+  @override
+  String get modToolsRewardRequestsCaption =>
+      'Twitch ne permet à cette application de gérer que les récompenses créées dans ONSET. La file complète est sur twitch.tv.';
+
+  @override
+  String get modToolsRewardRequestsEmpty => 'Aucune demande en attente';
+
+  @override
+  String modToolsRoleConfirmMessage({
+    required String change,
+    required String name,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(change, {
+      'addModerator': '$name pourra modérer ce chat.',
+      'removeModerator': '$name ne pourra plus modérer ce chat.',
+      'addVip': '$name recevra le badge VIP.',
+      'removeVip': '$name perdra le badge VIP.',
+      'other': 'Le rôle changera pour $name.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modToolsRoleConfirmTitle({required String change}) {
+    String _temp0 = intl.Intl.selectLogic(change, {
+      'addModerator': 'Attribuer le rôle de modérateur ?',
+      'removeModerator': 'Retirer le rôle de modérateur ?',
+      'addVip': 'Attribuer le statut VIP ?',
+      'removeVip': 'Retirer le statut VIP ?',
+      'other': 'Modifier le rôle ?',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsSave => 'Enregistrer';
+
+  @override
+  String modToolsSeconds({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count s',
+      one: '$count s',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsSectionChannel => 'Votre chaîne';
+
+  @override
+  String get modToolsSectionChat => 'Outils du chat';
+
+  @override
+  String get modToolsSectionLive => 'En direct';
+
+  @override
+  String get modToolsShieldMode => 'Mode bouclier';
+
+  @override
+  String get modToolsShieldModeDetail =>
+      'Vos protections prédéfinies, en un geste';
+
+  @override
+  String get modToolsShieldModeOn => 'Mode bouclier activé';
+
+  @override
+  String get modToolsShoutout => 'Faire une dédicace';
+
+  @override
+  String get modToolsShoutoutDetail =>
+      'Faire découvrir une autre chaîne au chat';
+
+  @override
+  String get modToolsShoutoutSend => 'Envoyer';
+
+  @override
+  String get modToolsShoutoutTitle => 'Faire une dédicace';
+
+  @override
+  String get modToolsShoutoutUser => 'Faire une dédicace';
+
+  @override
+  String get modToolsShowActionsInChat =>
+      'Afficher les actions de modération dans le chat';
+
+  @override
+  String get modToolsStreamInfo => 'Modifier les infos du live';
+
+  @override
+  String get modToolsStreamInfoCaption => 'Titre, catégorie et tags';
+
+  @override
+  String get modToolsStreamInfoSaved => 'Infos du live enregistrées.';
+
+  @override
+  String get modToolsStreamTitleLabel => 'Titre';
+
+  @override
+  String get modToolsTagInvalid =>
+      'Un tag ne peut contenir que des lettres et des chiffres, 25 au maximum.';
+
+  @override
+  String get modToolsTagLabel => 'Ajouter un tag';
+
+  @override
+  String modToolsTagLimit({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Un live peut avoir jusqu’à $count tags.',
+      one: 'Un live peut avoir jusqu’à $count tag.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsTags => 'Tags';
+
+  @override
+  String get modToolsTermLabel => 'Terme ou expression';
+
+  @override
+  String get modToolsTermTemporary => 'Temporaire';
+
+  @override
+  String get modToolsTitle => 'Outils de modération';
+
+  @override
+  String get modToolsUnbanCaption =>
+      'Utilisateurs bannis qui demandent à revenir.';
+
+  @override
+  String modToolsUnbanDialogMessage({
+    required String decision,
+    required String name,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(decision, {
+      'approved':
+          'Le bannissement sera levé pour $name. Vous pouvez ajouter une note à son intention.',
+      'denied':
+          'Le bannissement est maintenu pour $name. Vous pouvez ajouter une note à son intention.',
+      'other': 'Vous pouvez ajouter une note pour $name.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modToolsUnbanDialogTitle({required String decision}) {
+    String _temp0 = intl.Intl.selectLogic(decision, {
+      'approved': 'Accepter la demande ?',
+      'denied': 'Refuser la demande ?',
+      'other': 'Répondre à la demande ?',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsUnbanEmpty => 'Aucune demande de débannissement';
+
+  @override
+  String get modToolsUnbanNoteLabel => 'Note (facultative)';
+
+  @override
+  String get modToolsUnbanRequests => 'Demandes de débannissement';
+
+  @override
+  String modToolsUnbanResolved({
+    required String decision,
+    required String name,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(decision, {
+      'approved': 'Demande acceptée : $name.',
+      'denied': 'Demande refusée : $name.',
+      'other': 'Demande traitée : $name.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsUnmonitor => 'Arrêter la surveillance';
+
+  @override
+  String get modToolsUnrestrict => 'Lever la restriction';
+
+  @override
+  String get modToolsUserActionsTitle => 'Actions de modération';
+
+  @override
+  String get modToolsUserLabel => 'Nom d’utilisateur';
+
+  @override
+  String modToolsUserPill({required String pill}) {
+    String _temp0 = intl.Intl.selectLogic(pill, {
+      'banned': 'Bannissement',
+      'timedOut': 'Exclusion temporaire',
+      'warned': 'Avertissement',
+      'monitored': 'Sous surveillance',
+      'restricted': 'Restriction',
+      'other': 'Signalement',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modToolsVipCount({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count VIP',
+      one: '$count VIP',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modToolsVips => 'VIP';
+
+  @override
+  String modToolsVotes({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString votes',
+      one: '$countString vote',
+    );
+    return '$_temp0';
+  }
 
   @override
   String chatModBanned({required String name}) {

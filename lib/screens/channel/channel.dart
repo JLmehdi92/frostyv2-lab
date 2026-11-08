@@ -20,6 +20,7 @@ import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/screens/channel/channel_top_overlays.dart';
 import 'package:onset/screens/channel/chat/details/chat_details.dart';
 import 'package:onset/screens/channel/chat/incoming_raid.dart';
+import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
@@ -654,6 +655,7 @@ class _VideoChatState extends State<VideoChat>
     _entitlementChanges = _eventsStore.entitlementChanges.listen(
       (_) => _refreshEmotesOfEveryTab(),
     );
+    _shoutouts = _eventsStore.shoutouts.listen(_showShoutout);
     _infoStore.start();
     final auth = context.authStore;
     _viewerReaction = reaction(
@@ -1048,6 +1050,17 @@ class _VideoChatState extends State<VideoChat>
   }
 
   StreamSubscription<void>? _entitlementChanges;
+
+  StreamSubscription<ShoutoutNotice>? _shoutouts;
+
+  void _showShoutout(ShoutoutNotice shoutout) {
+    for (final tab in _chatTabsStore.tabs) {
+      final chat = tab.chatStore;
+      if (chat != null && chat.channelId == widget.userId) {
+        chat.addShoutout(shoutout);
+      }
+    }
+  }
 
   void _refreshEmotesOfEveryTab() {
     for (final tab in _chatTabsStore.tabs) {
@@ -1835,6 +1848,7 @@ class _VideoChatState extends State<VideoChat>
     // shows no hype train or celebration, and leaving the socket open would
     // keep a channel's events flowing after leaving it.
     unawaited(_entitlementChanges?.cancel());
+    unawaited(_shoutouts?.cancel());
     _eventsStore.dispose();
     _viewerReaction?.call();
     _infoStore.dispose();

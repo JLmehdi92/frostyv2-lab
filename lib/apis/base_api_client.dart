@@ -1,6 +1,7 @@
 import 'dart:io' show HttpException, SocketException;
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show protected;
 import 'package:onset/services/telemetry.dart';
 
 /// Common type aliases to reduce repetition
@@ -179,6 +180,9 @@ abstract class BaseApiClient {
 
   const BaseApiClient(this._dio, this.baseUrl);
 
+  @protected
+  Dio get dio => _dio;
+
   /// Builds the full URL, handling both relative endpoints and full URLs
   String _buildUrl(String endpoint) {
     // If endpoint is already a full URL (starts with http:// or https://), use it as-is
@@ -258,6 +262,7 @@ abstract class BaseApiClient {
     QueryParams? queryParameters,
     ApiHeaders? headers,
     CancelToken? cancelToken,
+    Map<String, Object?>? extra,
   }) async {
     try {
       final url = _buildUrl(endpoint);
@@ -265,7 +270,7 @@ abstract class BaseApiClient {
         url,
         data: data,
         queryParameters: queryParameters,
-        options: Options(headers: headers),
+        options: Options(headers: headers, extra: extra),
         cancelToken: cancelToken,
       );
       return response.data as T;
@@ -281,6 +286,7 @@ abstract class BaseApiClient {
     QueryParams? queryParameters,
     ApiHeaders? headers,
     CancelToken? cancelToken,
+    Map<String, Object?>? extra,
   }) async {
     try {
       final url = _buildUrl(endpoint);
@@ -288,7 +294,7 @@ abstract class BaseApiClient {
         url,
         data: data,
         queryParameters: queryParameters,
-        options: Options(headers: headers),
+        options: Options(headers: headers, extra: extra),
         cancelToken: cancelToken,
       );
       return response.data as T;

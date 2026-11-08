@@ -164,9 +164,9 @@
   "@onboardingPermissionModerationTitle": {
     "description": "Onboarding Log in step, permission list: the moderation permissions."
   },
-  "onboardingPermissionModerationDetail": "Bans, warnings, messages, chat modes",
+  "onboardingPermissionModerationDetail": "Bans, AutoMod, roles, polls, chat modes",
   "@onboardingPermissionModerationDetail": {
-    "description": "Onboarding Log in step, permission list: what the moderation permissions allow."
+    "description": "Onboarding Log in step, permission list: what the moderation permissions allow (moderating a chat, and running one's own channel: polls, raids, stream info)."
   },
   "onboardingPermissionClipsTitle": "Clips",
   "@onboardingPermissionClipsTitle": {
@@ -6495,7 +6495,7 @@
   "@chatCommandArgMessageId": {
     "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the id of the message to delete. French joins its words with no-break spaces, so the argument never breaks inside its brackets."
   },
-  "chatCommandDescription": "{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} user{Open a user’s card} disconnect{Reconnect to chat} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}",
+  "chatCommandDescription": "{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} user{Open a user’s card} disconnect{Reconnect to chat} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} announce{Send an announcement} announceblue{Send a blue announcement} announcegreen{Send a green announcement} announceorange{Send an orange announcement} announcepurple{Send a purple announcement} shoutout{Give a shoutout to a channel} shield{Turn shield mode on} shieldoff{Turn shield mode off} monitor{Monitor a user’s messages} unmonitor{Stop monitoring a user} restrict{Restrict a user (only moderators see their messages)} unrestrict{Lift a user’s restriction} mods{List the moderators} vips{List the VIPs} mod{Make a user a moderator} unmod{Remove a moderator} vip{Make a user a VIP} unvip{Remove a VIP} marker{Add a stream marker} commercial{Run an ad break (30, 60, 90, 120, 150, or 180 seconds)} raid{Raid a channel} unraid{Cancel the raid} other{}}",
   "@chatCommandDescription": {
     "description": "What a chat command does, beside its usage in the input's suggestions. command is the command's name (never translated, nor are the lengths « 10m », « 30s » and their units « s, m, h, d, w, mo » that Twitch reads).",
     "placeholders": {
@@ -6605,7 +6605,7 @@
       }
     }
   },
-  "chatModFailed": "Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}}: {reason}",
+  "chatModFailed": "Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} announce{send the announcement} shoutout{send the shoutout} mods{list the moderators} vips{list the VIPs} mod{add the moderator} unmod{remove the moderator} vip{add the VIP} unvip{remove the VIP} shieldOn{turn shield mode on} shieldOff{turn shield mode off} marker{add the stream marker} commercial{start the ad break} raid{start the raid} unraid{cancel the raid} monitor{monitor the user} unmonitor{stop monitoring the user} restrict{restrict the user} unrestrict{lift the restriction} blockTerm{add the blocked term} unblockTerm{remove the blocked term} allowMessage{allow the message} denyMessage{deny the message} approveUnban{approve the unban request} denyUnban{deny the unban request} createPoll{start the poll} endPoll{end the poll} createPrediction{start the prediction} lockPrediction{lock the prediction} resolvePrediction{confirm the result} cancelPrediction{cancel the prediction} fulfil{complete the request} refund{refund the request} updateStream{save the stream info} load{load the list} other{do that}}: {reason}",
   "@chatModFailed": {
     "description": "Error message. A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error); French makes it a sentence after a full stop (« Impossible de bannir. … »).",
     "placeholders": {
@@ -6619,7 +6619,7 @@
       }
     }
   },
-  "chatModFailedUnexpected": "Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}} (unexpected error).",
+  "chatModFailedUnexpected": "Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} announce{send the announcement} shoutout{send the shoutout} mods{list the moderators} vips{list the VIPs} mod{add the moderator} unmod{remove the moderator} vip{add the VIP} unvip{remove the VIP} shieldOn{turn shield mode on} shieldOff{turn shield mode off} marker{add the stream marker} commercial{start the ad break} raid{start the raid} unraid{cancel the raid} monitor{monitor the user} unmonitor{stop monitoring the user} restrict{restrict the user} unrestrict{lift the restriction} blockTerm{add the blocked term} unblockTerm{remove the blocked term} allowMessage{allow the message} denyMessage{deny the message} approveUnban{approve the unban request} denyUnban{deny the unban request} createPoll{start the poll} endPoll{end the poll} createPrediction{start the prediction} lockPrediction{lock the prediction} resolvePrediction{confirm the result} cancelPrediction{cancel the prediction} fulfil{complete the request} refund{refund the request} updateStream{save the stream info} load{load the list} other{do that}} (unexpected error).",
   "@chatModFailedUnexpected": {
     "description": "Error message. A moderation action failed for an unexpected reason. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch.",
     "placeholders": {
@@ -6660,6 +6660,1025 @@
   "chatModNotThrough": "That didn’t go through. Try again.",
   "@chatModNotThrough": {
     "description": "Error message. A moderation action failed without an answer (under the moderation bar or the chat modes)."
+  },
+  "chatAutoModHeld": "AutoMod is holding a message from {name}.",
+  "@chatAutoModHeld": {
+    "description": "A chat line shown to moderators when AutoMod holds a message for review (Review opens the AutoMod queue).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Mira"
+      }
+    }
+  },
+  "chatAutoModReview": "Review",
+  "@chatAutoModReview": {
+    "description": "The link at the end of chatAutoModHeld, opening the AutoMod queue."
+  },
+  "chatCommandArgChannel": "channel",
+  "@chatCommandArgChannel": {
+    "description": "A command argument in a usage line: a channel's name (/raid <channel>)."
+  },
+  "chatCommandArgDescription": "description",
+  "@chatCommandArgDescription": {
+    "description": "A command argument in a usage line: the optional text of a stream marker (/marker [description])."
+  },
+  "chatModAction": "{action, select, ban{{moderator} banned {user}.} timeout{{moderator} timed out {user} for {duration}.} timeoutUnknown{{moderator} timed out {user}.} unban{{moderator} unbanned {user}.} untimeout{{moderator} lifted the timeout on {user}.} warn{{moderator} warned {user}.} delete{{moderator} deleted a message from {user}.} clear{{moderator} cleared the chat.} mod{{moderator} made {user} a moderator.} unmod{{moderator} removed {user} as a moderator.} vip{{moderator} made {user} a VIP.} unvip{{moderator} removed {user} as a VIP.} raid{{moderator} started a raid on {user}.} unraid{{moderator} canceled the raid on {user}.} addBlockedTerm{{moderator} added a blocked term.} removeBlockedTerm{{moderator} removed a blocked term.} addPermittedTerm{{moderator} added a permitted term.} removePermittedTerm{{moderator} removed a permitted term.} approveUnbanRequest{{moderator} approved the unban request from {user}.} denyUnbanRequest{{moderator} denied the unban request from {user}.} emoteonly{{moderator} turned emote-only mode on.} emoteonlyoff{{moderator} turned emote-only mode off.} followers{{moderator} turned followers-only mode on.} followersoff{{moderator} turned followers-only mode off.} slow{{moderator} turned slow mode on.} slowoff{{moderator} turned slow mode off.} subscribers{{moderator} turned subscribers-only mode on.} subscribersoff{{moderator} turned subscribers-only mode off.} uniquechat{{moderator} turned unique chat mode on.} uniquechatoff{{moderator} turned unique chat mode off.} other{{moderator} took a moderation action.}}",
+  "@chatModAction": {
+    "description": "A chat line shown to moderators for an action another moderator (or the viewer) took, from Twitch's live moderation feed. action is the action (ban, timeout, mod, slow…); moderator and user are display names; duration is a timeout's length worded like the timeout notices.",
+    "placeholders": {
+      "action": {
+        "type": "String",
+        "example": "ban"
+      },
+      "moderator": {
+        "type": "String",
+        "example": "Mira"
+      },
+      "user": {
+        "type": "String",
+        "example": "Ana"
+      },
+      "duration": {
+        "type": "String",
+        "example": "10 minutes"
+      }
+    }
+  },
+  "chatModActionWithReason": "{line} Reason: “{reason}”",
+  "@chatModActionWithReason": {
+    "description": "chatModAction followed by the reason the moderator typed (their own words, quoted as written).",
+    "placeholders": {
+      "line": {
+        "type": "String",
+        "example": "Mira banned Ana."
+      },
+      "reason": {
+        "type": "String",
+        "example": "spam"
+      }
+    }
+  },
+  "chatModAnnounced": "Announcement sent.",
+  "@chatModAnnounced": {
+    "description": "A chat line after /announce (or the mod tools) sent an announcement."
+  },
+  "chatModBroadcasterOnly": "{command} only works in your own channel.",
+  "@chatModBroadcasterOnly": {
+    "description": "A chat line when a moderator types a command only the channel's owner can run through Twitch (/mod, /vip, /raid, /commercial…). command is the command with its slash.",
+    "placeholders": {
+      "command": {
+        "type": "String",
+        "example": "/raid"
+      }
+    }
+  },
+  "chatModCommercialStarted": "Ad break started ({duration}).",
+  "@chatModCommercialStarted": {
+    "description": "A chat line after /commercial started an ad break; duration is its length (\"30 seconds\").",
+    "placeholders": {
+      "duration": {
+        "type": "String",
+        "example": "30 seconds"
+      }
+    }
+  },
+  "chatModMarkerAdded": "Stream marker added.",
+  "@chatModMarkerAdded": {
+    "description": "A chat line after /marker added a stream marker."
+  },
+  "chatModModeratorList": "{count, plural, one{Moderator ({count}): {names}} other{Moderators ({count}): {names}}}",
+  "@chatModModeratorList": {
+    "description": "The chat line answering /mods: how many moderators and their names, comma-separated (shortened with an ellipsis past 30).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      },
+      "names": {
+        "type": "String",
+        "example": "mira, ana, kai"
+      }
+    }
+  },
+  "chatModRaidCanceled": "Raid canceled.",
+  "@chatModRaidCanceled": {
+    "description": "A chat line after /unraid canceled the outgoing raid."
+  },
+  "chatModRaidStarted": "Preparing the raid on {name}.",
+  "@chatModRaidStarted": {
+    "description": "A chat line after /raid started the countdown of a raid on the channel name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Kai"
+      }
+    }
+  },
+  "chatModRoleChanged": "{change, select, moderatorAdded{{name} is now a moderator.} moderatorRemoved{{name} is no longer a moderator.} vipAdded{{name} is now a VIP.} vipRemoved{{name} is no longer a VIP.} other{{name}’s role changed.}}",
+  "@chatModRoleChanged": {
+    "description": "A chat line after /mod, /unmod, /vip or /unvip worked; name is the user's display name.",
+    "placeholders": {
+      "change": {
+        "type": "String",
+        "example": "moderatorAdded"
+      },
+      "name": {
+        "type": "String",
+        "example": "Ana"
+      }
+    }
+  },
+  "chatModRoleListEmpty": "{role, select, moderator{This channel has no moderators.} vip{This channel has no VIPs.} other{Nobody has this role.}}",
+  "@chatModRoleListEmpty": {
+    "description": "The answer to /mods or /vips, and the empty list in the mod tools, when nobody has the role.",
+    "placeholders": {
+      "role": {
+        "type": "String",
+        "example": "moderator"
+      }
+    }
+  },
+  "chatModShield": "{state, select, on{Shield mode is on.} other{Shield mode is off.}}",
+  "@chatModShield": {
+    "description": "A chat line (and the mod tools' status) after shield mode was turned on or off.",
+    "placeholders": {
+      "state": {
+        "type": "String",
+        "example": "on"
+      }
+    }
+  },
+  "chatModShoutoutSent": "Shoutout sent to {name}.",
+  "@chatModShoutoutSent": {
+    "description": "A chat line after /shoutout (or the mod tools) gave a shoutout to the channel name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Kai"
+      }
+    }
+  },
+  "chatModSuspicion": "{change, select, monitor{{name} is now monitored.} unmonitor{{name} is no longer monitored.} restrict{{name} is now restricted.} unrestrict{{name} is no longer restricted.} other{{name}’s status changed.}}",
+  "@chatModSuspicion": {
+    "description": "A chat line after /monitor, /unmonitor, /restrict or /unrestrict worked (a restricted user's messages show to moderators only).",
+    "placeholders": {
+      "change": {
+        "type": "String",
+        "example": "monitor"
+      },
+      "name": {
+        "type": "String",
+        "example": "Ana"
+      }
+    }
+  },
+  "chatModViewList": "View list",
+  "@chatModViewList": {
+    "description": "The link at the end of the /mods and /vips answers, opening the list in the mod tools."
+  },
+  "chatModVipList": "{count, plural, one{VIP ({count}): {names}} other{VIPs ({count}): {names}}}",
+  "@chatModVipList": {
+    "description": "The chat line answering /vips: how many VIPs and their names, comma-separated (shortened with an ellipsis past 30).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      },
+      "names": {
+        "type": "String",
+        "example": "mira, ana"
+      }
+    }
+  },
+  "chatShieldModeChangedBy": "{state, select, on{{moderator} turned shield mode on.} other{{moderator} turned shield mode off.}}",
+  "@chatShieldModeChangedBy": {
+    "description": "A chat line shown to moderators when a moderator turned shield mode on or off.",
+    "placeholders": {
+      "state": {
+        "type": "String",
+        "example": "on"
+      },
+      "moderator": {
+        "type": "String",
+        "example": "Mira"
+      }
+    }
+  },
+  "chatShoutoutNotice": "Shoutout to {name}! Check out their channel.",
+  "@chatShoutoutNotice": {
+    "description": "A chat line when the broadcaster or a moderator gives a shoutout to another channel (View opens that user's card).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Kai"
+      }
+    }
+  },
+  "chatShoutoutView": "View",
+  "@chatShoutoutView": {
+    "description": "The link at the end of chatShoutoutNotice, opening the user card of the channel."
+  },
+  "modToolsActionLog": "Mod actions",
+  "@modToolsActionLog": {
+    "description": "A mod tools row and the title of the list of moderation actions taken in this chat."
+  },
+  "modToolsActionLogCaption": "Actions taken in this chat since you opened it.",
+  "@modToolsActionLogCaption": {
+    "description": "Under the title of the moderation actions list."
+  },
+  "modToolsActionLogDetail": "Who did what, live",
+  "@modToolsActionLogDetail": {
+    "description": "The second line of the Mod actions row."
+  },
+  "modToolsActionLogEmpty": "No mod actions yet",
+  "@modToolsActionLogEmpty": {
+    "description": "The moderation actions list when nothing happened yet."
+  },
+  "modToolsAdd": "Add",
+  "@modToolsAdd": {
+    "description": "The button next to a field that adds what was typed (a moderator, a blocked term, a tag)."
+  },
+  "modToolsAddChoice": "Add a choice",
+  "@modToolsAddChoice": {
+    "description": "Adds another answer field to a new poll."
+  },
+  "modToolsAddOutcome": "Add an outcome",
+  "@modToolsAddOutcome": {
+    "description": "Adds another outcome field to a new prediction."
+  },
+  "modToolsAllow": "Allow",
+  "@modToolsAllow": {
+    "description": "Lets a message AutoMod held into chat."
+  },
+  "modToolsAnnounce": "Send an announcement",
+  "@modToolsAnnounce": {
+    "description": "A mod tools row and the title of the announcement sheet."
+  },
+  "modToolsAnnounceCaption": "Highlighted in chat for everyone.",
+  "@modToolsAnnounceCaption": {
+    "description": "Under the title of the announcement sheet."
+  },
+  "modToolsAnnounceColor": "Color",
+  "@modToolsAnnounceColor": {
+    "description": "The section label above an announcement's color choices."
+  },
+  "modToolsAnnounceColorName": "{color, select, primary{Channel color} blue{Blue} green{Green} orange{Orange} purple{Purple} other{Channel color}}",
+  "@modToolsAnnounceColorName": {
+    "description": "An announcement color choice (primary is the channel's own accent color).",
+    "placeholders": {
+      "color": {
+        "type": "String",
+        "example": "blue"
+      }
+    }
+  },
+  "modToolsAnnounceLabel": "Announcement",
+  "@modToolsAnnounceLabel": {
+    "description": "The label above the announcement's text field."
+  },
+  "modToolsAnnounceSend": "Send",
+  "@modToolsAnnounceSend": {
+    "description": "Sends the announcement."
+  },
+  "modToolsApprove": "Approve",
+  "@modToolsApprove": {
+    "description": "Approves an unban request."
+  },
+  "modToolsAutoModCaption": "Messages AutoMod is holding for review.",
+  "@modToolsAutoModCaption": {
+    "description": "Under the title of the AutoMod queue."
+  },
+  "modToolsAutoModEmpty": "No messages are waiting",
+  "@modToolsAutoModEmpty": {
+    "description": "The AutoMod queue when it is empty."
+  },
+  "modToolsAutoModEmptyDetail": "Nothing to review",
+  "@modToolsAutoModEmptyDetail": {
+    "description": "The second line of the AutoMod queue row when nothing waits."
+  },
+  "modToolsAutoModPending": "{count, plural, one{{count} message waiting} other{{count} messages waiting}}",
+  "@modToolsAutoModPending": {
+    "description": "The second line of the AutoMod queue row: how many held messages wait for a decision.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "modToolsAutoModQueue": "AutoMod queue",
+  "@modToolsAutoModQueue": {
+    "description": "A mod tools row and the title of the list of messages AutoMod holds."
+  },
+  "modToolsBlockedTermAdded": "Blocked term added.",
+  "@modToolsBlockedTermAdded": {
+    "description": "The status after a blocked term was added."
+  },
+  "modToolsBlockedTermRemoved": "Blocked term removed.",
+  "@modToolsBlockedTermRemoved": {
+    "description": "The status after a blocked term was removed."
+  },
+  "modToolsBlockedTermTooShort": "A blocked term needs at least 2 characters.",
+  "@modToolsBlockedTermTooShort": {
+    "description": "Error message. A blocked term typed was too short (Twitch needs 2 characters)."
+  },
+  "modToolsBlockedTerms": "Blocked terms",
+  "@modToolsBlockedTerms": {
+    "description": "A mod tools row and the title of the channel's blocked terms list."
+  },
+  "modToolsBlockedTermsCaption": "Messages with these terms never reach chat.",
+  "@modToolsBlockedTermsCaption": {
+    "description": "Under the title of the blocked terms list."
+  },
+  "modToolsBlockedTermsEmpty": "No blocked terms",
+  "@modToolsBlockedTermsEmpty": {
+    "description": "The blocked terms list when it is empty."
+  },
+  "modToolsCaptionBroadcaster": "You own this channel",
+  "@modToolsCaptionBroadcaster": {
+    "description": "Under the mod tools title for the channel's owner."
+  },
+  "modToolsCaptionModerator": "You moderate this channel",
+  "@modToolsCaptionModerator": {
+    "description": "Under the mod tools title for a moderator."
+  },
+  "modToolsCategoryLabel": "Category",
+  "@modToolsCategoryLabel": {
+    "description": "The label above the category search field of the stream info sheet."
+  },
+  "modToolsCategoryNone": "No category",
+  "@modToolsCategoryNone": {
+    "description": "The category field's hint when the stream has none."
+  },
+  "modToolsChannelLabel": "Channel name",
+  "@modToolsChannelLabel": {
+    "description": "The label above the field naming a channel (shoutout, raid)."
+  },
+  "modToolsChoiceLabel": "Choice {number}",
+  "@modToolsChoiceLabel": {
+    "description": "The label above an answer field of a new poll.",
+    "placeholders": {
+      "number": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "modToolsClearResolved": "Clear resolved",
+  "@modToolsClearResolved": {
+    "description": "Removes the allowed, denied and expired messages from the AutoMod queue."
+  },
+  "modToolsCommercial": "Run an ad",
+  "@modToolsCommercial": {
+    "description": "A mod tools row (the channel's owner) starting an ad break."
+  },
+  "modToolsCommercialMessage": "Every viewer sees the ad. Pick its length.",
+  "@modToolsCommercialMessage": {
+    "description": "The body of the dialog confirming an ad break."
+  },
+  "modToolsCommercialStart": "Run ad",
+  "@modToolsCommercialStart": {
+    "description": "Confirms the ad break."
+  },
+  "modToolsCommercialTitle": "Run an ad?",
+  "@modToolsCommercialTitle": {
+    "description": "The title of the dialog confirming an ad break."
+  },
+  "modToolsConfirm": "Confirm",
+  "@modToolsConfirm": {
+    "description": "Confirms a role change."
+  },
+  "modToolsDeny": "Deny",
+  "@modToolsDeny": {
+    "description": "Denies a held message or an unban request."
+  },
+  "modToolsEntryDetail": "AutoMod, terms, shield mode, and more",
+  "@modToolsEntryDetail": {
+    "description": "The second line of the Mod tools row in the chat menu."
+  },
+  "modToolsFulfil": "Complete",
+  "@modToolsFulfil": {
+    "description": "Marks a channel points reward request as done."
+  },
+  "modToolsFulfilled": "Request completed.",
+  "@modToolsFulfilled": {
+    "description": "The status after a reward request was marked as done."
+  },
+  "modToolsHeldLevel": "{reason} · level {level}",
+  "@modToolsHeldLevel": {
+    "description": "Why AutoMod held a message, with its severity level (1 to 4).",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "AutoMod"
+      },
+      "level": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "modToolsHeldReason": "{reason, select, automod{AutoMod} blockedTerm{Blocked term} blockedLink{Blocked link} other{AutoMod}}",
+  "@modToolsHeldReason": {
+    "description": "Why a message was held: AutoMod, a blocked term, or a blocked link.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "automod"
+      }
+    }
+  },
+  "modToolsHeldStatus": "{status, select, pending{Waiting} approved{Allowed} denied{Denied} expired{Expired} other{Waiting}}",
+  "@modToolsHeldStatus": {
+    "description": "The state of a held message in the AutoMod queue.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "approved"
+      }
+    }
+  },
+  "modToolsLogInToEnable": "Log in again to enable",
+  "@modToolsLogInToEnable": {
+    "description": "The second line of a mod tools row whose permission the login does not have yet; a tap opens the login."
+  },
+  "modToolsMakeModerator": "Make moderator",
+  "@modToolsMakeModerator": {
+    "description": "A user card action (the channel's owner) giving the moderator role."
+  },
+  "modToolsMakeVip": "Make VIP",
+  "@modToolsMakeVip": {
+    "description": "A user card action (the channel's owner) giving the VIP role."
+  },
+  "modToolsMarker": "Add a stream marker",
+  "@modToolsMarker": {
+    "description": "A mod tools row adding a stream marker."
+  },
+  "modToolsMarkerAdd": "Add",
+  "@modToolsMarkerAdd": {
+    "description": "Confirms the stream marker."
+  },
+  "modToolsMarkerLabel": "Description (optional)",
+  "@modToolsMarkerLabel": {
+    "description": "The label above the stream marker's text field."
+  },
+  "modToolsMarkerTitle": "Add a stream marker",
+  "@modToolsMarkerTitle": {
+    "description": "The title of the stream marker dialog."
+  },
+  "modToolsModeratorCount": "{count, plural, one{{count} moderator} other{{count} moderators}}",
+  "@modToolsModeratorCount": {
+    "description": "Under the title of the moderators list.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "modToolsModerators": "Moderators",
+  "@modToolsModerators": {
+    "description": "A mod tools row and the title of the channel's moderators list."
+  },
+  "modToolsMonitor": "Monitor messages",
+  "@modToolsMonitor": {
+    "description": "A user card action: flags the user so moderators see their messages marked."
+  },
+  "modToolsMoreActions": "More mod actions",
+  "@modToolsMoreActions": {
+    "description": "The user card button opening shoutout, monitor, restrict and role actions."
+  },
+  "modToolsOutcomeLabel": "Outcome {number}",
+  "@modToolsOutcomeLabel": {
+    "description": "The label above an outcome field of a new prediction.",
+    "placeholders": {
+      "number": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "modToolsPermittedTerms": "Permitted terms",
+  "@modToolsPermittedTerms": {
+    "description": "A mod tools row opening the channel's permitted terms on twitch.tv (no app API for them)."
+  },
+  "modToolsPollDuration": "Duration",
+  "@modToolsPollDuration": {
+    "description": "The section label above a new poll's length choices."
+  },
+  "modToolsPollEnd": "End poll",
+  "@modToolsPollEnd": {
+    "description": "Ends the poll in progress."
+  },
+  "modToolsPollEndMessage": "Voting stops now and the results show.",
+  "@modToolsPollEndMessage": {
+    "description": "The body of the dialog confirming the end of a poll."
+  },
+  "modToolsPollEndTitle": "End the poll?",
+  "@modToolsPollEndTitle": {
+    "description": "The title of the dialog confirming the end of a poll."
+  },
+  "modToolsPollEnded": "Poll ended.",
+  "@modToolsPollEnded": {
+    "description": "The status after the poll ended."
+  },
+  "modToolsPollLive": "Poll in progress",
+  "@modToolsPollLive": {
+    "description": "The section label above the poll in progress."
+  },
+  "modToolsPollStart": "Start poll",
+  "@modToolsPollStart": {
+    "description": "Starts the new poll."
+  },
+  "modToolsPollStarted": "Poll started.",
+  "@modToolsPollStarted": {
+    "description": "The status after a poll started."
+  },
+  "modToolsPolls": "Polls",
+  "@modToolsPolls": {
+    "description": "A mod tools row and the title of the poll sheet."
+  },
+  "modToolsPollsCaption": "Ask chat a question.",
+  "@modToolsPollsCaption": {
+    "description": "Under the title of the poll sheet."
+  },
+  "modToolsPredictionCancel": "Cancel prediction",
+  "@modToolsPredictionCancel": {
+    "description": "Cancels the prediction in progress and refunds everyone."
+  },
+  "modToolsPredictionCancelMessage": "Everyone gets their channel points back.",
+  "@modToolsPredictionCancelMessage": {
+    "description": "The body of the dialog confirming a canceled prediction."
+  },
+  "modToolsPredictionCancelTitle": "Cancel the prediction?",
+  "@modToolsPredictionCancelTitle": {
+    "description": "The title of the dialog confirming a canceled prediction."
+  },
+  "modToolsPredictionLive": "Prediction in progress",
+  "@modToolsPredictionLive": {
+    "description": "The section label above the prediction in progress."
+  },
+  "modToolsPredictionLock": "Lock",
+  "@modToolsPredictionLock": {
+    "description": "Stops new predictions on the prediction in progress."
+  },
+  "modToolsPredictionLocked": "Prediction locked",
+  "@modToolsPredictionLocked": {
+    "description": "The section label above a locked prediction."
+  },
+  "modToolsPredictionPickWinner": "Pick as result",
+  "@modToolsPredictionPickWinner": {
+    "description": "Under a prediction outcome: makes it the result."
+  },
+  "modToolsPredictionPoints": "{count, plural, one{{count} point} other{{count} points}}",
+  "@modToolsPredictionPoints": {
+    "description": "The channel points bet on a prediction outcome.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "1500"
+      }
+    }
+  },
+  "modToolsPredictionResolve": "Confirm result",
+  "@modToolsPredictionResolve": {
+    "description": "Confirms the prediction's result."
+  },
+  "modToolsPredictionResolveMessage": "“{outcome}” wins. Channel points go to the people who picked it.",
+  "@modToolsPredictionResolveMessage": {
+    "description": "The body of the dialog confirming a prediction's result; outcome is the outcome's title.",
+    "placeholders": {
+      "outcome": {
+        "type": "String",
+        "example": "Yes"
+      }
+    }
+  },
+  "modToolsPredictionResolveTitle": "Confirm the result?",
+  "@modToolsPredictionResolveTitle": {
+    "description": "The title of the dialog confirming a prediction's result."
+  },
+  "modToolsPredictionStart": "Start prediction",
+  "@modToolsPredictionStart": {
+    "description": "Starts the new prediction."
+  },
+  "modToolsPredictionStarted": "Prediction started.",
+  "@modToolsPredictionStarted": {
+    "description": "The status after a prediction started."
+  },
+  "modToolsPredictionUpdated": "{state, select, locked{Prediction locked.} resolved{Result confirmed.} canceled{Prediction canceled.} other{Prediction updated.}}",
+  "@modToolsPredictionUpdated": {
+    "description": "The status after a prediction was locked, resolved or canceled.",
+    "placeholders": {
+      "state": {
+        "type": "String",
+        "example": "locked"
+      }
+    }
+  },
+  "modToolsPredictionUsers": "{count, plural, one{{count} predictor} other{{count} predictors}}",
+  "@modToolsPredictionUsers": {
+    "description": "How many viewers picked a prediction outcome.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "modToolsPredictionWindow": "Time to predict",
+  "@modToolsPredictionWindow": {
+    "description": "The section label above a new prediction's window choices."
+  },
+  "modToolsPredictions": "Predictions",
+  "@modToolsPredictions": {
+    "description": "A mod tools row and the title of the prediction sheet."
+  },
+  "modToolsPredictionsCaption": "Let chat bet channel points.",
+  "@modToolsPredictionsCaption": {
+    "description": "Under the title of the prediction sheet."
+  },
+  "modToolsQuestionLabel": "Question",
+  "@modToolsQuestionLabel": {
+    "description": "The label above the question field of a new poll or prediction."
+  },
+  "modToolsRaid": "Raid a channel",
+  "@modToolsRaid": {
+    "description": "A mod tools row (the channel's owner) starting a raid."
+  },
+  "modToolsRaidCancel": "Cancel the raid",
+  "@modToolsRaidCancel": {
+    "description": "A mod tools row, and the confirming button, canceling the outgoing raid."
+  },
+  "modToolsRaidCancelMessage": "Your viewers stay here.",
+  "@modToolsRaidCancelMessage": {
+    "description": "The body of the dialog confirming a canceled raid."
+  },
+  "modToolsRaidCancelTitle": "Cancel the raid?",
+  "@modToolsRaidCancelTitle": {
+    "description": "The title of the dialog confirming a canceled raid."
+  },
+  "modToolsRaidMessage": "Your viewers leave for this channel once the countdown ends.",
+  "@modToolsRaidMessage": {
+    "description": "The body of the raid dialog."
+  },
+  "modToolsRaidStart": "Start raid",
+  "@modToolsRaidStart": {
+    "description": "Starts the raid on the channel typed."
+  },
+  "modToolsRaidTitle": "Raid a channel",
+  "@modToolsRaidTitle": {
+    "description": "The title of the raid dialog."
+  },
+  "modToolsRedemptionReward": "{reward} · {cost, plural, one{{cost} point} other{{cost} points}}",
+  "@modToolsRedemptionReward": {
+    "description": "A reward request's reward and its cost in channel points.",
+    "placeholders": {
+      "reward": {
+        "type": "String",
+        "example": "Hydrate"
+      },
+      "cost": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "500"
+      }
+    }
+  },
+  "modToolsRefund": "Refund",
+  "@modToolsRefund": {
+    "description": "Refunds a channel points reward request."
+  },
+  "modToolsRefundMessage": "{name} gets back the points spent on “{reward}”.",
+  "@modToolsRefundMessage": {
+    "description": "The body of the dialog confirming a refund; name is the viewer, reward the reward's title.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Ana"
+      },
+      "reward": {
+        "type": "String",
+        "example": "Hydrate"
+      }
+    }
+  },
+  "modToolsRefundTitle": "Refund this request?",
+  "@modToolsRefundTitle": {
+    "description": "The title of the dialog confirming a refund."
+  },
+  "modToolsRefunded": "Request refunded.",
+  "@modToolsRefunded": {
+    "description": "The status after a reward request was refunded."
+  },
+  "modToolsRemove": "Remove",
+  "@modToolsRemove": {
+    "description": "Removes a moderator, a VIP or a blocked term."
+  },
+  "modToolsRemoveModerator": "Remove moderator",
+  "@modToolsRemoveModerator": {
+    "description": "A user card action (the channel's owner) removing the moderator role."
+  },
+  "modToolsRemoveTag": "Remove {tag}",
+  "@modToolsRemoveTag": {
+    "description": "The tooltip of a stream tag's delete button.",
+    "placeholders": {
+      "tag": {
+        "type": "String",
+        "example": "English"
+      }
+    }
+  },
+  "modToolsRemoveVip": "Remove VIP",
+  "@modToolsRemoveVip": {
+    "description": "A user card action (the channel's owner) removing the VIP role."
+  },
+  "modToolsRequestedOn": "Sent {date}",
+  "@modToolsRequestedOn": {
+    "description": "When an unban request was sent (date: a medium date).",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Nov 7, 2026"
+      }
+    }
+  },
+  "modToolsRestrict": "Restrict",
+  "@modToolsRestrict": {
+    "description": "A user card action, and its confirming button: only moderators will see the user's messages."
+  },
+  "modToolsRestrictMessage": "Only moderators will see messages from {name}.",
+  "@modToolsRestrictMessage": {
+    "description": "The body of the dialog confirming a restriction.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Ana"
+      }
+    }
+  },
+  "modToolsRestrictTitle": "Restrict this user?",
+  "@modToolsRestrictTitle": {
+    "description": "The title of the dialog confirming a restriction."
+  },
+  "modToolsRewardQueueWeb": "Full reward queue",
+  "@modToolsRewardQueueWeb": {
+    "description": "A row opening the channel's complete reward queue on twitch.tv."
+  },
+  "modToolsRewardRequests": "Reward requests",
+  "@modToolsRewardRequests": {
+    "description": "A mod tools row and the title of the channel points reward requests list."
+  },
+  "modToolsRewardRequestsCaption": "Twitch only lets this app manage rewards created in ONSET. The full queue is on twitch.tv.",
+  "@modToolsRewardRequestsCaption": {
+    "description": "Under the title of the reward requests list (a Twitch API limit)."
+  },
+  "modToolsRewardRequestsEmpty": "No requests waiting",
+  "@modToolsRewardRequestsEmpty": {
+    "description": "The reward requests list when it is empty."
+  },
+  "modToolsRoleConfirmMessage": "{change, select, addModerator{{name} will be able to moderate this chat.} removeModerator{{name} will no longer be able to moderate this chat.} addVip{{name} will get the VIP badge.} removeVip{{name} will lose the VIP badge.} other{{name}’s role will change.}}",
+  "@modToolsRoleConfirmMessage": {
+    "description": "The body of the dialog confirming a role change; name is the user's display name.",
+    "placeholders": {
+      "change": {
+        "type": "String",
+        "example": "addModerator"
+      },
+      "name": {
+        "type": "String",
+        "example": "Ana"
+      }
+    }
+  },
+  "modToolsRoleConfirmTitle": "{change, select, addModerator{Make moderator?} removeModerator{Remove moderator?} addVip{Make VIP?} removeVip{Remove VIP?} other{Change role?}}",
+  "@modToolsRoleConfirmTitle": {
+    "description": "The title of the dialog confirming a role change.",
+    "placeholders": {
+      "change": {
+        "type": "String",
+        "example": "addModerator"
+      }
+    }
+  },
+  "modToolsSave": "Save",
+  "@modToolsSave": {
+    "description": "Saves the stream info."
+  },
+  "modToolsSeconds": "{count, plural, one{{count}s} other{{count}s}}",
+  "@modToolsSeconds": {
+    "description": "An ad break length choice in seconds (compact).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "modToolsSectionChannel": "Your channel",
+  "@modToolsSectionChannel": {
+    "description": "The mod tools section label of the owner's channel tools."
+  },
+  "modToolsSectionChat": "Chat tools",
+  "@modToolsSectionChat": {
+    "description": "The mod tools section label of the chat tools."
+  },
+  "modToolsSectionLive": "Live",
+  "@modToolsSectionLive": {
+    "description": "The mod tools section label of the live tools (shield mode, AutoMod queue, mod actions)."
+  },
+  "modToolsShieldMode": "Shield mode",
+  "@modToolsShieldMode": {
+    "description": "A mod tools row with a switch turning shield mode on or off."
+  },
+  "modToolsShieldModeDetail": "Your preset protections, in one tap",
+  "@modToolsShieldModeDetail": {
+    "description": "The second line of the shield mode row."
+  },
+  "modToolsShieldModeOn": "Shield mode on",
+  "@modToolsShieldModeOn": {
+    "description": "The pill in the chat while shield mode is on (moderators only; a tap opens the mod tools)."
+  },
+  "modToolsShoutout": "Give a shoutout",
+  "@modToolsShoutout": {
+    "description": "A mod tools row giving a shoutout to a channel."
+  },
+  "modToolsShoutoutDetail": "Point chat to another channel",
+  "@modToolsShoutoutDetail": {
+    "description": "The second line of the shoutout row."
+  },
+  "modToolsShoutoutSend": "Send",
+  "@modToolsShoutoutSend": {
+    "description": "Sends the shoutout."
+  },
+  "modToolsShoutoutTitle": "Give a shoutout",
+  "@modToolsShoutoutTitle": {
+    "description": "The title of the shoutout dialog."
+  },
+  "modToolsShoutoutUser": "Give a shoutout",
+  "@modToolsShoutoutUser": {
+    "description": "A user card action giving a shoutout to that user's channel."
+  },
+  "modToolsShowActionsInChat": "Show mod actions in chat",
+  "@modToolsShowActionsInChat": {
+    "description": "A mod tools switch: show the live moderation actions as chat lines."
+  },
+  "modToolsStreamInfo": "Edit stream info",
+  "@modToolsStreamInfo": {
+    "description": "A mod tools row and the title of the stream info sheet (title, category, tags)."
+  },
+  "modToolsStreamInfoCaption": "Title, category, and tags",
+  "@modToolsStreamInfoCaption": {
+    "description": "Under the title of the stream info sheet."
+  },
+  "modToolsStreamInfoSaved": "Stream info saved.",
+  "@modToolsStreamInfoSaved": {
+    "description": "The status after the stream info was saved."
+  },
+  "modToolsStreamTitleLabel": "Title",
+  "@modToolsStreamTitleLabel": {
+    "description": "The label above the stream title field."
+  },
+  "modToolsTagInvalid": "A tag can only have letters and numbers, up to 25 of them.",
+  "@modToolsTagInvalid": {
+    "description": "Error message. The tag typed has spaces, symbols or more than 25 characters."
+  },
+  "modToolsTagLabel": "Add a tag",
+  "@modToolsTagLabel": {
+    "description": "The label above the field adding a stream tag."
+  },
+  "modToolsTagLimit": "{count, plural, one{A stream can have up to {count} tag.} other{A stream can have up to {count} tags.}}",
+  "@modToolsTagLimit": {
+    "description": "Error message. The stream already has as many tags as Twitch allows.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "modToolsTags": "Tags",
+  "@modToolsTags": {
+    "description": "The section label above the stream's tags."
+  },
+  "modToolsTermLabel": "Term or phrase",
+  "@modToolsTermLabel": {
+    "description": "The label above the field adding a blocked term."
+  },
+  "modToolsTermTemporary": "Temporary",
+  "@modToolsTermTemporary": {
+    "description": "Under a blocked term that expires."
+  },
+  "modToolsTitle": "Mod tools",
+  "@modToolsTitle": {
+    "description": "The chat menu row and the title of the moderation tools sheet."
+  },
+  "modToolsUnbanCaption": "Banned users asking to come back.",
+  "@modToolsUnbanCaption": {
+    "description": "Under the title of the unban requests list."
+  },
+  "modToolsUnbanDialogMessage": "{decision, select, approved{{name} will be unbanned. You can add a note for them.} denied{{name} stays banned. You can add a note for them.} other{You can add a note for {name}.}}",
+  "@modToolsUnbanDialogMessage": {
+    "description": "The body of the dialog approving or denying an unban request; name is the banned user.",
+    "placeholders": {
+      "decision": {
+        "type": "String",
+        "example": "approved"
+      },
+      "name": {
+        "type": "String",
+        "example": "Ana"
+      }
+    }
+  },
+  "modToolsUnbanDialogTitle": "{decision, select, approved{Approve the request?} denied{Deny the request?} other{Answer the request?}}",
+  "@modToolsUnbanDialogTitle": {
+    "description": "The title of the dialog approving or denying an unban request.",
+    "placeholders": {
+      "decision": {
+        "type": "String",
+        "example": "approved"
+      }
+    }
+  },
+  "modToolsUnbanEmpty": "No unban requests",
+  "@modToolsUnbanEmpty": {
+    "description": "The unban requests list when it is empty."
+  },
+  "modToolsUnbanNoteLabel": "Note (optional)",
+  "@modToolsUnbanNoteLabel": {
+    "description": "The label above the note sent with an unban decision."
+  },
+  "modToolsUnbanRequests": "Unban requests",
+  "@modToolsUnbanRequests": {
+    "description": "A mod tools row and the title of the pending unban requests list."
+  },
+  "modToolsUnbanResolved": "{decision, select, approved{Request from {name} approved.} denied{Request from {name} denied.} other{Request from {name} answered.}}",
+  "@modToolsUnbanResolved": {
+    "description": "The status after an unban request was approved or denied.",
+    "placeholders": {
+      "decision": {
+        "type": "String",
+        "example": "approved"
+      },
+      "name": {
+        "type": "String",
+        "example": "Ana"
+      }
+    }
+  },
+  "modToolsUnmonitor": "Stop monitoring",
+  "@modToolsUnmonitor": {
+    "description": "A user card action lifting the monitoring of the user."
+  },
+  "modToolsUnrestrict": "Lift restriction",
+  "@modToolsUnrestrict": {
+    "description": "A user card action lifting the user's restriction."
+  },
+  "modToolsUserActionsTitle": "Mod actions",
+  "@modToolsUserActionsTitle": {
+    "description": "The title of the user card's extra moderation actions sheet."
+  },
+  "modToolsUserLabel": "Username",
+  "@modToolsUserLabel": {
+    "description": "The label above the field naming a user to add as a moderator or VIP."
+  },
+  "modToolsUserPill": "{pill, select, banned{Banned} timedOut{Timed out} warned{Warned} monitored{Monitored} restricted{Restricted} other{Flagged}}",
+  "@modToolsUserPill": {
+    "description": "A pill on the user card telling a moderator the user's state in this channel.",
+    "placeholders": {
+      "pill": {
+        "type": "String",
+        "example": "banned"
+      }
+    }
+  },
+  "modToolsVipCount": "{count, plural, one{{count} VIP} other{{count} VIPs}}",
+  "@modToolsVipCount": {
+    "description": "Under the title of the VIPs list.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "modToolsVips": "VIPs",
+  "@modToolsVips": {
+    "description": "A mod tools row and the title of the channel's VIPs list."
+  },
+  "modToolsVotes": "{count, plural, one{{count} vote} other{{count} votes}}",
+  "@modToolsVotes": {
+    "description": "The votes an answer of the poll in progress has.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "42"
+      }
+    }
   },
   "chatModBanned": "You banned {name}.",
   "@chatModBanned": {

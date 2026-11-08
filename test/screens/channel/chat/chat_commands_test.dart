@@ -58,9 +58,7 @@ void main() {
     );
     expect(parseChatCommand('/w'), isA<UnsupportedCommand>());
     expect(
-      (parseChatCommand('/raid someone') as UnsupportedCommand).text(
-        L10n.english,
-      ),
+      (parseChatCommand('/pin abc') as UnsupportedCommand).text(L10n.english),
       contains('not available'),
     );
     expect(

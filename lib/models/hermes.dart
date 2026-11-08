@@ -225,6 +225,8 @@ class HermesTopics {
   static String sharedChat(String channelId) =>
       'shared-chat-channel-v1.$channelId';
 
+  static String shoutout(String channelId) => 'shoutout.$channelId';
+
   // User-scoped topics. These are the only ones that need authentication;
   // channel topics subscribe fine anonymously (verified 2026-07-30).
   static String predictionsUser(String userId) => 'predictions-user-v1.$userId';
@@ -245,6 +247,7 @@ class HermesTopics {
     communityPointsChannel(channelId),
     creatorGoals(channelId),
     celebrations(channelId),
+    shoutout(channelId),
   ];
 
   /// The viewer's own topics, which carry what happens to *them* rather than to

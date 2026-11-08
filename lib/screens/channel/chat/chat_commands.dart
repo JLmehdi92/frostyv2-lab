@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:onset/apis/twitch_mod_api.dart';
 import 'package:onset/l10n/l10n.dart';
 
 /// A chat line typed in the input: a message to send as is, or a slash
@@ -123,6 +124,85 @@ final class ChatModeCommand extends ModerationCommand {
   final Duration? duration;
 }
 
+final class AnnounceCommand extends ModerationCommand {
+  const AnnounceCommand(this.message, this.color);
+
+  final String message;
+  final AnnouncementColor color;
+}
+
+final class ShoutoutCommand extends ModerationCommand {
+  const ShoutoutCommand(this.login);
+
+  final String login;
+}
+
+final class RoleListCommand extends ModerationCommand {
+  const RoleListCommand(this.role);
+
+  final ChannelRole role;
+}
+
+final class RoleCommand extends ModerationCommand {
+  const RoleCommand(this.login, this.role, {required this.granted});
+
+  final String login;
+  final ChannelRole role;
+  final bool granted;
+}
+
+final class ShieldCommand extends ModerationCommand {
+  const ShieldCommand({required this.on});
+
+  final bool on;
+}
+
+final class MarkerCommand extends ModerationCommand {
+  const MarkerCommand(this.description);
+
+  final String description;
+}
+
+final class CommercialCommand extends ModerationCommand {
+  const CommercialCommand(this.seconds);
+
+  final int seconds;
+}
+
+final class RaidCommand extends ModerationCommand {
+  const RaidCommand(this.login);
+
+  final String login;
+}
+
+final class UnraidCommand extends ModerationCommand {
+  const UnraidCommand();
+}
+
+final class SuspicionCommand extends ModerationCommand {
+  const SuspicionCommand(this.login, this.status, {required this.on});
+
+  final String login;
+  final SuspiciousStatus status;
+  final bool on;
+}
+
+const kCommercialLengths = [30, 60, 90, 120, 150, 180];
+
+String? broadcasterOnlyName(ModerationCommand command) => switch (command) {
+  RoleListCommand(role: ChannelRole.moderator) => 'mods',
+  RoleListCommand(role: ChannelRole.vip) => 'vips',
+  RoleCommand(role: ChannelRole.moderator, granted: true) => 'mod',
+  RoleCommand(role: ChannelRole.moderator, granted: false) => 'unmod',
+  RoleCommand(role: ChannelRole.vip, granted: true) => 'vip',
+  RoleCommand(role: ChannelRole.vip, granted: false) => 'unvip',
+  MarkerCommand() => 'marker',
+  CommercialCommand() => 'commercial',
+  RaidCommand() => 'raid',
+  UnraidCommand() => 'unraid',
+  _ => null,
+};
+
 /// A command the app cannot run, with why ([problem]), worded by [text].
 final class UnsupportedCommand extends ChatCommand {
   const UnsupportedCommand(this.problem);
@@ -224,7 +304,9 @@ enum ChatCommandArg {
   reason,
   length,
   seconds,
-  messageId;
+  messageId,
+  channel,
+  description;
 
   String word(AppLocalizations l) => switch (this) {
     user => l.chatCommandArgUser,
@@ -234,6 +316,8 @@ enum ChatCommandArg {
     length => l.chatCommandArgLength,
     seconds => l.chatCommandArgSeconds,
     messageId => l.chatCommandArgMessageId,
+    channel => l.chatCommandArgChannel,
+    description => l.chatCommandArgDescription,
   };
 }
 
@@ -312,6 +396,28 @@ const kModeratorChatCommands = <ChatCommandInfo>[
   ChatCommandInfo('emoteonlyoff'),
   ChatCommandInfo('uniquechat'),
   ChatCommandInfo('uniquechatoff'),
+  ChatCommandInfo('announce', required: [ChatCommandArg.message]),
+  ChatCommandInfo('announceblue', required: [ChatCommandArg.message]),
+  ChatCommandInfo('announcegreen', required: [ChatCommandArg.message]),
+  ChatCommandInfo('announceorange', required: [ChatCommandArg.message]),
+  ChatCommandInfo('announcepurple', required: [ChatCommandArg.message]),
+  ChatCommandInfo('shoutout', required: [ChatCommandArg.channel]),
+  ChatCommandInfo('shield'),
+  ChatCommandInfo('shieldoff'),
+  ChatCommandInfo('monitor', required: [ChatCommandArg.user]),
+  ChatCommandInfo('unmonitor', required: [ChatCommandArg.user]),
+  ChatCommandInfo('restrict', required: [ChatCommandArg.user]),
+  ChatCommandInfo('unrestrict', required: [ChatCommandArg.user]),
+  ChatCommandInfo('mods'),
+  ChatCommandInfo('vips'),
+  ChatCommandInfo('mod', required: [ChatCommandArg.user]),
+  ChatCommandInfo('unmod', required: [ChatCommandArg.user]),
+  ChatCommandInfo('vip', required: [ChatCommandArg.user]),
+  ChatCommandInfo('unvip', required: [ChatCommandArg.user]),
+  ChatCommandInfo('marker', optional: [ChatCommandArg.description]),
+  ChatCommandInfo('commercial', optional: [ChatCommandArg.seconds]),
+  ChatCommandInfo('raid', required: [ChatCommandArg.channel]),
+  ChatCommandInfo('unraid'),
 ];
 
 /// Twitch's named colours (non-Turbo), as Helix spells them.
@@ -334,31 +440,7 @@ const kChatNamedColors = {
 };
 
 /// Moderator and broadcaster commands this app does not run (yet).
-const _otherModeratorCommands = {
-  'mod',
-  'unmod',
-  'vip',
-  'unvip',
-  'raid',
-  'unraid',
-  'commercial',
-  'marker',
-  'announce',
-  'announceblue',
-  'announcegreen',
-  'announceorange',
-  'announcepurple',
-  'shoutout',
-  'pin',
-  'monitor',
-  'restrict',
-  'unmonitor',
-  'unrestrict',
-  'shield',
-  'shieldoff',
-  'mods',
-  'vips',
-};
+const _otherModeratorCommands = {'pin'};
 
 final _login = RegExp(r'^@?([a-zA-Z0-9_]{1,25})$');
 final _hex = RegExp(r'^#?([0-9a-fA-F]{6})$');
@@ -416,7 +498,77 @@ String? _loginOf(String arg) => _login.firstMatch(arg)?[1]!.toLowerCase();
 
 ChatCommand _usage(String name) => UnsupportedCommand(UsageProblem(name));
 
+final _announceColors = {
+  'announce': AnnouncementColor.primary,
+  'announceblue': AnnouncementColor.blue,
+  'announcegreen': AnnouncementColor.green,
+  'announceorange': AnnouncementColor.orange,
+  'announcepurple': AnnouncementColor.purple,
+};
+
+ChatCommand? _parseChannelCommand(String name, List<String> args) {
+  String? onlyLogin() => args.length == 1 ? _loginOf(args.single) : null;
+  switch (name) {
+    case final announce when _announceColors.containsKey(announce):
+      final message = singleLine(
+        args.join(' '),
+        maxLength: ModTextLimits.announcement,
+      );
+      if (message.isEmpty) return _usage(name);
+      return AnnounceCommand(message, _announceColors[announce]!);
+    case 'shoutout':
+      final login = onlyLogin();
+      return login == null ? _usage(name) : ShoutoutCommand(login);
+    case 'mods' || 'vips':
+      if (args.isNotEmpty) return _usage(name);
+      return RoleListCommand(
+        name == 'mods' ? ChannelRole.moderator : ChannelRole.vip,
+      );
+    case 'mod' || 'unmod' || 'vip' || 'unvip':
+      final login = onlyLogin();
+      if (login == null) return _usage(name);
+      return RoleCommand(
+        login,
+        name.endsWith('mod') ? ChannelRole.moderator : ChannelRole.vip,
+        granted: !name.startsWith('un'),
+      );
+    case 'shield' || 'shieldoff':
+      if (args.isNotEmpty) return _usage(name);
+      return ShieldCommand(on: name == 'shield');
+    case 'marker':
+      return MarkerCommand(
+        singleLine(args.join(' '), maxLength: ModTextLimits.marker),
+      );
+    case 'commercial':
+      if (args.length > 1) return _usage(name);
+      final seconds = args.isEmpty
+          ? kCommercialLengths.first
+          : int.tryParse(args.single.replaceFirst(RegExp(r's$'), ''));
+      if (seconds == null || !kCommercialLengths.contains(seconds)) {
+        return _usage(name);
+      }
+      return CommercialCommand(seconds);
+    case 'raid':
+      final login = onlyLogin();
+      return login == null ? _usage(name) : RaidCommand(login);
+    case 'unraid':
+      return args.isEmpty ? const UnraidCommand() : _usage(name);
+    case 'monitor' || 'unmonitor' || 'restrict' || 'unrestrict':
+      final login = onlyLogin();
+      if (login == null) return _usage(name);
+      return SuspicionCommand(
+        login,
+        name.endsWith('monitor')
+            ? SuspiciousStatus.monitored
+            : SuspiciousStatus.restricted,
+        on: !name.startsWith('un'),
+      );
+  }
+  return null;
+}
+
 ChatCommand _parseModeration(String name, List<String> args) {
+  if (_parseChannelCommand(name, args) case final command?) return command;
   switch (name) {
     case 'ban':
       final login = args.isEmpty ? null : _loginOf(args.first);

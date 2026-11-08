@@ -10,6 +10,7 @@ import 'package:onset/models/celebration.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/hermes.dart';
 import 'package:onset/models/watch_streak.dart';
+import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
 import 'package:onset/services/hermes_client.dart';
 
 part 'channel_events_store.g.dart';
@@ -272,6 +273,19 @@ abstract class ChannelEventsStoreBase with Store {
 
   final _entitlementChanges = StreamController<void>.broadcast();
 
+  final _shoutouts = StreamController<ShoutoutNotice>.broadcast();
+
+  Stream<ShoutoutNotice> get shoutouts => _shoutouts.stream;
+
+  void _applyShoutout(HermesEvent event) {
+    final shoutout = parseShoutout(
+      event.type,
+      event.data,
+      channelId: channelId,
+    );
+    if (shoutout != null && !_shoutouts.isClosed) _shoutouts.add(shoutout);
+  }
+
   Stream<void> get entitlementChanges => _entitlementChanges.stream;
 
   void _sayEntitlementsChanged() {
@@ -404,6 +418,8 @@ abstract class ChannelEventsStoreBase with Store {
 
     if (event.topic.startsWith('user-subscribe-events')) {
       _sayEntitlementsChanged();
+    } else if (event.topic.startsWith('shoutout.')) {
+      _applyShoutout(event);
     } else if (event.topic.startsWith('celebration-events')) {
       _applyCelebration(event);
     } else if (event.topic.startsWith('creator-goals-events')) {
@@ -531,6 +547,7 @@ abstract class ChannelEventsStoreBase with Store {
 
   void dispose() {
     unawaited(_entitlementChanges.close());
+    unawaited(_shoutouts.close());
     _pointsRefreshTimer?.cancel();
     _pointsPollTimer?.cancel();
     unawaited(_subscription?.cancel());

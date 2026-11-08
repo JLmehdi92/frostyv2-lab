@@ -393,6 +393,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultChatWidth = 0.2;
   static const defaultFullScreenChatOverlayOpacity = 0.5;
   static const defaultTapToCloseOverlayChat = false;
+  static const defaultShowModActionsInChat = true;
   static const defaultLandscapeChatModes = [
     LandscapeChatMode.overlay,
     LandscapeChatMode.column,
@@ -624,6 +625,10 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var tapToCloseOverlayChat = defaultTapToCloseOverlayChat;
 
+  @JsonKey(defaultValue: defaultShowModActionsInChat)
+  @observable
+  var showModActionsInChat = defaultShowModActionsInChat;
+
   @JsonKey(fromJson: landscapeChatModesFromJson)
   @observable
   List<LandscapeChatMode> landscapeChatModes = defaultLandscapeChatModes;
@@ -787,6 +792,7 @@ abstract class _SettingsStoreBase with Store {
     chatWidth = defaultChatWidth;
     fullScreenChatOverlayOpacity = defaultFullScreenChatOverlayOpacity;
     tapToCloseOverlayChat = defaultTapToCloseOverlayChat;
+    showModActionsInChat = defaultShowModActionsInChat;
     landscapeChatModes = defaultLandscapeChatModes;
 
     mutedWords = defaultMutedWords;

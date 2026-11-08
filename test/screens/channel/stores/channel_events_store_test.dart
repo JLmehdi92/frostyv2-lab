@@ -90,6 +90,34 @@ void main() {
     ),
   ).called(times);
 
+  test('a shoutout of this channel is handed to the chat', () async {
+    final store = build();
+    final shoutouts = [];
+    store.shoutouts.listen(shoutouts.add);
+    await store.connect();
+    verify(
+      () => hermes.subscribeAll(any(that: contains('shoutout.42'))),
+    ).called(1);
+    for (final channel in ['42', '43']) {
+      events.add(
+        HermesEvent(
+          topic: 'shoutout.$channel',
+          type: 'create',
+          data: {
+            'broadcasterUserID': channel,
+            'targetLogin': 'kai',
+            'targetUserID': '33',
+            'targetUserDisplayName': 'Kai',
+            'shoutoutID': 's-$channel',
+          },
+        ),
+      );
+    }
+    await pumpEventQueue();
+    expect(shoutouts, hasLength(1));
+    store.dispose();
+  });
+
   group('emote entitlements', () {
     test('a message on the viewer’s subscriptions topic says so', () async {
       final store = build(viewerId: '7');

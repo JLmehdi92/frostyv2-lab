@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_auth_interceptor.dart';
+import 'package:onset/apis/twitch_mod_api.dart';
 import 'package:onset/apis/unauthorized_interceptor.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/constants.dart' as constants show tokenProxyUrl;
@@ -152,6 +153,8 @@ class TwitchApi extends BaseApiClient {
   final String _appClientId;
 
   final String _tokenProxyUrl;
+
+  late final TwitchModApi moderation = TwitchModApi(dio);
 
   /// How long [getDefaultToken] waits for the token proxy, connection
   /// included: launch and logout wait on it.

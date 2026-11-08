@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show ObservableMap, ObservableSet;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/models/cheermote.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel/chat/mod_tools/stores/mod_tools_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
@@ -15,6 +17,8 @@ import 'package:onset/theme.dart';
 class MockChatStore extends Mock implements ChatStore {}
 
 class MockChatAssetsStore extends Mock implements ChatAssetsStore {}
+
+class _HarnessTwitchApi extends Mock implements TwitchApi {}
 
 /// A chat store with no emotes or badges, for drawing a [ChatMessage] of the
 /// channel `channel` (id 12345, display name `Channel`).
@@ -58,6 +62,15 @@ MockChatStore fakeChatStore({
   when(
     () => store.chatSettingsRequests,
   ).thenAnswer((_) => const Stream.empty());
+  when(() => store.modToolsRequests).thenAnswer((_) => const Stream.empty());
+  when(() => store.shieldModeActive).thenReturn(false);
+  when(() => store.modTools).thenReturn(
+    ModToolsStore(
+      twitchApi: _HarnessTwitchApi(),
+      broadcasterId: '12345',
+      onChatLine: (_, {actionLabel, onAction}) {},
+    ),
+  );
   when(() => store.sharedChatPartners).thenReturn(const []);
   when(() => store.showSharedChatBanner).thenReturn(false);
   when(() => store.sharedChatStartedNow).thenReturn(false);

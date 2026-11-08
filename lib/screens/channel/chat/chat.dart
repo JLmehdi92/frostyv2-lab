@@ -5,6 +5,9 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
+import 'package:onset/screens/channel/chat/mod_tools/stores/mod_tools_store.dart';
+import 'package:onset/screens/channel/chat/mod_tools/widgets/mod_tools_sheet.dart';
+import 'package:onset/screens/channel/chat/mod_tools/widgets/shield_mode_indicator.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
@@ -131,6 +134,7 @@ class _ChatState extends State<Chat> {
 
   StreamSubscription<ChatUserCardRequest>? _userCards;
   StreamSubscription<void>? _settingsRequests;
+  StreamSubscription<ModToolsView>? _modToolsRequests;
   ReactionDisposer? _expandAnnouncer;
 
   @override
@@ -165,6 +169,7 @@ class _ChatState extends State<Chat> {
   void dispose() {
     _userCards?.cancel();
     _settingsRequests?.cancel();
+    _modToolsRequests?.cancel();
     _expandAnnouncer?.call();
     super.dispose();
   }
@@ -179,6 +184,11 @@ class _ChatState extends State<Chat> {
     _settingsRequests = chatStore.chatSettingsRequests.listen((_) {
       if (!mounted) return;
       widget.openSettings(context, chatStore.settings);
+    });
+    _modToolsRequests?.cancel();
+    _modToolsRequests = chatStore.modToolsRequests.listen((view) {
+      if (!mounted) return;
+      showModTools(context, chatStore, view: view);
     });
   }
 
@@ -332,6 +342,11 @@ class _ChatState extends State<Chat> {
                       left: 0,
                       right: 0,
                       child: _SharedChatBannerSlot(chatStore: chatStore),
+                    ),
+                    PositionedDirectional(
+                      top: 8,
+                      end: 8,
+                      child: ShieldModeIndicator(chatStore: chatStore),
                     ),
                     Positioned(
                       left: 0,

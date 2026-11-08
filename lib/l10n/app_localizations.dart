@@ -320,10 +320,10 @@ abstract class AppLocalizations {
   /// **'Moderation'**
   String get onboardingPermissionModerationTitle;
 
-  /// Onboarding Log in step, permission list: what the moderation permissions allow.
+  /// Onboarding Log in step, permission list: what the moderation permissions allow (moderating a chat, and running one's own channel: polls, raids, stream info).
   ///
   /// In en, this message translates to:
-  /// **'Bans, warnings, messages, chat modes'**
+  /// **'Bans, AutoMod, roles, polls, chat modes'**
   String get onboardingPermissionModerationDetail;
 
   /// Onboarding Log in step, permission list: the clips permission.
@@ -7015,7 +7015,7 @@ abstract class AppLocalizations {
   /// What a chat command does, beside its usage in the input's suggestions. command is the command's name (never translated, nor are the lengths « 10m », « 30s » and their units « s, m, h, d, w, mo » that Twitch reads).
   ///
   /// In en, this message translates to:
-  /// **'{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} user{Open a user’s card} disconnect{Reconnect to chat} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}'**
+  /// **'{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} user{Open a user’s card} disconnect{Reconnect to chat} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} announce{Send an announcement} announceblue{Send a blue announcement} announcegreen{Send a green announcement} announceorange{Send an orange announcement} announcepurple{Send a purple announcement} shoutout{Give a shoutout to a channel} shield{Turn shield mode on} shieldoff{Turn shield mode off} monitor{Monitor a user’s messages} unmonitor{Stop monitoring a user} restrict{Restrict a user (only moderators see their messages)} unrestrict{Lift a user’s restriction} mods{List the moderators} vips{List the VIPs} mod{Make a user a moderator} unmod{Remove a moderator} vip{Make a user a VIP} unvip{Remove a VIP} marker{Add a stream marker} commercial{Run an ad break (30, 60, 90, 120, 150, or 180 seconds)} raid{Raid a channel} unraid{Cancel the raid} other{}}'**
   String chatCommandDescription({required String command});
 
   /// A line in chat when a command is typed wrong: how to type it. usage is the command and its words (/ban <user> [reason]).
@@ -7093,13 +7093,13 @@ abstract class AppLocalizations {
   /// Error message. A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error); French makes it a sentence after a full stop (« Impossible de bannir. … »).
   ///
   /// In en, this message translates to:
-  /// **'Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}}: {reason}'**
+  /// **'Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} announce{send the announcement} shoutout{send the shoutout} mods{list the moderators} vips{list the VIPs} mod{add the moderator} unmod{remove the moderator} vip{add the VIP} unvip{remove the VIP} shieldOn{turn shield mode on} shieldOff{turn shield mode off} marker{add the stream marker} commercial{start the ad break} raid{start the raid} unraid{cancel the raid} monitor{monitor the user} unmonitor{stop monitoring the user} restrict{restrict the user} unrestrict{lift the restriction} blockTerm{add the blocked term} unblockTerm{remove the blocked term} allowMessage{allow the message} denyMessage{deny the message} approveUnban{approve the unban request} denyUnban{deny the unban request} createPoll{start the poll} endPoll{end the poll} createPrediction{start the prediction} lockPrediction{lock the prediction} resolvePrediction{confirm the result} cancelPrediction{cancel the prediction} fulfil{complete the request} refund{refund the request} updateStream{save the stream info} load{load the list} other{do that}}: {reason}'**
   String chatModFailed({required String command, required String reason});
 
   /// Error message. A moderation action failed for an unexpected reason. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch.
   ///
   /// In en, this message translates to:
-  /// **'Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}} (unexpected error).'**
+  /// **'Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} announce{send the announcement} shoutout{send the shoutout} mods{list the moderators} vips{list the VIPs} mod{add the moderator} unmod{remove the moderator} vip{add the VIP} unvip{remove the VIP} shieldOn{turn shield mode on} shieldOff{turn shield mode off} marker{add the stream marker} commercial{start the ad break} raid{start the raid} unraid{cancel the raid} monitor{monitor the user} unmonitor{stop monitoring the user} restrict{restrict the user} unrestrict{lift the restriction} blockTerm{add the blocked term} unblockTerm{remove the blocked term} allowMessage{allow the message} denyMessage{deny the message} approveUnban{approve the unban request} denyUnban{deny the unban request} createPoll{start the poll} endPoll{end the poll} createPrediction{start the prediction} lockPrediction{lock the prediction} resolvePrediction{confirm the result} cancelPrediction{cancel the prediction} fulfil{complete the request} refund{refund the request} updateStream{save the stream info} load{load the list} other{do that}} (unexpected error).'**
   String chatModFailedUnexpected({required String command});
 
   /// Error message. Why a moderation action failed (after chatModFailed's colon): the viewer is not a moderator here.
@@ -7131,6 +7131,1082 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That didn’t go through. Try again.'**
   String get chatModNotThrough;
+
+  /// A chat line shown to moderators when AutoMod holds a message for review (Review opens the AutoMod queue).
+  ///
+  /// In en, this message translates to:
+  /// **'AutoMod is holding a message from {name}.'**
+  String chatAutoModHeld({required String name});
+
+  /// The link at the end of chatAutoModHeld, opening the AutoMod queue.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get chatAutoModReview;
+
+  /// A command argument in a usage line: a channel's name (/raid <channel>).
+  ///
+  /// In en, this message translates to:
+  /// **'channel'**
+  String get chatCommandArgChannel;
+
+  /// A command argument in a usage line: the optional text of a stream marker (/marker [description]).
+  ///
+  /// In en, this message translates to:
+  /// **'description'**
+  String get chatCommandArgDescription;
+
+  /// A chat line shown to moderators for an action another moderator (or the viewer) took, from Twitch's live moderation feed. action is the action (ban, timeout, mod, slow…); moderator and user are display names; duration is a timeout's length worded like the timeout notices.
+  ///
+  /// In en, this message translates to:
+  /// **'{action, select, ban{{moderator} banned {user}.} timeout{{moderator} timed out {user} for {duration}.} timeoutUnknown{{moderator} timed out {user}.} unban{{moderator} unbanned {user}.} untimeout{{moderator} lifted the timeout on {user}.} warn{{moderator} warned {user}.} delete{{moderator} deleted a message from {user}.} clear{{moderator} cleared the chat.} mod{{moderator} made {user} a moderator.} unmod{{moderator} removed {user} as a moderator.} vip{{moderator} made {user} a VIP.} unvip{{moderator} removed {user} as a VIP.} raid{{moderator} started a raid on {user}.} unraid{{moderator} canceled the raid on {user}.} addBlockedTerm{{moderator} added a blocked term.} removeBlockedTerm{{moderator} removed a blocked term.} addPermittedTerm{{moderator} added a permitted term.} removePermittedTerm{{moderator} removed a permitted term.} approveUnbanRequest{{moderator} approved the unban request from {user}.} denyUnbanRequest{{moderator} denied the unban request from {user}.} emoteonly{{moderator} turned emote-only mode on.} emoteonlyoff{{moderator} turned emote-only mode off.} followers{{moderator} turned followers-only mode on.} followersoff{{moderator} turned followers-only mode off.} slow{{moderator} turned slow mode on.} slowoff{{moderator} turned slow mode off.} subscribers{{moderator} turned subscribers-only mode on.} subscribersoff{{moderator} turned subscribers-only mode off.} uniquechat{{moderator} turned unique chat mode on.} uniquechatoff{{moderator} turned unique chat mode off.} other{{moderator} took a moderation action.}}'**
+  String chatModAction({
+    required String action,
+    required String moderator,
+    required String user,
+    required String duration,
+  });
+
+  /// chatModAction followed by the reason the moderator typed (their own words, quoted as written).
+  ///
+  /// In en, this message translates to:
+  /// **'{line} Reason: “{reason}”'**
+  String chatModActionWithReason({
+    required String line,
+    required String reason,
+  });
+
+  /// A chat line after /announce (or the mod tools) sent an announcement.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement sent.'**
+  String get chatModAnnounced;
+
+  /// A chat line when a moderator types a command only the channel's owner can run through Twitch (/mod, /vip, /raid, /commercial…). command is the command with its slash.
+  ///
+  /// In en, this message translates to:
+  /// **'{command} only works in your own channel.'**
+  String chatModBroadcasterOnly({required String command});
+
+  /// A chat line after /commercial started an ad break; duration is its length ("30 seconds").
+  ///
+  /// In en, this message translates to:
+  /// **'Ad break started ({duration}).'**
+  String chatModCommercialStarted({required String duration});
+
+  /// A chat line after /marker added a stream marker.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream marker added.'**
+  String get chatModMarkerAdded;
+
+  /// The chat line answering /mods: how many moderators and their names, comma-separated (shortened with an ellipsis past 30).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Moderator ({count}): {names}} other{Moderators ({count}): {names}}}'**
+  String chatModModeratorList({required int count, required String names});
+
+  /// A chat line after /unraid canceled the outgoing raid.
+  ///
+  /// In en, this message translates to:
+  /// **'Raid canceled.'**
+  String get chatModRaidCanceled;
+
+  /// A chat line after /raid started the countdown of a raid on the channel name.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the raid on {name}.'**
+  String chatModRaidStarted({required String name});
+
+  /// A chat line after /mod, /unmod, /vip or /unvip worked; name is the user's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{change, select, moderatorAdded{{name} is now a moderator.} moderatorRemoved{{name} is no longer a moderator.} vipAdded{{name} is now a VIP.} vipRemoved{{name} is no longer a VIP.} other{{name}’s role changed.}}'**
+  String chatModRoleChanged({required String change, required String name});
+
+  /// The answer to /mods or /vips, and the empty list in the mod tools, when nobody has the role.
+  ///
+  /// In en, this message translates to:
+  /// **'{role, select, moderator{This channel has no moderators.} vip{This channel has no VIPs.} other{Nobody has this role.}}'**
+  String chatModRoleListEmpty({required String role});
+
+  /// A chat line (and the mod tools' status) after shield mode was turned on or off.
+  ///
+  /// In en, this message translates to:
+  /// **'{state, select, on{Shield mode is on.} other{Shield mode is off.}}'**
+  String chatModShield({required String state});
+
+  /// A chat line after /shoutout (or the mod tools) gave a shoutout to the channel name.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoutout sent to {name}.'**
+  String chatModShoutoutSent({required String name});
+
+  /// A chat line after /monitor, /unmonitor, /restrict or /unrestrict worked (a restricted user's messages show to moderators only).
+  ///
+  /// In en, this message translates to:
+  /// **'{change, select, monitor{{name} is now monitored.} unmonitor{{name} is no longer monitored.} restrict{{name} is now restricted.} unrestrict{{name} is no longer restricted.} other{{name}’s status changed.}}'**
+  String chatModSuspicion({required String change, required String name});
+
+  /// The link at the end of the /mods and /vips answers, opening the list in the mod tools.
+  ///
+  /// In en, this message translates to:
+  /// **'View list'**
+  String get chatModViewList;
+
+  /// The chat line answering /vips: how many VIPs and their names, comma-separated (shortened with an ellipsis past 30).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{VIP ({count}): {names}} other{VIPs ({count}): {names}}}'**
+  String chatModVipList({required int count, required String names});
+
+  /// A chat line shown to moderators when a moderator turned shield mode on or off.
+  ///
+  /// In en, this message translates to:
+  /// **'{state, select, on{{moderator} turned shield mode on.} other{{moderator} turned shield mode off.}}'**
+  String chatShieldModeChangedBy({
+    required String state,
+    required String moderator,
+  });
+
+  /// A chat line when the broadcaster or a moderator gives a shoutout to another channel (View opens that user's card).
+  ///
+  /// In en, this message translates to:
+  /// **'Shoutout to {name}! Check out their channel.'**
+  String chatShoutoutNotice({required String name});
+
+  /// The link at the end of chatShoutoutNotice, opening the user card of the channel.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get chatShoutoutView;
+
+  /// A mod tools row and the title of the list of moderation actions taken in this chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Mod actions'**
+  String get modToolsActionLog;
+
+  /// Under the title of the moderation actions list.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions taken in this chat since you opened it.'**
+  String get modToolsActionLogCaption;
+
+  /// The second line of the Mod actions row.
+  ///
+  /// In en, this message translates to:
+  /// **'Who did what, live'**
+  String get modToolsActionLogDetail;
+
+  /// The moderation actions list when nothing happened yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No mod actions yet'**
+  String get modToolsActionLogEmpty;
+
+  /// The button next to a field that adds what was typed (a moderator, a blocked term, a tag).
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get modToolsAdd;
+
+  /// Adds another answer field to a new poll.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a choice'**
+  String get modToolsAddChoice;
+
+  /// Adds another outcome field to a new prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an outcome'**
+  String get modToolsAddOutcome;
+
+  /// Lets a message AutoMod held into chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get modToolsAllow;
+
+  /// A mod tools row and the title of the announcement sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Send an announcement'**
+  String get modToolsAnnounce;
+
+  /// Under the title of the announcement sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlighted in chat for everyone.'**
+  String get modToolsAnnounceCaption;
+
+  /// The section label above an announcement's color choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get modToolsAnnounceColor;
+
+  /// An announcement color choice (primary is the channel's own accent color).
+  ///
+  /// In en, this message translates to:
+  /// **'{color, select, primary{Channel color} blue{Blue} green{Green} orange{Orange} purple{Purple} other{Channel color}}'**
+  String modToolsAnnounceColorName({required String color});
+
+  /// The label above the announcement's text field.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement'**
+  String get modToolsAnnounceLabel;
+
+  /// Sends the announcement.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get modToolsAnnounceSend;
+
+  /// Approves an unban request.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get modToolsApprove;
+
+  /// Under the title of the AutoMod queue.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages AutoMod is holding for review.'**
+  String get modToolsAutoModCaption;
+
+  /// The AutoMod queue when it is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages are waiting'**
+  String get modToolsAutoModEmpty;
+
+  /// The second line of the AutoMod queue row when nothing waits.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to review'**
+  String get modToolsAutoModEmptyDetail;
+
+  /// The second line of the AutoMod queue row: how many held messages wait for a decision.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} message waiting} other{{count} messages waiting}}'**
+  String modToolsAutoModPending({required int count});
+
+  /// A mod tools row and the title of the list of messages AutoMod holds.
+  ///
+  /// In en, this message translates to:
+  /// **'AutoMod queue'**
+  String get modToolsAutoModQueue;
+
+  /// The status after a blocked term was added.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked term added.'**
+  String get modToolsBlockedTermAdded;
+
+  /// The status after a blocked term was removed.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked term removed.'**
+  String get modToolsBlockedTermRemoved;
+
+  /// Error message. A blocked term typed was too short (Twitch needs 2 characters).
+  ///
+  /// In en, this message translates to:
+  /// **'A blocked term needs at least 2 characters.'**
+  String get modToolsBlockedTermTooShort;
+
+  /// A mod tools row and the title of the channel's blocked terms list.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked terms'**
+  String get modToolsBlockedTerms;
+
+  /// Under the title of the blocked terms list.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages with these terms never reach chat.'**
+  String get modToolsBlockedTermsCaption;
+
+  /// The blocked terms list when it is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No blocked terms'**
+  String get modToolsBlockedTermsEmpty;
+
+  /// Under the mod tools title for the channel's owner.
+  ///
+  /// In en, this message translates to:
+  /// **'You own this channel'**
+  String get modToolsCaptionBroadcaster;
+
+  /// Under the mod tools title for a moderator.
+  ///
+  /// In en, this message translates to:
+  /// **'You moderate this channel'**
+  String get modToolsCaptionModerator;
+
+  /// The label above the category search field of the stream info sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get modToolsCategoryLabel;
+
+  /// The category field's hint when the stream has none.
+  ///
+  /// In en, this message translates to:
+  /// **'No category'**
+  String get modToolsCategoryNone;
+
+  /// The label above the field naming a channel (shoutout, raid).
+  ///
+  /// In en, this message translates to:
+  /// **'Channel name'**
+  String get modToolsChannelLabel;
+
+  /// The label above an answer field of a new poll.
+  ///
+  /// In en, this message translates to:
+  /// **'Choice {number}'**
+  String modToolsChoiceLabel({required int number});
+
+  /// Removes the allowed, denied and expired messages from the AutoMod queue.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear resolved'**
+  String get modToolsClearResolved;
+
+  /// A mod tools row (the channel's owner) starting an ad break.
+  ///
+  /// In en, this message translates to:
+  /// **'Run an ad'**
+  String get modToolsCommercial;
+
+  /// The body of the dialog confirming an ad break.
+  ///
+  /// In en, this message translates to:
+  /// **'Every viewer sees the ad. Pick its length.'**
+  String get modToolsCommercialMessage;
+
+  /// Confirms the ad break.
+  ///
+  /// In en, this message translates to:
+  /// **'Run ad'**
+  String get modToolsCommercialStart;
+
+  /// The title of the dialog confirming an ad break.
+  ///
+  /// In en, this message translates to:
+  /// **'Run an ad?'**
+  String get modToolsCommercialTitle;
+
+  /// Confirms a role change.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get modToolsConfirm;
+
+  /// Denies a held message or an unban request.
+  ///
+  /// In en, this message translates to:
+  /// **'Deny'**
+  String get modToolsDeny;
+
+  /// The second line of the Mod tools row in the chat menu.
+  ///
+  /// In en, this message translates to:
+  /// **'AutoMod, terms, shield mode, and more'**
+  String get modToolsEntryDetail;
+
+  /// Marks a channel points reward request as done.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get modToolsFulfil;
+
+  /// The status after a reward request was marked as done.
+  ///
+  /// In en, this message translates to:
+  /// **'Request completed.'**
+  String get modToolsFulfilled;
+
+  /// Why AutoMod held a message, with its severity level (1 to 4).
+  ///
+  /// In en, this message translates to:
+  /// **'{reason} · level {level}'**
+  String modToolsHeldLevel({required String reason, required int level});
+
+  /// Why a message was held: AutoMod, a blocked term, or a blocked link.
+  ///
+  /// In en, this message translates to:
+  /// **'{reason, select, automod{AutoMod} blockedTerm{Blocked term} blockedLink{Blocked link} other{AutoMod}}'**
+  String modToolsHeldReason({required String reason});
+
+  /// The state of a held message in the AutoMod queue.
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, pending{Waiting} approved{Allowed} denied{Denied} expired{Expired} other{Waiting}}'**
+  String modToolsHeldStatus({required String status});
+
+  /// The second line of a mod tools row whose permission the login does not have yet; a tap opens the login.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again to enable'**
+  String get modToolsLogInToEnable;
+
+  /// A user card action (the channel's owner) giving the moderator role.
+  ///
+  /// In en, this message translates to:
+  /// **'Make moderator'**
+  String get modToolsMakeModerator;
+
+  /// A user card action (the channel's owner) giving the VIP role.
+  ///
+  /// In en, this message translates to:
+  /// **'Make VIP'**
+  String get modToolsMakeVip;
+
+  /// A mod tools row adding a stream marker.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a stream marker'**
+  String get modToolsMarker;
+
+  /// Confirms the stream marker.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get modToolsMarkerAdd;
+
+  /// The label above the stream marker's text field.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get modToolsMarkerLabel;
+
+  /// The title of the stream marker dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a stream marker'**
+  String get modToolsMarkerTitle;
+
+  /// Under the title of the moderators list.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} moderator} other{{count} moderators}}'**
+  String modToolsModeratorCount({required int count});
+
+  /// A mod tools row and the title of the channel's moderators list.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderators'**
+  String get modToolsModerators;
+
+  /// A user card action: flags the user so moderators see their messages marked.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitor messages'**
+  String get modToolsMonitor;
+
+  /// The user card button opening shoutout, monitor, restrict and role actions.
+  ///
+  /// In en, this message translates to:
+  /// **'More mod actions'**
+  String get modToolsMoreActions;
+
+  /// The label above an outcome field of a new prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'Outcome {number}'**
+  String modToolsOutcomeLabel({required int number});
+
+  /// A mod tools row opening the channel's permitted terms on twitch.tv (no app API for them).
+  ///
+  /// In en, this message translates to:
+  /// **'Permitted terms'**
+  String get modToolsPermittedTerms;
+
+  /// The section label above a new poll's length choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get modToolsPollDuration;
+
+  /// Ends the poll in progress.
+  ///
+  /// In en, this message translates to:
+  /// **'End poll'**
+  String get modToolsPollEnd;
+
+  /// The body of the dialog confirming the end of a poll.
+  ///
+  /// In en, this message translates to:
+  /// **'Voting stops now and the results show.'**
+  String get modToolsPollEndMessage;
+
+  /// The title of the dialog confirming the end of a poll.
+  ///
+  /// In en, this message translates to:
+  /// **'End the poll?'**
+  String get modToolsPollEndTitle;
+
+  /// The status after the poll ended.
+  ///
+  /// In en, this message translates to:
+  /// **'Poll ended.'**
+  String get modToolsPollEnded;
+
+  /// The section label above the poll in progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Poll in progress'**
+  String get modToolsPollLive;
+
+  /// Starts the new poll.
+  ///
+  /// In en, this message translates to:
+  /// **'Start poll'**
+  String get modToolsPollStart;
+
+  /// The status after a poll started.
+  ///
+  /// In en, this message translates to:
+  /// **'Poll started.'**
+  String get modToolsPollStarted;
+
+  /// A mod tools row and the title of the poll sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Polls'**
+  String get modToolsPolls;
+
+  /// Under the title of the poll sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask chat a question.'**
+  String get modToolsPollsCaption;
+
+  /// Cancels the prediction in progress and refunds everyone.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel prediction'**
+  String get modToolsPredictionCancel;
+
+  /// The body of the dialog confirming a canceled prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone gets their channel points back.'**
+  String get modToolsPredictionCancelMessage;
+
+  /// The title of the dialog confirming a canceled prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the prediction?'**
+  String get modToolsPredictionCancelTitle;
+
+  /// The section label above the prediction in progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Prediction in progress'**
+  String get modToolsPredictionLive;
+
+  /// Stops new predictions on the prediction in progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock'**
+  String get modToolsPredictionLock;
+
+  /// The section label above a locked prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'Prediction locked'**
+  String get modToolsPredictionLocked;
+
+  /// Under a prediction outcome: makes it the result.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick as result'**
+  String get modToolsPredictionPickWinner;
+
+  /// The channel points bet on a prediction outcome.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} point} other{{count} points}}'**
+  String modToolsPredictionPoints({required int count});
+
+  /// Confirms the prediction's result.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm result'**
+  String get modToolsPredictionResolve;
+
+  /// The body of the dialog confirming a prediction's result; outcome is the outcome's title.
+  ///
+  /// In en, this message translates to:
+  /// **'“{outcome}” wins. Channel points go to the people who picked it.'**
+  String modToolsPredictionResolveMessage({required String outcome});
+
+  /// The title of the dialog confirming a prediction's result.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm the result?'**
+  String get modToolsPredictionResolveTitle;
+
+  /// Starts the new prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start prediction'**
+  String get modToolsPredictionStart;
+
+  /// The status after a prediction started.
+  ///
+  /// In en, this message translates to:
+  /// **'Prediction started.'**
+  String get modToolsPredictionStarted;
+
+  /// The status after a prediction was locked, resolved or canceled.
+  ///
+  /// In en, this message translates to:
+  /// **'{state, select, locked{Prediction locked.} resolved{Result confirmed.} canceled{Prediction canceled.} other{Prediction updated.}}'**
+  String modToolsPredictionUpdated({required String state});
+
+  /// How many viewers picked a prediction outcome.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} predictor} other{{count} predictors}}'**
+  String modToolsPredictionUsers({required int count});
+
+  /// The section label above a new prediction's window choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to predict'**
+  String get modToolsPredictionWindow;
+
+  /// A mod tools row and the title of the prediction sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Predictions'**
+  String get modToolsPredictions;
+
+  /// Under the title of the prediction sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Let chat bet channel points.'**
+  String get modToolsPredictionsCaption;
+
+  /// The label above the question field of a new poll or prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get modToolsQuestionLabel;
+
+  /// A mod tools row (the channel's owner) starting a raid.
+  ///
+  /// In en, this message translates to:
+  /// **'Raid a channel'**
+  String get modToolsRaid;
+
+  /// A mod tools row, and the confirming button, canceling the outgoing raid.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the raid'**
+  String get modToolsRaidCancel;
+
+  /// The body of the dialog confirming a canceled raid.
+  ///
+  /// In en, this message translates to:
+  /// **'Your viewers stay here.'**
+  String get modToolsRaidCancelMessage;
+
+  /// The title of the dialog confirming a canceled raid.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the raid?'**
+  String get modToolsRaidCancelTitle;
+
+  /// The body of the raid dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Your viewers leave for this channel once the countdown ends.'**
+  String get modToolsRaidMessage;
+
+  /// Starts the raid on the channel typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Start raid'**
+  String get modToolsRaidStart;
+
+  /// The title of the raid dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Raid a channel'**
+  String get modToolsRaidTitle;
+
+  /// A reward request's reward and its cost in channel points.
+  ///
+  /// In en, this message translates to:
+  /// **'{reward} · {cost, plural, one{{cost} point} other{{cost} points}}'**
+  String modToolsRedemptionReward({required String reward, required int cost});
+
+  /// Refunds a channel points reward request.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get modToolsRefund;
+
+  /// The body of the dialog confirming a refund; name is the viewer, reward the reward's title.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gets back the points spent on “{reward}”.'**
+  String modToolsRefundMessage({required String name, required String reward});
+
+  /// The title of the dialog confirming a refund.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund this request?'**
+  String get modToolsRefundTitle;
+
+  /// The status after a reward request was refunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Request refunded.'**
+  String get modToolsRefunded;
+
+  /// Removes a moderator, a VIP or a blocked term.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get modToolsRemove;
+
+  /// A user card action (the channel's owner) removing the moderator role.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove moderator'**
+  String get modToolsRemoveModerator;
+
+  /// The tooltip of a stream tag's delete button.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {tag}'**
+  String modToolsRemoveTag({required String tag});
+
+  /// A user card action (the channel's owner) removing the VIP role.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove VIP'**
+  String get modToolsRemoveVip;
+
+  /// When an unban request was sent (date: a medium date).
+  ///
+  /// In en, this message translates to:
+  /// **'Sent {date}'**
+  String modToolsRequestedOn({required String date});
+
+  /// A user card action, and its confirming button: only moderators will see the user's messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Restrict'**
+  String get modToolsRestrict;
+
+  /// The body of the dialog confirming a restriction.
+  ///
+  /// In en, this message translates to:
+  /// **'Only moderators will see messages from {name}.'**
+  String modToolsRestrictMessage({required String name});
+
+  /// The title of the dialog confirming a restriction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restrict this user?'**
+  String get modToolsRestrictTitle;
+
+  /// A row opening the channel's complete reward queue on twitch.tv.
+  ///
+  /// In en, this message translates to:
+  /// **'Full reward queue'**
+  String get modToolsRewardQueueWeb;
+
+  /// A mod tools row and the title of the channel points reward requests list.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward requests'**
+  String get modToolsRewardRequests;
+
+  /// Under the title of the reward requests list (a Twitch API limit).
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch only lets this app manage rewards created in ONSET. The full queue is on twitch.tv.'**
+  String get modToolsRewardRequestsCaption;
+
+  /// The reward requests list when it is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No requests waiting'**
+  String get modToolsRewardRequestsEmpty;
+
+  /// The body of the dialog confirming a role change; name is the user's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{change, select, addModerator{{name} will be able to moderate this chat.} removeModerator{{name} will no longer be able to moderate this chat.} addVip{{name} will get the VIP badge.} removeVip{{name} will lose the VIP badge.} other{{name}’s role will change.}}'**
+  String modToolsRoleConfirmMessage({
+    required String change,
+    required String name,
+  });
+
+  /// The title of the dialog confirming a role change.
+  ///
+  /// In en, this message translates to:
+  /// **'{change, select, addModerator{Make moderator?} removeModerator{Remove moderator?} addVip{Make VIP?} removeVip{Remove VIP?} other{Change role?}}'**
+  String modToolsRoleConfirmTitle({required String change});
+
+  /// Saves the stream info.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get modToolsSave;
+
+  /// An ad break length choice in seconds (compact).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count}s} other{{count}s}}'**
+  String modToolsSeconds({required int count});
+
+  /// The mod tools section label of the owner's channel tools.
+  ///
+  /// In en, this message translates to:
+  /// **'Your channel'**
+  String get modToolsSectionChannel;
+
+  /// The mod tools section label of the chat tools.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat tools'**
+  String get modToolsSectionChat;
+
+  /// The mod tools section label of the live tools (shield mode, AutoMod queue, mod actions).
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get modToolsSectionLive;
+
+  /// A mod tools row with a switch turning shield mode on or off.
+  ///
+  /// In en, this message translates to:
+  /// **'Shield mode'**
+  String get modToolsShieldMode;
+
+  /// The second line of the shield mode row.
+  ///
+  /// In en, this message translates to:
+  /// **'Your preset protections, in one tap'**
+  String get modToolsShieldModeDetail;
+
+  /// The pill in the chat while shield mode is on (moderators only; a tap opens the mod tools).
+  ///
+  /// In en, this message translates to:
+  /// **'Shield mode on'**
+  String get modToolsShieldModeOn;
+
+  /// A mod tools row giving a shoutout to a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Give a shoutout'**
+  String get modToolsShoutout;
+
+  /// The second line of the shoutout row.
+  ///
+  /// In en, this message translates to:
+  /// **'Point chat to another channel'**
+  String get modToolsShoutoutDetail;
+
+  /// Sends the shoutout.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get modToolsShoutoutSend;
+
+  /// The title of the shoutout dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Give a shoutout'**
+  String get modToolsShoutoutTitle;
+
+  /// A user card action giving a shoutout to that user's channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Give a shoutout'**
+  String get modToolsShoutoutUser;
+
+  /// A mod tools switch: show the live moderation actions as chat lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Show mod actions in chat'**
+  String get modToolsShowActionsInChat;
+
+  /// A mod tools row and the title of the stream info sheet (title, category, tags).
+  ///
+  /// In en, this message translates to:
+  /// **'Edit stream info'**
+  String get modToolsStreamInfo;
+
+  /// Under the title of the stream info sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Title, category, and tags'**
+  String get modToolsStreamInfoCaption;
+
+  /// The status after the stream info was saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream info saved.'**
+  String get modToolsStreamInfoSaved;
+
+  /// The label above the stream title field.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get modToolsStreamTitleLabel;
+
+  /// Error message. The tag typed has spaces, symbols or more than 25 characters.
+  ///
+  /// In en, this message translates to:
+  /// **'A tag can only have letters and numbers, up to 25 of them.'**
+  String get modToolsTagInvalid;
+
+  /// The label above the field adding a stream tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tag'**
+  String get modToolsTagLabel;
+
+  /// Error message. The stream already has as many tags as Twitch allows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{A stream can have up to {count} tag.} other{A stream can have up to {count} tags.}}'**
+  String modToolsTagLimit({required int count});
+
+  /// The section label above the stream's tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get modToolsTags;
+
+  /// The label above the field adding a blocked term.
+  ///
+  /// In en, this message translates to:
+  /// **'Term or phrase'**
+  String get modToolsTermLabel;
+
+  /// Under a blocked term that expires.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary'**
+  String get modToolsTermTemporary;
+
+  /// The chat menu row and the title of the moderation tools sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mod tools'**
+  String get modToolsTitle;
+
+  /// Under the title of the unban requests list.
+  ///
+  /// In en, this message translates to:
+  /// **'Banned users asking to come back.'**
+  String get modToolsUnbanCaption;
+
+  /// The body of the dialog approving or denying an unban request; name is the banned user.
+  ///
+  /// In en, this message translates to:
+  /// **'{decision, select, approved{{name} will be unbanned. You can add a note for them.} denied{{name} stays banned. You can add a note for them.} other{You can add a note for {name}.}}'**
+  String modToolsUnbanDialogMessage({
+    required String decision,
+    required String name,
+  });
+
+  /// The title of the dialog approving or denying an unban request.
+  ///
+  /// In en, this message translates to:
+  /// **'{decision, select, approved{Approve the request?} denied{Deny the request?} other{Answer the request?}}'**
+  String modToolsUnbanDialogTitle({required String decision});
+
+  /// The unban requests list when it is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No unban requests'**
+  String get modToolsUnbanEmpty;
+
+  /// The label above the note sent with an unban decision.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get modToolsUnbanNoteLabel;
+
+  /// A mod tools row and the title of the pending unban requests list.
+  ///
+  /// In en, this message translates to:
+  /// **'Unban requests'**
+  String get modToolsUnbanRequests;
+
+  /// The status after an unban request was approved or denied.
+  ///
+  /// In en, this message translates to:
+  /// **'{decision, select, approved{Request from {name} approved.} denied{Request from {name} denied.} other{Request from {name} answered.}}'**
+  String modToolsUnbanResolved({
+    required String decision,
+    required String name,
+  });
+
+  /// A user card action lifting the monitoring of the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop monitoring'**
+  String get modToolsUnmonitor;
+
+  /// A user card action lifting the user's restriction.
+  ///
+  /// In en, this message translates to:
+  /// **'Lift restriction'**
+  String get modToolsUnrestrict;
+
+  /// The title of the user card's extra moderation actions sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mod actions'**
+  String get modToolsUserActionsTitle;
+
+  /// The label above the field naming a user to add as a moderator or VIP.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get modToolsUserLabel;
+
+  /// A pill on the user card telling a moderator the user's state in this channel.
+  ///
+  /// In en, this message translates to:
+  /// **'{pill, select, banned{Banned} timedOut{Timed out} warned{Warned} monitored{Monitored} restricted{Restricted} other{Flagged}}'**
+  String modToolsUserPill({required String pill});
+
+  /// Under the title of the VIPs list.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} VIP} other{{count} VIPs}}'**
+  String modToolsVipCount({required int count});
+
+  /// A mod tools row and the title of the channel's VIPs list.
+  ///
+  /// In en, this message translates to:
+  /// **'VIPs'**
+  String get modToolsVips;
+
+  /// The votes an answer of the poll in progress has.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} vote} other{{count} votes}}'**
+  String modToolsVotes({required int count});
 
   /// A line in chat once the viewer banned someone. name is their display name.
   ///

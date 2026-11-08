@@ -17,6 +17,9 @@ class Channel {
   @JsonKey(defaultValue: <String>[])
   final List<String> contentClassificationLabels;
 
+  @JsonKey(defaultValue: <String>[])
+  final List<String> tags;
+
   const Channel({
     required this.broadcasterId,
     required this.broadcasterLogin,
@@ -26,6 +29,7 @@ class Channel {
     required this.gameId,
     required this.gameName,
     this.contentClassificationLabels = const [],
+    this.tags = const [],
   });
 
   factory Channel.fromJson(Map<String, dynamic> json) =>

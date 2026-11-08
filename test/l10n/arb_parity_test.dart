@@ -11,6 +11,11 @@ import 'arb.dart';
 /// Values that are the same in English and in French on purpose, by key.
 /// An entry whose values differ is stale and fails.
 const _sameInBothLanguages = {
+  'modToolsPredictionPoints': '"point(s)" is the French word too; a number leads.',
+  'modToolsRedemptionReward':
+      'The reward\'s title and "point(s)", the French word too.',
+  'modToolsTags': '"Tags" is Twitch\'s French word too.',
+  'modToolsVotes': '"vote(s)" is the French word too; a number leads.',
   'languageNameEnglish': 'An endonym: English is always written "English".',
   'languageNameFrench': 'An endonym: French is always written "Français".',
   'languageChoiceSemantics': 'Bilingual on purpose, whatever is on screen.',

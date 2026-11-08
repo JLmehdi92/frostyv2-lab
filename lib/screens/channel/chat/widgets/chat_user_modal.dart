@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/channel/chat/mod_tools/widgets/user_card_mod_panel.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
@@ -208,15 +209,61 @@ class _ChatUserModalState extends State<ChatUserModal> {
             login == store.auth.user.details?.login.toLowerCase()) {
           return const SizedBox.shrink();
         }
-        return Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: ChatModerationBar(
-            login: widget.username,
-            name: name,
-            dense: dense,
-            onModerate: (command) =>
-                store.moderate(command, userId: widget.userId),
-          ),
+        final badges =
+            store.messages
+                .lastWhereOrNull((message) => message.user == widget.username)
+                ?.tags['badges'] ??
+            '';
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            UserCardModPills(
+              tools: store.modTools,
+              userId: widget.userId,
+              dense: dense,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: ChatModerationBar(
+                login: widget.username,
+                name: name,
+                dense: dense,
+                onModerate: (command) =>
+                    store.moderate(command, userId: widget.userId),
+              ),
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+                child: TextButton.icon(
+                  onPressed: () => showOnsetSheet<void>(
+                    context: context,
+                    panel: true,
+                    builder: (context) => UserCardModActions(
+                      chatStore: store,
+                      login: widget.username,
+                      userId: widget.userId,
+                      name: name,
+                      isModerator: badges.contains('moderator/'),
+                      isVip: badges.contains('vip/'),
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: colors.secondary,
+                    textStyle: SheetText.pill,
+                  ),
+                  icon: SheetGlyph(
+                    SheetGlyphKind.shield,
+                    size: 16,
+                    color: colors.secondary,
+                  ),
+                  label: Text(context.l10n.modToolsMoreActions),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

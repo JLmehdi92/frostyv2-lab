@@ -9,6 +9,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_chat_history_service.dart';
+import 'package:onset/apis/twitch_mod_api.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/chat_history.dart';
@@ -27,6 +28,8 @@ import 'package:onset/screens/channel/chat/emote_entitlements.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:onset/screens/channel/chat/held_messages.dart';
 import 'package:onset/screens/channel/chat/incoming_raid.dart';
+import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
+import 'package:onset/screens/channel/chat/mod_tools/stores/mod_tools_store.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
 import 'package:onset/screens/channel/chat/moderation_notice.dart';
 import 'package:onset/screens/channel/chat/muted_words.dart';
@@ -468,6 +471,12 @@ abstract class ChatStoreBase with Store {
   /// Adds Twitch's "X has been timed out / banned" line for a targeted
   /// CLEARCHAT, at the time Twitch sent it.
   void _addModerationNotice(IRCMessage clearChat, List<IRCMessage> buffer) {
+    if (canModerate) {
+      modTools.noteClearChat(
+        clearChat.tags['target-user-id'],
+        int.tryParse(clearChat.tags['ban-duration'] ?? ''),
+      );
+    }
     // Blocked people stay out of chat, notices included (moderators and the
     // channel owner see them, as they see their messages).
     final notice = moderationNoticeLine(
@@ -494,6 +503,56 @@ abstract class ChatStoreBase with Store {
   @computed
   bool get canModerate =>
       _userState.mod || channelName == auth.user.details?.login;
+
+  late final ModToolsStore modTools = ModToolsStore(
+    twitchApi: twitchApi,
+    broadcasterId: channelId,
+    listenEvents: listenEvents,
+    showActionsInChat: () => settings.showModActionsInChat,
+    onChatLine: _addModLine,
+  );
+
+  Stream<ModToolsView> get modToolsRequests => modTools.requests;
+
+  @computed
+  bool get shieldModeActive => canModerate && modTools.shieldActive;
+
+  void _addModLine(String text, {String? actionLabel, VoidCallback? onAction}) {
+    if (_shouldDisconnect) return;
+    runInAction(
+      () => messageBuffer.add(
+        IRCMessage.createNotice(
+          message: text,
+          actionLabel: actionLabel,
+          actionCallback: onAction,
+        ),
+      ),
+    );
+  }
+
+  final _shoutoutIds = <String>{};
+
+  void addShoutout(ShoutoutNotice shoutout) {
+    if (!_shoutoutIds.add(shoutout.id)) return;
+    final l = L10n.current;
+    _addModLine(
+      l.chatShoutoutNotice(name: shoutout.targetName),
+      actionLabel: l.chatShoutoutView,
+      onAction: () => _userCardRequests.add((
+        login: shoutout.targetLogin,
+        id: shoutout.targetId,
+        displayName: shoutout.targetName,
+      )),
+    );
+  }
+
+  void _followModTools(String? moderatorId) {
+    if (moderatorId == null) {
+      modTools.stop();
+    } else {
+      unawaited(modTools.start(moderatorId));
+    }
+  }
 
   @action
   void _updateRestriction() {
@@ -765,8 +824,36 @@ abstract class ChatStoreBase with Store {
       ).run(command, userId: userId);
       if (_shouldDisconnect) return null;
     }
-    messageBuffer.add(IRCMessage.createNotice(message: outcome.message));
+    if (outcome.ok) _noteModerated(command, userId);
+    final l = L10n.current;
+    final listedRole = command is RoleListCommand && outcome.ok
+        ? command.role
+        : null;
+    messageBuffer.add(
+      IRCMessage.createNotice(
+        message: outcome.message,
+        actionLabel: listedRole == null ? null : l.chatModViewList,
+        actionCallback: listedRole == null
+            ? null
+            : () => modTools.request(
+                listedRole == ChannelRole.moderator
+                    ? ModToolsView.moderators
+                    : ModToolsView.vips,
+              ),
+      ),
+    );
     return outcome;
+  }
+
+  void _noteModerated(ModerationCommand command, String? userId) {
+    switch (command) {
+      case ShieldCommand(:final on):
+        modTools.noteShieldMode(on);
+      case SuspicionCommand(:final status, :final on) when userId != null:
+        modTools.noteSuspicion(userId, on ? status : null);
+      default:
+        break;
+    }
   }
 
   void _forgetFollowRefusalWhenOpen() {
@@ -912,6 +999,17 @@ abstract class ChatStoreBase with Store {
       reaction(
         (_) => (auth.isLoggedIn ? auth.user.details?.id : null, auth.token),
         (session) => _watchHeldMessages(session.$1),
+        fireImmediately: true,
+      ),
+    );
+
+    reactions.add(
+      reaction(
+        (_) => (
+          auth.isLoggedIn && canModerate ? auth.user.details?.id : null,
+          auth.token,
+        ),
+        (session) => _followModTools(session.$1),
         fireImmediately: true,
       ),
     );
@@ -2283,6 +2381,7 @@ abstract class ChatStoreBase with Store {
     _emoteRefreshTimer?.cancel();
 
     _heldMessages?.dispose();
+    modTools.dispose();
     chatRules?.dispose();
 
     // Cancel WebSocket subscriptions

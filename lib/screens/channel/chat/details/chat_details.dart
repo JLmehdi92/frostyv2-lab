@@ -12,6 +12,7 @@ import 'package:onset/screens/channel/chat/details/chat_mode_controls.dart';
 import 'package:onset/screens/channel/chat/details/chat_modes.dart';
 import 'package:onset/screens/channel/chat/details/chat_users_list.dart';
 import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
+import 'package:onset/screens/channel/chat/mod_tools/widgets/mod_tools_sheet.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/shared_chat_banner.dart';
@@ -490,6 +491,14 @@ class _ChatDetailsState extends State<ChatDetails> {
                 },
               ),
             ],
+          if (store.canModerate)
+            SheetRow(
+              glyph: SheetGlyphKind.flag,
+              label: context.l10n.modToolsTitle,
+              detail: context.l10n.modToolsEntryDetail,
+              end: SheetRowEnd.chevron,
+              onTap: () => showModTools(context, store),
+            ),
           if (store.canModerate)
             SheetRow(
               glyph: SheetGlyphKind.shield,

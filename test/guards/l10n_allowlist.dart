@@ -34,6 +34,15 @@ const l10nAllowlist = <String, Map<String, String>>{
   },
   'lib/apis/twitch_api.dart': {'Clip failed': _apiLog},
   'lib/apis/twitch_clip_service.dart': {'Clip playback is forbidden': _apiLog},
+  'lib/apis/twitch_mod_api.dart': {
+    'RESTRICTED': _helixValue,
+    'ALLOW': _helixValue,
+    'DENY': _helixValue,
+    'RESOLVED': _helixValue,
+    'CANCELED': _helixValue,
+    'LOCKED': _helixValue,
+    'FULFILLED': _helixValue,
+  },
   'lib/apis/twitch_directory_service.dart': {
     'RELEVANCE': 'A GQL sort value sent to Twitch (StreamSort.gql): code.',
     'RECENT': 'A GQL sort value sent to Twitch (StreamSort.gql): code.',
@@ -110,11 +119,38 @@ const l10nAllowlist = <String, Map<String, String>>{
     'emoteonlyoff': _commandName,
     'uniquechat': _commandName,
     'uniquechatoff': _commandName,
+    'announce': _commandName,
+    'announceblue': _commandName,
+    'announcegreen': _commandName,
+    'announceorange': _commandName,
+    'announcepurple': _commandName,
+    'shoutout': _commandName,
+    'shield': _commandName,
+    'shieldoff': _commandName,
+    'monitor': _commandName,
+    'unmonitor': _commandName,
+    'restrict': _commandName,
+    'unrestrict': _commandName,
+    'mods': _commandName,
+    'vips': _commandName,
+    'mod': _commandName,
+    'unmod': _commandName,
+    'vip': _commandName,
+    'unvip': _commandName,
+    'marker': _commandName,
+    'commercial': _commandName,
+    'raid': _commandName,
+    'unraid': _commandName,
   },
   'lib/screens/channel/chat/details/chat_details.dart': {
     'preview-message':
         'The id of the colour picker\'s fake preview message (an IRC tag), '
         'never shown.',
+  },
+  'lib/screens/channel/chat/mod_tools/mod_action_text.dart': {
+    'timeoutUnknown':
+        'A case of the chatModAction select (a timeout Twitch sent no '
+        'length for), never shown.',
   },
   'lib/screens/channel/chat/moderation.dart': {
     'no user named {}':
@@ -259,6 +295,9 @@ const _apiLog =
 const _chatColorId =
     'A chat colour\'s id sent to Twitch (chatColorNames, /color); the '
     'colour picker words it with chatColorName.';
+
+const _helixValue =
+    'A value Twitch\'s Helix API reads (a status or an action): code.';
 
 const _commandName =
     'A chat command\'s name: what is typed after the slash, as Twitch reads '

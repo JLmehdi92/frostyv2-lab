@@ -76,7 +76,15 @@ abstract class AuthBase with Store {
       'moderator:manage:banned_users moderator:manage:chat_messages '
       'moderator:manage:chat_settings moderator:manage:warnings '
       'moderator:read:followers user:manage:whispers '
-      'user:read:emotes user:read:chat clips:edit';
+      'user:read:emotes user:read:chat clips:edit '
+      'moderator:manage:announcements moderator:manage:shoutouts '
+      'moderator:manage:shield_mode moderator:manage:automod '
+      'moderator:manage:blocked_terms moderator:manage:unban_requests '
+      'moderator:manage:suspicious_users moderator:read:moderators '
+      'moderator:read:vips channel:manage:moderators channel:manage:vips '
+      'channel:manage:broadcast channel:edit:commercial channel:manage:raids '
+      'channel:manage:polls channel:manage:predictions '
+      'channel:manage:redemptions';
 
   /// Where the user token is kept, for the go-live background check (its
   /// own isolate, without this store).

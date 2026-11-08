@@ -658,6 +658,7 @@ void main() {
       'community-points-channel-v1.1',
       'creator-goals-events-v1.1',
       'celebration-events-v1.1',
+      'shoutout.1',
     ]);
   });
 }

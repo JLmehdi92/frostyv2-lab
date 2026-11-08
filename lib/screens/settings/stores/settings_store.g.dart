@@ -167,6 +167,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..fullScreenChatOverlayOpacity =
       (json['fullScreenChatOverlayOpacity'] as num?)?.toDouble() ?? 0.5
   ..tapToCloseOverlayChat = json['tapToCloseOverlayChat'] as bool? ?? false
+  ..showModActionsInChat = json['showModActionsInChat'] as bool? ?? true
   ..landscapeChatModes = landscapeChatModesFromJson(
     json['landscapeChatModes'] as List?,
   )
@@ -287,6 +288,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'chatWidth': instance.chatWidth,
   'fullScreenChatOverlayOpacity': instance.fullScreenChatOverlayOpacity,
   'tapToCloseOverlayChat': instance.tapToCloseOverlayChat,
+  'showModActionsInChat': instance.showModActionsInChat,
   'landscapeChatModes': instance.landscapeChatModes
       .map((e) => _$LandscapeChatModeEnumMap[e]!)
       .toList(),
@@ -1705,6 +1707,28 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     );
   }
 
+  late final _$showModActionsInChatAtom = Atom(
+    name: '_SettingsStoreBase.showModActionsInChat',
+    context: context,
+  );
+
+  @override
+  bool get showModActionsInChat {
+    _$showModActionsInChatAtom.reportRead();
+    return super.showModActionsInChat;
+  }
+
+  @override
+  set showModActionsInChat(bool value) {
+    _$showModActionsInChatAtom.reportWrite(
+      value,
+      super.showModActionsInChat,
+      () {
+        super.showModActionsInChat = value;
+      },
+    );
+  }
+
   late final _$landscapeChatModesAtom = Atom(
     name: '_SettingsStoreBase.landscapeChatModes',
     context: context,
@@ -2392,6 +2416,7 @@ landscapeCutout: ${landscapeCutout},
 chatWidth: ${chatWidth},
 fullScreenChatOverlayOpacity: ${fullScreenChatOverlayOpacity},
 tapToCloseOverlayChat: ${tapToCloseOverlayChat},
+showModActionsInChat: ${showModActionsInChat},
 landscapeChatModes: ${landscapeChatModes},
 autocomplete: ${autocomplete},
 showTwitchEmotes: ${showTwitchEmotes},

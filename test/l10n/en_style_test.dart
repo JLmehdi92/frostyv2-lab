@@ -150,6 +150,9 @@ void main() {
 /// Values that keep a capital the checker reads as Title Case, by key, with
 /// the reason.
 const _titleCaseKept = {
+  'chatModActionWithReason':
+      'line is a sentence of its own, with its full stop: "Reason" starts '
+      'the next one.',
   'channelWebFallback':
       'notice is a sentence of its own: "Switching" starts the next one.',
 };
@@ -168,6 +171,7 @@ const _endsWithSentence = {
 
 /// Names and words that keep their capital inside an English sentence.
 const _properNouns = {
+  'VIPs',
   'ONSET',
   'Twitch',
   'Hype',

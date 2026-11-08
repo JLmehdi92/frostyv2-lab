@@ -32,6 +32,13 @@ mixin _$ChatStore on ChatStoreBase, Store {
     () => super.canModerate,
     name: 'ChatStoreBase.canModerate',
   )).value;
+  Computed<bool>? _$shieldModeActiveComputed;
+
+  @override
+  bool get shieldModeActive => (_$shieldModeActiveComputed ??= Computed<bool>(
+    () => super.shieldModeActive,
+    name: 'ChatStoreBase.shieldModeActive',
+  )).value;
   Computed<List<Emote>>? _$matchingEmotesComputed;
 
   @override
@@ -744,6 +751,7 @@ replyingToMessage: ${replyingToMessage},
 renderMessages: ${renderMessages},
 sharedChatPartners: ${sharedChatPartners},
 canModerate: ${canModerate},
+shieldModeActive: ${shieldModeActive},
 matchingEmotes: ${matchingEmotes},
 matchingChatters: ${matchingChatters},
 matchingCommands: ${matchingCommands},

@@ -136,7 +136,7 @@ void main() {
         '/slow 200',
         '/followers 4mo',
         '/subscribers now',
-        '/raid someone',
+        '/pin someone',
         '/dance',
       ])
         (parseChatCommand(line) as UnsupportedCommand).text(l),

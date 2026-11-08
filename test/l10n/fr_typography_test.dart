@@ -115,14 +115,38 @@ void main() {
     final problems = [
       for (final key in keys)
         for (final problem in frenchTypographyProblems(fr[key]! as String))
-          '$key: $problem',
+          if (!(_titleCaseKept.containsKey(key) &&
+              problem.startsWith('Title Case')))
+            '$key: $problem',
     ];
     expect(problems, isEmpty, reason: problems.join('\n'));
   });
+
+  test('every key excused from sentence case still needs it', () {
+    final fr = readArb(frArbPath);
+    for (final key in _titleCaseKept.keys) {
+      expect(
+        frenchTypographyProblems(
+          fr[key]! as String,
+        ).where((p) => p.startsWith('Title Case')),
+        isNotEmpty,
+        reason: '$key no longer needs _titleCaseKept',
+      );
+    }
+  });
 }
+
+/// Values that keep a capital the checker reads as Title Case, by key, with
+/// the reason.
+const _titleCaseKept = {
+  'chatModActionWithReason':
+      'line is a sentence of its own, with its full stop: « Motif » starts '
+      'the next one.',
+};
 
 /// Names and words that keep their capital inside a French sentence.
 const _properNouns = {
+  'AutoMod',
   'Twitch',
   'ONSET',
   'Hype',
