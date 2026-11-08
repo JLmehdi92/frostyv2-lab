@@ -116,6 +116,9 @@ void main() {
     ).thenAnswer((_) async => _usherUrl);
     when(() => streamService.refusalFor(any())).thenReturn(null);
     when(() => streamService.usherRefusal(any())).thenAnswer((_) async => null);
+    when(
+      () => streamService.usherRefusalDetails(any()),
+    ).thenAnswer((_) async => null);
     final live = StreamTwitch.fromJson(
       (twitchStreamResponse['data']! as List).first as Map<String, dynamic>,
     );
@@ -1749,9 +1752,9 @@ void main() {
     });
 
     test('rejected tokens end with the reason usher gives', () async {
-      when(
-        () => streamService.usherRefusal(_usherUrl),
-      ).thenAnswer((_) async => 'Content Restricted In Region');
+      when(() => streamService.usherRefusalDetails(_usherUrl)).thenAnswer(
+        (_) async => (refusal: null, reason: 'Content Restricted In Region'),
+      );
       var fatal = 0;
       final logged = <String>[];
       final print = debugPrint;
@@ -1785,9 +1788,34 @@ void main() {
       );
     });
 
+    test('a VPN, Wi-Fi or device refusal from usher is named', () async {
+      when(() => streamService.usherRefusalDetails(_usherUrl)).thenAnswer(
+        (_) async => (refusal: PlaybackRefusal.proxyDetected, reason: 'x'),
+      );
+      store = await createStore();
+
+      for (var i = 0; i < 4; i++) {
+        await native.emit({'type': 'error', 'code': 403});
+        await settle();
+        await settle();
+      }
+      for (var i = 0; i < 4; i++) {
+        await settle();
+      }
+
+      expect(
+        store.refusalNotice?.text(L10n.english),
+        'Twitch blocks this stream while a VPN or proxy is in use.',
+      );
+      expect(
+        store.refusalNotice?.text(lookupAppLocalizations(const Locale('fr'))),
+        'Twitch bloque ce live tant qu’un VPN ou un proxy est utilisé.',
+      );
+    });
+
     test('the player still gives up when usher cannot be asked', () async {
       when(
-        () => streamService.usherRefusal(any()),
+        () => streamService.usherRefusalDetails(any()),
       ).thenAnswer((_) async => throw Exception('network down'));
       var fatal = 0;
       store = await createStore();
@@ -1824,7 +1852,7 @@ void main() {
 
       expect(fatal, 1);
       expect(store.refusalNotice, isNull);
-      verifyNever(() => streamService.usherRefusal(any()));
+      verifyNever(() => streamService.usherRefusalDetails(any()));
     });
 
     test('other failures fall back without asking usher', () async {
@@ -1837,7 +1865,7 @@ void main() {
 
       expect(fatal, 1);
       expect(store.refusalNotice, isNull);
-      verifyNever(() => streamService.usherRefusal(any()));
+      verifyNever(() => streamService.usherRefusalDetails(any()));
     });
 
     test('a refusal message names each reason', () {

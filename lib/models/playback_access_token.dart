@@ -65,7 +65,20 @@ enum PlaybackRefusal {
   bannedFromChannel,
 
   /// Refused without a more precise reason.
-  unauthorized;
+  unauthorized,
+
+  proxyDetected,
+
+  wifiRequired,
+
+  unsupportedDevice;
+
+  static PlaybackRefusal? fromUsherCode(String? code) => switch (code) {
+    'anonymizer_blocked' => proxyDetected,
+    'cellular_geoblocked' => wifiRequired,
+    'no_cdm_specified' => unsupportedDevice,
+    _ => null,
+  };
 
   /// Null for `NONE` and for codes this app does not know.
   static PlaybackRefusal? fromCode(String? code) => switch (code) {

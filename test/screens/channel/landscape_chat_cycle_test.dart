@@ -507,6 +507,12 @@ void main() {
         when(() => streams.refusalFor(any())).thenReturn(null);
         when(() => streams.usherRefusal(any())).thenAnswer((_) async => null);
         when(
+          () => streams.usherRefusalDetails(any()),
+        ).thenAnswer((_) async => null);
+        when(
+          () => streams.usherRefusalDetails(any()),
+        ).thenAnswer((_) async => null);
+        when(
           () => api.getStream(userLogin: any(named: 'userLogin')),
         ).thenAnswer(
           (_) async => StreamTwitch.fromJson(

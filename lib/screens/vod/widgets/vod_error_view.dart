@@ -54,6 +54,13 @@ class VodErrorView extends StatelessWidget {
       subject: subject.name,
     ),
     VodPlaybackProblem.notFound => l.playbackNotFound(subject: subject.name),
+    VodPlaybackProblem.proxyDetected => l.playbackProxy(subject: subject.name),
+    VodPlaybackProblem.wifiRequired => l.playbackWifiRequired(
+      subject: subject.name,
+    ),
+    VodPlaybackProblem.unsupportedDevice => l.playbackUnsupportedDevice(
+      subject: subject.name,
+    ),
     VodPlaybackProblem.tokenRejected ||
     VodPlaybackProblem.unknown => l.playbackFailed(subject: subject.name),
   };
@@ -70,6 +77,8 @@ class VodErrorView extends StatelessWidget {
   bool get _retryable =>
       problem == VodPlaybackProblem.unknown ||
       problem == VodPlaybackProblem.tokenRejected ||
+      problem == VodPlaybackProblem.proxyDetected ||
+      problem == VodPlaybackProblem.wifiRequired ||
       problem == VodPlaybackProblem.subscriberOnly;
 
   @override

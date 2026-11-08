@@ -765,6 +765,22 @@ void main() {
       );
     });
 
+    test('maps the proxy, Wi-Fi and device refusals', () async {
+      for (final (code, problem) in [
+        ('anonymizer_blocked', VodPlaybackProblem.proxyDetected),
+        ('cellular_geoblocked', VodPlaybackProblem.wifiRequired),
+        ('no_cdm_specified', VodPlaybackProblem.unsupportedDevice),
+      ]) {
+        adapter.onGet(
+          url,
+          (s) => s.reply(403, [
+            {'error': 'Refused', 'error_code': code, 'type': 'error'},
+          ]),
+        );
+        expect(await service.diagnoseVodPlaylist(url), problem, reason: code);
+      }
+    });
+
     test('never fetches anything but usher', () async {
       expect(
         await service.diagnoseVodPlaylist('https://evil.example/vod/1.m3u8'),

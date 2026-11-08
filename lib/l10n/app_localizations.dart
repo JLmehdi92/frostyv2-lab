@@ -4259,6 +4259,24 @@ abstract class AppLocalizations {
   /// **'{subject, select, clip{This clip is available only to subscribers.} other{This video is available only to subscribers.}}'**
   String playbackSubscriberOnly({required String subject});
 
+  /// Error message. Over a video's or a clip's player: Twitch detected a VPN, a proxy or an unblocker. subject is clip or video.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject, select, clip{Twitch blocks this clip while a VPN or proxy is in use.} other{Twitch blocks this video while a VPN or proxy is in use.}}'**
+  String playbackProxy({required String subject});
+
+  /// Error message. Over a video's or a clip's player: Twitch only serves it over Wi-Fi, not mobile data. subject is clip or video.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject, select, clip{Connect to Wi-Fi to watch this clip.} other{Connect to Wi-Fi to watch this video.}}'**
+  String playbackWifiRequired({required String subject});
+
+  /// Error message. Over a video's or a clip's player: the device lacks the protected playback Twitch requires for it. subject is clip or video.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject, select, clip{Your device can’t play this clip.} other{Your device can’t play this video.}}'**
+  String playbackUnsupportedDevice({required String subject});
+
   /// Error message. Over a video's or a clip's player: it cannot be watched in the viewer's country. subject is clip or video.
   ///
   /// In en, this message translates to:
@@ -5344,6 +5362,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Twitch refused this stream.'**
   String get liveRefused;
+
+  /// Error message. Why the app's player cannot play a stream: Twitch detected a VPN, a proxy or an unblocker.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch blocks this stream while a VPN or proxy is in use.'**
+  String get liveRefusedProxy;
+
+  /// Error message. Why the app's player cannot play a stream: Twitch only serves it over Wi-Fi, not mobile data.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to Wi-Fi to watch this stream.'**
+  String get liveRefusedWifiRequired;
+
+  /// Error message. Why the app's player cannot play a stream: the device lacks the protected playback Twitch requires for it.
+  ///
+  /// In en, this message translates to:
+  /// **'Your device can’t play this stream.'**
+  String get liveRefusedUnsupportedDevice;
 
   /// Error message. Why the app's player cannot play a stream, in English only: Twitch's own explanation follows (a full stop is added when it has none).
   ///

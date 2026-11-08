@@ -1187,10 +1187,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     };
     final url = _url;
     if (notice == null && url != null) {
-      String? reason;
+      UsherRefusal? details;
       try {
-        reason = await _streamService
-            .usherRefusal(url)
+        details = await _streamService
+            .usherRefusalDetails(url)
             .timeout(const Duration(seconds: 4));
       } on TimeoutException catch (e) {
         // Only the explanation is lost: the player still gives up below.
@@ -1198,7 +1198,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       } catch (e, stack) {
         _reportUnexpected(e, stack, 'usher reason');
       }
-      if (reason != null) {
+      final reason = details?.reason;
+      if (details?.refusal case final refusal?) {
+        notice = StreamRefusalNotice(refusal: refusal, name: shownName);
+      } else if (reason != null) {
         // Twitch's English words: shown on English screens only, so always
         // logged.
         debugPrint('IvsVideoStore usher refused the stream: $reason');
@@ -1683,6 +1686,9 @@ String playbackRefusalNotice(
   PlaybackRefusal.geoblocked => l.liveRefusedGeoblocked,
   PlaybackRefusal.bannedFromChannel => l.liveRefusedBanned(name: name),
   PlaybackRefusal.unauthorized => l.liveRefusedUnauthorized,
+  PlaybackRefusal.proxyDetected => l.liveRefusedProxy,
+  PlaybackRefusal.wifiRequired => l.liveRefusedWifiRequired,
+  PlaybackRefusal.unsupportedDevice => l.liveRefusedUnsupportedDevice,
 };
 
 /// Why Twitch refused [name]'s stream: the [refusal] its token carried, or

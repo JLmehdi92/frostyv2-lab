@@ -3452,6 +3452,36 @@
       }
     }
   },
+  "playbackProxy": "{subject, select, clip{Twitch blocks this clip while a VPN or proxy is in use.} other{Twitch blocks this video while a VPN or proxy is in use.}}",
+  "@playbackProxy": {
+    "description": "Error message. Over a video's or a clip's player: Twitch detected a VPN, a proxy or an unblocker. subject is clip or video.",
+    "placeholders": {
+      "subject": {
+        "type": "String",
+        "example": "video"
+      }
+    }
+  },
+  "playbackWifiRequired": "{subject, select, clip{Connect to Wi-Fi to watch this clip.} other{Connect to Wi-Fi to watch this video.}}",
+  "@playbackWifiRequired": {
+    "description": "Error message. Over a video's or a clip's player: Twitch only serves it over Wi-Fi, not mobile data. subject is clip or video.",
+    "placeholders": {
+      "subject": {
+        "type": "String",
+        "example": "video"
+      }
+    }
+  },
+  "playbackUnsupportedDevice": "{subject, select, clip{Your device can’t play this clip.} other{Your device can’t play this video.}}",
+  "@playbackUnsupportedDevice": {
+    "description": "Error message. Over a video's or a clip's player: the device lacks the protected playback Twitch requires for it. subject is clip or video.",
+    "placeholders": {
+      "subject": {
+        "type": "String",
+        "example": "video"
+      }
+    }
+  },
   "playbackGeoBlocked": "{subject, select, clip{This clip isn’t available in your region.} other{This video isn’t available in your region.}}",
   "@playbackGeoBlocked": {
     "description": "Error message. Over a video's or a clip's player: it cannot be watched in the viewer's country. subject is clip or video.",
@@ -4379,6 +4409,18 @@
   "liveRefused": "Twitch refused this stream.",
   "@liveRefused": {
     "description": "Error message. Why the app's player cannot play a stream, on a screen whose language is not English: Twitch explained in English (its words stay in the logs)."
+  },
+  "liveRefusedProxy": "Twitch blocks this stream while a VPN or proxy is in use.",
+  "@liveRefusedProxy": {
+    "description": "Error message. Why the app's player cannot play a stream: Twitch detected a VPN, a proxy or an unblocker."
+  },
+  "liveRefusedWifiRequired": "Connect to Wi-Fi to watch this stream.",
+  "@liveRefusedWifiRequired": {
+    "description": "Error message. Why the app's player cannot play a stream: Twitch only serves it over Wi-Fi, not mobile data."
+  },
+  "liveRefusedUnsupportedDevice": "Your device can’t play this stream.",
+  "@liveRefusedUnsupportedDevice": {
+    "description": "Error message. Why the app's player cannot play a stream: the device lacks the protected playback Twitch requires for it."
   },
   "liveRefusedBecause": "Twitch refused this stream: {reason}",
   "@liveRefusedBecause": {

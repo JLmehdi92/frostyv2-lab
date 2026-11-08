@@ -36,6 +36,9 @@ enum VodPlaybackProblem {
   geoBlocked,
   tokenRejected,
   notFound,
+  proxyDetected,
+  wifiRequired,
+  unsupportedDevice,
   unknown,
 }
 
@@ -597,6 +600,11 @@ class TwitchVodService extends BaseApiClient {
         return VodPlaybackProblem.subscriberOnly;
       }
       if (code == 'content_geoblocked') return VodPlaybackProblem.geoBlocked;
+      if (code == 'anonymizer_blocked') return VodPlaybackProblem.proxyDetected;
+      if (code == 'cellular_geoblocked') return VodPlaybackProblem.wifiRequired;
+      if (code == 'no_cdm_specified') {
+        return VodPlaybackProblem.unsupportedDevice;
+      }
       if (code.startsWith('nauth')) return VodPlaybackProblem.tokenRejected;
       return VodPlaybackProblem.unknown;
     } catch (_) {

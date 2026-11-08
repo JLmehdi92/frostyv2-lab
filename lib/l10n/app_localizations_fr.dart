@@ -2754,6 +2754,34 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String playbackProxy({required String subject}) {
+    String _temp0 = intl.Intl.selectLogic(subject, {
+      'clip': 'Twitch bloque ce clip tant qu’un VPN ou un proxy est utilisé',
+      'other':
+          'Twitch bloque cette vidéo tant qu’un VPN ou un proxy est utilisé',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String playbackWifiRequired({required String subject}) {
+    String _temp0 = intl.Intl.selectLogic(subject, {
+      'clip': 'Connectez-vous à un réseau Wi-Fi pour regarder ce clip',
+      'other': 'Connectez-vous à un réseau Wi-Fi pour regarder cette vidéo',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String playbackUnsupportedDevice({required String subject}) {
+    String _temp0 = intl.Intl.selectLogic(subject, {
+      'clip': 'Votre appareil ne peut pas lire ce clip',
+      'other': 'Votre appareil ne peut pas lire cette vidéo',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String playbackGeoBlocked({required String subject}) {
     String _temp0 = intl.Intl.selectLogic(subject, {
       'clip': 'Ce clip n’est pas disponible dans votre région',
@@ -3451,6 +3479,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get liveRefused => 'Twitch refuse ce live.';
+
+  @override
+  String get liveRefusedProxy =>
+      'Twitch bloque ce live tant qu’un VPN ou un proxy est utilisé.';
+
+  @override
+  String get liveRefusedWifiRequired =>
+      'Connectez-vous à un réseau Wi-Fi pour regarder ce live.';
+
+  @override
+  String get liveRefusedUnsupportedDevice =>
+      'Votre appareil ne peut pas lire ce live.';
 
   @override
   String liveRefusedBecause({required String reason}) {

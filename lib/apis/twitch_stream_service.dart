@@ -16,6 +16,8 @@ import 'package:onset/services/playback_token_cache.dart';
 ///
 /// It does not go through the Twitch web embed; the caller is expected to
 /// fall back to the WebView engine if this throws.
+typedef UsherRefusal = ({PlaybackRefusal? refusal, String? reason});
+
 class TwitchStreamService extends BaseApiClient {
   /// Public web client-id used by twitch.tv itself (not a secret).
   static const _gqlClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
@@ -178,7 +180,10 @@ class TwitchStreamService extends BaseApiClient {
   /// The reason usher gives when it refuses a playlist URL (from
   /// [getUsherUrl]), such as a region or proxy block; null when the
   /// playlist plays or the answer is unreadable.
-  Future<String?> usherRefusal(String url) async {
+  Future<String?> usherRefusal(String url) async =>
+      (await usherRefusalDetails(url))?.reason;
+
+  Future<UsherRefusal?> usherRefusalDetails(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null || uri.host != Uri.parse(_usherBase).host) return null;
     try {
@@ -195,16 +200,25 @@ class TwitchStreamService extends BaseApiClient {
       if (body is! List || body.isEmpty) return null;
       final first = body.first;
       if (first is! Map) return null;
-      final error = first['error'];
-      if (error is! String) return null;
-      final reason = error.replaceAll(RegExp(r'\s+'), ' ').trim();
-      if (reason.isEmpty) return null;
-      return reason.length > 200 ? '${reason.substring(0, 200)}…' : reason;
+      final code = first['error_code'];
+      final refusal = PlaybackRefusal.fromUsherCode(
+        code is String ? code : null,
+      );
+      final reason = _usherReason(first['error']);
+      if (refusal == null && reason == null) return null;
+      return (refusal: refusal, reason: reason);
     } on DioException {
       return null;
     } on FormatException {
       return null;
     }
+  }
+
+  static String? _usherReason(Object? error) {
+    if (error is! String) return null;
+    final reason = error.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (reason.isEmpty) return null;
+    return reason.length > 200 ? '${reason.substring(0, 200)}…' : reason;
   }
 
   /// Releases the underlying HTTP client. Only call when this service owns the

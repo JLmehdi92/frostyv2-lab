@@ -384,6 +384,34 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
       expect(await service.usherRefusal(url), 'Content Restricted In Region');
     });
 
+    test('names the proxy, Wi-Fi and device refusals', () async {
+      for (final (code, refusal) in [
+        ('anonymizer_blocked', PlaybackRefusal.proxyDetected),
+        ('cellular_geoblocked', PlaybackRefusal.wifiRequired),
+        ('no_cdm_specified', PlaybackRefusal.unsupportedDevice),
+      ]) {
+        final url =
+            'https://usher.ttvnw.net/api/channel/hls/$login.m3u8?sig=$code';
+        adapter.onGet(
+          url,
+          (server) => server.reply(403, [
+            {'error': 'Blocked', 'error_code': code, 'type': 'error'},
+          ]),
+        );
+        final details = await service.usherRefusalDetails(url);
+        expect(details?.refusal, refusal, reason: code);
+        expect(details?.reason, 'Blocked');
+      }
+      const geo = 'https://usher.ttvnw.net/api/channel/hls/$login.m3u8?sig=g';
+      adapter.onGet(
+        geo,
+        (server) => server.reply(403, [
+          {'error': 'Content Restricted In Region', 'error_code': 'x'},
+        ]),
+      );
+      expect((await service.usherRefusalDetails(geo))?.refusal, isNull);
+    });
+
     test('a playable or unreadable playlist gives no reason', () async {
       const ok = 'https://usher.ttvnw.net/api/channel/hls/a.m3u8?sig=x';
       const garbled = 'https://usher.ttvnw.net/api/channel/hls/b.m3u8?sig=x';
