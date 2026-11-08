@@ -133,6 +133,33 @@ void main() {
         expect(find.text(french.vodCopyLinkAtTime), findsOneWidget);
       });
 
+      testWidgets('the screen lock, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: Builder(
+              builder: (context) => VodOverlay(
+                controller: FakeVodController(),
+                media: PlayerMedia.vod(vod, context.l10n),
+                settings: SettingsStore.fromJson({}),
+                isLandscape: size.width > size.height,
+                lockable: true,
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        await tester.tap(find.byTooltip(french.vodLockScreen));
+        await tester.pumpAndSettle();
+        await tester.tapAt(tester.getCenter(find.byType(VodOverlay)));
+        await tester.pumpAndSettle();
+        expect(find.byTooltip(french.vodUnlockScreen), findsOneWidget);
+        await expectFrenchThroughout(tester, 'screen lock, $at');
+        await tester.pump(const Duration(seconds: 4));
+      });
+
       testWidgets('a subscriber-only video, $at', (tester) async {
         await pumpLocalized(
           tester,

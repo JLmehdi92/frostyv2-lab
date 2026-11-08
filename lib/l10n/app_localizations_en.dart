@@ -3121,6 +3121,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerSettings => 'Settings';
 
   @override
+  String get vodLockScreen => 'Lock screen';
+
+  @override
+  String get vodUnlockScreen => 'Unlock screen';
+
+  @override
   String get playerReplay => 'Replay';
 
   @override

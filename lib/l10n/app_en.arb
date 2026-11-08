@@ -3964,6 +3964,14 @@
   "@playerSettings": {
     "description": "A clip's or a video's player: the tooltip of the button that opens its settings sheet (quality, volume, speed)."
   },
+  "vodLockScreen": "Lock screen",
+  "@vodLockScreen": {
+    "description": "A video's player: the tooltip of the button that locks the screen, hiding the controls and ignoring touches until unlocked."
+  },
+  "vodUnlockScreen": "Unlock screen",
+  "@vodUnlockScreen": {
+    "description": "A video's player, while the screen is locked: the tooltip of the button that unlocks it and brings the controls back."
+  },
   "playerReplay": "Replay",
   "@playerReplay": {
     "description": "A clip's or a video's player: the big button once it ended, which plays it again."

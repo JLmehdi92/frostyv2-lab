@@ -791,6 +791,8 @@
   "playerStopLooping": "Ne plus lire en boucle",
   "playerLoop": "Lire en boucle",
   "playerSettings": "Paramètres",
+  "vodLockScreen": "Verrouiller l’écran",
+  "vodUnlockScreen": "Déverrouiller l’écran",
   "playerReplay": "Revoir",
   "playerPlay": "Lire",
   "playerPause": "Mettre en pause",

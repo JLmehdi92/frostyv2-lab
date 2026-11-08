@@ -3168,6 +3168,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playerSettings => 'Paramètres';
 
   @override
+  String get vodLockScreen => 'Verrouiller l’écran';
+
+  @override
+  String get vodUnlockScreen => 'Déverrouiller l’écran';
+
+  @override
   String get playerReplay => 'Revoir';
 
   @override

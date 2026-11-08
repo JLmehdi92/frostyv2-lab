@@ -155,6 +155,7 @@ class VodOverlay extends StatefulWidget {
     this.skipButtons = true,
     this.looping,
     this.onToggleLoop,
+    this.lockable = false,
   });
 
   final VodPlayerController controller;
@@ -182,6 +183,8 @@ class VodOverlay extends StatefulWidget {
   final bool? looping;
   final VoidCallback? onToggleLoop;
 
+  final bool lockable;
+
   @override
   State<VodOverlay> createState() => _VodOverlayState();
 }
@@ -201,12 +204,62 @@ class _VodOverlayState extends State<VodOverlay> {
   var _skipBadgeCount = 0;
   Timer? _skipBadgeTimer;
 
+  static const _holdRate = 2.0;
+  static const _unlockButtonTime = Duration(seconds: 3);
+
+  double? _rateBeforeHold;
+  var _locked = false;
+  var _unlockButtonVisible = false;
+  Timer? _unlockButtonTimer;
+
   VodPlayerController get _c => widget.controller;
 
   @override
   void dispose() {
     _skipBadgeTimer?.cancel();
+    _unlockButtonTimer?.cancel();
+    _endHold();
     super.dispose();
+  }
+
+  void _startHold() {
+    if (_c.paused || _c.ended || _rateBeforeHold != null) return;
+    _rateBeforeHold = _c.playbackRate;
+    _c.setPlaybackRate(_holdRate);
+    setState(() {});
+  }
+
+  void _endHold() {
+    final previous = _rateBeforeHold;
+    if (previous == null) return;
+    _rateBeforeHold = null;
+    _c.setPlaybackRate(previous);
+    if (mounted) setState(() {});
+  }
+
+  void _lock() {
+    _endHold();
+    setState(() {
+      _locked = true;
+      _unlockButtonVisible = false;
+    });
+  }
+
+  void _unlock() {
+    _unlockButtonTimer?.cancel();
+    setState(() {
+      _locked = false;
+      _unlockButtonVisible = false;
+    });
+    _c.showOverlay();
+  }
+
+  void _revealUnlockButton() {
+    _unlockButtonTimer?.cancel();
+    setState(() => _unlockButtonVisible = true);
+    _unlockButtonTimer = Timer(_unlockButtonTime, () {
+      if (mounted) setState(() => _unlockButtonVisible = false);
+    });
   }
 
   void _onDoubleTap(double width) {
@@ -267,6 +320,7 @@ class _VodOverlayState extends State<VodOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    if (_locked) return _lockedLayer(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final m = _metricsFor(constraints);
@@ -293,9 +347,26 @@ class _VodOverlayState extends State<VodOverlay> {
                   onTap: _c.handleVideoTap,
                   onDoubleTapDown: (d) => _doubleTapAt = d.localPosition,
                   onDoubleTap: () => _onDoubleTap(constraints.maxWidth),
+                  onLongPressStart: (_) => _startHold(),
+                  onLongPressEnd: (_) => _endHold(),
+                  onLongPressCancel: _endHold,
                 ),
               ),
             ),
+            if (_rateBeforeHold != null)
+              Positioned(
+                top: m.edge + 52,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  child: Center(
+                    child: _HoldSpeedBadge(
+                      key: const ValueKey('hold-speed-badge'),
+                      label: formatPlaybackRate(_holdRate, context.l10n),
+                    ),
+                  ),
+                ),
+              ),
             if (badgeForward != null)
               Positioned(
                 left: badgeForward ? null : 34,
@@ -328,6 +399,43 @@ class _VodOverlayState extends State<VodOverlay> {
           ],
         );
       },
+    );
+  }
+
+  Widget _lockedLayer(BuildContext context) {
+    final fade = motionDuration(context, const Duration(milliseconds: 200));
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _revealUnlockButton,
+        ),
+        SafeArea(
+          child: Align(
+            alignment: AlignmentDirectional.topStart,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: IgnorePointer(
+                ignoring: !_unlockButtonVisible,
+                child: AnimatedOpacity(
+                  opacity: _unlockButtonVisible ? 1 : 0,
+                  duration: fade,
+                  child: _unlockButtonVisible
+                      ? _OverlayButton(
+                          tooltip: context.l10n.vodUnlockScreen,
+                          glyph: VideoGlyphKind.lock,
+                          selected: true,
+                          color: context.onsetColors.live,
+                          onPressed: _unlock,
+                        )
+                      : const SizedBox(width: 44, height: 44),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -569,6 +677,12 @@ class _VodOverlayState extends State<VodOverlay> {
             selected: widget.looping == true,
             color: widget.looping == true ? accent : _Over.text,
             onPressed: widget.onToggleLoop,
+          ),
+        if (widget.lockable)
+          _OverlayButton(
+            tooltip: context.l10n.vodLockScreen,
+            glyph: VideoGlyphKind.lock,
+            onPressed: _lock,
           ),
         _OverlayButton(
           tooltip: context.l10n.playerSettings,
@@ -959,6 +1073,48 @@ class _SpeedPill extends StatelessWidget {
 /// "−10 s" / "+10 s" in a 72 dp disc after a side double tap: it pops in,
 /// holds, then fades (700 ms); a plain fade under reduce
 /// motion.
+class _HoldSpeedBadge extends StatelessWidget {
+  const _HoldSpeedBadge({super.key, required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    height: 30,
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    decoration: BoxDecoration(
+      color: const Color(0x8C000000),
+      borderRadius: BorderRadius.circular(15),
+      border: Border.all(
+        color: _Over.pillRing,
+        width: OnsetTokens.hairlineWidth,
+      ),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 6,
+      children: [
+        const VideoGlyph(
+          VideoGlyphKind.skipForward,
+          color: _Over.text,
+          size: 16,
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: OnsetTokens.bodyFamily,
+            color: _Over.text,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            height: 1,
+            fontFeatures: [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class _SkipBadge extends StatelessWidget {
   const _SkipBadge({super.key, required this.forward, required this.duration});
 

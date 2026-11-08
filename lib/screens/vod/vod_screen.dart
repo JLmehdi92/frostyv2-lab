@@ -648,6 +648,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
               media: PlayerMedia.vod(vod, context.l10n),
               settings: _settings,
               mutedSegments: _mutedSegments,
+              lockable: true,
               fillScreen: player is IvsVodStore ? _fillScreen : null,
               onToggleFillScreen: player is IvsVodStore
                   ? () => setState(() => _fillScreen = !_fillScreen)

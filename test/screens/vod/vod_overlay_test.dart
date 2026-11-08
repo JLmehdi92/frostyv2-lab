@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,6 +44,7 @@ void main() {
     bool skipButtons = true,
     bool? looping,
     VoidCallback? onToggleLoop,
+    bool lockable = false,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -62,6 +64,7 @@ void main() {
               onToggleLoop: onToggleLoop,
               onCycleChatMode: onCycleChatMode,
               isLandscape: isLandscape,
+              lockable: lockable,
             ),
           ),
         ),
@@ -523,6 +526,78 @@ void main() {
         scrollable: find.byType(Scrollable).last,
       );
       expect(find.text('?t=10m0s'), findsOneWidget);
+    });
+  });
+
+  group('hold for double speed', () {
+    testWidgets('holding the video plays at 2× until released', (tester) async {
+      controller.status = VodPlaybackStatus.playing;
+      controller.setPlaybackRate(1.5);
+      await pump(tester);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(VodOverlay)) + const Offset(0, -150),
+      );
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      expect(controller.playbackRate, 2.0);
+      expect(find.byKey(const ValueKey('hold-speed-badge')), findsOneWidget);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(controller.playbackRate, 1.5);
+      expect(find.byKey(const ValueKey('hold-speed-badge')), findsNothing);
+    });
+
+    testWidgets('holding a paused video changes nothing', (tester) async {
+      await pump(tester);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(VodOverlay)) + const Offset(0, -150),
+      );
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(controller.calls.where((c) => c.startsWith('rate')), isEmpty);
+    });
+  });
+
+  group('screen lock', () {
+    testWidgets('only a lockable player offers the lock', (tester) async {
+      await pump(tester);
+      expect(find.byTooltip('Lock screen'), findsNothing);
+      await pump(tester, lockable: true);
+      expect(find.byTooltip('Lock screen'), findsOneWidget);
+    });
+
+    testWidgets('locking hides the controls and ignores taps until unlocked', (
+      tester,
+    ) async {
+      await pump(tester, lockable: true);
+      await tester.tap(find.byTooltip('Lock screen'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Settings'), findsNothing);
+      controller.calls.clear();
+
+      await tester.tapAt(tester.getCenter(find.byType(VodOverlay)));
+      await tester.pumpAndSettle();
+      expect(controller.calls, isNot(contains('tap')));
+      expect(find.byTooltip('Unlock screen'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Unlock screen'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Settings'), findsOneWidget);
+      expect(find.byTooltip('Unlock screen'), findsNothing);
+    });
+
+    testWidgets('a held lock does not speed the video up', (tester) async {
+      controller.status = VodPlaybackStatus.playing;
+      await pump(tester, lockable: true);
+      await tester.tap(find.byTooltip('Lock screen'));
+      await tester.pumpAndSettle();
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(VodOverlay)) + const Offset(0, -150),
+      );
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      await gesture.up();
+      await tester.pump(const Duration(seconds: 5));
+      expect(controller.playbackRate, 1.0);
     });
   });
 }

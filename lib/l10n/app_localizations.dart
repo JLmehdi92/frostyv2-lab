@@ -4859,6 +4859,18 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get playerSettings;
 
+  /// A video's player: the tooltip of the button that locks the screen, hiding the controls and ignoring touches until unlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock screen'**
+  String get vodLockScreen;
+
+  /// A video's player, while the screen is locked: the tooltip of the button that unlocks it and brings the controls back.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock screen'**
+  String get vodUnlockScreen;
+
   /// A clip's or a video's player: the big button once it ended, which plays it again.
   ///
   /// In en, this message translates to:
