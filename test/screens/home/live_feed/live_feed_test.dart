@@ -562,7 +562,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(store.current!.userId, '2');
-    expect(find.text('You won’t see Name 1 in Live for now.'), findsOneWidget);
+    expect(find.text('You won’t see Name 1 in Live anymore.'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text('Undo'));
     await tester.pump(const Duration(milliseconds: 500));

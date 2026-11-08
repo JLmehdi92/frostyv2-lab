@@ -108,10 +108,6 @@ abstract class LiveFeedStoreBase with Store {
   @readonly
   List<LiveFeedChip> _chips = const [];
 
-  /// Channels the viewer is not interested in (this session).
-  @readonly
-  var _hidden = ObservableSet<String>();
-
   /// The stream on screen, in [streams].
   @readonly
   var _index = 0;
@@ -191,7 +187,8 @@ abstract class LiveFeedStoreBase with Store {
   @computed
   List<StreamTwitch> get streams => [
     for (final stream in list.streams)
-      if (!_hidden.contains(stream.userId)) stream,
+      if (!settingsStore.notInterestedChannels.containsKey(stream.userId))
+        stream,
   ];
 
   /// The stream on screen (null: none, or the page after the last one:
@@ -253,13 +250,10 @@ abstract class LiveFeedStoreBase with Store {
     if (index >= shown - 3 && list.hasMore) list.getStreams();
   }
 
-  /// "Not interested": [userId] leaves the feed for this session.
-  @action
-  void hide(String userId) => _hidden.add(userId);
+  void hide(String userId, {required String name}) =>
+      settingsStore.markNotInterested(userId, name);
 
-  /// Undoes [hide].
-  @action
-  void unhide(String userId) => _hidden.remove(userId);
+  void unhide(String userId) => settingsStore.clearNotInterested(userId);
 
   /// Pull to refresh: the list on screen starts over, from its first
   /// channel. [keepPosition] (coming back after a while) keeps the channel

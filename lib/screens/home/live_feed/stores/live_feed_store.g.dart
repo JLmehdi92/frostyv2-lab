@@ -72,26 +72,6 @@ mixin _$LiveFeedStore on LiveFeedStoreBase, Store {
     });
   }
 
-  late final _$_hiddenAtom = Atom(
-    name: 'LiveFeedStoreBase._hidden',
-    context: context,
-  );
-
-  ObservableSet<String> get hidden {
-    _$_hiddenAtom.reportRead();
-    return super._hidden;
-  }
-
-  @override
-  ObservableSet<String> get _hidden => hidden;
-
-  @override
-  set _hidden(ObservableSet<String> value) {
-    _$_hiddenAtom.reportWrite(value, super._hidden, () {
-      super._hidden = value;
-    });
-  }
-
   late final _$_indexAtom = Atom(
     name: 'LiveFeedStoreBase._index',
     context: context,
@@ -136,30 +116,6 @@ mixin _$LiveFeedStore on LiveFeedStoreBase, Store {
     );
     try {
       return super.setIndex(index);
-    } finally {
-      _$LiveFeedStoreBaseActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  void hide(String userId) {
-    final _$actionInfo = _$LiveFeedStoreBaseActionController.startAction(
-      name: 'LiveFeedStoreBase.hide',
-    );
-    try {
-      return super.hide(userId);
-    } finally {
-      _$LiveFeedStoreBaseActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  void unhide(String userId) {
-    final _$actionInfo = _$LiveFeedStoreBaseActionController.startAction(
-      name: 'LiveFeedStoreBase.unhide',
-    );
-    try {
-      return super.unhide(userId);
     } finally {
       _$LiveFeedStoreBaseActionController.endAction(_$actionInfo);
     }

@@ -6,6 +6,7 @@ import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/settings/account/blocked_users.dart';
 import 'package:onset/screens/settings/chat_settings.dart';
 import 'package:onset/screens/settings/general_settings.dart';
+import 'package:onset/screens/settings/not_interested_channels.dart';
 import 'package:onset/screens/settings/notifications_settings.dart';
 import 'package:onset/screens/settings/other_settings.dart';
 import 'package:onset/screens/settings/settings_master_detail.dart';
@@ -205,6 +206,9 @@ Widget buildSettingsPage(
   SettingsPageId.account => AccountSettings(authStore: authStore),
   SettingsPageId.blocked => BlockedUsers(authStore: authStore),
   SettingsPageId.chatFilters => const SizedBox.shrink(),
+  SettingsPageId.notInterested => NotInterestedChannels(
+    settingsStore: settingsStore,
+  ),
 };
 
 /// The account at the top of the phone's settings: who is logged in (opens

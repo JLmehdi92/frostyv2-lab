@@ -28,7 +28,8 @@ enum SettingsPageId {
   other(SettingsGlyphKind.other),
   account(SettingsGlyphKind.user),
   blocked(SettingsGlyphKind.ban),
-  chatFilters(SettingsGlyphKind.filter);
+  chatFilters(SettingsGlyphKind.filter),
+  notInterested(SettingsGlyphKind.list);
 
   const SettingsPageId(this.glyph);
 
@@ -41,7 +42,7 @@ enum SettingsPageId {
   final SettingsGlyphKind glyph;
 
   /// The pages listed on their own in the tablet's side column.
-  bool get isSection => this != chatFilters;
+  bool get isSection => this != chatFilters && this != notInterested;
 
   /// Logged in only.
   bool get needsAccount => this == account || this == blocked;

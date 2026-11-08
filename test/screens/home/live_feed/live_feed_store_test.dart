@@ -296,13 +296,17 @@ void main() {
     },
   );
 
-  test('not interested: left out this session, and undone', () async {
+  test('not interested: left out, kept in the settings, and undone', () async {
     final store = await build();
 
-    store.hide('1');
+    store.hide('1', name: 'One');
     expect(store.current!.userId, '2');
     expect(store.streams, hasLength(7));
+    expect(store.settingsStore.notInterestedChannels, {'1': 'One'});
+    final restored = SettingsStore.fromJson(store.settingsStore.toJson());
+    expect(restored.notInterestedChannels, {'1': 'One'});
     store.unhide('1');
+    expect(store.settingsStore.notInterestedChannels, isEmpty);
     expect(store.current!.userId, '1');
     store.dispose();
   });
@@ -359,7 +363,7 @@ void main() {
   test('hiding the last channel leaves none current there', () async {
     final store = await build();
     store.setIndex(7);
-    store.hide('8');
+    store.hide('8', name: 'Eight');
     expect(store.current, isNull);
     store.dispose();
   });

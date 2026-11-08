@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/settings/not_interested_channels.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/accent_color_setting.dart';
 import 'package:onset/screens/settings/widgets/external_browser_setting.dart';
 import 'package:onset/screens/settings/widgets/hidden_content_labels_setting.dart';
 import 'package:onset/screens/settings/widgets/language_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_list_select.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
@@ -68,6 +70,18 @@ class GeneralSettings extends StatelessWidget {
                 ),
                 StreamLanguageSetting(settingsStore: settingsStore),
                 HiddenContentLabelsSetting(settingsStore: settingsStore),
+                SettingsRow(
+                  glyph: SettingsGlyphKind.list,
+                  title: l.settingsPageNotInterested,
+                  value: '${settingsStore.notInterestedChannels.length}',
+                  end: SettingsRowEnd.chevron,
+                  onTap: () => openSettingsPage(
+                    context,
+                    id: SettingsPageId.notInterested,
+                    builder: (context) =>
+                        NotInterestedChannels(settingsStore: settingsStore),
+                  ),
+                ),
               ],
             ),
             SettingsGroup(

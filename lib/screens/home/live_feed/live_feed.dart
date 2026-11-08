@@ -402,7 +402,7 @@ class _LiveFeedState extends State<LiveFeed> {
   void _notInterested(StreamTwitch stream) {
     Haptics.light();
     final name = getReadableName(stream.userName, stream.userLogin);
-    widget.store.hide(stream.userId);
+    widget.store.hide(stream.userId, name: name);
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(
