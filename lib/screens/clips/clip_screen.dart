@@ -10,6 +10,7 @@ import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/screens/clips/clip_download.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
 import 'package:onset/screens/clips/stores/clip_player_store.dart';
 import 'package:onset/screens/clips/widgets/clip_info_panel.dart';
@@ -479,6 +480,9 @@ class _ClipScreenState extends State<ClipScreen> {
         channelName: clip.broadcasterDisplayName,
       ),
       onWatchFullVideo: _watchFullVideo(clip),
+      onDownload: () => unawaited(
+        downloadClip(context, service: _service, slug: widget.slug),
+      ),
     );
   }
 

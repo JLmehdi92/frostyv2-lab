@@ -1816,5 +1816,8 @@
   "clipsNoneLastWeek": "Aucun clip ces 7 derniers jours",
   "clipsNoneLastMonth": "Aucun clip ces 30 derniers jours",
   "clipsNoneAllTime": "Aucun clip pour l’instant",
-  "clipsNoneInRange": "Aucun clip entre le {start} et le {end}"
+  "clipsNoneInRange": "Aucun clip entre le {start} et le {end}",
+  "clipDownload": "Télécharger",
+  "clipDownloadPreparing": "Préparation du clip…",
+  "clipDownloadFailed": "Impossible de télécharger ce clip"
 }

@@ -41,12 +41,14 @@ enum VideoGlyphKind {
   close,
   expand,
   alert,
+  download,
 }
 
 /// The elements of each glyph: path data (`f:` when filled),
 /// `c:cx,cy,r` circles and `r:x,y,w,h,rx` rectangles (`fr:` filled).
 const Map<VideoGlyphKind, List<String>> _shapes = {
   VideoGlyphKind.back: ['M15 6l-6 6 6 6'],
+  VideoGlyphKind.download: ['M12 4v11', 'M7 10l5 5 5-5', 'M5 19h14'],
   VideoGlyphKind.settings: [
     'M4 7h10M18 7h2M4 17h4M12 17h8',
     'c:16,7,2',

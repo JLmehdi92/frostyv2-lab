@@ -22,7 +22,10 @@ class ClipInfoPanel extends StatelessWidget {
     required this.onCopyLink,
     required this.onShare,
     this.onWatchFullVideo,
+    this.onDownload,
   });
+
+  final VoidCallback? onDownload;
 
   final Clip clip;
   final VoidCallback onCopyLink;
@@ -201,6 +204,14 @@ class ClipInfoPanel extends StatelessWidget {
                   onTap: onCopyLink,
                 ),
                 _ShareDisc(onTap: onShare),
+                if (onDownload != null)
+                  VideoActionPill(
+                    key: const ValueKey('clip-download'),
+                    glyph: VideoGlyphKind.download,
+                    label: l.clipDownload,
+                    raised: true,
+                    onTap: onDownload,
+                  ),
                 VideoActionPill(
                   key: const ValueKey('clip-report'),
                   glyph: VideoGlyphKind.alert,

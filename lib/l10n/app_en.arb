@@ -10720,5 +10720,17 @@
         "example": "Mar 9"
       }
     }
+  },
+  "clipDownload": "Download",
+  "@clipDownload": {
+    "description": "A clip's action: saves the clip's video through the system share sheet (Save video, Files…)."
+  },
+  "clipDownloadPreparing": "Preparing the clip…",
+  "@clipDownloadPreparing": {
+    "description": "A snack bar while the clip's video downloads, before the share sheet opens."
+  },
+  "clipDownloadFailed": "Couldn’t download this clip.",
+  "@clipDownloadFailed": {
+    "description": "A snack bar when the clip's video could not be downloaded."
   }
 }

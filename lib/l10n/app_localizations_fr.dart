@@ -8459,4 +8459,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String clipsNoneInRange({required String start, required String end}) {
     return 'Aucun clip entre le $start et le $end';
   }
+
+  @override
+  String get clipDownload => 'Télécharger';
+
+  @override
+  String get clipDownloadPreparing => 'Préparation du clip…';
+
+  @override
+  String get clipDownloadFailed => 'Impossible de télécharger ce clip';
 }

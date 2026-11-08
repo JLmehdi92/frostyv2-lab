@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -229,6 +230,28 @@ class TwitchClipService extends BaseApiClient {
   /// The clip's renditions and access token. Throws [NotFoundException] when
   /// the clip is gone and [ClipForbiddenException] when the token denies
   /// playback.
+  Future<File> downloadClip(String slug, Directory folder) async {
+    final playback = await getClipPlayback(slug);
+    if (playback.renditions.isEmpty) {
+      throw const ApiException('No rendition for this clip');
+    }
+    final rendition = playback.renditions.firstWhere(
+      (r) => r.height <= 720,
+      orElse: () => playback.renditions.last,
+    );
+    final response = await dio.get<List<int>>(
+      playback.signedUrl(rendition),
+      options: Options(responseType: ResponseType.bytes),
+    );
+    final bytes = response.data;
+    if (bytes == null || bytes.isEmpty) {
+      throw const ApiException('Empty clip download');
+    }
+    final file = File('${folder.path}/onset-clip-$slug.mp4');
+    await file.writeAsBytes(bytes, flush: true);
+    return file;
+  }
+
   Future<ClipPlayback> getClipPlayback(String slug) async {
     _checkSlug(slug);
     final data = await _gql('ClipPlayback', _playbackQuery, {'slug': slug});

@@ -8352,4 +8352,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String clipsNoneInRange({required String start, required String end}) {
     return 'No clips between $start and $end';
   }
+
+  @override
+  String get clipDownload => 'Download';
+
+  @override
+  String get clipDownloadPreparing => 'Preparing the clip…';
+
+  @override
+  String get clipDownloadFailed => 'Couldn’t download this clip.';
 }

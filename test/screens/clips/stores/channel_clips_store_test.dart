@@ -290,7 +290,7 @@ void main() {
         expect(ranged.canPickRange, isTrue);
         expect(ranged.isFiltered, isTrue);
 
-        final start = DateTime(2026, 3, 1);
+        final start = DateTime(2026, 3);
         final end = DateTime(2026, 3, 8);
         await ranged.selectRange(start, end);
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -313,6 +315,55 @@ void main() {
         service.getClipPlayback(slug),
         throwsA(isA<ApiException>()),
       );
+    });
+  });
+
+  group('downloadClip', () {
+    void serveBytes(String url, List<int> bytes) => dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) => options.uri.toString() == url
+            ? handler.resolve(
+                Response<List<int>>(
+                  requestOptions: options,
+                  statusCode: 200,
+                  data: bytes,
+                ),
+              )
+            : handler.next(options),
+      ),
+    );
+
+    const slug = 'InexpensiveHotGrouseNerfBlueBlaster--wdg-mRtFp79lgSC';
+
+    test('saves the 720p rendition, signed, as an mp4', () async {
+      reply(clipPlaybackResponse());
+      final playback = await service.getClipPlayback(slug);
+      final url = playback.signedUrl(
+        playback.renditions.firstWhere((r) => r.label == '720p60'),
+      );
+      serveBytes(url, [1, 2, 3]);
+      final folder = Directory.systemTemp.createTempSync('onset_clip');
+      addTearDown(() => folder.deleteSync(recursive: true));
+
+      final file = await service.downloadClip(slug, folder);
+
+      expect(file.path, endsWith('onset-clip-$slug.mp4'));
+      expect(file.readAsBytesSync(), [1, 2, 3]);
+      expect(requests.last.uri.toString(), url);
+    });
+
+    test('an empty answer is an error, never an empty file', () async {
+      reply(clipPlaybackResponse());
+      final playback = await service.getClipPlayback(slug);
+      serveBytes(playback.signedUrl(playback.renditions[1]), []);
+      final folder = Directory.systemTemp.createTempSync('onset_clip');
+      addTearDown(() => folder.deleteSync(recursive: true));
+
+      await expectLater(
+        service.downloadClip(slug, folder),
+        throwsA(isA<ApiException>()),
+      );
+      expect(folder.listSync(), isEmpty);
     });
   });
 

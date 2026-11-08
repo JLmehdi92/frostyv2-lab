@@ -11150,6 +11150,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No clips between {start} and {end}'**
   String clipsNoneInRange({required String start, required String end});
+
+  /// A clip's action: saves the clip's video through the system share sheet (Save video, Files…).
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get clipDownload;
+
+  /// A snack bar while the clip's video downloads, before the share sheet opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the clip…'**
+  String get clipDownloadPreparing;
+
+  /// A snack bar when the clip's video could not be downloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t download this clip.'**
+  String get clipDownloadFailed;
 }
 
 class _AppLocalizationsDelegate
