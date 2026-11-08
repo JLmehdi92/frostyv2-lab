@@ -7941,4 +7941,195 @@ class AppLocalizationsEn extends AppLocalizations {
   String notInterestedRestoreName({required String name}) {
     return 'Show $name again';
   }
+
+  @override
+  String get searchSuggestions => 'Suggestions';
+
+  @override
+  String get profileTrailer => 'Trailer';
+
+  @override
+  String profileTrailerOpen({required String title}) {
+    return 'Play trailer: $title';
+  }
+
+  @override
+  String get profileTeams => 'Teams';
+
+  @override
+  String teamMembersCount({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString members',
+      one: '$countString member',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get teamLiveNow => 'Live now';
+
+  @override
+  String get teamMembers => 'Members';
+
+  @override
+  String get teamFailed => 'Couldn’t load this team.';
+
+  @override
+  String scheduleVacation({required String start, required String end}) {
+    return 'On a break from $start to $end. The schedule resumes after that.';
+  }
+
+  @override
+  String get scheduleWeekly => 'Weekly';
+
+  @override
+  String get scheduleRepeatsWeekly => 'Repeats every week';
+
+  @override
+  String get scheduleShareSlot => 'Share this stream';
+
+  @override
+  String get settingsClipDiscovery => 'Channel clips';
+
+  @override
+  String get clipDiscoveryAll => 'All clips';
+
+  @override
+  String get clipDiscoveryFeatured => 'Featured only';
+
+  @override
+  String get settingsHideViewerCount => 'Hide viewer counts';
+
+  @override
+  String get settingsStreamPreviews => 'Stream previews';
+
+  @override
+  String get settingsStreamPreviewsDetail =>
+      'Plays the channel on screen in Live before you open it.';
+
+  @override
+  String get settingsMutePreviews => 'Start previews muted';
+
+  @override
+  String get settingsDataSaver => 'Data saver';
+
+  @override
+  String get settingsDataSaverDetail =>
+      'On mobile data, live streams start at 480p at most and previews don’t play. You can still pick another quality.';
+
+  @override
+  String get settingsAlertsOverLandscapeVideo =>
+      'Alerts over the video in landscape';
+
+  @override
+  String get settingsAlertsOverLandscapeVideoDetail =>
+      'When off, landscape shows a line in chat instead, so nothing covers the stream.';
+
+  @override
+  String get followedSortRecommended => 'Recommended';
+
+  @override
+  String followedVideosNew({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new videos',
+      one: '$count new video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get followedBrowseChannels => 'Browse channels';
+
+  @override
+  String get shareTitle => 'Share';
+
+  @override
+  String get shareSendToChat => 'Send in chat';
+
+  @override
+  String shareSendToChannelChat({required String name}) {
+    return 'Send in $name’s chat';
+  }
+
+  @override
+  String get shareSendAsWhisper => 'Send as a whisper';
+
+  @override
+  String get shareOther => 'More options…';
+
+  @override
+  String shareSentToChat({required String name}) {
+    return 'Link sent in $name’s chat.';
+  }
+
+  @override
+  String get shareChatLogInAgain =>
+      'Log in again to send links in chat from here.';
+
+  @override
+  String get shareChatFailed => 'Couldn’t send the link in chat.';
+
+  @override
+  String shareWhisperSent({required String name}) {
+    return 'Link whispered to $name.';
+  }
+
+  @override
+  String get newFeaturePill => 'New';
+
+  @override
+  String get pointsIntroTitle => 'Channel points';
+
+  @override
+  String get pointsIntroBody =>
+      'Each channel has its own points. You earn them by watching, and spend them on that channel’s rewards and predictions.';
+
+  @override
+  String get pointsIntroGotIt => 'Got it';
+
+  @override
+  String get pointsHowToEarn => 'How to earn points';
+
+  @override
+  String get pointsEarnWatch =>
+      'Watch the stream: points add up every few minutes while it’s live.';
+
+  @override
+  String get pointsEarnBonus => 'Collect the bonus when it shows up in chat.';
+
+  @override
+  String get pointsEarnStreak =>
+      'Keep a watch streak by coming back stream after stream.';
+
+  @override
+  String get pointsEarnFollow => 'Follow the channel.';
+
+  @override
+  String get pointsEarnRaid => 'Join a raid the channel starts.';
+
+  @override
+  String get pointsEarnSubscriber =>
+      'Subscribers earn more for everything above.';
+
+  @override
+  String get pointsEarnNote =>
+      'Each channel sets its own amounts. Watching in this app may not count everywhere it would on Twitch.';
+
+  @override
+  String get settingsReplayPointsIntro => 'Show the channel points intro again';
+
+  @override
+  String get settingsReplayPointsIntroDetail =>
+      'It shows the next time you open a channel’s points.';
+
+  @override
+  String get settingsPointsIntroReset => 'The intro will show again.';
 }

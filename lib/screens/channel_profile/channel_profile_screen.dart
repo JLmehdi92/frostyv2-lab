@@ -10,6 +10,7 @@ import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
 import 'package:onset/screens/channel_profile/stores/channel_profile_store.dart';
+import 'package:onset/screens/channel_profile/team_screen.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_about_tab.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_header.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_home_tab.dart';
@@ -22,10 +23,12 @@ import 'package:onset/screens/clips/widgets/channel_clips_tab.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/vod/stores/channel_videos_store.dart';
+import 'package:onset/screens/vod/vod_screen.dart';
 import 'package:onset/services/notifications/schedule_reminders.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/link_router.dart';
 import 'package:onset/utils/modal_bottom_sheet.dart';
+import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/utils/share_link.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
@@ -124,6 +127,9 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     login: widget.login,
     profileService: context.twitchChannelProfileService,
     helixUser: (login) => context.twitchApi.getUser(userLogin: login),
+    teamsOf: (id) => context.twitchApi.getChannelTeams(broadcasterId: id),
+    scheduleExtrasOf: (id) =>
+        context.twitchApi.getScheduleExtras(broadcasterId: id),
   );
 
   /// Each video type's list, made the first time it shows (past broadcasts
@@ -134,12 +140,16 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
   late final _clips = ChannelClipsStore(
     login: widget.login,
     clipService: context.twitchClipService,
+    featuredOnly: _featuredClipsOnly,
   );
+
+  bool _featuredClipsOnly() => featuredClipsOnly(context);
 
   /// Home's "Popular clips": this week's top, whatever the Clips tab picks.
   late final _homeClips = ChannelClipsStore(
     login: widget.login,
     clipService: context.twitchClipService,
+    featuredOnly: _featuredClipsOnly,
   );
 
   /// What a phone's pinned bar and tabs cover of its tab lists.
@@ -462,6 +472,13 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           clips: _homeClips,
           schedule: _store.schedule,
           reminders: ScheduleReminders.shared,
+          trailer: _store.trailer,
+          onOpenTrailer: () {
+            final trailer = _store.trailer;
+            if (trailer != null) {
+              unawaited(VodScreen.open(context, vodId: trailer.videoId));
+            }
+          },
           onOpenChannel: _openChannel,
           onPreload: _preload,
           onViewAllVideos: () {
@@ -520,7 +537,12 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
                       () => unawaited(_store.load()),
                     )
                   : const _AboutSkeleton())
-            : ProfileAboutContent(profile: profile, onOpenLink: _openLink),
+            : ProfileAboutContent(
+                profile: profile,
+                onOpenLink: _openLink,
+                teams: _store.teams,
+                onOpenTeam: (team) => unawaited(TeamScreen.open(context, team)),
+              ),
       ),
     ];
   }
@@ -530,6 +552,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     if (schedule != null) {
       return ProfileScheduleContent(
         schedule: schedule,
+        extras: _store.scheduleExtras,
         now: DateTime.now(),
         reminders: ScheduleReminders.shared,
         login: widget.login,

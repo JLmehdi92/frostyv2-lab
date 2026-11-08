@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
+import 'package:onset/screens/channel_profile/widgets/schedule_slot_sheet.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/settings/widgets/go_live_setting.dart';
 import 'package:onset/services/notifications/schedule_reminders.dart';
@@ -189,9 +190,11 @@ class ProfileScheduleContent extends StatelessWidget {
     this.login = '',
     this.channelName = '',
     this.large = false,
+    this.extras = ScheduleExtras.none,
   });
 
   final ChannelSchedule schedule;
+  final ScheduleExtras extras;
   final DateTime now;
   final ScheduleReminders? reminders;
 
@@ -213,10 +216,24 @@ class ProfileScheduleContent extends StatelessWidget {
   Widget _build(BuildContext context, ScheduleReminders? reminders) {
     final colors = FeedColors.of(context);
     final upcoming = schedule.upcoming(now);
+    final vacation = extras.onVacationAfter(now)
+        ? Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ScheduleVacationBanner(extras: extras),
+          )
+        : null;
     if (upcoming.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 48),
-        child: FeedStatusView.empty(message: context.l10n.profileNoSchedule),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ?vacation,
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 48),
+            child: FeedStatusView.empty(
+              message: context.l10n.profileNoSchedule,
+            ),
+          ),
+        ],
       );
     }
 
@@ -238,6 +255,7 @@ class ProfileScheduleContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        ?vacation,
         if (next != null && next.isAfter(now))
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -286,6 +304,14 @@ class ProfileScheduleContent extends StatelessWidget {
             _SegmentRow(
               segment: segment,
               time: time,
+              recurring: extras.isRecurring(segment),
+              onOpen: (reminder) => showScheduleSlotSheet(
+                context,
+                segment: segment,
+                login: login,
+                recurring: extras.isRecurring(segment),
+                reminder: reminder,
+              ),
               reminder: reminders != null && reminders.canRemind(segment)
                   ? (
                       set: reminders.isSet(segment.id),
@@ -308,10 +334,18 @@ class ProfileScheduleContent extends StatelessWidget {
 /// One stream of the day: the start in a narrow column, the title, the
 /// hours and category, and its bell.
 class _SegmentRow extends StatelessWidget {
-  const _SegmentRow({required this.segment, required this.time, this.reminder});
+  const _SegmentRow({
+    required this.segment,
+    required this.time,
+    required this.onOpen,
+    this.recurring = false,
+    this.reminder,
+  });
 
   final ScheduleSegment segment;
   final DateFormat time;
+  final bool recurring;
+  final void Function(({bool set, VoidCallback toggle})? reminder) onOpen;
 
   /// Its reminder, when it can have one.
   final ({bool set, VoidCallback toggle})? reminder;
@@ -331,81 +365,115 @@ class _SegmentRow extends StatelessWidget {
         : null;
     final reminder = this.reminder;
 
-    return Container(
-      constraints: const BoxConstraints(minHeight: 60),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: colors.hairline,
-            width: OnsetTokens.hairlineWidth,
+    return InkWell(
+      key: ValueKey('schedule-segment-${segment.id}'),
+      onTap: () => onOpen(reminder),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 60),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: colors.hairline,
+              width: OnsetTokens.hairlineWidth,
+            ),
           ),
         ),
+        child: Row(
+          spacing: 12,
+          children: [
+            Container(
+              width: 4,
+              height: 36,
+              decoration: BoxDecoration(
+                color: cancelled ? colors.raised : colors.pillBorder,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                spacing: 2,
+                children: [
+                  Text(
+                    title == null || title.isEmpty
+                        ? context.l10n.profileStreamUntitled
+                        : title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                      color: cancelled ? colors.secondary : colors.text,
+                    ).merge(strike),
+                  ),
+                  Text(
+                    [
+                      hours,
+                      ?segment.categoryName,
+                      if (recurring) context.l10n.scheduleWeekly,
+                      if (cancelled) context.l10n.profileCancelled,
+                    ].join(' · '),
+                    style: OnsetType.tabular(
+                      TextStyle(
+                        fontSize: 12,
+                        height: 1.3,
+                        color: colors.secondary,
+                      ).merge(strike),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (reminder != null)
+              IconButton(
+                tooltip: reminder.set
+                    ? context.l10n.profileReminderSet
+                    : context.l10n.profileRemindMe,
+                isSelected: reminder.set,
+                onPressed: reminder.toggle,
+                icon: SheetGlyph(SheetGlyphKind.bell, color: colors.secondary),
+                // The signal reads on the dark ground only.
+                selectedIcon: SheetGlyph(
+                  SheetGlyphKind.check,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? context.onsetColors.live
+                      : colors.text,
+                  strokeWidth: 2.2,
+                ),
+              ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class ScheduleVacationBanner extends StatelessWidget {
+  const ScheduleVacationBanner({super.key, required this.extras});
+
+  final ScheduleExtras extras;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FeedColors.of(context);
+    final format = DateFormat.MMMd();
+    return ProfileCard(
       child: Row(
         spacing: 12,
         children: [
-          Container(
-            width: 4,
-            height: 36,
-            decoration: BoxDecoration(
-              color: cancelled ? colors.raised : colors.pillBorder,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+          Icon(Icons.beach_access_outlined, color: colors.secondary),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              spacing: 2,
-              children: [
-                Text(
-                  title == null || title.isEmpty
-                      ? context.l10n.profileStreamUntitled
-                      : title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    height: 1.3,
-                    color: cancelled ? colors.secondary : colors.text,
-                  ).merge(strike),
-                ),
-                Text(
-                  [
-                    hours,
-                    ?segment.categoryName,
-                    if (cancelled) context.l10n.profileCancelled,
-                  ].join(' · '),
-                  style: OnsetType.tabular(
-                    TextStyle(
-                      fontSize: 12,
-                      height: 1.3,
-                      color: colors.secondary,
-                    ).merge(strike),
-                  ),
-                ),
-              ],
+            child: Text(
+              context.l10n.scheduleVacation(
+                start: format.format(extras.vacationStart!.toLocal()),
+                end: format.format(extras.vacationEnd!.toLocal()),
+              ),
+              style: TextStyle(fontSize: 14, height: 1.4, color: colors.text),
             ),
           ),
-          if (reminder != null)
-            IconButton(
-              tooltip: reminder.set
-                  ? context.l10n.profileReminderSet
-                  : context.l10n.profileRemindMe,
-              isSelected: reminder.set,
-              onPressed: reminder.toggle,
-              icon: SheetGlyph(SheetGlyphKind.bell, color: colors.secondary),
-              // The signal reads on the dark ground only.
-              selectedIcon: SheetGlyph(
-                SheetGlyphKind.check,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? context.onsetColors.live
-                    : colors.text,
-                strokeWidth: 2.2,
-              ),
-            ),
         ],
       ),
     );

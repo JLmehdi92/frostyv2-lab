@@ -7,8 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/home/search/search_results_categories.dart';
 import 'package:onset/screens/home/search/search_results_channels.dart';
 import 'package:onset/screens/home/search/search_results_videos.dart';
@@ -31,8 +33,15 @@ import 'package:provider/provider.dart';
 /// did before the shell: the query, its results, the result tab, the
 /// videos found.
 class SearchSession {
-  SearchSession({required AuthStore authStore, required TwitchApi twitchApi})
-    : store = SearchStore(authStore: authStore, twitchApi: twitchApi);
+  SearchSession({
+    required AuthStore authStore,
+    required TwitchApi twitchApi,
+    TwitchDirectoryService? directoryService,
+  }) : store = SearchStore(
+         authStore: authStore,
+         twitchApi: twitchApi,
+         suggest: directoryService?.searchSuggestions,
+       );
 
   final SearchStore store;
 
@@ -196,6 +205,7 @@ class _SearchState extends State<Search> {
       SearchSession(
         authStore: context.read<AuthStore>(),
         twitchApi: context.read<TwitchApi>(),
+        directoryService: context.read<TwitchDirectoryService?>(),
       );
 
   SearchStore get _searchStore => _session.store;
@@ -287,6 +297,22 @@ class _SearchState extends State<Search> {
     controller.selection = TextSelection.fromPosition(
       TextPosition(offset: controller.text.length),
     );
+  }
+
+  void _useSuggestion(SearchSuggestion suggestion) {
+    final login = suggestion.login;
+    if (suggestion.kind == SearchSuggestionKind.channel && login != null) {
+      _searchStore.clearSuggestions();
+      unawaited(
+        ChannelProfileScreen.open(
+          context,
+          login: login,
+          displayName: suggestion.text,
+        ),
+      );
+      return;
+    }
+    _useHistory(suggestion.text);
   }
 
   void _clearField() {
@@ -453,7 +479,19 @@ class _SearchState extends State<Search> {
       slivers = _historySlivers(context, large: large);
     } else {
       phase = 'results-${_searchStore.lastQuery}-${_tab.name}';
-      slivers = large ? _tabletResults(context) : _phoneResults(context);
+      slivers = [
+        if (_searchStore.suggestions.isNotEmpty)
+          SliverToBoxAdapter(
+            child: SearchSuggestionsRow(
+              suggestions: _searchStore.suggestions,
+              gutter: large
+                  ? OnsetSpacing.gutterTablet
+                  : OnsetSpacing.gutterPhone,
+              onUse: _useSuggestion,
+            ),
+          ),
+        ...large ? _tabletResults(context) : _phoneResults(context),
+      ];
     }
     return OnsetScrollbar(
       controller: widget.scrollController,
@@ -1104,6 +1142,84 @@ class _NoHistory extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class SearchSuggestionsRow extends StatelessWidget {
+  const SearchSuggestionsRow({
+    super.key,
+    required this.suggestions,
+    required this.onUse,
+    this.gutter = OnsetSpacing.gutterPhone,
+  });
+
+  final List<SearchSuggestion> suggestions;
+  final ValueChanged<SearchSuggestion> onUse;
+  final double gutter;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FeedColors.of(context);
+    return Semantics(
+      container: true,
+      label: context.l10n.searchSuggestions,
+      child: SizedBox(
+        height: 52,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 6),
+          itemCount: suggestions.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            final suggestion = suggestions[index];
+            return PressScale(
+              child: Material(
+                color: colors.surface,
+                shape: StadiumBorder(
+                  side: BorderSide(
+                    color: colors.hairline,
+                    width: OnsetTokens.hairlineWidth,
+                  ),
+                ),
+                child: InkWell(
+                  key: ValueKey('suggestion-${suggestion.text}'),
+                  customBorder: const StadiumBorder(),
+                  onTap: () => onUse(suggestion),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 6,
+                      children: [
+                        Icon(
+                          switch (suggestion.kind) {
+                            SearchSuggestionKind.channel =>
+                              Icons.person_outline_rounded,
+                            SearchSuggestionKind.category =>
+                              Icons.sports_esports_outlined,
+                            SearchSuggestionKind.text => Icons.search_rounded,
+                          },
+                          size: 16,
+                          color: colors.secondary,
+                        ),
+                        Text(
+                          suggestion.text,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: colors.text,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

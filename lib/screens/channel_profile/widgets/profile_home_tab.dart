@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/apis/twitch_channel_profile_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_extras.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_live_card.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_schedule_tab.dart';
@@ -50,6 +52,8 @@ class ProfileHomeContent extends StatefulWidget {
     required this.onOpenChannel,
     required this.onViewAllVideos,
     required this.onViewAllClips,
+    this.trailer,
+    this.onOpenTrailer,
     this.channelName = '',
     this.onPreload,
     this.schedule,
@@ -72,6 +76,8 @@ class ProfileHomeContent extends StatefulWidget {
 
   /// Null until read (or when it could not be).
   final ChannelSchedule? schedule;
+  final ChannelTrailer? trailer;
+  final VoidCallback? onOpenTrailer;
   final ScheduleReminders? reminders;
 
   /// The clock (tests).
@@ -140,6 +146,12 @@ class _ProfileHomeContentState extends State<ProfileHomeContent>
             large: large,
           )
         : null;
+    final trailer = widget.trailer;
+    final onOpenTrailer = widget.onOpenTrailer;
+    final trailerCard =
+        streamCard == null && trailer != null && onOpenTrailer != null
+        ? ProfileTrailerCard(trailer: trailer, onOpen: onOpenTrailer)
+        : null;
 
     Widget? top;
     if (large && (streamCard != null || coming.isNotEmpty)) {
@@ -186,6 +198,16 @@ class _ProfileHomeContentState extends State<ProfileHomeContent>
       children: [
         if (widget.status case final status?)
           Padding(padding: const EdgeInsets.only(bottom: 14), child: status),
+        if (trailerCard != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: large
+                ? Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: SizedBox(width: 480, child: trailerCard),
+                  )
+                : trailerCard,
+          ),
         if (top != null)
           Padding(padding: const EdgeInsets.only(bottom: 24), child: top)
         else ...[

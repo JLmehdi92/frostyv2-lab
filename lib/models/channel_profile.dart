@@ -310,6 +310,43 @@ class ScheduleSegment {
   }
 }
 
+class ScheduleExtras {
+  const ScheduleExtras({
+    this.vacationStart,
+    this.vacationEnd,
+    this.recurringStarts = const {},
+  });
+
+  final DateTime? vacationStart;
+  final DateTime? vacationEnd;
+  final Set<DateTime> recurringStarts;
+
+  static const none = ScheduleExtras();
+
+  bool isRecurring(ScheduleSegment segment) =>
+      recurringStarts.contains(segment.startAt.toUtc());
+
+  bool onVacationAfter(DateTime now) {
+    final end = vacationEnd;
+    return vacationStart != null && end != null && end.isAfter(now);
+  }
+
+  static ScheduleExtras fromHelix(Object? json) {
+    final data = chMap(chMap(json)?['data']);
+    if (data == null) return none;
+    final vacation = chMap(data['vacation']);
+    return ScheduleExtras(
+      vacationStart: chDate(vacation?['start_time']),
+      vacationEnd: chDate(vacation?['end_time']),
+      recurringStarts: {
+        for (final segment in chList(data['segments'], max: 100))
+          if (chMap(segment)?['is_recurring'] == true)
+            ?chDate(chMap(segment)?['start_time'])?.toUtc(),
+      },
+    );
+  }
+}
+
 /// The channel's streaming schedule: this week's and next week's segments.
 class ChannelSchedule {
   const ChannelSchedule({required this.segments, this.nextStartAt});

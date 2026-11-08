@@ -10490,6 +10490,306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show {name} again'**
   String notInterestedRestoreName({required String name});
+
+  /// Search: what a screen reader says for the row of suggestions shown while typing.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions'**
+  String get searchSuggestions;
+
+  /// Channel profile › Home: the label of the channel trailer card (shown while the channel is offline).
+  ///
+  /// In en, this message translates to:
+  /// **'Trailer'**
+  String get profileTrailer;
+
+  /// Channel profile › Home: what a screen reader says for the trailer card. title is the trailer's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Play trailer: {title}'**
+  String profileTrailerOpen({required String title});
+
+  /// Channel profile › About: the title above the channel's Twitch teams (and the team page title while it loads).
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get profileTeams;
+
+  /// Team page: how many channels are in the team.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} member} other{{count} members}}'**
+  String teamMembersCount({required int count});
+
+  /// Team page: the section of members who are live.
+  ///
+  /// In en, this message translates to:
+  /// **'Live now'**
+  String get teamLiveNow;
+
+  /// Team page: the section of members who are offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get teamMembers;
+
+  /// Error message. Team page: the team could not be loaded; « Try again » follows.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load this team.'**
+  String get teamFailed;
+
+  /// Channel profile › Schedule: the banner while the streamer has set a vacation. start and end are short dates (Nov 8).
+  ///
+  /// In en, this message translates to:
+  /// **'On a break from {start} to {end}. The schedule resumes after that.'**
+  String scheduleVacation({required String start, required String end});
+
+  /// Channel profile › Schedule: a short tag on a stream that repeats every week.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get scheduleWeekly;
+
+  /// Schedule slot detail: the line saying the stream repeats weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeats every week'**
+  String get scheduleRepeatsWeekly;
+
+  /// Schedule slot detail: shares the link to this scheduled stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this stream'**
+  String get scheduleShareSlot;
+
+  /// Settings › General › Browse: which clips a channel's Clips lists show (all, or only the ones the streamer featured).
+  ///
+  /// In en, this message translates to:
+  /// **'Channel clips'**
+  String get settingsClipDiscovery;
+
+  /// Channel clips setting: every clip.
+  ///
+  /// In en, this message translates to:
+  /// **'All clips'**
+  String get clipDiscoveryAll;
+
+  /// Channel clips setting: only the clips the streamer featured.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured only'**
+  String get clipDiscoveryFeatured;
+
+  /// Settings › General › Browse: hides viewer counts on stream cards, the Live feed and the player.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide viewer counts'**
+  String get settingsHideViewerCount;
+
+  /// Settings › Video: plays a muted preview of the channel on screen in Live.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream previews'**
+  String get settingsStreamPreviews;
+
+  /// Settings › Video: the line under Stream previews.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays the channel on screen in Live before you open it.'**
+  String get settingsStreamPreviewsDetail;
+
+  /// Settings › Video: previews start without sound (a tap on the sound button still unmutes).
+  ///
+  /// In en, this message translates to:
+  /// **'Start previews muted'**
+  String get settingsMutePreviews;
+
+  /// Settings › Video: on mobile data, live streams start at 480p at most and previews do not play.
+  ///
+  /// In en, this message translates to:
+  /// **'Data saver'**
+  String get settingsDataSaver;
+
+  /// Settings › Video: the line under Data saver.
+  ///
+  /// In en, this message translates to:
+  /// **'On mobile data, live streams start at 480p at most and previews don’t play. You can still pick another quality.'**
+  String get settingsDataSaverDetail;
+
+  /// Settings › Chat › celebrations: whether celebrations play over the video in landscape (off: a line in chat instead).
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts over the video in landscape'**
+  String get settingsAlertsOverLandscapeVideo;
+
+  /// Settings › Chat: the line under Alerts over the video in landscape.
+  ///
+  /// In en, this message translates to:
+  /// **'When off, landscape shows a line in chat instead, so nothing covers the stream.'**
+  String get settingsAlertsOverLandscapeVideoDetail;
+
+  /// Following › sort: channels with a running watch streak first, then by viewers (« chaînes » is feminine in French).
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get followedSortRecommended;
+
+  /// Following › Videos from followed channels: what a screen reader says for the count badge of videos posted since the list was last opened.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} new video} other{{count} new videos}}'**
+  String followedVideosNew({required int count});
+
+  /// Following, when no followed channel is live: the button that opens Browse.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse channels'**
+  String get followedBrowseChannels;
+
+  /// Share sheet (stream, clip or video link): its title.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareTitle;
+
+  /// Share sheet: sends the link as a chat message in the channel's chat (no channel name known).
+  ///
+  /// In en, this message translates to:
+  /// **'Send in chat'**
+  String get shareSendToChat;
+
+  /// Share sheet: sends the link as a chat message in that channel's chat. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Send in {name}’s chat'**
+  String shareSendToChannelChat({required String name});
+
+  /// Share sheet: picks someone and whispers them the link.
+  ///
+  /// In en, this message translates to:
+  /// **'Send as a whisper'**
+  String get shareSendAsWhisper;
+
+  /// Share sheet: opens the system share sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'More options…'**
+  String get shareOther;
+
+  /// Snackbar after the link was sent in a chat. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Link sent in {name}’s chat.'**
+  String shareSentToChat({required String name});
+
+  /// Error message. Snackbar when the login predates the permission to send chat messages through Twitch's API.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again to send links in chat from here.'**
+  String get shareChatLogInAgain;
+
+  /// Error message. Snackbar when the chat message could not be sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t send the link in chat.'**
+  String get shareChatFailed;
+
+  /// Snackbar after the link was whispered. name is the person's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Link whispered to {name}.'**
+  String shareWhisperSent({required String name});
+
+  /// The small pill beside a recently added setting, shown until the viewer uses it (drawn in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newFeaturePill;
+
+  /// Channel points sheet: the title of the one-time intro card.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel points'**
+  String get pointsIntroTitle;
+
+  /// Channel points sheet: the text of the one-time intro card.
+  ///
+  /// In en, this message translates to:
+  /// **'Each channel has its own points. You earn them by watching, and spend them on that channel’s rewards and predictions.'**
+  String get pointsIntroBody;
+
+  /// Channel points sheet: dismisses the intro card.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get pointsIntroGotIt;
+
+  /// Channel points sheet: the row (and the intro's button) that opens the explainer of how points are earned; also the explainer's title.
+  ///
+  /// In en, this message translates to:
+  /// **'How to earn points'**
+  String get pointsHowToEarn;
+
+  /// How to earn points: watching.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the stream: points add up every few minutes while it’s live.'**
+  String get pointsEarnWatch;
+
+  /// How to earn points: the bonus chest.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect the bonus when it shows up in chat.'**
+  String get pointsEarnBonus;
+
+  /// How to earn points: watch streaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a watch streak by coming back stream after stream.'**
+  String get pointsEarnStreak;
+
+  /// How to earn points: following (a one-time bonus).
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the channel.'**
+  String get pointsEarnFollow;
+
+  /// How to earn points: raids.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a raid the channel starts.'**
+  String get pointsEarnRaid;
+
+  /// How to earn points: the subscriber multiplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribers earn more for everything above.'**
+  String get pointsEarnSubscriber;
+
+  /// How to earn points: the note at the end.
+  ///
+  /// In en, this message translates to:
+  /// **'Each channel sets its own amounts. Watching in this app may not count everywhere it would on Twitch.'**
+  String get pointsEarnNote;
+
+  /// Settings › Chat › Channel points: brings back the intro card in the points sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the channel points intro again'**
+  String get settingsReplayPointsIntro;
+
+  /// Settings › Chat: the line under Show the channel points intro again (« Elle » is la présentation).
+  ///
+  /// In en, this message translates to:
+  /// **'It shows the next time you open a channel’s points.'**
+  String get settingsReplayPointsIntroDetail;
+
+  /// Snackbar after Show the channel points intro again.
+  ///
+  /// In en, this message translates to:
+  /// **'The intro will show again.'**
+  String get settingsPointsIntroReset;
 }
 
 class _AppLocalizationsDelegate

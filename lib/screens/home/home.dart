@@ -97,6 +97,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   SearchSession get _searchSession => _search ??= SearchSession(
     authStore: _authStore,
     twitchApi: context.read<TwitchApi>(),
+    directoryService: context.read<TwitchDirectoryService?>(),
   );
 
   void _openSearchFor(String term) {

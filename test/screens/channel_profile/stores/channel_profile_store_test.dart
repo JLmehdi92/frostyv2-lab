@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_channel_profile_service.dart';
 import 'package:onset/models/channel_profile.dart';
+import 'package:onset/models/team.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/channel_profile/stores/channel_profile_store.dart';
 
@@ -137,5 +138,40 @@ void main() {
     answer.complete(_profile);
     await load;
     expect(store.profile, isNull);
+  });
+
+  test('the trailer and teams load with the profile', () async {
+    when(() => service.getProfile(any())).thenAnswer((_) async => _profile);
+    when(
+      () => service.getTrailer(any()),
+    ).thenAnswer((_) async => const ChannelTrailer(videoId: '9', title: 'Hi'));
+    final asked = <String>[];
+    final store = ChannelProfileStore(
+      login: 'streamer',
+      profileService: service,
+      teamsOf: (id) async {
+        asked.add(id);
+        return const [Team(id: '1', name: 'staff', displayName: 'Staff')];
+      },
+    );
+    await store.load();
+    expect(store.trailer?.videoId, '9');
+    expect(store.teams.single.name, 'staff');
+    expect(asked, ['42']);
+  });
+
+  test('a failed trailer or team list keeps the page', () async {
+    when(() => service.getProfile(any())).thenAnswer((_) async => _profile);
+    when(() => service.getTrailer(any())).thenThrow(Exception('gql'));
+    final store = ChannelProfileStore(
+      login: 'streamer',
+      profileService: service,
+      teamsOf: (_) async => throw Exception('helix'),
+    );
+    await store.load();
+    expect(store.profile, _profile);
+    expect(store.error, isNull);
+    expect(store.trailer, isNull);
+    expect(store.teams, isEmpty);
   });
 }

@@ -11,12 +11,14 @@ import 'package:onset/constants.dart' as constants show tokenProxyUrl;
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/channel.dart';
+import 'package:onset/models/channel_profile.dart' show ScheduleExtras;
 import 'package:onset/models/cheermote.dart';
 import 'package:onset/models/clip.dart' show isValidClipSlug;
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/followed_channel.dart';
 import 'package:onset/models/shared_chat_session.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/models/team.dart';
 import 'package:onset/models/user.dart';
 
 /// Why Twitch would not clip a stream (Helix `POST /clips` answers).
@@ -799,6 +801,36 @@ class TwitchApi extends BaseApiClient {
     return channelData.map((e) => ChannelQuery.fromJson(e)).toList();
   }
 
+  Future<ScheduleExtras> getScheduleExtras({
+    required String broadcasterId,
+  }) async {
+    final data = await get<JsonMap>(
+      '/schedule',
+      queryParameters: {'broadcaster_id': broadcasterId, 'first': '25'},
+    );
+    return ScheduleExtras.fromHelix(data);
+  }
+
+  Future<List<Team>> getChannelTeams({required String broadcasterId}) async {
+    final data = await get<JsonMap>(
+      '/teams/channel',
+      queryParameters: {'broadcaster_id': broadcasterId},
+    );
+    final teams = data['data'];
+    return [
+      if (teams is List)
+        for (final team in teams.take(20)) ?Team.fromJson(team),
+    ];
+  }
+
+  Future<Team?> getTeam({required String name}) async {
+    final data = await get<JsonMap>('/teams', queryParameters: {'name': name});
+    final teams = data['data'];
+    return teams is List && teams.isNotEmpty
+        ? Team.fromJson(teams.first)
+        : null;
+  }
+
   /// Returns a [CategoriesTwitch] object containing the next top 20 categories/games and a cursor for further requests.
   Future<CategoriesTwitch> getTopCategories({String? cursor}) async {
     final data = await get<JsonMap>(
@@ -1215,6 +1247,42 @@ class TwitchApi extends BaseApiClient {
       },
       data: {'message': text},
     );
+  }
+
+  static const maxChatMessageLength = 500;
+
+  Future<void> sendChatMessage({
+    required String broadcasterId,
+    required String senderId,
+    required String message,
+  }) async {
+    final text = message.trim();
+    if (text.isEmpty || text.length > maxChatMessageLength) {
+      throw ArgumentError('A chat message is 1 to 500 characters');
+    }
+    final data = await post<JsonMap>(
+      '/chat/messages',
+      extra: {UnauthorizedInterceptor.quiet: true},
+      data: {
+        'broadcaster_id': _checkId(broadcasterId, 'broadcasterId'),
+        'sender_id': _checkId(senderId, 'senderId'),
+        'message': text,
+      },
+    );
+    final sent = data['data'];
+    final first = sent is List && sent.isNotEmpty ? sent.first : null;
+    if (first is Map && first['is_sent'] == false) {
+      final reason = first['drop_reason'];
+      throw ApiException(
+        'Chat message dropped',
+        null,
+        null,
+        ApiErrorKind.unknown,
+        reason is Map && reason['message'] is String
+            ? reason['message'] as String
+            : null,
+      );
+    }
   }
 
   // Gets recent messages from a third-party service.

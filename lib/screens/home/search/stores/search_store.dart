@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -45,8 +46,64 @@ abstract class SearchStoreBase with Store {
   @readonly
   ObservableFuture<CategoriesTwitch?>? _categoryFuture;
 
-  SearchStoreBase({required this.authStore, required this.twitchApi}) {
+  SearchStoreBase({
+    required this.authStore,
+    required this.twitchApi,
+    Future<List<SearchSuggestion>> Function(String fragment)? suggest,
+  }) : _suggest = suggest {
     init();
+  }
+
+  final Future<List<SearchSuggestion>> Function(String fragment)? _suggest;
+
+  Timer? _suggestTimer;
+
+  static const suggestDelay = Duration(milliseconds: 150);
+
+  @readonly
+  List<SearchSuggestion> _suggestions = const [];
+
+  List<SearchSuggestion> _fromHistory(String query) {
+    final lower = query.toLowerCase();
+    return [
+      for (final past in _searchHistory)
+        if (past.toLowerCase().startsWith(lower) && past.toLowerCase() != lower)
+          SearchSuggestion(text: past),
+    ];
+  }
+
+  void _updateSuggestions(String query) {
+    _suggestTimer?.cancel();
+    if (query.trim().isEmpty) {
+      _suggestions = const [];
+      return;
+    }
+    final local = _fromHistory(query);
+    _suggestions = local.take(TwitchDirectoryService.maxSuggestions).toList();
+    final suggest = _suggest;
+    if (suggest == null) return;
+    _suggestTimer = Timer(suggestDelay, () async {
+      List<SearchSuggestion> remote;
+      try {
+        remote = await suggest(query);
+      } catch (e) {
+        debugPrint('Search suggestions unavailable: $e');
+        return;
+      }
+      if (textEditingController.text != query) return;
+      runInAction(
+        () => _suggestions = {
+          ...remote,
+          ...local,
+        }.take(TwitchDirectoryService.maxSuggestions).toList(),
+      );
+    });
+  }
+
+  @action
+  void clearSuggestions() {
+    _suggestTimer?.cancel();
+    _suggestions = const [];
   }
 
   @action
@@ -75,6 +132,7 @@ abstract class SearchStoreBase with Store {
   @action
   void onSearchTextChanged(String query) {
     _debounceTimer?.cancel();
+    _updateSuggestions(query);
 
     if (query.isEmpty) {
       _isSearching = false;
@@ -106,6 +164,7 @@ abstract class SearchStoreBase with Store {
 
     // Cancel any pending debounce since we're searching immediately.
     _debounceTimer?.cancel();
+    clearSuggestions();
 
     _performSearch(query);
   }
@@ -157,6 +216,7 @@ abstract class SearchStoreBase with Store {
   void dispose() {
     _disposeReaction?.call();
     _debounceTimer?.cancel();
+    _suggestTimer?.cancel();
     textEditingController.dispose();
     textFieldFocusNode.dispose();
   }

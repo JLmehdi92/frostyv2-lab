@@ -194,6 +194,38 @@ class TwitchDirectoryService extends BaseApiClient {
     );
   }
 
+  static const _suggestionsQuery =
+      'query SearchSuggestions(\$queryFragment: String!, \$requestID: ID!) { '
+      'searchSuggestions(queryFragment: \$queryFragment, requestID: '
+      '\$requestID, withOfflineChannelContent: true) { edges { node { id '
+      'text content { __typename ... on SearchSuggestionChannel { id user { '
+      'id login displayName } } ... on SearchSuggestionCategory { id game { '
+      'id name displayName } } } } } } }';
+
+  static const maxSuggestions = 6;
+
+  Future<List<SearchSuggestion>> searchSuggestions(String fragment) async {
+    final query = fragment.trim();
+    if (query.isEmpty) return const [];
+    final (
+      :data,
+      :errors,
+    ) = await _gql('SearchSuggestions', _suggestionsQuery, {
+      'queryFragment': query.length > 100 ? query.substring(0, 100) : query,
+      'requestID': 'onset-${query.hashCode.toUnsigned(32)}',
+    });
+    final root = chMap(data['searchSuggestions']);
+    if (root == null) {
+      throw DirectoryApiException(
+        errors.isNotEmpty ? errors : 'No search suggestions',
+      );
+    }
+    return [
+      for (final edge in chList(root['edges'], max: maxSuggestions))
+        ?SearchSuggestion.fromGql(chMap(edge)?['node']),
+    ];
+  }
+
   /// The answer's data, and its error messages ('' when none).
   Future<({Map<dynamic, dynamic> data, String errors})> _gql(
     String operationName,
@@ -223,4 +255,59 @@ class TwitchDirectoryService extends BaseApiClient {
     }
     return (data: data, errors: errors);
   }
+}
+
+enum SearchSuggestionKind { channel, category, text }
+
+@immutable
+class SearchSuggestion {
+  const SearchSuggestion({
+    required this.text,
+    this.kind = SearchSuggestionKind.text,
+    this.login,
+  });
+
+  final String text;
+  final SearchSuggestionKind kind;
+  final String? login;
+
+  static final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
+
+  static SearchSuggestion? fromGql(Object? node) {
+    final map = chMap(node);
+    final text = chString(map?['text'], max: 100)?.trim();
+    if (map == null || text == null || text.isEmpty) return null;
+    final content = chMap(map['content']);
+    final user = chMap(content?['user']);
+    final login = user?['login'];
+    if (content?['__typename'] == 'SearchSuggestionChannel' &&
+        login is String &&
+        _login.hasMatch(login)) {
+      return SearchSuggestion(
+        text: chString(user!['displayName'], max: 64) ?? login,
+        kind: SearchSuggestionKind.channel,
+        login: login.toLowerCase(),
+      );
+    }
+    if (content?['__typename'] == 'SearchSuggestionCategory') {
+      final game = chMap(content!['game']);
+      return SearchSuggestion(
+        text:
+            chString(game?['displayName'], max: 100) ??
+            chString(game?['name'], max: 100) ??
+            text,
+        kind: SearchSuggestionKind.category,
+      );
+    }
+    return SearchSuggestion(text: text);
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is SearchSuggestion &&
+      other.text.toLowerCase() == text.toLowerCase() &&
+      other.kind == kind;
+
+  @override
+  int get hashCode => Object.hash(text.toLowerCase(), kind);
 }

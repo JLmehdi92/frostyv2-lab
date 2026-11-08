@@ -24,6 +24,66 @@ mixin _$ChannelProfileStore on ChannelProfileStoreBase, Store {
     name: 'ChannelProfileStoreBase.displayName',
   )).value;
 
+  late final _$_scheduleExtrasAtom = Atom(
+    name: 'ChannelProfileStoreBase._scheduleExtras',
+    context: context,
+  );
+
+  ScheduleExtras get scheduleExtras {
+    _$_scheduleExtrasAtom.reportRead();
+    return super._scheduleExtras;
+  }
+
+  @override
+  ScheduleExtras get _scheduleExtras => scheduleExtras;
+
+  @override
+  set _scheduleExtras(ScheduleExtras value) {
+    _$_scheduleExtrasAtom.reportWrite(value, super._scheduleExtras, () {
+      super._scheduleExtras = value;
+    });
+  }
+
+  late final _$_trailerAtom = Atom(
+    name: 'ChannelProfileStoreBase._trailer',
+    context: context,
+  );
+
+  ChannelTrailer? get trailer {
+    _$_trailerAtom.reportRead();
+    return super._trailer;
+  }
+
+  @override
+  ChannelTrailer? get _trailer => trailer;
+
+  @override
+  set _trailer(ChannelTrailer? value) {
+    _$_trailerAtom.reportWrite(value, super._trailer, () {
+      super._trailer = value;
+    });
+  }
+
+  late final _$_teamsAtom = Atom(
+    name: 'ChannelProfileStoreBase._teams',
+    context: context,
+  );
+
+  List<Team> get teams {
+    _$_teamsAtom.reportRead();
+    return super._teams;
+  }
+
+  @override
+  List<Team> get _teams => teams;
+
+  @override
+  set _teams(List<Team> value) {
+    _$_teamsAtom.reportWrite(value, super._teams, () {
+      super._teams = value;
+    });
+  }
+
   late final _$_profileAtom = Atom(
     name: 'ChannelProfileStoreBase._profile',
     context: context,

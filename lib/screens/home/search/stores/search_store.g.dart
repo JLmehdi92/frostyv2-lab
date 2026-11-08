@@ -129,6 +129,26 @@ mixin _$SearchStore on SearchStoreBase, Store {
     });
   }
 
+  late final _$_suggestionsAtom = Atom(
+    name: 'SearchStoreBase._suggestions',
+    context: context,
+  );
+
+  List<SearchSuggestion> get suggestions {
+    _$_suggestionsAtom.reportRead();
+    return super._suggestions;
+  }
+
+  @override
+  List<SearchSuggestion> get _suggestions => suggestions;
+
+  @override
+  set _suggestions(List<SearchSuggestion> value) {
+    _$_suggestionsAtom.reportWrite(value, super._suggestions, () {
+      super._suggestions = value;
+    });
+  }
+
   late final _$initAsyncAction = AsyncAction(
     'SearchStoreBase.init',
     context: context,
@@ -143,6 +163,18 @@ mixin _$SearchStore on SearchStoreBase, Store {
     name: 'SearchStoreBase',
     context: context,
   );
+
+  @override
+  void clearSuggestions() {
+    final _$actionInfo = _$SearchStoreBaseActionController.startAction(
+      name: 'SearchStoreBase.clearSuggestions',
+    );
+    try {
+      return super.clearSuggestions();
+    } finally {
+      _$SearchStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   void onSearchTextChanged(String query) {

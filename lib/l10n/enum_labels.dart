@@ -125,6 +125,7 @@ extension FollowedSortLabel on FollowedSort {
     FollowedSort.recent => l.followedSortRecent,
     FollowedSort.name => l.followedSortName,
     FollowedSort.category => l.followedSortCategory,
+    FollowedSort.recommended => l.followedSortRecommended,
   };
 }
 
@@ -318,5 +319,12 @@ extension BadgeTypeLabel on BadgeType {
     BadgeType.bttv ||
     BadgeType.ffz ||
     BadgeType.sevenTV => l.badgeTypeName(type: name),
+  };
+}
+
+extension ClipDiscoveryLabel on ClipDiscovery {
+  String label(AppLocalizations l) => switch (this) {
+    ClipDiscovery.all => l.clipDiscoveryAll,
+    ClipDiscovery.featured => l.clipDiscoveryFeatured,
   };
 }

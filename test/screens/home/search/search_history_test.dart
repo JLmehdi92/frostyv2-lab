@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/screens/home/search/search.dart';
 import 'package:onset/screens/home/search/stores/search_store.dart';
@@ -53,6 +54,73 @@ void main() {
     expect(store.searchText, 'speed runs');
     expect(store.lastQuery, 'speed runs');
     verify(() => api.searchChannels(query: 'speed runs')).called(1);
+    store.dispose();
+  });
+
+  test(
+    'typing suggests past searches, then Twitch suggestions first',
+    () async {
+      final api = MockTwitchApi();
+      when(
+        () => api.searchChannels(query: any(named: 'query')),
+      ).thenAnswer((_) async => []);
+      when(
+        () => api.searchCategories(query: any(named: 'query')),
+      ).thenAnswer((_) async => const CategoriesTwitch([], null));
+      final asked = <String>[];
+      final store = SearchStore(
+        authStore: MockAuthStore(),
+        twitchApi: api,
+        suggest: (fragment) async {
+          asked.add(fragment);
+          return [
+            const SearchSuggestion(
+              text: 'xQc',
+              kind: SearchSuggestionKind.channel,
+              login: 'xqc',
+            ),
+          ];
+        },
+      );
+      await pumpEventQueue();
+
+      store.textEditingController.text = 'x';
+      store.onSearchTextChanged('x');
+      expect(store.suggestions.map((s) => s.text), ['xqc']);
+
+      await Future<void>.delayed(SearchStoreBase.suggestDelay * 2);
+      expect(asked, ['x']);
+      expect(store.suggestions.map((s) => (s.text, s.kind)), [
+        ('xQc', SearchSuggestionKind.channel),
+        ('xqc', SearchSuggestionKind.text),
+      ]);
+
+      store.handleQuery('x');
+      expect(store.suggestions, isEmpty);
+      store.dispose();
+    },
+  );
+
+  test('failed suggestions keep the past searches', () async {
+    final api = MockTwitchApi();
+    when(
+      () => api.searchChannels(query: any(named: 'query')),
+    ).thenAnswer((_) async => []);
+    when(
+      () => api.searchCategories(query: any(named: 'query')),
+    ).thenAnswer((_) async => const CategoriesTwitch([], null));
+    final store = SearchStore(
+      authStore: MockAuthStore(),
+      twitchApi: api,
+      suggest: (_) async => throw Exception('gql'),
+    );
+    await pumpEventQueue();
+    store.textEditingController.text = 'l';
+    store.onSearchTextChanged('l');
+    await Future<void>.delayed(SearchStoreBase.suggestDelay * 2);
+    expect(store.suggestions.map((s) => s.text), ['lirik']);
+    store.onSearchTextChanged('');
+    expect(store.suggestions, isEmpty);
     store.dispose();
   });
 

@@ -8043,4 +8043,198 @@ class AppLocalizationsFr extends AppLocalizations {
   String notInterestedRestoreName({required String name}) {
     return 'Réafficher $name';
   }
+
+  @override
+  String get searchSuggestions => 'Suggestions';
+
+  @override
+  String get profileTrailer => 'Bande-annonce';
+
+  @override
+  String profileTrailerOpen({required String title}) {
+    return 'Lire la bande-annonce : $title';
+  }
+
+  @override
+  String get profileTeams => 'Équipes';
+
+  @override
+  String teamMembersCount({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString membres',
+      one: '$countString membre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get teamLiveNow => 'En direct';
+
+  @override
+  String get teamMembers => 'Membres';
+
+  @override
+  String get teamFailed => 'Impossible de charger cette équipe.';
+
+  @override
+  String scheduleVacation({required String start, required String end}) {
+    return 'En pause du $start au $end. Le planning reprendra ensuite.';
+  }
+
+  @override
+  String get scheduleWeekly => 'Chaque semaine';
+
+  @override
+  String get scheduleRepeatsWeekly => 'Se répète chaque semaine';
+
+  @override
+  String get scheduleShareSlot => 'Partager ce live';
+
+  @override
+  String get settingsClipDiscovery => 'Clips des chaînes';
+
+  @override
+  String get clipDiscoveryAll => 'Tous les clips';
+
+  @override
+  String get clipDiscoveryFeatured => 'Mis en avant uniquement';
+
+  @override
+  String get settingsHideViewerCount => 'Masquer le nombre de spectateurs';
+
+  @override
+  String get settingsStreamPreviews => 'Aperçus des lives';
+
+  @override
+  String get settingsStreamPreviewsDetail =>
+      'Lit la chaîne affichée dans l’onglet En direct avant que vous ne l’ouvriez.';
+
+  @override
+  String get settingsMutePreviews => 'Lancer les aperçus sans le son';
+
+  @override
+  String get settingsDataSaver => 'Économiseur de données';
+
+  @override
+  String get settingsDataSaverDetail =>
+      'Sur les données mobiles, les lives démarrent en 480p au maximum et les aperçus ne sont pas lus. Vous pouvez toujours choisir une autre qualité.';
+
+  @override
+  String get settingsAlertsOverLandscapeVideo =>
+      'Alertes sur la vidéo en paysage';
+
+  @override
+  String get settingsAlertsOverLandscapeVideoDetail =>
+      'Désactivé, le mode paysage affiche une ligne dans le chat à la place, et rien ne couvre le live.';
+
+  @override
+  String get followedSortRecommended => 'Recommandées';
+
+  @override
+  String followedVideosNew({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nouvelles vidéos',
+      one: '$count nouvelle vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get followedBrowseChannels => 'Parcourir les chaînes';
+
+  @override
+  String get shareTitle => 'Partager';
+
+  @override
+  String get shareSendToChat => 'Envoyer dans le chat';
+
+  @override
+  String shareSendToChannelChat({required String name}) {
+    return 'Envoyer dans le chat de $name';
+  }
+
+  @override
+  String get shareSendAsWhisper => 'Envoyer en chuchotement';
+
+  @override
+  String get shareOther => 'Plus d’options…';
+
+  @override
+  String shareSentToChat({required String name}) {
+    return 'Lien envoyé dans le chat de $name.';
+  }
+
+  @override
+  String get shareChatLogInAgain =>
+      'Reconnectez-vous pour envoyer des liens dans le chat depuis ici.';
+
+  @override
+  String get shareChatFailed => 'Impossible d’envoyer le lien dans le chat.';
+
+  @override
+  String shareWhisperSent({required String name}) {
+    return 'Lien chuchoté à $name.';
+  }
+
+  @override
+  String get newFeaturePill => 'Nouveau';
+
+  @override
+  String get pointsIntroTitle => 'Points de chaîne';
+
+  @override
+  String get pointsIntroBody =>
+      'Chaque chaîne a ses propres points. Vous les gagnez en regardant, et vous les dépensez en récompenses et en prédictions sur cette chaîne.';
+
+  @override
+  String get pointsIntroGotIt => 'Compris';
+
+  @override
+  String get pointsHowToEarn => 'Comment gagner des points';
+
+  @override
+  String get pointsEarnWatch =>
+      'Regardez le live : des points s’ajoutent toutes les quelques minutes tant qu’il est en cours.';
+
+  @override
+  String get pointsEarnBonus =>
+      'Récupérez le bonus quand il apparaît dans le chat.';
+
+  @override
+  String get pointsEarnStreak =>
+      'Entretenez une série de visionnage en revenant à chaque live.';
+
+  @override
+  String get pointsEarnFollow => 'Suivez la chaîne.';
+
+  @override
+  String get pointsEarnRaid => 'Participez à un raid lancé par la chaîne.';
+
+  @override
+  String get pointsEarnSubscriber =>
+      'Les abonnés gagnent davantage pour tout ce qui précède.';
+
+  @override
+  String get pointsEarnNote =>
+      'Chaque chaîne fixe ses propres montants. Regarder dans cette application peut ne pas compter partout comme sur Twitch.';
+
+  @override
+  String get settingsReplayPointsIntro =>
+      'Revoir la présentation des points de chaîne';
+
+  @override
+  String get settingsReplayPointsIntroDetail =>
+      'Elle s’affichera la prochaine fois que vous ouvrirez les points d’une chaîne.';
+
+  @override
+  String get settingsPointsIntroReset =>
+      'La présentation s’affichera de nouveau.';
 }

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_channel_profile_service.dart';
 import 'package:onset/models/channel_profile.dart';
+import 'package:onset/models/team.dart';
 import 'package:onset/models/user.dart';
 
 part 'channel_profile_store.g.dart';
@@ -17,7 +18,22 @@ abstract class ChannelProfileStoreBase with Store {
     required this.login,
     required this.profileService,
     this.helixUser,
+    this.teamsOf,
+    this.scheduleExtrasOf,
   });
+
+  final Future<ScheduleExtras> Function(String userId)? scheduleExtrasOf;
+
+  @readonly
+  ScheduleExtras _scheduleExtras = ScheduleExtras.none;
+
+  final Future<List<Team>> Function(String userId)? teamsOf;
+
+  @readonly
+  ChannelTrailer? _trailer;
+
+  @readonly
+  List<Team> _teams = const [];
 
   final String login;
   final TwitchChannelProfileService profileService;
@@ -100,6 +116,7 @@ abstract class ChannelProfileStoreBase with Store {
         if (!_disposed) runInAction(() => _notFound = _fallback == null);
       } else {
         runInAction(() => _notFound = false);
+        await _loadExtras(profile.id);
       }
     } catch (e) {
       debugPrint('ChannelProfileStore($login) profile failed: $e');
@@ -113,6 +130,45 @@ abstract class ChannelProfileStoreBase with Store {
           _loaded = true;
         });
       }
+    }
+  }
+
+  Future<void> _loadExtras(String userId) async {
+    final teamsOf = this.teamsOf;
+    final (trailer, teams) = await (
+      Future(() => profileService.getTrailer(login)).then<ChannelTrailer?>(
+        (trailer) => trailer,
+        onError: (Object e) {
+          debugPrint('ChannelProfileStore($login) trailer failed: $e');
+          return null;
+        },
+      ),
+      Future<List<Team>>(
+        () => teamsOf == null ? const <Team>[] : teamsOf(userId),
+      ).then<List<Team>>(
+        (teams) => teams,
+        onError: (Object e) {
+          debugPrint('ChannelProfileStore($login) teams failed: $e');
+          return const <Team>[];
+        },
+      ),
+    ).wait;
+    if (_disposed) return;
+    runInAction(() {
+      _trailer = trailer;
+      _teams = teams;
+    });
+  }
+
+  Future<void> _loadScheduleExtras() async {
+    final extrasOf = scheduleExtrasOf;
+    final id = userId;
+    if (extrasOf == null || id == null) return;
+    try {
+      final extras = await extrasOf(id);
+      if (!_disposed) runInAction(() => _scheduleExtras = extras);
+    } catch (e) {
+      debugPrint('ChannelProfileStore($login) schedule extras failed: $e');
     }
   }
 
@@ -137,6 +193,7 @@ abstract class ChannelProfileStoreBase with Store {
         _schedule = schedule;
         _scheduleError = null;
       });
+      await _loadScheduleExtras();
     } catch (e) {
       debugPrint('ChannelProfileStore($login) schedule failed: $e');
       if (!_disposed) {

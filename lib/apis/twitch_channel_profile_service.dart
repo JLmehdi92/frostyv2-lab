@@ -39,6 +39,20 @@ class TwitchChannelProfileService extends BaseApiClient {
       'channel { id schedule { id segments { id startAt endAt title '
       'isCancelled categories { id name } } nextSegment { id startAt } } } } }';
 
+  static const _trailerQuery =
+      'query ChannelTrailer(\$login: String!) { user(login: \$login) { id '
+      'channel { id trailer { video { id title lengthSeconds '
+      'previewThumbnailURL(width: 640, height: 360) } } } } }';
+
+  Future<ChannelTrailer?> getTrailer(String login) async {
+    final (:data, :errors) = await _gql('ChannelTrailer', _trailerQuery, login);
+    final channel = chMap(chMap(data['user'])?['channel']);
+    if (channel == null && errors.isNotEmpty) {
+      throw ChannelProfileApiException(errors);
+    }
+    return ChannelTrailer.fromGql(chMap(channel?['trailer'])?['video']);
+  }
+
   /// The profile of [login], or null when there is no such channel.
   ///
   /// A `user` nulled by an error, or one that cannot be read (a schema
@@ -101,5 +115,39 @@ class TwitchChannelProfileService extends BaseApiClient {
     }
     // Nested resolver errors leave the rest usable: every block is optional.
     return (data: data, errors: errors);
+  }
+}
+
+class ChannelTrailer {
+  const ChannelTrailer({
+    required this.videoId,
+    required this.title,
+    this.length,
+    this.thumbnailUrl,
+  });
+
+  final String videoId;
+  final String title;
+  final Duration? length;
+  final String? thumbnailUrl;
+
+  static final _videoId = RegExp(r'^[0-9]{1,20}$');
+
+  static ChannelTrailer? fromGql(Object? video) {
+    final map = chMap(video);
+    final id = map?['id'];
+    if (map == null || id is! String || !_videoId.hasMatch(id)) return null;
+    final seconds = chInt(map['lengthSeconds']);
+    final thumbnail = chString(map['previewThumbnailURL']);
+    return ChannelTrailer(
+      videoId: id,
+      title: chString(map['title'], max: 300) ?? '',
+      length: seconds != null && seconds > 0
+          ? Duration(seconds: seconds)
+          : null,
+      thumbnailUrl: thumbnail != null && thumbnail.startsWith('https://')
+          ? thumbnail
+          : null,
+    );
   }
 }

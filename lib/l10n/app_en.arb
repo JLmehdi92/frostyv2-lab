@@ -10163,5 +10163,252 @@
         "example": "Ninja"
       }
     }
+  },
+  "searchSuggestions": "Suggestions",
+  "@searchSuggestions": {
+    "description": "Search: what a screen reader says for the row of suggestions shown while typing."
+  },
+  "profileTrailer": "Trailer",
+  "@profileTrailer": {
+    "description": "Channel profile › Home: the label of the channel trailer card (shown while the channel is offline)."
+  },
+  "profileTrailerOpen": "Play trailer: {title}",
+  "@profileTrailerOpen": {
+    "description": "Channel profile › Home: what a screen reader says for the trailer card. title is the trailer's title.",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Welcome to my channel"
+      }
+    }
+  },
+  "profileTeams": "Teams",
+  "@profileTeams": {
+    "description": "Channel profile › About: the title above the channel's Twitch teams (and the team page title while it loads)."
+  },
+  "teamMembersCount": "{count, plural, one{{count} member} other{{count} members}}",
+  "@teamMembersCount": {
+    "description": "Team page: how many channels are in the team.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "42"
+      }
+    }
+  },
+  "teamLiveNow": "Live now",
+  "@teamLiveNow": {
+    "description": "Team page: the section of members who are live."
+  },
+  "teamMembers": "Members",
+  "@teamMembers": {
+    "description": "Team page: the section of members who are offline."
+  },
+  "teamFailed": "Couldn’t load this team.",
+  "@teamFailed": {
+    "description": "Error message. Team page: the team could not be loaded; « Try again » follows."
+  },
+  "scheduleVacation": "On a break from {start} to {end}. The schedule resumes after that.",
+  "@scheduleVacation": {
+    "description": "Channel profile › Schedule: the banner while the streamer has set a vacation. start and end are short dates (Nov 8).",
+    "placeholders": {
+      "start": {
+        "type": "String",
+        "example": "Nov 8"
+      },
+      "end": {
+        "type": "String",
+        "example": "Nov 15"
+      }
+    }
+  },
+  "scheduleWeekly": "Weekly",
+  "@scheduleWeekly": {
+    "description": "Channel profile › Schedule: a short tag on a stream that repeats every week."
+  },
+  "scheduleRepeatsWeekly": "Repeats every week",
+  "@scheduleRepeatsWeekly": {
+    "description": "Schedule slot detail: the line saying the stream repeats weekly."
+  },
+  "scheduleShareSlot": "Share this stream",
+  "@scheduleShareSlot": {
+    "description": "Schedule slot detail: shares the link to this scheduled stream."
+  },
+  "settingsClipDiscovery": "Channel clips",
+  "@settingsClipDiscovery": {
+    "description": "Settings › General › Browse: which clips a channel's Clips lists show (all, or only the ones the streamer featured)."
+  },
+  "clipDiscoveryAll": "All clips",
+  "@clipDiscoveryAll": {
+    "description": "Channel clips setting: every clip."
+  },
+  "clipDiscoveryFeatured": "Featured only",
+  "@clipDiscoveryFeatured": {
+    "description": "Channel clips setting: only the clips the streamer featured."
+  },
+  "settingsHideViewerCount": "Hide viewer counts",
+  "@settingsHideViewerCount": {
+    "description": "Settings › General › Browse: hides viewer counts on stream cards, the Live feed and the player."
+  },
+  "settingsStreamPreviews": "Stream previews",
+  "@settingsStreamPreviews": {
+    "description": "Settings › Video: plays a muted preview of the channel on screen in Live."
+  },
+  "settingsStreamPreviewsDetail": "Plays the channel on screen in Live before you open it.",
+  "@settingsStreamPreviewsDetail": {
+    "description": "Settings › Video: the line under Stream previews."
+  },
+  "settingsMutePreviews": "Start previews muted",
+  "@settingsMutePreviews": {
+    "description": "Settings › Video: previews start without sound (a tap on the sound button still unmutes)."
+  },
+  "settingsDataSaver": "Data saver",
+  "@settingsDataSaver": {
+    "description": "Settings › Video: on mobile data, live streams start at 480p at most and previews do not play."
+  },
+  "settingsDataSaverDetail": "On mobile data, live streams start at 480p at most and previews don’t play. You can still pick another quality.",
+  "@settingsDataSaverDetail": {
+    "description": "Settings › Video: the line under Data saver."
+  },
+  "settingsAlertsOverLandscapeVideo": "Alerts over the video in landscape",
+  "@settingsAlertsOverLandscapeVideo": {
+    "description": "Settings › Chat › celebrations: whether celebrations play over the video in landscape (off: a line in chat instead)."
+  },
+  "settingsAlertsOverLandscapeVideoDetail": "When off, landscape shows a line in chat instead, so nothing covers the stream.",
+  "@settingsAlertsOverLandscapeVideoDetail": {
+    "description": "Settings › Chat: the line under Alerts over the video in landscape."
+  },
+  "followedSortRecommended": "Recommended",
+  "@followedSortRecommended": {
+    "description": "Following › sort: channels with a running watch streak first, then by viewers (« chaînes » is feminine in French)."
+  },
+  "followedVideosNew": "{count, plural, one{{count} new video} other{{count} new videos}}",
+  "@followedVideosNew": {
+    "description": "Following › Videos from followed channels: what a screen reader says for the count badge of videos posted since the list was last opened.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "followedBrowseChannels": "Browse channels",
+  "@followedBrowseChannels": {
+    "description": "Following, when no followed channel is live: the button that opens Browse."
+  },
+  "shareTitle": "Share",
+  "@shareTitle": {
+    "description": "Share sheet (stream, clip or video link): its title."
+  },
+  "shareSendToChat": "Send in chat",
+  "@shareSendToChat": {
+    "description": "Share sheet: sends the link as a chat message in the channel's chat (no channel name known)."
+  },
+  "shareSendToChannelChat": "Send in {name}’s chat",
+  "@shareSendToChannelChat": {
+    "description": "Share sheet: sends the link as a chat message in that channel's chat. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Ninja"
+      }
+    }
+  },
+  "shareSendAsWhisper": "Send as a whisper",
+  "@shareSendAsWhisper": {
+    "description": "Share sheet: picks someone and whispers them the link."
+  },
+  "shareOther": "More options…",
+  "@shareOther": {
+    "description": "Share sheet: opens the system share sheet."
+  },
+  "shareSentToChat": "Link sent in {name}’s chat.",
+  "@shareSentToChat": {
+    "description": "Snackbar after the link was sent in a chat. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Ninja"
+      }
+    }
+  },
+  "shareChatLogInAgain": "Log in again to send links in chat from here.",
+  "@shareChatLogInAgain": {
+    "description": "Error message. Snackbar when the login predates the permission to send chat messages through Twitch's API."
+  },
+  "shareChatFailed": "Couldn’t send the link in chat.",
+  "@shareChatFailed": {
+    "description": "Error message. Snackbar when the chat message could not be sent."
+  },
+  "shareWhisperSent": "Link whispered to {name}.",
+  "@shareWhisperSent": {
+    "description": "Snackbar after the link was whispered. name is the person's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Ninja"
+      }
+    }
+  },
+  "newFeaturePill": "New",
+  "@newFeaturePill": {
+    "description": "The small pill beside a recently added setting, shown until the viewer uses it (drawn in capitals)."
+  },
+  "pointsIntroTitle": "Channel points",
+  "@pointsIntroTitle": {
+    "description": "Channel points sheet: the title of the one-time intro card."
+  },
+  "pointsIntroBody": "Each channel has its own points. You earn them by watching, and spend them on that channel’s rewards and predictions.",
+  "@pointsIntroBody": {
+    "description": "Channel points sheet: the text of the one-time intro card."
+  },
+  "pointsIntroGotIt": "Got it",
+  "@pointsIntroGotIt": {
+    "description": "Channel points sheet: dismisses the intro card."
+  },
+  "pointsHowToEarn": "How to earn points",
+  "@pointsHowToEarn": {
+    "description": "Channel points sheet: the row (and the intro's button) that opens the explainer of how points are earned; also the explainer's title."
+  },
+  "pointsEarnWatch": "Watch the stream: points add up every few minutes while it’s live.",
+  "@pointsEarnWatch": {
+    "description": "How to earn points: watching."
+  },
+  "pointsEarnBonus": "Collect the bonus when it shows up in chat.",
+  "@pointsEarnBonus": {
+    "description": "How to earn points: the bonus chest."
+  },
+  "pointsEarnStreak": "Keep a watch streak by coming back stream after stream.",
+  "@pointsEarnStreak": {
+    "description": "How to earn points: watch streaks."
+  },
+  "pointsEarnFollow": "Follow the channel.",
+  "@pointsEarnFollow": {
+    "description": "How to earn points: following (a one-time bonus)."
+  },
+  "pointsEarnRaid": "Join a raid the channel starts.",
+  "@pointsEarnRaid": {
+    "description": "How to earn points: raids."
+  },
+  "pointsEarnSubscriber": "Subscribers earn more for everything above.",
+  "@pointsEarnSubscriber": {
+    "description": "How to earn points: the subscriber multiplier."
+  },
+  "pointsEarnNote": "Each channel sets its own amounts. Watching in this app may not count everywhere it would on Twitch.",
+  "@pointsEarnNote": {
+    "description": "How to earn points: the note at the end."
+  },
+  "settingsReplayPointsIntro": "Show the channel points intro again",
+  "@settingsReplayPointsIntro": {
+    "description": "Settings › Chat › Channel points: brings back the intro card in the points sheet."
+  },
+  "settingsReplayPointsIntroDetail": "It shows the next time you open a channel’s points.",
+  "@settingsReplayPointsIntroDetail": {
+    "description": "Settings › Chat: the line under Show the channel points intro again (« Elle » is la présentation)."
+  },
+  "settingsPointsIntroReset": "The intro will show again.",
+  "@settingsPointsIntroReset": {
+    "description": "Snackbar after Show the channel points intro again."
   }
 }

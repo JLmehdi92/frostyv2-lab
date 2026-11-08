@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
+import 'package:onset/models/team.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_extras.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_header.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
@@ -36,15 +38,20 @@ class ProfileAboutContent extends StatelessWidget {
     super.key,
     required this.profile,
     required this.onOpenLink,
+    this.teams = const [],
+    this.onOpenTeam,
   });
 
   final ChannelProfile profile;
   final ValueChanged<String> onOpenLink;
+  final List<Team> teams;
+  final ValueChanged<Team>? onOpenTeam;
 
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
     final l = context.l10n;
+    final onOpenTeam = this.onOpenTeam;
     final description = profile.description?.trim();
     final followers = profile.followers;
     final joined = profile.createdAt;
@@ -87,6 +94,8 @@ class ProfileAboutContent extends StatelessWidget {
             ),
           ],
         ),
+        if (teams.isNotEmpty && onOpenTeam != null)
+          ProfileTeams(teams: teams, onOpen: onOpenTeam),
         if (profile.socials.isNotEmpty)
           ProfileSocials(socials: profile.socials, onOpenLink: onOpenLink),
         if (profile.panels.isNotEmpty)
