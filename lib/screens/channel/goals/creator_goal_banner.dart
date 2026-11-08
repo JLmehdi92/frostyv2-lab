@@ -73,8 +73,14 @@ class CreatorGoalRow extends StatelessWidget {
       null => null,
     };
     final progress = l.goalProgress(current: goal.current, target: goal.target);
+    void open() {
+      HapticFeedback.selectionClick();
+      showCreatorGoalDetails(context, goal);
+    }
+
     return Semantics(
       button: true,
+      onTap: open,
       label: [?ordinalText, title, progress].join(', '),
       excludeSemantics: true,
       child: Material(
@@ -90,10 +96,7 @@ class CreatorGoalRow extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () {
-            HapticFeedback.selectionClick();
-            showCreatorGoalDetails(context, goal);
-          },
+          onTap: open,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
             child: Column(
