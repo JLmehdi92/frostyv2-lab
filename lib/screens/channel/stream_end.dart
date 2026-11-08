@@ -44,7 +44,20 @@ class StreamEndLookup {
     }
   }
 
-  Future<Vod?> latestBroadcastIfOffline(String login) async {
+  Future<Vod?> latestBroadcastIfOffline(
+    String login, {
+    Duration within = const Duration(seconds: 3),
+  }) async {
+    try {
+      return await _latestBroadcastIfOffline(
+        login,
+      ).timeout(within, onTimeout: () => null);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Vod?> _latestBroadcastIfOffline(String login) async {
     if (await isLive(login) != false) return null;
     return latestBroadcast(login);
   }

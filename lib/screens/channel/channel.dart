@@ -105,6 +105,17 @@ class VideoChat extends StatefulWidget {
     this.startChatOnly = false,
   });
 
+  static bool leaveForShell() {
+    for (final state in _VideoChatState._alive.reversed) {
+      if (!state.mounted) continue;
+      if (state._videoStore.paused || !state.context.settingsStore.showVideo) {
+        return true;
+      }
+      return state._handOffToMiniPlayer();
+    }
+    return true;
+  }
+
   /// The page of [login]'s channel when it is open (the latest one), or
   /// null.
   static Route<dynamic>? routeOf(String login) {
@@ -638,24 +649,24 @@ class _VideoChatState extends State<VideoChat>
     );
   }
 
-  SettingsStore? _showVideoAgainOnLeave;
+  SettingsStore? _chatOnlySettings;
+
+  void _hideVideoForChatOnlyStart() {
+    if (!widget.startChatOnly) return;
+    final settings = context.settingsStore;
+    runInAction(() => settings.chatOnlyForPage = true);
+    _chatOnlySettings = settings;
+  }
+
+  void _restoreVideoAfterChatOnlyStart() {
+    final settings = _chatOnlySettings;
+    if (settings != null) runInAction(() => settings.chatOnlyForPage = false);
+  }
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   bool get _hasFollowedDrawer =>
       !context.isLargeScreen && context.authStore.isLoggedIn;
-
-  void _hideVideoForChatOnlyStart() {
-    final settings = context.settingsStore;
-    if (!widget.startChatOnly || !settings.showVideo) return;
-    settings.showVideo = false;
-    _showVideoAgainOnLeave = settings;
-  }
-
-  void _restoreVideoAfterChatOnlyStart() {
-    final settings = _showVideoAgainOnLeave;
-    if (settings != null && !settings.showVideo) settings.showVideo = true;
-  }
 
   @override
   void initState() {
@@ -1015,12 +1026,18 @@ class _VideoChatState extends State<VideoChat>
     // A covered stream (or one whose labels are still being read) stays
     // here until its warning is clear.
     if (!_contentGate.allowsLeaving) return;
-    final store = _videoStore;
-    // Only the IVS (texture) engine can hand its live player to the mini.
-    if (store is! IvsVideoStore) {
-      store.requestPictureInPicture();
+    if (_videoStore is! IvsVideoStore) {
+      _videoStore.requestPictureInPicture();
       return;
     }
+    if (_handOffToMiniPlayer()) Navigator.of(context).pop();
+  }
+
+  bool _handOffToMiniPlayer() {
+    if (!_contentGate.allowsLeaving) return false;
+    final store = _videoStore;
+    // Only the IVS (texture) engine can hand its live player to the mini.
+    if (store is! IvsVideoStore) return false;
     // Detach the channel-specific fallback so it can't fire after we pop.
     store.onFatalError = null;
     _handedOff = true;
@@ -1032,7 +1049,7 @@ class _VideoChatState extends State<VideoChat>
       displayName: widget.userName,
       liveProgress: _liveProgress,
     );
-    Navigator.of(context).pop();
+    return true;
   }
 
   void _resetDragState() {

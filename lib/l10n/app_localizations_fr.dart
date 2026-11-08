@@ -931,7 +931,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsBackgroundAudioHeadphonesOnly =>
-      'Uniquement avec un casque';
+      'Uniquement avec un casque ou des écouteurs';
 
   @override
   String get settingsBackgroundAudioHeadphonesOnlyDetail =>
@@ -2008,7 +2008,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get streamEndedPlayingBroadcast =>
-      'Le live est terminé. Lecture de l’ancienne diffusion.';
+      'Le live est terminé. Lecture de son ancienne diffusion.';
 
   @override
   String streamFollowingForYears({required int count}) {

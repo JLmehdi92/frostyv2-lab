@@ -597,11 +597,20 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         settingsStore.showVideo &&
         settingsStore.autoPictureInPicture &&
         await SimplePip.isAutoPipAvailable) {
+      _autoPipArmed = true;
       pip.setAutoPipMode();
     } else {
+      _autoPipArmed = false;
       pip.setAutoPipMode(autoEnter: false);
     }
   }
+
+  var _autoPipArmed = false;
+
+  @visibleForTesting
+  void debugMarkAutoPipArmed() => _autoPipArmed = true;
+
+  var _backgroundTrip = 0;
 
   /// Takes the sound; refused (a call going on), an automatic start waits
   /// for it to be given, but a play the viewer chose goes on.
@@ -1608,11 +1617,14 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   void handleToggleOverlay() {}
 
   Future<void> handleAppBackground() async {
-    if (!_wantsHeadphonesForBackground) return;
+    final trip = ++_backgroundTrip;
+    bool stillAway() =>
+        trip == _backgroundTrip && _wantsHeadphonesForBackground;
+    if (!stillAway()) return;
     await Future<void>.delayed(backgroundPauseDelay);
-    if (!_wantsHeadphonesForBackground) return;
+    if (!stillAway()) return;
     final connected = await _audioFocus.headphonesConnected();
-    if (connected == false && _wantsHeadphonesForBackground) {
+    if (connected == false && stillAway()) {
       handlePausePlay();
     }
   }
@@ -1621,11 +1633,13 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       !_disposed &&
       !_paused &&
       !_isInPipMode &&
+      !_autoPipArmed &&
       settingsStore.backgroundAudio &&
       settingsStore.backgroundAudioHeadphonesOnly;
 
   @override
   void handleAppResume() {
+    _backgroundTrip++;
     // Playback may have stalled or been throttled in the background.
     _markDisturbed();
     _liveEdge.expedite();

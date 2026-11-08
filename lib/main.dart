@@ -488,19 +488,18 @@ class _MyAppState extends State<MyApp> {
       api: context.read<TwitchApi>(),
       vods: context.read<TwitchVodService>(),
     );
-    final vod = await lookup.latestBroadcastIfOffline(login);
-    if (!mounted) return;
+    final latest = lookup.latestBroadcastIfOffline(login);
+    await handleDeepLink(Uri.https('www.twitch.tv', '/$login'));
+    final vod = await latest;
+    if (!mounted || vod == null) return;
+    final channel = VideoChat.routeOf(login);
     final navigator = navigatorKey.currentState;
-    if (vod == null || navigator == null) {
-      await handleDeepLink(Uri.https('www.twitch.tv', '/$login'));
-      return;
-    }
-    unawaited(
-      navigator.push(
-        MaterialPageRoute(
-          settings: const RouteSettings(name: VodScreen.routeName),
-          builder: (context) => VodScreen(vodId: vod.id, vod: vod),
-        ),
+    if (navigator == null || channel == null || !channel.isCurrent) return;
+    navigator.replace(
+      oldRoute: channel,
+      newRoute: MaterialPageRoute<void>(
+        settings: const RouteSettings(name: VodScreen.routeName),
+        builder: (context) => VodScreen(vodId: vod.id, vod: vod),
       ),
     );
   }
@@ -603,7 +602,6 @@ class _MyAppState extends State<MyApp> {
       case ActivityLink():
         return _openShellPlace(ShellPlace.activity);
       case SearchLink(:final term):
-        _backToShell();
         return Home.openSearch(term);
       case CategoryVideosLink(:final category):
         await _openCategoryLink(category, section: CategorySection.videos);
@@ -619,11 +617,10 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void _backToShell() =>
-      navigatorKey.currentState?.popUntil((route) => route.isFirst);
-
   bool _openShellPlace(ShellPlace place) {
-    _backToShell();
+    if (VideoChat.leaveForShell()) {
+      navigatorKey.currentState?.popUntil((route) => route.isFirst);
+    }
     return Home.openPlace(place);
   }
 

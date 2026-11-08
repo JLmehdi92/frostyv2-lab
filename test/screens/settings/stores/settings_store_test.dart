@@ -810,4 +810,26 @@ void main() {
       );
     });
   });
+
+  group('chat only for one page', () {
+    test('hides the video without touching the saved choice', () {
+      final store = SettingsStore.fromJson({'showVideo': true});
+      store.chatOnlyForPage = true;
+      expect(store.showVideo, isFalse);
+      expect(store.toJson()['showVideo'], isTrue);
+      expect(store.toJson().containsKey('chatOnlyForPage'), isFalse);
+      store.chatOnlyForPage = false;
+      expect(store.showVideo, isTrue);
+    });
+
+    test('the viewer choosing clears it and is saved', () {
+      final store = SettingsStore.fromJson({'showVideo': true})
+        ..chatOnlyForPage = true;
+      store.showVideo = true;
+      expect(store.chatOnlyForPage, isFalse);
+      expect(store.showVideo, isTrue);
+      store.showVideo = false;
+      expect(store.toJson()['showVideo'], isFalse);
+    });
+  });
 }

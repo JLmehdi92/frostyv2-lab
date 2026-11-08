@@ -51,7 +51,7 @@ SettingsStore _$SettingsStoreFromJson(
       AppLanguage.system
   ..languagePromptVersion =
       (json['languagePromptVersion'] as num?)?.toInt() ?? 0
-  ..showVideo = json['showVideo'] as bool? ?? true
+  ..savedShowVideo = json['showVideo'] as bool? ?? true
   ..warnMatureContent = json['warnMatureContent'] as bool? ?? true
   ..showCaptions = json['showCaptions'] as bool? ?? false
   ..captionSize =
@@ -237,7 +237,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'mentionNotifications': instance.mentionNotifications,
   'appLanguage': _$AppLanguageEnumMap[instance.appLanguage]!,
   'languagePromptVersion': instance.languagePromptVersion,
-  'showVideo': instance.showVideo,
+  'showVideo': instance.savedShowVideo,
   'warnMatureContent': instance.warnMatureContent,
   'showCaptions': instance.showCaptions,
   'captionSize': _$CaptionSizeEnumMap[instance.captionSize]!,
@@ -700,21 +700,39 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     );
   }
 
-  late final _$showVideoAtom = Atom(
-    name: '_SettingsStoreBase.showVideo',
+  late final _$savedShowVideoAtom = Atom(
+    name: '_SettingsStoreBase.savedShowVideo',
     context: context,
   );
 
   @override
-  bool get showVideo {
-    _$showVideoAtom.reportRead();
-    return super.showVideo;
+  bool get savedShowVideo {
+    _$savedShowVideoAtom.reportRead();
+    return super.savedShowVideo;
   }
 
   @override
-  set showVideo(bool value) {
-    _$showVideoAtom.reportWrite(value, super.showVideo, () {
-      super.showVideo = value;
+  set savedShowVideo(bool value) {
+    _$savedShowVideoAtom.reportWrite(value, super.savedShowVideo, () {
+      super.savedShowVideo = value;
+    });
+  }
+
+  late final _$chatOnlyForPageAtom = Atom(
+    name: '_SettingsStoreBase.chatOnlyForPage',
+    context: context,
+  );
+
+  @override
+  bool get chatOnlyForPage {
+    _$chatOnlyForPageAtom.reportRead();
+    return super.chatOnlyForPage;
+  }
+
+  @override
+  set chatOnlyForPage(bool value) {
+    _$chatOnlyForPageAtom.reportWrite(value, super.chatOnlyForPage, () {
+      super.chatOnlyForPage = value;
     });
   }
 
@@ -2451,7 +2469,8 @@ launchUrlExternal: ${launchUrlExternal},
 mentionNotifications: ${mentionNotifications},
 appLanguage: ${appLanguage},
 languagePromptVersion: ${languagePromptVersion},
-showVideo: ${showVideo},
+savedShowVideo: ${savedShowVideo},
+chatOnlyForPage: ${chatOnlyForPage},
 warnMatureContent: ${warnMatureContent},
 showCaptions: ${showCaptions},
 captionSize: ${captionSize},

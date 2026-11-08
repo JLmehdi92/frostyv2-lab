@@ -1541,6 +1541,33 @@ void main() {
         expect(native.callsNamed('pause'), isEmpty);
       });
 
+      test('back in the app during the wait keeps it playing', () async {
+        headphones = false;
+        store = await playing();
+        final leaving = store.handleAppBackground();
+        store.handleAppResume();
+        await leaving;
+        expect(native.callsNamed('pause'), isEmpty);
+      });
+
+      test('a fresh trip to the background still pauses', () async {
+        headphones = false;
+        store = await playing();
+        final first = store.handleAppBackground();
+        store.handleAppResume();
+        await first;
+        await store.handleAppBackground();
+        expect(native.callsNamed('pause'), hasLength(1));
+      });
+
+      test('auto picture-in-picture set up keeps it playing', () async {
+        headphones = false;
+        store = await playing();
+        store.debugMarkAutoPipArmed();
+        await store.handleAppBackground();
+        expect(native.callsNamed('pause'), isEmpty);
+      });
+
       test('an unknown answer keeps it playing', () async {
         messenger.setMockMethodCallHandler(focusChannel, (call) async {
           if (call.method == 'headphonesConnected') {

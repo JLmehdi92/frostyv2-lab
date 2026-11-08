@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/base_api_client.dart';
@@ -111,6 +113,19 @@ void main() {
         _vod('new', DateTime.utc(2026, 11, 7)),
       ]);
       expect((await lookup.latestBroadcastIfOffline('streamer'))?.id, 'new');
+    });
+
+    test('a lookup that hangs gives up quickly', () async {
+      when(
+        () => api.getStream(userLogin: 'streamer'),
+      ).thenAnswer((_) => Completer<StreamTwitch>().future);
+      expect(
+        await lookup.latestBroadcastIfOffline(
+          'streamer',
+          within: const Duration(milliseconds: 10),
+        ),
+        isNull,
+      );
     });
 
     test('a live channel, or an unknown state, gives nothing', () async {

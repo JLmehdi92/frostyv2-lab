@@ -200,9 +200,23 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowLatency = true;
 
   // Player options
-  @JsonKey(defaultValue: defaultShowVideo)
+  @JsonKey(name: 'showVideo', defaultValue: defaultShowVideo)
   @observable
-  var showVideo = defaultShowVideo;
+  var savedShowVideo = defaultShowVideo;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @observable
+  var chatOnlyForPage = false;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  bool get showVideo => savedShowVideo && !chatOnlyForPage;
+
+  set showVideo(bool value) {
+    runInAction(() {
+      chatOnlyForPage = false;
+      savedShowVideo = value;
+    });
+  }
 
   /// Warn before entering a channel with content classification labels.
   @JsonKey(defaultValue: defaultWarnMatureContent)
