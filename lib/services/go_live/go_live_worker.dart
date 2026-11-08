@@ -261,6 +261,75 @@ abstract final class GoLiveNotifications {
         iOS: const DarwinNotificationDetails(threadIdentifier: 'go_live'),
       );
 
+  @visibleForTesting
+  static NotificationDetails detailsForNotice(
+    AppLocalizations l, {
+    Uint8List? avatar,
+    Uint8List? categoryArt,
+  }) {
+    final base = detailsFor(l);
+    final android = base.android!;
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        android.channelId,
+        android.channelName,
+        channelDescription: android.channelDescription,
+        groupKey: android.groupKey,
+        channelAction: android.channelAction,
+        onlyAlertOnce: true,
+        largeIcon: avatar == null ? null : ByteArrayAndroidBitmap(avatar),
+        styleInformation: categoryArt == null
+            ? null
+            : BigPictureStyleInformation(
+                ByteArrayAndroidBitmap(categoryArt),
+                largeIcon: avatar == null
+                    ? null
+                    : ByteArrayAndroidBitmap(avatar),
+              ),
+      ),
+      iOS: base.iOS,
+    );
+  }
+
+  @visibleForTesting
+  static NotificationDetails summaryDetails(AppLocalizations l) {
+    final android = detailsFor(l).android!;
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        android.channelId,
+        android.channelName,
+        channelDescription: android.channelDescription,
+        groupKey: android.groupKey,
+        channelAction: android.channelAction,
+        onlyAlertOnce: true,
+        setAsGroupSummary: true,
+      ),
+    );
+  }
+
+  static const _summaryId = 1;
+
+  static Future<Uint8List?> _image(String? url) async {
+    if (url == null || !isTwitchImageUrl(url)) return null;
+    try {
+      final response = await Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+          responseType: ResponseType.bytes,
+        ),
+      ).get<List<int>>(url);
+      final bytes = response.data;
+      if (bytes == null || bytes.isEmpty || bytes.length > 2 * 1024 * 1024) {
+        return null;
+      }
+      return Uint8List.fromList(bytes);
+    } catch (e) {
+      debugPrint('Go-live image unavailable: ${e.runtimeType}');
+      return null;
+    }
+  }
+
   static final _ready = Completer<void>();
 
   /// Done once [init] has set the plugin up: nothing shows before.
@@ -363,17 +432,31 @@ abstract final class GoLiveNotifications {
     int more,
     AppLocalizations l,
   ) async {
-    final details = detailsFor(l);
     for (final notice in notices) {
+      final (avatar, art) = await (
+        _image(notice.avatarUrl),
+        _image(goLiveCategoryArtUrl(notice)),
+      ).wait;
       await _plugin.show(
-        // One per channel: a new go-live replaces the last one.
-        id: int.parse(notice.userId) % 0x7fffffff,
+        id: goLiveNoticeId(notice),
         title: notice.title,
         body: notice.body.isEmpty ? null : notice.body,
-        notificationDetails: details,
+        notificationDetails: detailsForNotice(
+          l,
+          avatar: avatar,
+          categoryArt: art,
+        ),
         payload: notice.login,
       );
     }
+    if (notices.length + (more > 0 ? 1 : 0) > 1) {
+      await _plugin.show(
+        id: _summaryId,
+        title: l.notifChannelGoLive,
+        notificationDetails: summaryDetails(l),
+      );
+    }
+    final details = detailsFor(l);
     if (more > 0) {
       await _plugin.show(
         id: 0,

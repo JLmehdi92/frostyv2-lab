@@ -1,10 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/models/user.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/go_live/go_live_worker.dart';
 import 'package:onset/services/notifications/activity_log.dart';
@@ -131,6 +134,36 @@ void main() {
           first: any(named: 'first'),
         ),
       );
+    });
+
+    test('announced channels carry their avatar from Helix', () async {
+      followedLive([_stream('1')]);
+      await check();
+      when(() => api.getUsersByIds(['2'])).thenAnswer(
+        (_) async => const [
+          UserTwitch(
+            '2',
+            'user2',
+            'User2',
+            'https://static-cdn.jtvnw.net/jtv_user_pictures/a.png',
+          ),
+        ],
+      );
+      followedLive([_stream('1'), _stream('2')]);
+      await check();
+      expect(
+        notified.single.$1.single.avatarUrl,
+        'https://static-cdn.jtvnw.net/jtv_user_pictures/a.png',
+      );
+    });
+
+    test('a failed avatar lookup still announces', () async {
+      followedLive([_stream('1')]);
+      await check();
+      when(() => api.getUsersByIds(any())).thenThrow(Exception('helix'));
+      followedLive([_stream('1'), _stream('2')]);
+      await check();
+      expect(notified.single.$1.single.avatarUrl, isNull);
     });
 
     test('the first check only remembers, later ones announce', () async {
@@ -520,6 +553,55 @@ void main() {
       answer(StateError('changed'));
       expect(await run(), isFalse);
       expect(reported.single, isA<StateError>());
+    });
+  });
+
+  group('rich notices', () {
+    test('one notice per broadcast: the same one replaces, a new one adds', () {
+      final first = goLiveNotice(
+        _stream('1', startedAt: '2026-10-20T10:00:00Z'),
+      );
+      final again = goLiveNotice(
+        _stream('1', startedAt: '2026-10-20T10:00:00Z'),
+      );
+      final next = goLiveNotice(
+        _stream('1', startedAt: '2026-10-21T10:00:00Z'),
+      );
+      expect(goLiveNoticeId(first), goLiveNoticeId(again));
+      expect(goLiveNoticeId(first), isNot(goLiveNoticeId(next)));
+      expect(goLiveNoticeId(first), greaterThanOrEqualTo(0));
+    });
+
+    test('the category art comes from Twitch, only for a real category', () {
+      expect(
+        goLiveCategoryArtUrl(goLiveNotice(_stream('1'))),
+        'https://static-cdn.jtvnw.net/ttv-boxart/1-144x192.jpg',
+      );
+      final none = StreamTwitch('1', 'a', 'A', '', '', 'T', 1, '', '');
+      expect(goLiveCategoryArtUrl(goLiveNotice(none)), isNull);
+      expect(isTwitchImageUrl('https://evil.example/x.png'), isFalse);
+      expect(isTwitchImageUrl('http://static-cdn.jtvnw.net/x.png'), isFalse);
+    });
+
+    test('the avatar is the large icon and the art the big picture', () {
+      final bytes = Uint8List.fromList([1, 2, 3]);
+      final details = GoLiveNotifications.detailsForNotice(
+        L10n.english,
+        avatar: bytes,
+        categoryArt: bytes,
+      ).android!;
+      expect(details.largeIcon, isA<ByteArrayAndroidBitmap>());
+      expect(details.styleInformation, isA<BigPictureStyleInformation>());
+      expect(details.groupKey, 'onset.goLive');
+      final plain = GoLiveNotifications.detailsForNotice(L10n.english).android!;
+      expect(plain.largeIcon, isNull);
+      expect(plain.styleInformation, isNull);
+      expect(
+        GoLiveNotifications.summaryDetails(
+          L10n.english,
+        ).android!.setAsGroupSummary,
+        isTrue,
+      );
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/l10n/l10n.dart';
@@ -150,11 +151,17 @@ typedef GoLiveNotice = ({
   String title,
   String body,
   String startedAt,
+  String gameId,
+  String? avatarUrl,
 });
 
 /// [stream]'s go-live notice, in [l]'s language (the one on screen by
 /// default; the background check's own otherwise).
-GoLiveNotice goLiveNotice(StreamTwitch stream, [AppLocalizations? l]) {
+GoLiveNotice goLiveNotice(
+  StreamTwitch stream, [
+  AppLocalizations? l,
+  String? avatarUrl,
+]) {
   final words = l ?? L10n.current;
   final name = stream.userName.isEmpty ? stream.userLogin : stream.userName;
   return (
@@ -164,6 +171,8 @@ GoLiveNotice goLiveNotice(StreamTwitch stream, [AppLocalizations? l]) {
     streamTitle: stream.title.trim(),
     category: stream.gameName,
     startedAt: stream.startedAt,
+    gameId: stream.gameId,
+    avatarUrl: avatarUrl,
     title: words.notifGoLiveTitle(name: name),
     body: streamNoticeBody(
       words,
@@ -171,6 +180,42 @@ GoLiveNotice goLiveNotice(StreamTwitch stream, [AppLocalizations? l]) {
       category: stream.gameName,
     ),
   );
+}
+
+int goLiveNoticeId(GoLiveNotice notice) =>
+    Object.hash(notice.userId, notice.startedAt).toUnsigned(31);
+
+final _numericId = RegExp(r'^[0-9]{1,20}$');
+
+String? goLiveCategoryArtUrl(GoLiveNotice notice) =>
+    _numericId.hasMatch(notice.gameId)
+    ? 'https://static-cdn.jtvnw.net/ttv-boxart/${notice.gameId}-144x192.jpg'
+    : null;
+
+bool isTwitchImageUrl(String url) {
+  final uri = Uri.tryParse(url);
+  return uri != null &&
+      uri.scheme == 'https' &&
+      uri.host == 'static-cdn.jtvnw.net';
+}
+
+Future<Map<String, String>> goLiveAvatars(
+  TwitchApi api,
+  List<StreamTwitch> streams,
+) async {
+  try {
+    final users = await api.getUsersByIds([
+      for (final stream in streams) stream.userId,
+    ]);
+    return {
+      for (final user in users)
+        if (isTwitchImageUrl(user.profileImageUrl))
+          user.id: user.profileImageUrl,
+    };
+  } catch (e) {
+    debugPrint('Go-live avatars unavailable: $e');
+    return const {};
+  }
 }
 
 /// The Activity entry of a go-live notice posted [at]: one per broadcast.
@@ -240,7 +285,12 @@ Future<int> checkGoLive({
     announced: announced,
   );
   if (fresh.isNotEmpty) {
-    final shown = fresh.take(kMaxGoLiveNotices).map(goLiveNotice).toList();
+    final picked = fresh.take(kMaxGoLiveNotices).toList();
+    final avatars = await goLiveAvatars(api, picked);
+    final shown = [
+      for (final stream in picked)
+        goLiveNotice(stream, null, avatars[stream.userId]),
+    ];
     await notify(shown, fresh.length - shown.length);
   }
   await prefs.setSeen({for (final stream in live) stream.userId});
