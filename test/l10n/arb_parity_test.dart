@@ -15,6 +15,7 @@ const _sameInBothLanguages = {
   'settingsTwitchPrime': 'An Amazon brand name.',
   'searchSuggestions': '"Suggestions" is the French word too.',
   'blockReasonSpam': '"Spam" is the French word too.',
+  'vodSeekValueChapter': 'Two placeholders joined by a comma.',
   'modToolsPredictionPoints':
       '"point(s)" is the French word too; a number leads.',
   'modToolsRedemptionReward':
