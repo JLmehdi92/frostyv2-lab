@@ -371,6 +371,52 @@ void main() {
     });
   });
 
+  group('getChapters', () {
+    test('parses game chapters in order', () async {
+      reply({
+        'data': {
+          'video': {
+            'moments': {
+              'edges': [
+                {
+                  'node': {
+                    'positionMilliseconds': 600000,
+                    'durationMilliseconds': 300000,
+                    'details': {
+                      'game': {'id': '2', 'displayName': 'Chess'},
+                    },
+                  },
+                },
+                {
+                  'node': {
+                    'positionMilliseconds': 0,
+                    'durationMilliseconds': 600000,
+                    'details': {
+                      'game': {'id': '1', 'displayName': 'Just Chatting'},
+                    },
+                  },
+                },
+                {'node': 'broken'},
+              ],
+            },
+          },
+        },
+      });
+
+      final chapters = await service.getChapters('v1000000001');
+
+      expect(chapters.map((c) => c.title), ['Just Chatting', 'Chess']);
+      expect(chapters.last.start, const Duration(minutes: 10));
+      expect(gqlRequests.single.data['variables'], {'id': '1000000001'});
+    });
+
+    test('never throws', () async {
+      reply(vodCommentsServiceErrorResponse);
+
+      expect(await service.getChapters('1'), isEmpty);
+    });
+  });
+
   group('getVodUsherUrl', () {
     test('builds the usher vod url with the exact parameters', () async {
       reply(vodTokenResponse);

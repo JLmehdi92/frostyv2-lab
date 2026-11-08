@@ -8,6 +8,7 @@ import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/models/playback_access_token.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/models/vod_access.dart';
+import 'package:onset/models/vod_chapter.dart';
 import 'package:onset/models/vod_comment.dart';
 import 'package:onset/services/playback_token_cache.dart';
 
@@ -136,6 +137,14 @@ class TwitchVodService extends BaseApiClient {
   static const _mutedSegmentsQuery =
       'query VideoMutedSegments(\$id: ID!) { video(id: \$id) { muteInfo { '
       'mutedSegmentConnection { nodes { offset duration } } } } }';
+
+  static const _chaptersQuery =
+      'query VideoChapters(\$id: ID!) { video(id: \$id) { '
+      'moments(momentRequestType: VIDEO_CHAPTER_MARKERS, '
+      'types: [GAME_CHANGE]) { '
+      'edges { node { positionMilliseconds durationMilliseconds description '
+      'details { ... on GameChangeMomentDetails { game { id displayName '
+      'boxArtURL(width: 40, height: 53) } } } } } } } }';
 
   // The viewer's own watch position (their account, any device). Needs the
   // web token: anonymous answers `viewingHistory: null`.
@@ -586,6 +595,25 @@ class TwitchVodService extends BaseApiClient {
     } catch (e) {
       debugPrint('Collection unavailable: ${e.runtimeType}');
       return null;
+    }
+  }
+
+  Future<List<VodChapter>> getChapters(String vodId) async {
+    try {
+      final data = await _gql('VideoChapters', _chaptersQuery, {
+        'id': normalizeVodId(vodId),
+      });
+      final video = data['video'];
+      final moments = video is Map ? video['moments'] : null;
+      final edges = moments is Map ? moments['edges'] : null;
+      return sortedChapters([
+        if (edges is List)
+          for (final edge in edges)
+            if (edge is Map) ?VodChapter.tryParse(edge['node']),
+      ]);
+    } catch (e) {
+      debugPrint('Chapters unavailable: ${e.runtimeType}');
+      return const [];
     }
   }
 

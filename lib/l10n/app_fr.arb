@@ -1802,5 +1802,6 @@
   "goalOrdinal": "Objectif {index} sur {count}",
   "goalProgress": "{current} sur {target}",
   "goalReachedTitle": "Objectif atteint",
-  "goalReachedBody": "La chaîne a atteint cet objectif. Merci à toutes les personnes qui y ont contribué\u202f!"
+  "goalReachedBody": "La chaîne a atteint cet objectif. Merci à toutes les personnes qui y ont contribué\u202f!",
+  "vodSeekValueChapter": "{value}, {chapter}"
 }

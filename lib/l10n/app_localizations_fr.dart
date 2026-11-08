@@ -8401,4 +8401,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get goalReachedBody =>
       'La chaîne a atteint cet objectif. Merci à toutes les personnes qui y ont contribué !';
+
+  @override
+  String vodSeekValueChapter({required String value, required String chapter}) {
+    return '$value, $chapter';
+  }
 }

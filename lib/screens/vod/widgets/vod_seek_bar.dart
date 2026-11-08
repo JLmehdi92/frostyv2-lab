@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/models/vod_chapter.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -17,8 +18,11 @@ class VodSeekBar extends StatefulWidget {
     required this.buffered,
     required this.onSeek,
     this.mutedSegments = const [],
+    this.chapters = const [],
     this.onScrubbing,
   });
+
+  final List<VodChapter> chapters;
 
   final Duration position;
   final Duration duration;
@@ -54,6 +58,8 @@ class _VodSeekBarState extends State<VodSeekBar> {
 
   static const _semanticStep = Duration(seconds: 10);
 
+  double get _bubbleWidth => widget.chapters.isEmpty ? 64 : 160;
+
   Duration _stepped(Duration delta) {
     final target = widget.position + delta;
     if (target < Duration.zero) return Duration.zero;
@@ -61,10 +67,18 @@ class _VodSeekBarState extends State<VodSeekBar> {
     return target;
   }
 
-  String _valueAt(Duration at) => context.l10n.vodSeekValue(
-    position: formatVodTime(at),
-    duration: formatVodTime(widget.duration),
-  );
+  String _valueAt(Duration at) {
+    final value = context.l10n.vodSeekValue(
+      position: formatVodTime(at),
+      duration: formatVodTime(widget.duration),
+    );
+    final chapter = chapterAt(widget.chapters, at);
+    if (chapter == null) return value;
+    return context.l10n.vodSeekValueChapter(
+      value: value,
+      chapter: chapter.title,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +154,12 @@ class _VodSeekBarState extends State<VodSeekBar> {
                         played: played,
                         buffered: _fractionOf(widget.buffered),
                         mutedRanges: muted,
+                        chapterStarts: [
+                          if (_enabled)
+                            for (final chapter in widget.chapters)
+                              if (chapter.start > Duration.zero)
+                                _fractionOf(chapter.start),
+                        ],
                         enabled: _enabled,
                         dragging: drag != null,
                         // The signal for what was played,
@@ -155,9 +175,18 @@ class _VodSeekBarState extends State<VodSeekBar> {
                   if (drag != null)
                     Positioned(
                       bottom: 30,
-                      left: (drag * width - 32).clamp(0.0, width - 64),
-                      width: 64,
-                      child: _TimeBubble(text: formatVodTime(_timeAt(drag))),
+                      left: (drag * width - _bubbleWidth / 2).clamp(
+                        0.0,
+                        (width - _bubbleWidth).clamp(0.0, double.infinity),
+                      ),
+                      width: _bubbleWidth,
+                      child: _TimeBubble(
+                        text: formatVodTime(_timeAt(drag)),
+                        chapter: chapterAt(
+                          widget.chapters,
+                          _timeAt(drag),
+                        )?.title,
+                      ),
                     ),
                 ],
               ),
@@ -170,9 +199,10 @@ class _VodSeekBarState extends State<VodSeekBar> {
 }
 
 class _TimeBubble extends StatelessWidget {
-  const _TimeBubble({required this.text});
+  const _TimeBubble({required this.text, this.chapter});
 
   final String text;
+  final String? chapter;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -183,13 +213,28 @@ class _TimeBubble extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (chapter case final chapter?)
+              Text(
+                chapter,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: OnsetTokens.textBodyDark,
+                  fontSize: 12,
+                ),
+              ),
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
         ),
       ),
     ),
@@ -202,6 +247,7 @@ class VodSeekBarPainter extends CustomPainter {
     required this.played,
     required this.buffered,
     required this.mutedRanges,
+    this.chapterStarts = const [],
     required this.enabled,
     required this.dragging,
     required this.playedColor,
@@ -215,6 +261,7 @@ class VodSeekBarPainter extends CustomPainter {
 
   /// Copyright-muted parts as (start, end) fractions.
   final List<(double, double)> mutedRanges;
+  final List<double> chapterStarts;
   final bool enabled;
   final bool dragging;
   final Color playedColor;
@@ -223,6 +270,8 @@ class VodSeekBarPainter extends CustomPainter {
   final Color mutedColor;
 
   static const _trackHeight = 3.0;
+
+  static const chapterGapColor = Color(0xCC000000);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -241,6 +290,17 @@ class VodSeekBarPainter extends CustomPainter {
     if (!enabled) return;
     canvas.drawRRect(bar(0, buffered), Paint()..color = bufferedColor);
     canvas.drawRRect(bar(0, played), Paint()..color = playedColor);
+    final gap = Paint()..color = chapterGapColor;
+    for (final start in chapterStarts) {
+      canvas.drawRect(
+        Rect.fromCenter(
+          center: Offset(start * width, y),
+          width: 2,
+          height: _trackHeight + 2,
+        ),
+        gap,
+      );
+    }
     final mutedPaint = Paint()..color = mutedColor;
     for (final (start, end) in mutedRanges) {
       // 2 px tall, 3 px above the track.
@@ -273,5 +333,6 @@ class VodSeekBarPainter extends CustomPainter {
       old.trackColor != trackColor ||
       old.bufferedColor != bufferedColor ||
       old.mutedColor != mutedColor ||
-      !listEquals(old.mutedRanges, mutedRanges);
+      !listEquals(old.mutedRanges, mutedRanges) ||
+      !listEquals(old.chapterStarts, chapterStarts);
 }

@@ -63,6 +63,7 @@ void main() {
     mini = MockMiniPlayerStore();
     players = {};
     when(() => service.getMutedSegments(any())).thenAnswer((_) async => []);
+    when(() => service.getChapters(any())).thenAnswer((_) async => []);
     when(() => service.getContentLabels(any())).thenAnswer((_) async => []);
     when(() => service.getViewingHistory(any())).thenAnswer((_) async => null);
     when(

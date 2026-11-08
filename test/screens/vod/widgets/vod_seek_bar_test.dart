@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/models/vod_chapter.dart';
 import 'package:onset/screens/vod/widgets/vod_seek_bar.dart';
 
 void main() {
@@ -9,6 +10,7 @@ void main() {
     Duration duration = const Duration(minutes: 100),
     Duration position = const Duration(minutes: 10),
     List<MutedSegment> muted = const [],
+    List<VodChapter> chapters = const [],
     List<bool>? scrubbing,
   }) async {
     final seeks = <Duration>[];
@@ -23,6 +25,7 @@ void main() {
                 duration: duration,
                 buffered: const Duration(minutes: 20),
                 mutedSegments: muted,
+                chapters: chapters,
                 onSeek: seeks.add,
                 onScrubbing: scrubbing?.add,
               ),
@@ -124,5 +127,54 @@ void main() {
       ),
     );
     handle.dispose();
+  });
+
+  const chapters = [
+    VodChapter(
+      start: Duration.zero,
+      length: Duration(minutes: 50),
+      title: 'Just Chatting',
+    ),
+    VodChapter(
+      start: Duration(minutes: 50),
+      length: Duration(minutes: 50),
+      title: 'Chess',
+    ),
+  ];
+
+  testWidgets('marks chapter starts and names the chapter', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pump(tester, chapters: chapters);
+
+    expect(painter(tester).chapterStarts, [0.5]);
+    expect(
+      tester.getSemantics(find.byType(VodSeekBar)),
+      matchesSemantics(
+        label: 'Seek',
+        value: '10:00 of 1:40:00, Just Chatting',
+        isSlider: true,
+        hasIncreaseAction: true,
+        hasDecreaseAction: true,
+      ),
+    );
+    handle.dispose();
+  });
+
+  testWidgets('the scrub bubble shows the chapter under the finger', (
+    tester,
+  ) async {
+    await pump(tester, chapters: chapters);
+    final bar = find.byType(VodSeekBar);
+    final left = tester.getTopLeft(bar);
+    final size = tester.getSize(bar);
+    final gesture = await tester.startGesture(
+      left + Offset(size.width * 0.2, size.height / 2),
+    );
+    await gesture.moveTo(left + Offset(size.width * 0.8, size.height / 2));
+    await tester.pump();
+    expect(find.text('Chess'), findsOneWidget);
+    await gesture.up();
+    await tester.pump();
+    expect(find.text('Chess'), findsNothing);
   });
 }

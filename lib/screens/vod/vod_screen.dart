@@ -9,6 +9,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/models/vod_chapter.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/channel/video/audience_labels.dart';
 import 'package:onset/screens/channel/video/content_warning_gate.dart';
@@ -168,6 +169,8 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   static const _historyTimeout = Duration(seconds: 3);
   var _mutedSegments = const <MutedSegment>[];
 
+  var _chapters = const <VodChapter>[];
+
   List<String> _audienceLabelIds = const [];
   var _paidPromotion = false;
   var _audienceDismissed = false;
@@ -300,6 +303,11 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     unawaited(
       _service.getMutedSegments(loaded.id).then((segments) {
         if (mounted) setState(() => _mutedSegments = segments);
+      }),
+    );
+    unawaited(
+      _service.getChapters(loaded.id).then((chapters) {
+        if (mounted) setState(() => _chapters = chapters);
       }),
     );
   }
@@ -670,6 +678,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
               media: PlayerMedia.vod(vod, context.l10n),
               settings: _settings,
               mutedSegments: _mutedSegments,
+              chapters: _chapters,
               lockable: true,
               fillScreen: player is IvsVodStore ? _fillScreen : null,
               onToggleFillScreen: player is IvsVodStore

@@ -11066,6 +11066,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The channel reached this goal. Thanks to everyone who chipped in!'**
   String get goalReachedBody;
+
+  /// What a screen reader says the seek bar is at when the video has game chapters. value is the time read by vodSeekValue (« 12:05 of 1:02:15 »); chapter is the game played at that time.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}, {chapter}'**
+  String vodSeekValueChapter({required String value, required String chapter});
 }
 
 class _AppLocalizationsDelegate

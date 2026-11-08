@@ -8,6 +8,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/models/vod_chapter.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
@@ -148,6 +149,7 @@ class VodOverlay extends StatefulWidget {
     required this.media,
     required this.settings,
     this.mutedSegments = const [],
+    this.chapters = const [],
     this.fillScreen,
     this.onToggleFillScreen,
     this.showChatOverlayButton = false,
@@ -163,6 +165,8 @@ class VodOverlay extends StatefulWidget {
   final PlayerMedia media;
   final SettingsStore settings;
   final List<MutedSegment> mutedSegments;
+
+  final List<VodChapter> chapters;
 
   /// Fit/fill state, when the engine supports it (IVS only).
   final bool? fillScreen;
@@ -504,6 +508,7 @@ class _VodOverlayState extends State<VodOverlay> {
               duration: _c.duration,
               buffered: _c.buffered,
               mutedSegments: widget.mutedSegments,
+              chapters: widget.chapters,
               onSeek: _c.seekTo,
               onScrubbing: (scrubbing) {
                 if (scrubbing) _c.showOverlay();
