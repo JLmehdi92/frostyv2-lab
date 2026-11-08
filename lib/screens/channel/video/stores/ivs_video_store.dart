@@ -1687,22 +1687,34 @@ abstract class IvsVideoStoreBase
     );
   }
 
+  final streamPushState = StreamPushState();
+
   @override
   void applyStreamPush(StreamPush push) {
     switch (push) {
       case ViewerCountPush() || BroadcastSettingsPush():
+        streamPushState.noteValuePush();
         runInAction(() => _streamInfo = patchStream(_streamInfo, push));
       case StreamUpPush():
         _onLiveChange(LiveChange.online);
       case StreamDownPush():
         unawaited(updateStreamInfo(forceUpdate: true));
+        streamPushState.scheduleDownRetry(
+          () => unawaited(updateStreamInfo(forceUpdate: true)),
+        );
     }
   }
 
   @action
   Future<void> updateStreamInfo({bool forceUpdate = false}) async {
     try {
-      _streamInfo = await twitchApi.getStream(userLogin: userLogin);
+      final pushesBefore = streamPushState.generation;
+      final fetched = await twitchApi.getStream(userLogin: userLogin);
+      _streamInfo = streamPushState.reconcile(
+        fetched,
+        _streamInfo,
+        pushesBefore,
+      );
       infoUnavailable = false;
       _offlineChannelInfo = null;
     } catch (e) {
@@ -1723,6 +1735,7 @@ abstract class IvsVideoStoreBase
   void dispose() {
     _disposed = true;
     _rateWatchdog?.cancel();
+    streamPushState.dispose();
     _recoveryEpoch++;
     _retryTimer?.cancel();
     _liveStartTimer?.cancel();

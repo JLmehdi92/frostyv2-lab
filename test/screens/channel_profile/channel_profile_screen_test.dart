@@ -498,6 +498,17 @@ void main() {
   });
 
   group('collections', () {
+    testWidgets('opened on Collections, it lands there once they load', (
+      tester,
+    ) async {
+      answerProfile();
+      when(
+        () => vods.getChannelCollections(any()),
+      ).thenAnswer((_) async => [_collection]);
+      await pump(tester, tab: ProfileTab.collections);
+      expect(find.text('Speedruns'), findsOneWidget);
+    });
+
     testWidgets('no tab when the channel has none or they fail', (
       tester,
     ) async {

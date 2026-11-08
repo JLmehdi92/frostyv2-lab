@@ -137,12 +137,20 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
       if (tab != ProfileTab.collections || collections.isNotEmpty) tab,
   ];
 
+  late ProfileTab? _askedTab = _shownTabs.contains(widget.initialTab)
+      ? null
+      : widget.initialTab;
+
   int _indexOf(ProfileTab tab) => math.max(_shownTabs.indexOf(tab), 0);
 
   void _syncTabs(List<VideoCollection> collections) {
     final next = _tabsFor(collections);
     if (listEquals(next, _shownTabs)) return;
-    final current = _shownTabs[_tabs.index];
+    final asked = _askedTab;
+    final current = asked != null && next.contains(asked)
+        ? asked
+        : _shownTabs[_tabs.index];
+    if (next.contains(current)) _askedTab = null;
     final previous = _tabs;
     setState(() {
       _shownTabs = next;

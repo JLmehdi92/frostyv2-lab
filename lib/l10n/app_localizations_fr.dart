@@ -8467,7 +8467,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get clipDownloadPreparing => 'Préparation du clip…';
 
   @override
-  String get clipDownloadFailed => 'Impossible de télécharger ce clip';
+  String get clipDownloadFailed => 'Impossible de télécharger ce clip.';
 
   @override
   String get myClipsTitle => 'Mes clips';
@@ -8490,7 +8490,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String streamFilterFollowSetting({required String language}) {
-    return 'Comme dans les réglages ($language)';
+    return 'Comme dans les Paramètres ($language)';
   }
 
   @override
@@ -8563,7 +8563,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get channelPrefsBellOff =>
-      'Activez les notifications de live dans les réglages pour utiliser la cloche.';
+      'Activez les notifications de live dans les Paramètres pour utiliser la cloche.';
 
   @override
   String get channelPrefsBellLoggedOut =>
@@ -8581,7 +8581,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get channelPrefsNoticesOff =>
-      'Les événements sont masqués dans tous les chats dans les réglages.';
+      'Les événements sont masqués dans tous les chats (Paramètres › Chat).';
 
   @override
   String get channelPrefsLists => 'Listes';
@@ -8618,4 +8618,7 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get goalReachedDetails => 'Détails';
 }

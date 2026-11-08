@@ -10757,7 +10757,7 @@
   "@streamFilterLanguage": {
     "description": "A live list's filter chip that opens the languages to show, for this list only."
   },
-  "streamFilterFollowSetting": "As in settings ({language})",
+  "streamFilterFollowSetting": "As in Settings ({language})",
   "@streamFilterFollowSetting": {
     "description": "A live list's language sheet: the first choice, which follows the stream language picked in settings.",
     "placeholders": {
@@ -10877,7 +10877,7 @@
   "@channelPrefsNoticesDetail": {
     "description": "Channel preferences: what Show notices covers."
   },
-  "channelPrefsNoticesOff": "Notices are hidden in every chat in Settings.",
+  "channelPrefsNoticesOff": "Notices are turned off for every chat in Settings › Chat.",
   "@channelPrefsNoticesOff": {
     "description": "Channel preferences: Show notices when they are off for every chat."
   },
@@ -10924,5 +10924,9 @@
         "example": "25"
       }
     }
+  },
+  "goalReachedDetails": "Details",
+  "@goalReachedDetails": {
+    "description": "The snack bar that says a goal was reached while the video fills the screen or the viewer types: opens the goal."
   }
 }

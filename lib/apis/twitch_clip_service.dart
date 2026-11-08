@@ -270,7 +270,12 @@ class TwitchClipService extends BaseApiClient {
   /// The clip's renditions and access token. Throws [NotFoundException] when
   /// the clip is gone and [ClipForbiddenException] when the token denies
   /// playback.
+  static const maxClipDownloadBytes = 100 * 1024 * 1024;
+
+  static const clipFilePrefix = 'onset-clip-';
+
   Future<File> downloadClip(String slug, Directory folder) async {
+    _checkSlug(slug);
     final playback = await getClipPlayback(slug);
     if (playback.renditions.isEmpty) {
       throw const ApiException('No rendition for this clip');
@@ -279,17 +284,56 @@ class TwitchClipService extends BaseApiClient {
       (r) => r.height <= 720,
       orElse: () => playback.renditions.last,
     );
-    final response = await dio.get<List<int>>(
+    await _deleteOldClipFiles(folder);
+    final response = await dio.get<ResponseBody>(
       playback.signedUrl(rendition),
-      options: Options(responseType: ResponseType.bytes),
+      options: Options(responseType: ResponseType.stream),
     );
-    final bytes = response.data;
-    if (bytes == null || bytes.isEmpty) {
+    final body = response.data;
+    final type = response.headers.value(Headers.contentTypeHeader) ?? '';
+    if (body == null || !type.startsWith('video/')) {
+      throw const ApiException('Not a clip video');
+    }
+    final declared = int.tryParse(
+      response.headers.value(Headers.contentLengthHeader) ?? '',
+    );
+    if (declared != null && declared > maxClipDownloadBytes) {
+      throw const ApiException('Clip too large');
+    }
+    final file = File('${folder.path}/$clipFilePrefix$slug.mp4');
+    final sink = file.openWrite();
+    var written = 0;
+    try {
+      await for (final chunk in body.stream) {
+        written += chunk.length;
+        if (written > maxClipDownloadBytes) {
+          throw const ApiException('Clip too large');
+        }
+        sink.add(chunk);
+      }
+      await sink.close();
+    } catch (_) {
+      await sink.close();
+      if (file.existsSync()) file.deleteSync();
+      rethrow;
+    }
+    if (written == 0) {
+      file.deleteSync();
       throw const ApiException('Empty clip download');
     }
-    final file = File('${folder.path}/onset-clip-$slug.mp4');
-    await file.writeAsBytes(bytes, flush: true);
     return file;
+  }
+
+  static Future<void> _deleteOldClipFiles(Directory folder) async {
+    if (!folder.existsSync()) return;
+    await for (final entry in folder.list()) {
+      final name = entry.uri.pathSegments.last;
+      if (entry is File &&
+          name.startsWith(clipFilePrefix) &&
+          name.endsWith('.mp4')) {
+        await entry.delete();
+      }
+    }
   }
 
   Future<ClipPlayback> getClipPlayback(String slug) async {

@@ -83,4 +83,39 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(CreatorGoalDialog), findsNothing);
   });
+
+  group('goalReachedPresentation', () {
+    GoalReachedPresentation at({
+      bool routeCurrent = true,
+      bool resumed = true,
+      bool pip = false,
+      bool fullScreen = false,
+      bool typing = false,
+    }) => goalReachedPresentation(
+      routeCurrent: routeCurrent,
+      resumed: resumed,
+      pip: pip,
+      fullScreen: fullScreen,
+      typing: typing,
+    );
+
+    test('a dialog only in the portrait channel, in the foreground', () {
+      expect(at(), GoalReachedPresentation.dialog);
+    });
+
+    test('nothing in picture-in-picture, the background or another screen', () {
+      expect(at(pip: true), GoalReachedPresentation.none);
+      expect(at(resumed: false), GoalReachedPresentation.none);
+      expect(at(routeCurrent: false), GoalReachedPresentation.none);
+      expect(at(pip: true, fullScreen: true), GoalReachedPresentation.none);
+    });
+
+    test(
+      'a notice that does not cover the video in full screen or while typing',
+      () {
+        expect(at(fullScreen: true), GoalReachedPresentation.notice);
+        expect(at(typing: true), GoalReachedPresentation.notice);
+      },
+    );
+  });
 }

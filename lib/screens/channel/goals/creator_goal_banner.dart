@@ -25,6 +25,7 @@ class CreatorGoalBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Observer(
+    warnWhenNoObservables: false,
     builder: (context) {
       final all = goals();
       if (all.isEmpty) return const SizedBox.shrink();
@@ -164,6 +165,20 @@ class _GoalBar extends StatelessWidget {
       ),
     ),
   );
+}
+
+enum GoalReachedPresentation { dialog, notice, none }
+
+GoalReachedPresentation goalReachedPresentation({
+  required bool routeCurrent,
+  required bool resumed,
+  required bool pip,
+  required bool fullScreen,
+  required bool typing,
+}) {
+  if (!routeCurrent || !resumed || pip) return GoalReachedPresentation.none;
+  if (fullScreen || typing) return GoalReachedPresentation.notice;
+  return GoalReachedPresentation.dialog;
 }
 
 Future<void> showCreatorGoalDetails(BuildContext context, CreatorGoal goal) =>

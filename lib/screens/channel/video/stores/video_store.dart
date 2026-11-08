@@ -1116,13 +1116,21 @@ $kTwitchWebGateShownJs
     }
   }
 
+  final streamPushState = StreamPushState();
+
   @override
   void applyStreamPush(StreamPush push) {
     switch (push) {
       case ViewerCountPush() || BroadcastSettingsPush():
+        streamPushState.noteValuePush();
         runInAction(() => _streamInfo = patchStream(_streamInfo, push));
-      case StreamUpPush() || StreamDownPush():
+      case StreamUpPush():
         unawaited(updateStreamInfo(forceUpdate: true));
+      case StreamDownPush():
+        unawaited(updateStreamInfo(forceUpdate: true));
+        streamPushState.scheduleDownRetry(
+          () => unawaited(updateStreamInfo(forceUpdate: true)),
+        );
     }
   }
 
@@ -1162,7 +1170,13 @@ $kTwitchWebGateShownJs
 
   Future<void> _updateStreamInfoInternal() async {
     try {
-      _streamInfo = await twitchApi.getStream(userLogin: userLogin);
+      final pushesBefore = streamPushState.generation;
+      final fetched = await twitchApi.getStream(userLogin: userLogin);
+      _streamInfo = streamPushState.reconcile(
+        fetched,
+        _streamInfo,
+        pushesBefore,
+      );
       infoUnavailable = false;
       // Clear offline info when stream is live
       _offlineChannelInfo = null;
@@ -1294,6 +1308,7 @@ $kTwitchWebGateShownJs
 
   @action
   void dispose() {
+    streamPushState.dispose();
     // Disable auto PiP when leaving so that we don't enter PiP on other screens.
     if (Platform.isAndroid) {
       SimplePip.isAutoPipAvailable.then((isAutoPipAvailable) {

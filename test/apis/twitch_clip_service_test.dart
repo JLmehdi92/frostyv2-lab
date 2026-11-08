@@ -379,46 +379,80 @@ void main() {
   });
 
   group('downloadClip', () {
-    void serveBytes(String url, List<int> bytes) => dio.interceptors.add(
+    const slug = 'InexpensiveHotGrouseNerfBlueBlaster--wdg-mRtFp79lgSC';
+
+    void serve(
+      String url,
+      List<int> bytes, {
+      String type = 'video/mp4',
+      int? length,
+    }) => dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) => options.uri.toString() == url
             ? handler.resolve(
-                Response<List<int>>(
+                Response<ResponseBody>(
                   requestOptions: options,
                   statusCode: 200,
-                  data: bytes,
+                  headers: Headers.fromMap({
+                    Headers.contentTypeHeader: [type],
+                    if (length != null)
+                      Headers.contentLengthHeader: ['$length'],
+                  }),
+                  data: ResponseBody.fromBytes(bytes, 200),
                 ),
               )
             : handler.next(options),
       ),
     );
 
-    const slug = 'InexpensiveHotGrouseNerfBlueBlaster--wdg-mRtFp79lgSC';
-
-    test('saves the 720p rendition, signed, as an mp4', () async {
+    Future<(String, Directory)> prepare() async {
       reply(clipPlaybackResponse());
       final playback = await service.getClipPlayback(slug);
       final url = playback.signedUrl(
         playback.renditions.firstWhere((r) => r.label == '720p60'),
       );
-      serveBytes(url, [1, 2, 3]);
       final folder = Directory.systemTemp.createTempSync('onset_clip');
       addTearDown(() => folder.deleteSync(recursive: true));
+      return (url, folder);
+    }
+
+    test('streams the 720p rendition, signed, into an mp4', () async {
+      final (url, folder) = await prepare();
+      File('${folder.path}/onset-clip-Old.mp4').writeAsStringSync('old');
+      File('${folder.path}/other.mp4').writeAsStringSync('keep');
+      serve(url, [1, 2, 3]);
 
       final file = await service.downloadClip(slug, folder);
 
       expect(file.path, endsWith('onset-clip-$slug.mp4'));
       expect(file.readAsBytesSync(), [1, 2, 3]);
-      expect(requests.last.uri.toString(), url);
+      expect(File('${folder.path}/onset-clip-Old.mp4').existsSync(), isFalse);
+      expect(File('${folder.path}/other.mp4').existsSync(), isTrue);
     });
 
     test('an empty answer is an error, never an empty file', () async {
-      reply(clipPlaybackResponse());
-      final playback = await service.getClipPlayback(slug);
-      serveBytes(playback.signedUrl(playback.renditions[1]), []);
-      final folder = Directory.systemTemp.createTempSync('onset_clip');
-      addTearDown(() => folder.deleteSync(recursive: true));
+      final (url, folder) = await prepare();
+      serve(url, []);
+      await expectLater(
+        service.downloadClip(slug, folder),
+        throwsA(isA<ApiException>()),
+      );
+      expect(folder.listSync(), isEmpty);
+    });
 
+    test('anything but a video is refused', () async {
+      final (url, folder) = await prepare();
+      serve(url, [1], type: 'text/html');
+      await expectLater(
+        service.downloadClip(slug, folder),
+        throwsA(isA<ApiException>()),
+      );
+      expect(folder.listSync(), isEmpty);
+    });
+
+    test('a clip declared too large is refused before writing', () async {
+      final (url, folder) = await prepare();
+      serve(url, [1], length: TwitchClipService.maxClipDownloadBytes + 1);
       await expectLater(
         service.downloadClip(slug, folder),
         throwsA(isA<ApiException>()),

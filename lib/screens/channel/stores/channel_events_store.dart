@@ -162,7 +162,8 @@ abstract class ChannelEventsStoreBase with Store {
     final data = event.data;
     final count = data['count'];
     final uuid = data['uuid'];
-    if (data['channel_id'] != channelId ||
+    if (event.type != 'mystery-gift-purchase' ||
+        data['channel_id'] != channelId ||
         count is! num ||
         !count.isFinite ||
         count <= 0 ||

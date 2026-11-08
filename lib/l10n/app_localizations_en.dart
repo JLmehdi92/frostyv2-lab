@@ -8382,7 +8382,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String streamFilterFollowSetting({required String language}) {
-    return 'As in settings ($language)';
+    return 'As in Settings ($language)';
   }
 
   @override
@@ -8471,7 +8471,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get channelPrefsNoticesOff =>
-      'Notices are hidden in every chat in Settings.';
+      'Notices are turned off for every chat in Settings › Chat.';
 
   @override
   String get channelPrefsLists => 'Lists';
@@ -8508,4 +8508,7 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get goalReachedDetails => 'Details';
 }

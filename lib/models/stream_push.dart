@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:onset/models/stream.dart';
 
 sealed class StreamPush {
@@ -90,3 +92,42 @@ StreamTwitch _copy(
   language: stream.language,
   id: stream.id,
 );
+
+class StreamPushState {
+  StreamPushState({this.downRetryDelay = const Duration(seconds: 20)});
+
+  final Duration downRetryDelay;
+  var _generation = 0;
+  Timer? _downRetry;
+
+  int get generation => _generation;
+
+  void noteValuePush() => _generation++;
+
+  StreamTwitch? reconcile(
+    StreamTwitch? fetched,
+    StreamTwitch? current,
+    int fetchStartedAt,
+  ) {
+    if (fetched == null || current == null || fetchStartedAt == _generation) {
+      return fetched;
+    }
+    return _copy(
+      fetched,
+      viewerCount: current.viewerCount,
+      title: current.title,
+      gameName: current.gameName,
+      gameId: current.gameId,
+    );
+  }
+
+  void scheduleDownRetry(void Function() retry) {
+    _downRetry?.cancel();
+    _downRetry = Timer(downRetryDelay, () {
+      _downRetry = null;
+      retry();
+    });
+  }
+
+  void dispose() => _downRetry?.cancel();
+}

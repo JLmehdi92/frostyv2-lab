@@ -36,12 +36,16 @@ Future<void> downloadClip(
       await (folder ?? getTemporaryDirectory)(),
     );
     messenger.hideCurrentSnackBar();
-    await (sharer ?? SharePlus.instance).share(
-      ShareParams(
-        files: [XFile(file.path, mimeType: 'video/mp4')],
-        sharePositionOrigin: origin,
-      ),
-    );
+    try {
+      await (sharer ?? SharePlus.instance).share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'video/mp4')],
+          sharePositionOrigin: origin,
+        ),
+      );
+    } finally {
+      if (file.existsSync()) file.deleteSync();
+    }
   } catch (e) {
     debugPrint('Clip download failed: ${e.runtimeType}');
     say(l.clipDownloadFailed);

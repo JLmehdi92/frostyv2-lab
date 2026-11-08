@@ -11208,7 +11208,7 @@ abstract class AppLocalizations {
   /// A live list's language sheet: the first choice, which follows the stream language picked in settings.
   ///
   /// In en, this message translates to:
-  /// **'As in settings ({language})'**
+  /// **'As in Settings ({language})'**
   String streamFilterFollowSetting({required String language});
 
   /// A live list's chip that removes its language and tag filters.
@@ -11352,7 +11352,7 @@ abstract class AppLocalizations {
   /// Channel preferences: Show notices when they are off for every chat.
   ///
   /// In en, this message translates to:
-  /// **'Notices are hidden in every chat in Settings.'**
+  /// **'Notices are turned off for every chat in Settings › Chat.'**
   String get channelPrefsNoticesOff;
 
   /// Channel preferences: the group about where the channel appears in lists.
@@ -11402,6 +11402,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} sub gifted here since you joined} other{{count} subs gifted here since you joined}}'**
   String pointsGiftedHere({required int count});
+
+  /// The snack bar that says a goal was reached while the video fills the screen or the viewer types: opens the goal.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get goalReachedDetails;
 }
 
 class _AppLocalizationsDelegate

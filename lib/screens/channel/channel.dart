@@ -1173,9 +1173,31 @@ class _VideoChatState extends State<VideoChat>
   StreamSubscription<CreatorGoal>? _goalsReached;
 
   void _showGoalReached(CreatorGoal goal) {
-    if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? false)) return;
-    if (_chatStore.textFieldFocusNode.hasFocus) return;
-    unawaited(showCreatorGoalDetails(context, goal));
+    if (!mounted) return;
+    final presentation = goalReachedPresentation(
+      routeCurrent: ModalRoute.of(context)?.isCurrent ?? false,
+      resumed:
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
+      pip: _videoStore.isInPipMode,
+      fullScreen: context.isLandscape,
+      typing: _chatStore.textFieldFocusNode.hasFocus,
+    );
+    switch (presentation) {
+      case GoalReachedPresentation.none:
+        return;
+      case GoalReachedPresentation.notice:
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.goalReachedTitle),
+            action: SnackBarAction(
+              label: context.l10n.goalReachedDetails,
+              onPressed: () => unawaited(showCreatorGoalDetails(context, goal)),
+            ),
+          ),
+        );
+      case GoalReachedPresentation.dialog:
+        unawaited(showCreatorGoalDetails(context, goal));
+    }
   }
 
   void _applyStreamPush(StreamPush push) {

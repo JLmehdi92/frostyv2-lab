@@ -59,9 +59,11 @@ void main() {
   testWidgets('downloads the clip, then offers the video to save', (
     tester,
   ) async {
+    final saved = File('${folder.path}/onset-clip-Clip-1.mp4')
+      ..writeAsStringSync('mp4');
     when(
       () => service.downloadClip('Clip-1', any()),
-    ).thenAnswer((_) async => File('${folder.path}/onset-clip-Clip-1.mp4'));
+    ).thenAnswer((_) async => saved);
 
     await tapDownload(tester);
     await tester.pump();
@@ -70,6 +72,7 @@ void main() {
     final file = platform.shared.single.files!.single;
     expect(file.path, endsWith('onset-clip-Clip-1.mp4'));
     expect(file.mimeType, 'video/mp4');
+    expect(saved.existsSync(), isFalse);
   });
 
   testWidgets('a failure says so and shares nothing', (tester) async {

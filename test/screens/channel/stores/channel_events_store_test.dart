@@ -1044,18 +1044,24 @@ void main() {
     test('gifts in this channel add up once each', () async {
       final store = build();
       await store.connect();
-      HermesEvent gift(String uuid, Object count, {String channel = '42'}) =>
-          HermesEvent(
-            topic: 'channel-sub-gifts-v1.42',
-            type: 'mystery-gift-purchase',
-            data: {'uuid': uuid, 'count': count, 'channel_id': channel},
-          );
+      HermesEvent gift(
+        String uuid,
+        Object count, {
+        String channel = '42',
+        String type = 'mystery-gift-purchase',
+      }) => HermesEvent(
+        topic: 'channel-sub-gifts-v1.42',
+        type: type,
+        data: {'uuid': uuid, 'count': count, 'channel_id': channel},
+      );
       events
         ..add(gift('a', 5))
         ..add(gift('a', 5))
         ..add(gift('b', 1))
         ..add(gift('c', 3, channel: '43'))
-        ..add(gift('d', -2));
+        ..add(gift('d', -2))
+        ..add(gift('e', 1, type: 'sub-gift'))
+        ..add(gift('f', 5, type: 'subgift'));
       await pumpEventQueue();
       expect(store.giftedSinceJoining, 6);
       store.dispose();

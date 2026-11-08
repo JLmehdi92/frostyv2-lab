@@ -358,20 +358,34 @@ abstract class NativeVideoStoreBase
     );
   }
 
+  final streamPushState = StreamPushState();
+
   @override
   void applyStreamPush(StreamPush push) {
     switch (push) {
       case ViewerCountPush() || BroadcastSettingsPush():
+        streamPushState.noteValuePush();
         runInAction(() => _streamInfo = patchStream(_streamInfo, push));
-      case StreamUpPush() || StreamDownPush():
+      case StreamUpPush():
         unawaited(updateStreamInfo(forceUpdate: true));
+      case StreamDownPush():
+        unawaited(updateStreamInfo(forceUpdate: true));
+        streamPushState.scheduleDownRetry(
+          () => unawaited(updateStreamInfo(forceUpdate: true)),
+        );
     }
   }
 
   @action
   Future<void> updateStreamInfo({bool forceUpdate = false}) async {
     try {
-      _streamInfo = await twitchApi.getStream(userLogin: userLogin);
+      final pushesBefore = streamPushState.generation;
+      final fetched = await twitchApi.getStream(userLogin: userLogin);
+      _streamInfo = streamPushState.reconcile(
+        fetched,
+        _streamInfo,
+        pushesBefore,
+      );
       infoUnavailable = false;
       _offlineChannelInfo = null;
     } catch (e) {
@@ -393,6 +407,7 @@ abstract class NativeVideoStoreBase
   @action
   void dispose() {
     _overlayTimer?.cancel();
+    streamPushState.dispose();
     for (final sub in _subscriptions) {
       sub.cancel();
     }
