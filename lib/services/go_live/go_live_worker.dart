@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:dio/dio.dart';
@@ -307,27 +308,60 @@ abstract final class GoLiveNotifications {
     );
   }
 
-  static const _summaryId = 1;
+  static const maxImageBytes = 2 * 1024 * 1024;
+  static const imageTimeout = Duration(seconds: 8);
 
-  static Future<Uint8List?> _image(String? url) async {
+  @visibleForTesting
+  static Future<Uint8List?> downloadImage(String? url, {Dio? dio}) async {
     if (url == null || !isTwitchImageUrl(url)) return null;
+    final cancel = CancelToken();
     try {
-      final response = await Dio(
-        BaseOptions(
-          connectTimeout: const Duration(seconds: 5),
-          receiveTimeout: const Duration(seconds: 5),
-          responseType: ResponseType.bytes,
-        ),
-      ).get<List<int>>(url);
-      final bytes = response.data;
-      if (bytes == null || bytes.isEmpty || bytes.length > 2 * 1024 * 1024) {
-        return null;
-      }
-      return Uint8List.fromList(bytes);
+      final client =
+          dio ??
+          Dio(
+            BaseOptions(
+              connectTimeout: const Duration(seconds: 5),
+              receiveTimeout: const Duration(seconds: 5),
+            ),
+          );
+      return await _read(client, url, cancel).timeout(
+        imageTimeout,
+        onTimeout: () {
+          cancel.cancel('Go-live image too slow');
+          return null;
+        },
+      );
     } catch (e) {
       debugPrint('Go-live image unavailable: ${e.runtimeType}');
       return null;
     }
+  }
+
+  static Future<Uint8List?> _read(
+    Dio client,
+    String url,
+    CancelToken cancel,
+  ) async {
+    final response = await client.get<ResponseBody>(
+      url,
+      cancelToken: cancel,
+      options: Options(
+        responseType: ResponseType.stream,
+        followRedirects: false,
+        validateStatus: (status) => status == 200,
+      ),
+    );
+    final body = response.data;
+    if (body == null) return null;
+    final bytes = BytesBuilder(copy: false);
+    await for (final chunk in body.stream) {
+      bytes.add(chunk);
+      if (bytes.length > maxImageBytes) {
+        cancel.cancel('Go-live image too large');
+        return null;
+      }
+    }
+    return bytes.isEmpty ? null : bytes.takeBytes();
   }
 
   static final _ready = Completer<void>();
@@ -419,7 +453,7 @@ abstract final class GoLiveNotifications {
   /// Says once, in [l]'s language, that the notices are paused because
   /// Twitch refused the login ([kGoLiveLoggedOut], the only problem kept).
   static Future<void> showProblem(AppLocalizations l) => _plugin.show(
-    id: 1,
+    id: kGoLiveProblemId,
     title: l.notifGoLivePaused,
     body: l.goLiveLogInAgain,
     notificationDetails: detailsFor(l),
@@ -434,8 +468,8 @@ abstract final class GoLiveNotifications {
   ) async {
     for (final notice in notices) {
       final (avatar, art) = await (
-        _image(notice.avatarUrl),
-        _image(goLiveCategoryArtUrl(notice)),
+        downloadImage(notice.avatarUrl),
+        downloadImage(goLiveCategoryArtUrl(notice)),
       ).wait;
       await _plugin.show(
         id: goLiveNoticeId(notice),
@@ -451,7 +485,7 @@ abstract final class GoLiveNotifications {
     }
     if (notices.length + (more > 0 ? 1 : 0) > 1) {
       await _plugin.show(
-        id: _summaryId,
+        id: kGoLiveSummaryId,
         title: l.notifChannelGoLive,
         notificationDetails: summaryDetails(l),
       );
@@ -459,7 +493,7 @@ abstract final class GoLiveNotifications {
     final details = detailsFor(l);
     if (more > 0) {
       await _plugin.show(
-        id: 0,
+        id: kGoLiveMoreId,
         title: l.notifGoLiveMore(count: more),
         notificationDetails: details,
       );

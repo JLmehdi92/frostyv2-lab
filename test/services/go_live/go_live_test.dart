@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -572,6 +573,26 @@ void main() {
       expect(goLiveNoticeId(first), greaterThanOrEqualTo(0));
     });
 
+    test('ids are a stable FNV-1a hash, clear of the reserved ids', () {
+      expect(
+        goLiveNoticeId(
+          goLiveNotice(_stream('1', startedAt: '2026-10-20T10:00:00Z')),
+        ),
+        2060008848,
+      );
+      expect(
+        goLiveNoticeId(
+          goLiveNotice(_stream('1', startedAt: '2026-10-21T10:00:00Z')),
+        ),
+        1774981295,
+      );
+      expect(goLiveNoticeIdOf('12345|'), 1335181868);
+      expect(kGoLiveReservedIds, {0, 1, 2});
+      for (var i = 0; i < 5000; i++) {
+        expect(kGoLiveReservedIds, isNot(contains(goLiveNoticeIdOf('$i|x'))));
+      }
+    });
+
     test('the category art comes from Twitch, only for a real category', () {
       expect(
         goLiveCategoryArtUrl(goLiveNotice(_stream('1'))),
@@ -601,6 +622,76 @@ void main() {
           L10n.english,
         ).android!.setAsGroupSummary,
         isTrue,
+      );
+    });
+  });
+
+  group('notification images', () {
+    Dio serving(
+      int status,
+      Stream<Uint8List> body, {
+      Map<String, List<String>> headers = const {},
+    }) {
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) => handler.resolve(
+            Response(
+              requestOptions: options,
+              statusCode: status,
+              data: ResponseBody(body, status, headers: headers),
+            ),
+          ),
+        ),
+      );
+      return dio;
+    }
+
+    const url = 'https://static-cdn.jtvnw.net/jtv_user_pictures/a.png';
+
+    test('a small image is read', () async {
+      final bytes = await GoLiveNotifications.downloadImage(
+        url,
+        dio: serving(200, Stream.value(Uint8List.fromList([1, 2, 3]))),
+      );
+      expect(bytes, [1, 2, 3]);
+    });
+
+    test('an image past 2 MB is dropped while it streams', () async {
+      var sent = 0;
+      Stream<Uint8List> big() async* {
+        for (var i = 0; i < 100; i++) {
+          sent++;
+          yield Uint8List(64 * 1024);
+        }
+      }
+
+      final bytes = await GoLiveNotifications.downloadImage(
+        url,
+        dio: serving(200, big()),
+      );
+      expect(bytes, isNull);
+      expect(sent, lessThan(100));
+    });
+
+    test('a redirect is not followed', () async {
+      final bytes = await GoLiveNotifications.downloadImage(
+        url,
+        dio: serving(
+          302,
+          const Stream.empty(),
+          headers: {
+            'location': ['https://evil.example/x.png'],
+          },
+        ),
+      );
+      expect(bytes, isNull);
+    });
+
+    test('another host is never asked', () async {
+      expect(
+        await GoLiveNotifications.downloadImage('https://evil.example/x.png'),
+        isNull,
       );
     });
   });

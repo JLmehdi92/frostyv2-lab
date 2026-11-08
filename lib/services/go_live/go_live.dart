@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
@@ -182,8 +184,22 @@ GoLiveNotice goLiveNotice(
   );
 }
 
+const kGoLiveMoreId = 0;
+const kGoLiveProblemId = 1;
+const kGoLiveSummaryId = 2;
+const kGoLiveReservedIds = {kGoLiveMoreId, kGoLiveProblemId, kGoLiveSummaryId};
+
 int goLiveNoticeId(GoLiveNotice notice) =>
-    Object.hash(notice.userId, notice.startedAt).toUnsigned(31);
+    goLiveNoticeIdOf('${notice.userId}|${notice.startedAt}');
+
+int goLiveNoticeIdOf(String key) {
+  var hash = 0x811c9dc5;
+  for (final byte in utf8.encode(key)) {
+    hash = ((hash ^ byte) * 0x01000193) & 0xffffffff;
+  }
+  final id = hash & 0x7fffffff;
+  return id < kGoLiveReservedIds.length ? id + kGoLiveReservedIds.length : id;
+}
 
 final _numericId = RegExp(r'^[0-9]{1,20}$');
 
