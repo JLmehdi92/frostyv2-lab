@@ -11168,6 +11168,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn’t download this clip.'**
   String get clipDownloadFailed;
+
+  /// The screen listing the viewer's own clips: those of their channel and those they made.
+  ///
+  /// In en, this message translates to:
+  /// **'My clips'**
+  String get myClipsTitle;
+
+  /// My clips: the tab with the clips made on the viewer's own channel.
+  ///
+  /// In en, this message translates to:
+  /// **'My channel'**
+  String get myClipsOfMyChannel;
+
+  /// My clips: the tab with the clips the viewer made on any channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipped by me'**
+  String get myClipsMadeByMe;
+
+  /// My clips: opens Twitch's clip manager, where clips can be deleted (Twitch's API can't delete a clip).
+  ///
+  /// In en, this message translates to:
+  /// **'Manage on Twitch'**
+  String get myClipsManage;
+
+  /// The settings row that opens My clips: what it lists.
+  ///
+  /// In en, this message translates to:
+  /// **'Your channel’s clips and the ones you made'**
+  String get myClipsSubtitle;
 }
 
 class _AppLocalizationsDelegate

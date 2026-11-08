@@ -15,6 +15,7 @@ abstract class ChannelClipsStoreBase with Store {
   ChannelClipsStoreBase({
     required this.login,
     this.gameId,
+    this.curatorId,
     required this.clipService,
     ClipPeriod period = ClipPeriod.lastWeek,
     ClipSort sort = ClipSort.top,
@@ -27,10 +28,10 @@ abstract class ChannelClipsStoreBase with Store {
 
   /// A category instead of a channel ([login] is then unused).
   final String? gameId;
+  final String? curatorId;
   final TwitchClipService clipService;
   final bool Function()? featuredOnly;
-  final Future<List<Clip>> Function(DateTime start, DateTime end)?
-  clipsBetween;
+  final Future<List<Clip>> Function(DateTime start, DateTime end)? clipsBetween;
 
   static const defaultPeriod = ClipPeriod.lastWeek;
 
@@ -217,7 +218,14 @@ abstract class ChannelClipsStoreBase with Store {
     runInAction(() => _isLoading = true);
     try {
       final gameId = this.gameId;
-      final page = gameId != null
+      final curatorId = this.curatorId;
+      final page = curatorId != null
+          ? await clipService.getCuratedClips(
+              curatorId: curatorId,
+              period: key.$1,
+              sort: key.$2,
+            )
+          : gameId != null
           ? await clipService.getCategoryClips(
               gameId: gameId,
               period: key.$1,
@@ -233,7 +241,9 @@ abstract class ChannelClipsStoreBase with Store {
     } on NotFoundException {
       _showError(
         key,
-        gameId != null
+        curatorId != null
+            ? ChannelClipsProblem.failed
+            : gameId != null
             ? ChannelClipsProblem.categoryNotFound
             : ChannelClipsProblem.channelNotFound,
       );

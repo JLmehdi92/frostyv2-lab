@@ -59,13 +59,14 @@ void main() {
       expect(find.text('1'), findsOneWidget, reason: 'the blocked count');
       expect(find.text('Security and privacy'), findsOneWidget);
       expect(find.text('Connections'), findsOneWidget);
+      expect(find.text('My clips'), findsOneWidget);
       for (final section in ['General', 'Video', 'Chat', 'Other']) {
         expect(find.text(section), findsOneWidget);
       }
       expect(find.text('Notifications'), findsOneWidget);
       expect(find.text('Mentions on'), findsOneWidget);
       await tester.scrollUntilVisible(
-        find.text('Log out'),
+        find.text('ONSET v5.0.5 (68)'),
         200,
         scrollable: find.byType(Scrollable).first,
       );

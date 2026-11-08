@@ -8468,4 +8468,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get clipDownloadFailed => 'Impossible de télécharger ce clip';
+
+  @override
+  String get myClipsTitle => 'Mes clips';
+
+  @override
+  String get myClipsOfMyChannel => 'Ma chaîne';
+
+  @override
+  String get myClipsMadeByMe => 'Créés par moi';
+
+  @override
+  String get myClipsManage => 'Gérer sur Twitch';
+
+  @override
+  String get myClipsSubtitle =>
+      'Les clips de votre chaîne et ceux que vous avez créés';
 }

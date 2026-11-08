@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/clips/my_clips_screen.dart';
 import 'package:onset/screens/home/shell/onset_shell.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/settings/settings.dart';
@@ -331,6 +332,20 @@ class _AccountCard extends StatelessWidget {
             end: SettingsRowEnd.chevron,
             onTap: () => openBlockedUsers(context, authStore),
           ),
+          if (authStore.user.details case final details?)
+            SettingsRow(
+              key: const ValueKey('my-clips'),
+              glyph: SettingsGlyphKind.play,
+              title: context.l10n.myClipsTitle,
+              strong: true,
+              subtitle: Text(context.l10n.myClipsSubtitle),
+              end: SettingsRowEnd.chevron,
+              onTap: () => MyClipsScreen.open(
+                context,
+                login: details.login,
+                userId: details.id,
+              ),
+            ),
           for (final page in TwitchAccountPage.profileTab)
             SettingsRow(
               glyph: page.glyph,

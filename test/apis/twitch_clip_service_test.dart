@@ -318,6 +318,66 @@ void main() {
     });
   });
 
+  group('getCuratedClips', () {
+    test('asks for the clips the user made and reads them', () async {
+      reply({
+        'data': {
+          'user': {
+            'id': '7',
+            'clips': {
+              'edges': [
+                {'node': clipNode},
+                {
+                  'node': {'id': 'x'},
+                },
+              ],
+              'pageInfo': {'hasNextPage': false},
+            },
+          },
+        },
+      });
+
+      final page = await service.getCuratedClips(
+        curatorId: '7',
+        period: ClipPeriod.allTime,
+        sort: ClipSort.top,
+      );
+
+      expect(page.items.map((c) => c.slug), [clipNode['slug']]);
+      expect(lastBody()['operationName'], 'CuratedClips');
+      expect(lastBody()['query'], contains('role: CURATOR'));
+      expect(lastBody()['variables'], {
+        'id': '7',
+        'first': 100,
+        'period': 'ALL_TIME',
+        'sort': 'VIEWS_DESC',
+      });
+    });
+
+    test('refuses a bad id without asking, and a missing user', () async {
+      await expectLater(
+        service.getCuratedClips(
+          curatorId: '7/x',
+          period: ClipPeriod.allTime,
+          sort: ClipSort.top,
+        ),
+        throwsA(isA<NotFoundException>()),
+      );
+      expect(requests, isEmpty);
+      reply({
+        'data': {'user': null},
+      });
+      await expectLater(
+        service.getCuratedClips(
+          curatorId: '7',
+          period: ClipPeriod.allTime,
+          sort: ClipSort.top,
+        ),
+        throwsA(isA<NotFoundException>()),
+      );
+    });
+  });
+
   group('downloadClip', () {
     void serveBytes(String url, List<int> bytes) => dio.interceptors.add(
       InterceptorsWrapper(

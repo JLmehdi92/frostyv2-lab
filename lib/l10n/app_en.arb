@@ -10732,5 +10732,25 @@
   "clipDownloadFailed": "Couldn’t download this clip.",
   "@clipDownloadFailed": {
     "description": "A snack bar when the clip's video could not be downloaded."
+  },
+  "myClipsTitle": "My clips",
+  "@myClipsTitle": {
+    "description": "The screen listing the viewer's own clips: those of their channel and those they made."
+  },
+  "myClipsOfMyChannel": "My channel",
+  "@myClipsOfMyChannel": {
+    "description": "My clips: the tab with the clips made on the viewer's own channel."
+  },
+  "myClipsMadeByMe": "Clipped by me",
+  "@myClipsMadeByMe": {
+    "description": "My clips: the tab with the clips the viewer made on any channel."
+  },
+  "myClipsManage": "Manage on Twitch",
+  "@myClipsManage": {
+    "description": "My clips: opens Twitch's clip manager, where clips can be deleted (Twitch's API can't delete a clip)."
+  },
+  "myClipsSubtitle": "Your channel’s clips and the ones you made",
+  "@myClipsSubtitle": {
+    "description": "The settings row that opens My clips: what it lists."
   }
 }

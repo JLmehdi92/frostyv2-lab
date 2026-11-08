@@ -56,6 +56,12 @@ class TwitchClipService extends BaseApiClient {
     '$_clipFields isFeatured }',
   );
 
+  static const _curatedClipsQuery =
+      'query CuratedClips(\$id: ID!, \$first: Int, \$period: ClipsPeriod, '
+      '\$sort: ClipsSort) { user(id: \$id) { id clips(first: \$first, '
+      'criteria: {role: CURATOR, period: \$period, sort: \$sort}) { edges { '
+      'node { $_clipFields } } pageInfo { hasNextPage } } } }';
+
   static const _categoryClipsQuery =
       'query CategoryClips(\$id: ID!, \$first: Int, \$period: ClipsPeriod, '
       '\$sort: ClipsSort) { game(id: \$id) { id clips(first: \$first, '
@@ -135,6 +141,40 @@ class TwitchClipService extends BaseApiClient {
       items: items,
       hasMore: pageInfo is Map && pageInfo['hasNextPage'] == true,
       featuredKnown: featuredKnown,
+    );
+  }
+
+  Future<ClipPage> getCuratedClips({
+    required String curatorId,
+    required ClipPeriod period,
+    required ClipSort sort,
+  }) async {
+    if (!RegExp(r'^[0-9]{1,20}$').hasMatch(curatorId)) {
+      throw const NotFoundException('Not a user id');
+    }
+    final data = await _gql('CuratedClips', _curatedClipsQuery, {
+      'id': curatorId,
+      'first': 100,
+      'period': period.gqlName,
+      'sort': sort.gqlName,
+    });
+    final user = data['user'];
+    if (user is! Map) throw const NotFoundException('User not found');
+    final clips = user['clips'] is Map ? user['clips'] as Map : const {};
+    final edges = clips['edges'] is List ? clips['edges'] as List : const [];
+    final items = <Clip>[];
+    for (final edge in edges) {
+      if (edge is! Map || edge['node'] is! Map) continue;
+      try {
+        items.add(Clip.fromGql(JsonMap.from(edge['node'] as Map)));
+      } on FormatException {
+        continue;
+      }
+    }
+    final pageInfo = clips['pageInfo'];
+    return ClipPage(
+      items: items,
+      hasMore: pageInfo is Map && pageInfo['hasNextPage'] == true,
     );
   }
 

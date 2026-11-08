@@ -1819,5 +1819,10 @@
   "clipsNoneInRange": "Aucun clip entre le {start} et le {end}",
   "clipDownload": "Télécharger",
   "clipDownloadPreparing": "Préparation du clip…",
-  "clipDownloadFailed": "Impossible de télécharger ce clip"
+  "clipDownloadFailed": "Impossible de télécharger ce clip",
+  "myClipsTitle": "Mes clips",
+  "myClipsOfMyChannel": "Ma chaîne",
+  "myClipsMadeByMe": "Créés par moi",
+  "myClipsManage": "Gérer sur Twitch",
+  "myClipsSubtitle": "Les clips de votre chaîne et ceux que vous avez créés"
 }
