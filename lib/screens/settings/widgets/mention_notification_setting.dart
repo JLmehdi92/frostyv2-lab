@@ -4,6 +4,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/go_live_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/widgets/notification_permission_prompt.dart';
 
 /// Turns chat mention notices on or off (Twitch's "Chat Mentions").
 class MentionNotificationSetting extends StatefulWidget {
@@ -60,6 +61,7 @@ class _MentionNotificationSettingState
       setState(() => _refused = false);
       return;
     }
+    if (!await explainUnlessAllowed(context, widget.platform.allowed)) return;
     await _ask();
     if (!_refused) widget.settingsStore.mentionNotifications = true;
   }

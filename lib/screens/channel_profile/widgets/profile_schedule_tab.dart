@@ -4,9 +4,11 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/settings/widgets/go_live_setting.dart';
 import 'package:onset/services/notifications/schedule_reminders.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/notification_permission_prompt.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/state_views.dart';
 
@@ -43,7 +45,13 @@ Future<void> toggleScheduleReminder(
   ScheduleSegment segment, {
   required String login,
   required String channelName,
+  GoLivePlatform notificationPlatform = const GoLivePlatform(),
 }) async {
+  if (!reminders.isSet(segment.id) &&
+      !await explainUnlessAllowed(context, notificationPlatform.allowed)) {
+    return;
+  }
+  if (!context.mounted) return;
   final result = await reminders.toggle(
     segment,
     login: login,

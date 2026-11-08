@@ -2696,6 +2696,30 @@ abstract class AppLocalizations {
   /// **'Allow notifications for this app in the system settings.'**
   String get notificationsAllowInSystem;
 
+  /// The dialog shown before the system asks for the right to notify (turning on go-live or mention notifications, or a stream reminder): its title.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications?'**
+  String get notificationPermissionTitle;
+
+  /// The dialog shown before the system asks for the right to notify: what the notifications are for, and that the system's own prompt follows.
+  ///
+  /// In en, this message translates to:
+  /// **'ONSET can tell you when a channel you follow goes live, when someone mentions you in chat, and when a stream you set a reminder for starts. Your device asks for permission next.'**
+  String get notificationPermissionMessage;
+
+  /// The dialog shown before the system asks for the right to notify: the button that closes it without asking.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notificationPermissionNotNow;
+
+  /// The dialog shown before the system asks for the right to notify: the button that goes on to the system's prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get notificationPermissionContinue;
+
   /// Error message. Snackbar when a channel's go-live bell could not be changed (the channel's menu).
   ///
   /// In en, this message translates to:

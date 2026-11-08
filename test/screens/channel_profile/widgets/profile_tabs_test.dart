@@ -14,6 +14,7 @@ import 'package:onset/screens/channel_profile/widgets/profile_home_tab.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_live_card.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_schedule_tab.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
+import 'package:onset/screens/settings/widgets/go_live_setting.dart';
 import 'package:onset/screens/vod/stores/channel_videos_store.dart';
 import 'package:onset/screens/vod/vod_resume.dart';
 import 'package:onset/services/notifications/schedule_reminders.dart';
@@ -23,6 +24,11 @@ import 'package:simple_icons/simple_icons.dart';
 class MockVodService extends Mock implements TwitchVodService {}
 
 class MockClipService extends Mock implements TwitchClipService {}
+
+class _BlockedNotifications extends GoLivePlatform {
+  @override
+  Future<bool> allowed() async => false;
+}
 
 class FakeReminderPlatform implements ReminderPlatform {
   var granted = true;
@@ -282,6 +288,40 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.textContaining('system settings'), findsOneWidget);
         expect(find.text('Remind me'), findsOneWidget);
+      });
+
+      testWidgets('without the right yet, explains before setting one', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          _app(
+            Builder(
+              builder: (context) => TextButton(
+                onPressed: () => toggleScheduleReminder(
+                  context,
+                  reminders,
+                  schedule.segments.first,
+                  login: 'streamer',
+                  channelName: 'Streamer',
+                  notificationPlatform: _BlockedNotifications(),
+                ),
+                child: const Text('toggle'),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('toggle'));
+        await tester.pumpAndSettle();
+        expect(find.text('Allow notifications?'), findsOneWidget);
+        await tester.tap(find.text('Not now'));
+        await tester.pumpAndSettle();
+        expect(reminders.isSet('a'), isFalse);
+
+        await tester.tap(find.text('toggle'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Continue'));
+        await tester.pumpAndSettle();
+        expect(reminders.isSet('a'), isTrue);
       });
 
       testWidgets('nothing to tap without reminders', (tester) async {

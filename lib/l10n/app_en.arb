@@ -1993,6 +1993,22 @@
   "@notificationsAllowInSystem": {
     "description": "Settings › Notifications: the line under a notification switch when the system permission was refused."
   },
+  "notificationPermissionTitle": "Allow notifications?",
+  "@notificationPermissionTitle": {
+    "description": "The dialog shown before the system asks for the right to notify (turning on go-live or mention notifications, or a stream reminder): its title."
+  },
+  "notificationPermissionMessage": "ONSET can tell you when a channel you follow goes live, when someone mentions you in chat, and when a stream you set a reminder for starts. Your device asks for permission next.",
+  "@notificationPermissionMessage": {
+    "description": "The dialog shown before the system asks for the right to notify: what the notifications are for, and that the system's own prompt follows."
+  },
+  "notificationPermissionNotNow": "Not now",
+  "@notificationPermissionNotNow": {
+    "description": "The dialog shown before the system asks for the right to notify: the button that closes it without asking."
+  },
+  "notificationPermissionContinue": "Continue",
+  "@notificationPermissionContinue": {
+    "description": "The dialog shown before the system asks for the right to notify: the button that goes on to the system's prompt."
+  },
   "goLiveBellFailed": "Couldn’t change the bell.",
   "@goLiveBellFailed": {
     "description": "Error message. Snackbar when a channel's go-live bell could not be changed (the channel's menu)."

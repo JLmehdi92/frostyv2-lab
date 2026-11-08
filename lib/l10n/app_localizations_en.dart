@@ -1561,6 +1561,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Allow notifications for this app in the system settings.';
 
   @override
+  String get notificationPermissionTitle => 'Allow notifications?';
+
+  @override
+  String get notificationPermissionMessage =>
+      'ONSET can tell you when a channel you follow goes live, when someone mentions you in chat, and when a stream you set a reminder for starts. Your device asks for permission next.';
+
+  @override
+  String get notificationPermissionNotNow => 'Not now';
+
+  @override
+  String get notificationPermissionContinue => 'Continue';
+
+  @override
   String get goLiveBellFailed => 'Couldn’t change the bell.';
 
   @override

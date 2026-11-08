@@ -26,6 +26,7 @@ import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/apis/unauthorized_interceptor.dart';
+import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
@@ -37,8 +38,10 @@ import 'package:onset/screens/home/home.dart';
 import 'package:onset/screens/home/shell/onset_shell.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/screens/onboarding/onboarding_flow.dart';
+import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/vod/channel_videos.dart';
 import 'package:onset/screens/vod/vod_screen.dart';
 import 'package:onset/services/background_audio.dart';
@@ -49,6 +52,7 @@ import 'package:onset/services/go_live/go_live_poller.dart';
 import 'package:onset/services/go_live/go_live_worker.dart';
 import 'package:onset/services/launch_info.dart';
 import 'package:onset/services/locale_bridge.dart';
+import 'package:onset/services/notification_settings_link.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:onset/services/notifications/mention_alerts.dart';
 import 'package:onset/services/notifications/schedule_reminders.dart';
@@ -420,6 +424,32 @@ class _MyAppState extends State<MyApp> {
     };
     _initDeepLinks();
     _initGoLive();
+    unawaited(NotificationSettingsLink().listen(_openNotificationSettings));
+  }
+
+  void _openNotificationSettings() {
+    WidgetsBinding.instance
+      ..addPostFrameCallback((_) {
+        final navigator = navigatorKey.currentState;
+        if (!mounted || navigator == null) return;
+        const page = SettingsPageId.notifications;
+        unawaited(
+          navigator.push(
+            MaterialPageRoute(
+              settings: RouteSettings(name: settingsRouteName(page)),
+              builder: (context) => SettingsScaffold(
+                title: page.title(context.l10n),
+                body: buildSettingsPage(
+                  page,
+                  settingsStore: context.read<SettingsStore>(),
+                  authStore: context.read<AuthStore>(),
+                ),
+              ),
+            ),
+          ),
+        );
+      })
+      ..scheduleFrame();
   }
 
   /// A tapped go-live notice opens its channel, whether the app was running

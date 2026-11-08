@@ -2,6 +2,7 @@ package app.onset
 
 import android.annotation.TargetApi
 import android.app.LocaleManager
+import android.app.Notification
 import android.content.Intent
 import android.content.res.Resources
 import android.os.Build
@@ -32,6 +33,8 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
     private var fromLauncher = false
 
     private var launchChannel: MethodChannel? = null
+    private var notificationSettingsChannel: MethodChannel? = null
+    private var openNotificationSettingsOnLaunch = false
     private var localeChannel: MethodChannel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,6 +44,7 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
         processStarted = true
         fromLauncher = intent?.action == Intent.ACTION_MAIN &&
             intent?.hasCategory(Intent.CATEGORY_LAUNCHER) == true
+        openNotificationSettingsOnLaunch = asksForNotificationSettings(intent)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // The Flutter intro starts from the splash's own frame (the launch
             // tile on the ONSET ground): no system exit fade, and the splash
@@ -50,6 +54,17 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
         super.onCreate(savedInstanceState)
         preferSmoothRefreshRate()
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (asksForNotificationSettings(intent)) {
+            notificationSettingsChannel?.invokeMethod("open", null)
+        }
+    }
+
+    private fun asksForNotificationSettings(intent: Intent?): Boolean =
+        intent?.action == Intent.ACTION_MAIN &&
+            intent?.hasCategory(Notification.INTENT_CATEGORY_NOTIFICATION_PREFERENCES) == true
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -91,6 +106,18 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
                 }
             }
         }
+
+        notificationSettingsChannel =
+            MethodChannel(messenger, "onset/notification-settings").apply {
+                setMethodCallHandler { call, result ->
+                    if (call.method == "consumeLaunch") {
+                        result.success(openNotificationSettingsOnLaunch)
+                        openNotificationSettingsOnLaunch = false
+                    } else {
+                        result.notImplemented()
+                    }
+                }
+            }
 
         // How this launch started, for the launch intro. The splash (before
         // and from Android 12) shows the launch tile.

@@ -1594,6 +1594,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Autorisez les notifications de cette application dans les paramètres du système.';
 
   @override
+  String get notificationPermissionTitle => 'Autoriser les notifications ?';
+
+  @override
+  String get notificationPermissionMessage =>
+      'ONSET peut vous prévenir quand une chaîne que vous suivez lance un live, quand quelqu’un vous mentionne dans le chat et quand commence un live pour lequel vous avez activé un rappel. Votre appareil vous demandera ensuite l’autorisation.';
+
+  @override
+  String get notificationPermissionNotNow => 'Plus tard';
+
+  @override
+  String get notificationPermissionContinue => 'Continuer';
+
+  @override
   String get goLiveBellFailed => 'Impossible de modifier la cloche.';
 
   @override

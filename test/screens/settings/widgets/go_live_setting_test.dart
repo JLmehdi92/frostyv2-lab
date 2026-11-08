@@ -83,6 +83,27 @@ void main() {
     expect((await GoLivePrefs.load()).enabled, isFalse);
   });
 
+  testWidgets('without the right yet, explains before asking', (tester) async {
+    final platform = FakePlatform(isAllowed: false);
+    await pump(tester, GoLiveSetting(userId: '7', platform: platform));
+
+    await tester.tap(find.byType(SettingsListSwitch));
+    await tester.pumpAndSettle();
+    expect(find.text('Allow notifications?'), findsOneWidget);
+    await tester.tap(find.text('Not now'));
+    await tester.pumpAndSettle();
+    expect(platform.calls, isEmpty);
+    expect(switchValue(tester), isFalse);
+    expect(find.textContaining('system settings'), findsNothing);
+
+    await tester.tap(find.byType(SettingsListSwitch));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(platform.calls, ['permission', 'start']);
+    expect(switchValue(tester), isTrue);
+  });
+
   testWidgets('a refused right says where to allow it', (tester) async {
     final platform = FakePlatform(granted: false);
     await pump(tester, GoLiveSetting(userId: '7', platform: platform));

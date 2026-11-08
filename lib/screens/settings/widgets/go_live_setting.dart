@@ -4,6 +4,7 @@ import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/go_live/go_live_worker.dart';
 import 'package:onset/services/telemetry.dart';
+import 'package:onset/widgets/notification_permission_prompt.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
@@ -85,7 +86,13 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
     });
     try {
       if (on) {
-        if (!await widget.platform.requestPermission()) {
+        final consent = await askNotificationPermission(
+          context,
+          allowed: widget.platform.allowed,
+          request: widget.platform.requestPermission,
+        );
+        if (consent == NotificationConsent.dismissed) return;
+        if (consent == NotificationConsent.refused) {
           _problem = _GoLiveProblem.refused;
           return;
         }

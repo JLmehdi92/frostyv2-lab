@@ -69,6 +69,27 @@ void main() {
     expect(platform.asked, 1);
   });
 
+  testWidgets('without the right yet, explains before asking', (tester) async {
+    final store = SettingsStore.fromJson({})..mentionNotifications = false;
+    final platform = FakePlatform(isAllowed: false);
+    await pump(tester, store, platform: platform);
+
+    await tester.tap(find.byType(SettingsListSwitch));
+    await tester.pumpAndSettle();
+    expect(find.text('Allow notifications?'), findsOneWidget);
+    await tester.tap(find.text('Not now'));
+    await tester.pumpAndSettle();
+    expect(platform.asked, 0);
+    expect(store.mentionNotifications, isFalse);
+
+    await tester.tap(find.byType(SettingsListSwitch));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(platform.asked, 1);
+    expect(store.mentionNotifications, isTrue);
+  });
+
   testWidgets('a refused right says where to allow it', (tester) async {
     final store = SettingsStore.fromJson({})..mentionNotifications = false;
     await pump(tester, store, platform: FakePlatform(granted: false));
