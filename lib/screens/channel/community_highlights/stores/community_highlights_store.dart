@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart' as api;
 import 'package:onset/apis/twitch_community_highlights_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/models/community_highlight_event.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
@@ -17,6 +18,17 @@ import 'package:onset/services/realtime/twitch_realtime_client.dart';
 import 'package:onset/services/telemetry.dart';
 
 part 'community_highlights_store.g.dart';
+
+typedef PollVoter =
+    Future<ViewerActionOutcome> Function({
+      required String pollId,
+      required String choiceId,
+    });
+
+typedef RaidMembership =
+    Future<ViewerActionOutcome> Function(String raidId, {required bool join});
+
+typedef PollVote = ({String pollId, String choiceId});
 
 class CommunityHighlightsStore = CommunityHighlightsStoreBase
     with _$CommunityHighlightsStore;
@@ -41,6 +53,8 @@ abstract class CommunityHighlightsStoreBase with Store {
     this.onGoAlong,
     this.isPinHidden,
     this.onHidePin,
+    this.pollVoter,
+    this.raidMembership,
   }) : _service = service,
        serverClock = serverClock ?? ServerClock() {
     for (final topic in HighlightTopic.values) {
@@ -80,6 +94,10 @@ abstract class CommunityHighlightsStoreBase with Store {
   final bool Function(String pinId)? isPinHidden;
 
   final void Function(String pinId)? onHidePin;
+
+  final PollVoter? pollVoter;
+
+  final RaidMembership? raidMembership;
 
   final _newPins = StreamController<PinnedChatMessage>.broadcast();
 
@@ -191,9 +209,63 @@ abstract class CommunityHighlightsStoreBase with Store {
 
   /// Stays on this channel when the current raid leaves.
   @action
-  void stayOnRaid() {
+  Future<ViewerActionOutcome?> stayOnRaid() async {
     final raid = _nextRaid ?? _raid;
-    if (raid != null) _stayingFor = raid.raid.id;
+    if (raid == null) return null;
+    _stayingFor = raid.raid.id;
+    return raidMembership?.call(raid.raid.id, join: false);
+  }
+
+  @action
+  Future<ViewerActionOutcome?> joinRaidAgain() async {
+    final raid = _nextRaid ?? _raid;
+    if (raid == null ||
+        raid.raid.id != _stayingFor ||
+        raid.gone ||
+        raid.cancelled) {
+      return null;
+    }
+    _stayingFor = null;
+    return raidMembership?.call(raid.raid.id, join: true);
+  }
+
+  @readonly
+  PollVote? _pollVote;
+
+  @readonly
+  var _voting = false;
+
+  @computed
+  String? get votedChoiceId {
+    final vote = _pollVote;
+    return vote != null && vote.pollId == _poll?.id ? vote.choiceId : null;
+  }
+
+  @computed
+  bool get canVote {
+    final poll = _poll;
+    return pollVoter != null &&
+        poll != null &&
+        poll.isActive &&
+        votedChoiceId == null;
+  }
+
+  @action
+  Future<ViewerActionOutcome?> voteInPoll(String choiceId) async {
+    final poll = _poll;
+    final voter = pollVoter;
+    if (_voting || voter == null || poll == null || !canVote) return null;
+    if (!poll.choices.any((choice) => choice.id == choiceId)) return null;
+    _voting = true;
+    try {
+      final outcome = await voter(pollId: poll.id, choiceId: choiceId);
+      if (outcome == ViewerActionOutcome.done) {
+        runInAction(() => _pollVote = (pollId: poll.id, choiceId: choiceId));
+      }
+      return outcome;
+    } finally {
+      runInAction(() => _voting = false);
+    }
   }
 
   @readonly

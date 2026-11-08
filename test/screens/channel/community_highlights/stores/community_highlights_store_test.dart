@@ -7,6 +7,7 @@ import 'package:mobx/mobx.dart' as mobx;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_community_highlights_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/models/community_highlight_event.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/screens/channel/chat/incoming_raid.dart';
@@ -751,6 +752,120 @@ void main() {
       async.elapse(const Duration(seconds: 181));
       expect(h.store.raid, isNull);
       h.store.dispose();
+    });
+  });
+
+  group('viewer actions', () {
+    test('a vote is sent once for the poll on screen and remembered', () {
+      run((async) {
+        final sent = <String>[];
+        h.create(
+          pollVoter: ({required pollId, required choiceId}) async {
+            sent.add('$pollId/$choiceId');
+            return ViewerActionOutcome.done;
+          },
+        );
+        async.flushMicrotasks();
+        h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+        async.elapse(const Duration(seconds: 1));
+        expect(h.store.canVote, isTrue);
+
+        ViewerActionOutcome? outcome;
+        unawaited(h.store.voteInPoll('c1').then((o) => outcome = o));
+        async.flushMicrotasks();
+        expect(outcome, ViewerActionOutcome.done);
+        expect(sent, ['p/c1']);
+        expect(h.store.votedChoiceId, 'c1');
+        expect(h.store.canVote, isFalse);
+
+        unawaited(h.store.voteInPoll('c0'));
+        async.flushMicrotasks();
+        expect(sent, ['p/c1']);
+        h.store.dispose();
+      });
+    });
+
+    test('a refused vote leaves the poll open to vote', () {
+      run((async) {
+        h.create(
+          pollVoter: ({required pollId, required choiceId}) async =>
+              ViewerActionOutcome.integrityRefused,
+        );
+        async.flushMicrotasks();
+        h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+        async.elapse(const Duration(seconds: 1));
+
+        ViewerActionOutcome? outcome;
+        unawaited(h.store.voteInPoll('c0').then((o) => outcome = o));
+        async.flushMicrotasks();
+        expect(outcome, ViewerActionOutcome.integrityRefused);
+        expect(h.store.votedChoiceId, isNull);
+        expect(h.store.voting, isFalse);
+        h.store.dispose();
+      });
+    });
+
+    test('an unknown choice, an ended poll or no voter sends nothing', () {
+      run((async) {
+        final sent = <String>[];
+        h.create(
+          pollVoter: ({required pollId, required choiceId}) async {
+            sent.add(choiceId);
+            return ViewerActionOutcome.done;
+          },
+        );
+        async.flushMicrotasks();
+        h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+        async.elapse(const Duration(seconds: 1));
+        unawaited(h.store.voteInPoll('nope'));
+        async.flushMicrotasks();
+        h.send(
+          HighlightTopic.polls,
+          pollPayload('POLL_COMPLETE', status: 'COMPLETED'),
+        );
+        async.elapse(const Duration(seconds: 1));
+        expect(h.store.canVote, isFalse);
+        unawaited(h.store.voteInPoll('c0'));
+        async.flushMicrotasks();
+        expect(sent, isEmpty);
+        h.store.dispose();
+
+        h.create();
+        async.flushMicrotasks();
+        h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+        async.elapse(const Duration(seconds: 1));
+        expect(h.store.canVote, isFalse);
+        h.store.dispose();
+      });
+    });
+
+    test('staying leaves the raid on Twitch, and watching joins it again', () {
+      run((async) {
+        final calls = <String>[];
+        h.create(
+          raidMembership: (raidId, {required join}) async {
+            calls.add('${join ? 'join' : 'leave'} $raidId');
+            return ViewerActionOutcome.done;
+          },
+        );
+        async.flushMicrotasks();
+        h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+        final id = h.store.raid!.raid.id;
+        unawaited(h.store.stayOnRaid());
+        async.flushMicrotasks();
+        expect(calls, ['leave $id']);
+        expect(h.store.stayingOnRaid, isTrue);
+
+        unawaited(h.store.joinRaidAgain());
+        async.flushMicrotasks();
+        expect(calls, ['leave $id', 'join $id']);
+        expect(h.store.stayingOnRaid, isFalse);
+
+        unawaited(h.store.joinRaidAgain());
+        async.flushMicrotasks();
+        expect(calls, hasLength(2));
+        h.store.dispose();
+      });
     });
   });
 }

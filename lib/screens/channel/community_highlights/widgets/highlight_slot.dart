@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
@@ -35,6 +38,21 @@ IconData highlightIcon(HighlightKind kind) => switch (kind) {
   HighlightKind.incomingRaid => Icons.rocket_launch_outlined,
 };
 
+void Function(ViewerActionOutcome? outcome) viewerActionReporter(
+  BuildContext context,
+) {
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final l = context.l10n;
+  return (outcome) {
+    if (outcome == null || outcome == ViewerActionOutcome.done) return;
+    messenger
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(l.viewerActionResult(status: outcome.name))),
+      );
+  };
+}
+
 /// The card of [item], or nothing when its data is gone.
 Widget buildHighlightCard(
   CommunityHighlightsStore store,
@@ -52,6 +70,13 @@ Widget buildHighlightCard(
     onToggle: onToggle,
     onDismiss: dismissible ? store.dismissCurrent : null,
     now: store.serverNow,
+    onVote: store.canVote
+        ? (choiceId) => unawaited(
+            store.voteInPoll(choiceId).then(viewerActionReporter(context)),
+          )
+        : null,
+    votedChoiceId: store.votedChoiceId,
+    voting: store.voting,
     onTakePart: login == null
         ? null
         : () => TwitchWebPage.open(
@@ -97,8 +122,19 @@ Widget buildHighlightCard(
               store.channelName ?? login ?? context.l10n.highlightThisChannel,
           sourceLogin: login,
           now: store.serverNow,
-          onWatch: () => onWatchRaid(raid.raid),
-          onStay: store.onGoAlong == null ? null : store.stayOnRaid,
+          onWatch: () {
+            if (store.stayingOnRaid) {
+              unawaited(
+                store.joinRaidAgain().then(viewerActionReporter(context)),
+              );
+            }
+            onWatchRaid(raid.raid);
+          },
+          onStay: store.onGoAlong == null
+              ? null
+              : () => unawaited(
+                  store.stayOnRaid().then(viewerActionReporter(context)),
+                ),
           onDismiss: dismissible ? store.dismissCurrent : null,
           onOpen: compact ? onToggle : null,
           staying: store.stayingOnRaid,

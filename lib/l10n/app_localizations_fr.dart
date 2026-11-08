@@ -8621,4 +8621,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get goalReachedDetails => 'Détails';
+
+  @override
+  String get pollVoteSend => 'Voter';
+
+  @override
+  String pollVotedFor({required String choice}) {
+    return 'Vous avez voté pour $choice';
+  }
+
+  @override
+  String viewerActionResult({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'done': 'C’est fait.',
+      'refused': 'Twitch a refusé.',
+      'integrityRefused':
+          'Twitch a refusé : vérification anti-bot. ONSET ne peut pas la passer, essayez sur twitch.tv.',
+      'signedOut': 'Reconnectez-vous pour le faire depuis ONSET.',
+      'other': 'Impossible de joindre Twitch. Réessayez.',
+    });
+    return '$_temp0';
+  }
 }

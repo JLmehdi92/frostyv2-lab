@@ -30,6 +30,7 @@ class HighlightCardShell extends StatelessWidget {
     this.onDismiss,
     this.dismissTooltip,
     this.footer,
+    this.interactiveBody = false,
   });
 
   final IconData icon;
@@ -59,6 +60,7 @@ class HighlightCardShell extends StatelessWidget {
 
   /// Shown below, expanded or not (the raid's Watch button).
   final Widget? footer;
+  final bool interactiveBody;
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +215,10 @@ class HighlightCardShell extends StatelessWidget {
                     child: expanded && body != null
                         ? Padding(
                             padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-                            child: ExcludeSemantics(child: body),
+                            child: ExcludeSemantics(
+                              excluding: !interactiveBody,
+                              child: body,
+                            ),
                           )
                         : const SizedBox(width: double.infinity),
                   ),

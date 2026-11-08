@@ -7,6 +7,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/l10n/enum_labels.dart';
@@ -375,6 +376,8 @@ class _VideoChatState extends State<VideoChat>
         isPinHidden: (id) =>
             context.settingsStore.hiddenPinnedChatIds.contains(id),
         onHidePin: context.settingsStore.hidePinnedChat,
+        pollVoter: _pollVoter(),
+        raidMembership: _raidMembership(),
       );
       _newPins = _highlightsStore!.newPins.listen(_sayPinned);
       _giftBombFeed = feedGiftBombs(
@@ -412,6 +415,37 @@ class _VideoChatState extends State<VideoChat>
 
   /// The raid left while this channel was on screen: go along with it, as
   /// Twitch does (not from behind a VOD, the mini player or PiP).
+  PollVoter? _pollVoter() {
+    final service = context.read<TwitchViewerActionsService?>();
+    final auth = context.authStore;
+    final userId = auth.user.details?.id;
+    if (service == null || userId == null || auth.twitchWebToken == null) {
+      return null;
+    }
+    return ({required pollId, required choiceId}) => service.voteInPoll(
+      pollId: pollId,
+      choiceId: choiceId,
+      userId: userId,
+      authToken: auth.twitchWebToken ?? '',
+    );
+  }
+
+  RaidMembership? _raidMembership() {
+    final service = context.read<TwitchViewerActionsService?>();
+    final auth = context.authStore;
+    if (service == null ||
+        auth.user.details?.id == null ||
+        auth.twitchWebToken == null) {
+      return null;
+    }
+    return (raidId, {required join}) {
+      final token = auth.twitchWebToken ?? '';
+      return join
+          ? service.joinRaid(raidId: raidId, authToken: token)
+          : service.leaveRaid(raidId: raidId, authToken: token);
+    };
+  }
+
   void _goAlongWithRaid(OutgoingRaid raid) {
     if (!_canLeaveWithRaid()) return;
     _departToRaid(raid);

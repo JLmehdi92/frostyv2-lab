@@ -158,6 +158,8 @@ class Harness {
     bool expandNew = false,
     bool Function(String pinId)? isPinHidden,
     void Function(String pinId)? onHidePin,
+    PollVoter? pollVoter,
+    RaidMembership? raidMembership,
   }) => store = CommunityHighlightsStore(
     channelId: harnessChannel,
     service: service,
@@ -166,6 +168,8 @@ class Harness {
     onGoAlong: wentAlong.add,
     isPinHidden: isPinHidden,
     onHidePin: onHidePin,
+    pollVoter: pollVoter,
+    raidMembership: raidMembership,
   );
 
   void send(HighlightTopic topic, String payload) =>

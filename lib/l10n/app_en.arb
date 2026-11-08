@@ -10928,5 +10928,29 @@
   "goalReachedDetails": "Details",
   "@goalReachedDetails": {
     "description": "The snack bar that says a goal was reached while the video fills the screen or the viewer types: opens the goal."
+  },
+  "pollVoteSend": "Vote",
+  "@pollVoteSend": {
+    "description": "A live poll's button in ONSET: sends the viewer's vote for the answer they picked."
+  },
+  "pollVotedFor": "You voted for {choice}",
+  "@pollVotedFor": {
+    "description": "Under a live poll once the viewer voted from ONSET.",
+    "placeholders": {
+      "choice": {
+        "type": "String",
+        "example": "Left path"
+      }
+    }
+  },
+  "viewerActionResult": "{status, select, done{Done.} refused{Twitch declined this.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.} signedOut{Log in again to do this from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "@viewerActionResult": {
+    "description": "Snack bar after a viewer action sent to Twitch from ONSET (a poll vote, leaving or joining a raid, sharing a watch streak, acknowledging a warning).",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "refused"
+      }
+    }
   }
 }

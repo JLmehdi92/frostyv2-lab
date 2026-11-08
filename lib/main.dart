@@ -23,6 +23,7 @@ import 'package:onset/apis/twitch_community_highlights_service.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/apis/twitch_followed_categories_service.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/apis/unauthorized_interceptor.dart';
@@ -202,6 +203,9 @@ void main() async {
   );
   // Watch streaks: the web token is added per request, to GQL only.
   final twitchWatchStreakService = TwitchWatchStreakService(anonymousGqlDio);
+  final twitchViewerActionsService = TwitchViewerActionsService(
+    anonymousGqlDio,
+  );
 
   // One anonymous realtime connection (Hermes) for public Twitch topics such
   // as the hype train. It connects only when something subscribes and
@@ -372,6 +376,9 @@ void main() async {
         ),
         Provider<TwitchWatchStreakService>.value(
           value: twitchWatchStreakService,
+        ),
+        Provider<TwitchViewerActionsService>.value(
+          value: twitchViewerActionsService,
         ),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),

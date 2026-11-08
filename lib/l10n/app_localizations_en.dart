@@ -8511,4 +8511,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goalReachedDetails => 'Details';
+
+  @override
+  String get pollVoteSend => 'Vote';
+
+  @override
+  String pollVotedFor({required String choice}) {
+    return 'You voted for $choice';
+  }
+
+  @override
+  String viewerActionResult({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'done': 'Done.',
+      'refused': 'Twitch declined this.',
+      'integrityRefused':
+          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.',
+      'signedOut': 'Log in again to do this from ONSET.',
+      'other': 'Couldn’t reach Twitch. Try again.',
+    });
+    return '$_temp0';
+  }
 }

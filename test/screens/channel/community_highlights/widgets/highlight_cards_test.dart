@@ -105,6 +105,115 @@ void main() {
     );
   }
 
+  group('poll voting', () {
+    HighlightCardContext voting({
+      required ValueChanged<String> onVote,
+      String? voted,
+      bool sending = false,
+      bool expanded = true,
+    }) => HighlightCardContext(
+      expanded: expanded,
+      onToggle: () {},
+      now: () => now,
+      onTakePart: () {},
+      onVote: onVote,
+      votedChoiceId: voted,
+      voting: sending,
+    );
+
+    testWidgets('a choice is picked, then sent with Vote', (tester) async {
+      final sent = <String>[];
+      await pump(
+        tester,
+        PollCard(
+          poll: _poll(),
+          card: voting(onVote: sent.add),
+        ),
+      );
+
+      final vote = find.byKey(PollCard.voteKey);
+      expect(tester.widget<TextButton>(vote).onPressed, isNull);
+      expect(find.text('Vote on Twitch'), findsNothing);
+
+      await tester.tap(find.byKey(PollCard.choiceKey('b')));
+      await tester.pumpAndSettle();
+      expect(sent, isEmpty);
+      await tester.tap(find.byKey(PollCard.choiceKey('a')));
+      await tester.pumpAndSettle();
+      await tester.tap(vote);
+      expect(sent, ['a']);
+    });
+
+    testWidgets('the picked choice is announced as selected', (tester) async {
+      final handle = tester.ensureSemantics();
+      await pump(
+        tester,
+        PollCard(
+          poll: _poll(),
+          card: voting(onVote: (_) {}),
+        ),
+      );
+      await tester.tap(find.byKey(PollCard.choiceKey('b')));
+      await tester.pumpAndSettle();
+      expect(
+        tester.getSemantics(find.byKey(PollCard.choiceKey('b'))),
+        matchesSemantics(
+          isButton: true,
+          isInMutuallyExclusiveGroup: true,
+          hasSelectedState: true,
+          isSelected: true,
+          hasTapAction: true,
+          label: 'Elden Ring\n33%',
+        ),
+      );
+      handle.dispose();
+    });
+
+    testWidgets('while sending, nothing more can be sent', (tester) async {
+      final sent = <String>[];
+      await pump(
+        tester,
+        PollCard(
+          poll: _poll(),
+          card: voting(onVote: sent.add, sending: true),
+        ),
+      );
+      await tester.tap(find.byKey(PollCard.choiceKey('a')));
+      await tester.pump();
+      expect(
+        tester.widget<TextButton>(find.byKey(PollCard.voteKey)).onPressed,
+        isNull,
+      );
+    });
+
+    testWidgets('once voted, the choice is named and no button is left', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        PollCard(
+          poll: _poll(),
+          card: voting(onVote: (_) {}, voted: 'b'),
+        ),
+      );
+      expect(find.textContaining('You voted for Elden Ring'), findsOneWidget);
+      expect(find.byKey(PollCard.voteKey), findsNothing);
+      expect(find.byKey(PollCard.choiceKey('a')), findsNothing);
+      expect(find.text('Vote on Twitch'), findsNothing);
+    });
+
+    testWidgets('an ended poll offers no vote', (tester) async {
+      await pump(
+        tester,
+        PollCard(
+          poll: _poll(status: PollStatus.completed),
+          card: voting(onVote: (_) {}),
+        ),
+      );
+      expect(find.byKey(PollCard.voteKey), findsNothing);
+    });
+  });
+
   group('poll', () {
     testWidgets('shares, leader, votes and time left', (tester) async {
       await pump(tester, PollCard(poll: _poll(), card: card()));

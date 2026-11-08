@@ -1859,5 +1859,8 @@
   "userActionsChannelPrefs": "Préférences de la chaîne",
   "pointsBitsBalance": "Solde de Bits : {bits}",
   "pointsGiftedHere": "{count, plural, one{{count} abonnement offert ici depuis votre arrivée} other{{count} abonnements offerts ici depuis votre arrivée}}",
-  "goalReachedDetails": "Détails"
+  "goalReachedDetails": "Détails",
+  "pollVoteSend": "Voter",
+  "pollVotedFor": "Vous avez voté pour {choice}",
+  "viewerActionResult": "{status, select, done{C’est fait.} refused{Twitch a refusé.} integrityRefused{Twitch a refusé\u00a0: vérification anti-bot. ONSET ne peut pas la passer, essayez sur twitch.tv.} signedOut{Reconnectez-vous pour le faire depuis ONSET.} other{Impossible de joindre Twitch. Réessayez.}}"
 }

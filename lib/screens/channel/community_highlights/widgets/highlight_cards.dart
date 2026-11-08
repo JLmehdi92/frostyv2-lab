@@ -6,6 +6,8 @@ import 'package:onset/screens/channel/community_highlights/highlight_stack.dart'
 import 'package:onset/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/highlight_countdown.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
@@ -29,9 +31,16 @@ class HighlightCardContext {
     this.onDismiss,
     this.onTakePart,
     this.onReport,
+    this.onVote,
+    this.votedChoiceId,
+    this.voting = false,
   });
 
   final VoidCallback? onReport;
+
+  final ValueChanged<String>? onVote;
+  final String? votedChoiceId;
+  final bool voting;
 
   final bool expanded;
   final VoidCallback onToggle;
@@ -123,16 +132,34 @@ Color _pollFill(BuildContext context, {required bool leader}) {
   );
 }
 
-/// A live poll: the question, then each choice with its share of the
-/// votes; the final results once it ended. Voting opens twitch.tv.
-class PollCard extends StatelessWidget {
+class PollCard extends StatefulWidget {
   const PollCard({super.key, required this.poll, required this.card});
 
   final Poll poll;
   final HighlightCardContext card;
 
+  static ValueKey<String> choiceKey(String choiceId) =>
+      ValueKey('poll-choice-$choiceId');
+
+  static const voteKey = ValueKey('poll-vote');
+
+  @override
+  State<PollCard> createState() => _PollCardState();
+}
+
+class _PollCardState extends State<PollCard> {
+  String? _selected;
+
+  @override
+  void didUpdateWidget(PollCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.poll.id != widget.poll.id) _selected = null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final poll = widget.poll;
+    final card = widget.card;
     final votes = [for (final c in poll.choices) c.votes];
     final shares = percentages(votes);
     final top = leaders(votes);
@@ -142,6 +169,13 @@ class PollCard extends StatelessWidget {
     final leader = leaderIndex == null ? null : poll.choices[leaderIndex];
     final l = context.l10n;
     final votesText = l.highlightVotes(count: poll.totalVotes);
+    final voted = poll.choices
+        .where((c) => c.id == card.votedChoiceId)
+        .firstOrNull;
+    final onVote = card.onVote;
+    final choosing =
+        !finished && card.expanded && onVote != null && voted == null;
+    final selected = choosing ? _selected : null;
     final summary = [
       l.highlightKind(kind: HighlightKind.poll.name),
       poll.title,
@@ -152,7 +186,69 @@ class PollCard extends StatelessWidget {
           percent: shares[leaderIndex!],
         ),
       votesText,
+      if (voted != null) l.pollVotedFor(choice: voted.title),
     ].join(', ');
+
+    Widget bar(int i) {
+      final choice = poll.choices[i];
+      final mine = choice.id == voted?.id || choice.id == selected;
+      final colors = SheetColors.of(context);
+      final content = HighlightBar(
+        fraction: shares[i] / 100,
+        fill: _pollFill(context, leader: top.contains(i)),
+        label: choice.title,
+        trailing: l.commonPercent(value: shares[i]),
+        bold: top.contains(i) || mine,
+        leading: choosing || voted != null
+            ? _PollMark(chosen: mine, color: colors.text)
+            : null,
+      );
+      if (!choosing) return content;
+      return Semantics(
+        key: PollCard.choiceKey(choice.id),
+        container: true,
+        button: true,
+        inMutuallyExclusiveGroup: true,
+        selected: mine,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: card.voting
+              ? null
+              : () => setState(() => _selected = choice.id),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: content,
+          ),
+        ),
+      );
+    }
+
+    final footer = choosing
+        ? Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton(
+              key: PollCard.voteKey,
+              onPressed: selected == null || card.voting
+                  ? null
+                  : () => onVote(selected),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(0, 44),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                backgroundColor: SheetColors.accentOf(context),
+                foregroundColor: SheetColors.onAccentOf(context),
+                disabledBackgroundColor: SheetColors.of(context).raised,
+                shape: const StadiumBorder(),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textStyle: const TextStyle(
+                  fontFamily: OnsetTokens.bodyFamily,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              child: Text(l.pollVoteSend),
+            ),
+          )
+        : _takePart(card, l.highlightVote, open: !finished && voted == null);
 
     return HighlightCardShell(
       icon: Icons.poll_outlined,
@@ -172,7 +268,8 @@ class PollCard extends StatelessWidget {
               builder: (context, left) =>
                   Text(l.highlightTimeLeft(time: formatTimeLeft(left))),
             ),
-      footer: _takePart(card, l.highlightVote, open: !finished),
+      footer: footer,
+      interactiveBody: choosing,
       headline: Text(
         poll.title,
         maxLines: card.expanded ? 3 : 1,
@@ -180,27 +277,60 @@ class PollCard extends StatelessWidget {
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 6,
+        spacing: choosing ? 2 : 6,
         children: [
-          for (var i = 0; i < poll.choices.length; i++)
-            HighlightBar(
-              fraction: shares[i] / 100,
-              fill: _pollFill(context, leader: top.contains(i)),
-              label: poll.choices[i].title,
-              trailing: l.commonPercent(value: shares[i]),
-              bold: top.contains(i),
-            ),
-          Text(
-            votesText,
-            style: SheetText.tabular(
-              TextStyle(
-                fontFamily: OnsetTokens.bodyFamily,
-                fontSize: 12,
-                color: SheetColors.of(context).secondary,
+          for (var i = 0; i < poll.choices.length; i++) bar(i),
+          ExcludeSemantics(
+            excluding: choosing,
+            child: Text(
+              voted == null
+                  ? votesText
+                  : '$votesText · ${l.pollVotedFor(choice: voted.title)}',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: SheetText.tabular(
+                TextStyle(
+                  fontFamily: OnsetTokens.bodyFamily,
+                  fontSize: 12,
+                  color: SheetColors.of(context).secondary,
+                ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PollMark extends StatelessWidget {
+  const _PollMark({required this.chosen, required this.color});
+
+  final bool chosen;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: AnimatedContainer(
+        duration: motionDuration(context, const Duration(milliseconds: 160)),
+        curve: OnsetMotion.standard,
+        width: 18,
+        height: 18,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: chosen ? color : Colors.transparent,
+          border: Border.all(color: color, width: 1.5),
+        ),
+        child: chosen
+            ? SheetGlyph(
+                SheetGlyphKind.check,
+                size: 11,
+                strokeWidth: 2.4,
+                color: Theme.of(context).colorScheme.surface,
+              )
+            : null,
       ),
     );
   }

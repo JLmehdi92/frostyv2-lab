@@ -23,6 +23,20 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     () => super.departing,
     name: 'CommunityHighlightsStoreBase.departing',
   )).value;
+  Computed<String?>? _$votedChoiceIdComputed;
+
+  @override
+  String? get votedChoiceId => (_$votedChoiceIdComputed ??= Computed<String?>(
+    () => super.votedChoiceId,
+    name: 'CommunityHighlightsStoreBase.votedChoiceId',
+  )).value;
+  Computed<bool>? _$canVoteComputed;
+
+  @override
+  bool get canVote => (_$canVoteComputed ??= Computed<bool>(
+    () => super.canVote,
+    name: 'CommunityHighlightsStoreBase.canVote',
+  )).value;
   Computed<HighlightItem?>? _$currentComputed;
 
   @override
@@ -198,6 +212,46 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     });
   }
 
+  late final _$_pollVoteAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._pollVote',
+    context: context,
+  );
+
+  ({String choiceId, String pollId})? get pollVote {
+    _$_pollVoteAtom.reportRead();
+    return super._pollVote;
+  }
+
+  @override
+  ({String choiceId, String pollId})? get _pollVote => pollVote;
+
+  @override
+  set _pollVote(({String choiceId, String pollId})? value) {
+    _$_pollVoteAtom.reportWrite(value, super._pollVote, () {
+      super._pollVote = value;
+    });
+  }
+
+  late final _$_votingAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._voting',
+    context: context,
+  );
+
+  bool get voting {
+    _$_votingAtom.reportRead();
+    return super._voting;
+  }
+
+  @override
+  bool get _voting => voting;
+
+  @override
+  set _voting(bool value) {
+    _$_votingAtom.reportWrite(value, super._voting, () {
+      super._voting = value;
+    });
+  }
+
   late final _$_stackAtom = Atom(
     name: 'CommunityHighlightsStoreBase._stack',
     context: context,
@@ -218,6 +272,36 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     });
   }
 
+  late final _$stayOnRaidAsyncAction = AsyncAction(
+    'CommunityHighlightsStoreBase.stayOnRaid',
+    context: context,
+  );
+
+  @override
+  Future<ViewerActionOutcome?> stayOnRaid() {
+    return _$stayOnRaidAsyncAction.run(() => super.stayOnRaid());
+  }
+
+  late final _$joinRaidAgainAsyncAction = AsyncAction(
+    'CommunityHighlightsStoreBase.joinRaidAgain',
+    context: context,
+  );
+
+  @override
+  Future<ViewerActionOutcome?> joinRaidAgain() {
+    return _$joinRaidAgainAsyncAction.run(() => super.joinRaidAgain());
+  }
+
+  late final _$voteInPollAsyncAction = AsyncAction(
+    'CommunityHighlightsStoreBase.voteInPoll',
+    context: context,
+  );
+
+  @override
+  Future<ViewerActionOutcome?> voteInPoll(String choiceId) {
+    return _$voteInPollAsyncAction.run(() => super.voteInPoll(choiceId));
+  }
+
   late final _$CommunityHighlightsStoreBaseActionController = ActionController(
     name: 'CommunityHighlightsStoreBase',
     context: context,
@@ -229,17 +313,6 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
         .startAction(name: 'CommunityHighlightsStoreBase.markDeparting');
     try {
       return super.markDeparting(raid);
-    } finally {
-      _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  void stayOnRaid() {
-    final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
-        .startAction(name: 'CommunityHighlightsStoreBase.stayOnRaid');
-    try {
-      return super.stayOnRaid();
     } finally {
       _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
     }
@@ -316,6 +389,8 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     return '''
 stayingOnRaid: ${stayingOnRaid},
 departing: ${departing},
+votedChoiceId: ${votedChoiceId},
+canVote: ${canVote},
 current: ${current},
 visible: ${visible}
     ''';

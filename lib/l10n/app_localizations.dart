@@ -11408,6 +11408,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Details'**
   String get goalReachedDetails;
+
+  /// A live poll's button in ONSET: sends the viewer's vote for the answer they picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote'**
+  String get pollVoteSend;
+
+  /// Under a live poll once the viewer voted from ONSET.
+  ///
+  /// In en, this message translates to:
+  /// **'You voted for {choice}'**
+  String pollVotedFor({required String choice});
+
+  /// Snack bar after a viewer action sent to Twitch from ONSET (a poll vote, leaving or joining a raid, sharing a watch streak, acknowledging a warning).
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, done{Done.} refused{Twitch declined this.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.} signedOut{Log in again to do this from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  String viewerActionResult({required String status});
 }
 
 class _AppLocalizationsDelegate

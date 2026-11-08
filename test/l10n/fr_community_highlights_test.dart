@@ -114,6 +114,25 @@ void main() {
     'poll, live': () => PollCard(poll: poll(PollStatus.active), card: card()),
     'poll, collapsed': () =>
         PollCard(poll: poll(PollStatus.active), card: card(expanded: false)),
+    'poll, voting': () => PollCard(
+      poll: poll(PollStatus.active),
+      card: HighlightCardContext(
+        expanded: true,
+        onToggle: () {},
+        now: () => now,
+        onVote: (_) {},
+      ),
+    ),
+    'poll, voted': () => PollCard(
+      poll: poll(PollStatus.active),
+      card: HighlightCardContext(
+        expanded: true,
+        onToggle: () {},
+        now: () => now,
+        onVote: (_) {},
+        votedChoiceId: poll(PollStatus.active).choices.last.id,
+      ),
+    ),
     'poll, ended': () =>
         PollCard(poll: poll(PollStatus.completed), card: card()),
     'prediction, open': () => PredictionCard(
