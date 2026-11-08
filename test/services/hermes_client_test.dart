@@ -662,7 +662,38 @@ void main() {
       'content-classification-labels-v1.1',
       'video-playback-by-id.1',
       'broadcast-settings-update.1',
+      'channel-sub-gifts-v1.1',
     ]);
+  });
+
+  test('a sub gifts payload is delivered flat, with its type', () async {
+    final received = <HermesEvent>[];
+    client.events.listen(received.add);
+    await client.subscribe('channel-sub-gifts-v1.1');
+    final socket = sockets.single;
+    socket.receive(welcome);
+    await pumpEventQueue();
+    socket.receive(_subscribeOk(socket, 'channel-sub-gifts-v1.1', 'sub-1'));
+    await pumpEventQueue();
+    socket.receive(
+      jsonEncode({
+        'type': 'notification',
+        'id': 'n',
+        'notification': {
+          'subscription': {'id': 'sub-1'},
+          'type': 'pubsub',
+          'pubsub': jsonEncode({
+            'type': 'mystery-gift-purchase',
+            'count': 5,
+            'uuid': 'u',
+            'channel_id': '1',
+          }),
+        },
+      }),
+    );
+    await pumpEventQueue();
+    expect(received.single.type, 'mystery-gift-purchase');
+    expect(received.single.data['count'], 5);
   });
 
   test('a stream state payload is delivered flat, with its type', () async {

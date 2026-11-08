@@ -1856,5 +1856,7 @@
   "channelPrefsPinDetail": "Affiche cette chaîne en premier dans Suivis quand elle est en direct.",
   "channelPrefsHide": "Masquer dans Parcourir",
   "channelPrefsHideDetail": "Retire cette chaîne de Parcourir et des listes de catégories et de tags. Suivis l’affiche toujours.",
-  "userActionsChannelPrefs": "Préférences de la chaîne"
+  "userActionsChannelPrefs": "Préférences de la chaîne",
+  "pointsBitsBalance": "{bits} Bits",
+  "pointsGiftedHere": "{count, plural, one{{count} abonnement offert ici depuis votre arrivée} other{{count} abonnements offerts ici depuis votre arrivée}}"
 }

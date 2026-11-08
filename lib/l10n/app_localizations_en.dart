@@ -8492,4 +8492,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get userActionsChannelPrefs => 'Channel preferences';
+
+  @override
+  String pointsBitsBalance({required String bits}) {
+    return '$bits Bits';
+  }
+
+  @override
+  String pointsGiftedHere({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count subs gifted here since you joined',
+      one: '$count sub gifted here since you joined',
+    );
+    return '$_temp0';
+  }
 }

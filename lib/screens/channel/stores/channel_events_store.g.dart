@@ -89,6 +89,46 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     });
   }
 
+  late final _$_bitsBalanceAtom = Atom(
+    name: 'ChannelEventsStoreBase._bitsBalance',
+    context: context,
+  );
+
+  int? get bitsBalance {
+    _$_bitsBalanceAtom.reportRead();
+    return super._bitsBalance;
+  }
+
+  @override
+  int? get _bitsBalance => bitsBalance;
+
+  @override
+  set _bitsBalance(int? value) {
+    _$_bitsBalanceAtom.reportWrite(value, super._bitsBalance, () {
+      super._bitsBalance = value;
+    });
+  }
+
+  late final _$_giftedSinceJoiningAtom = Atom(
+    name: 'ChannelEventsStoreBase._giftedSinceJoining',
+    context: context,
+  );
+
+  int get giftedSinceJoining {
+    _$_giftedSinceJoiningAtom.reportRead();
+    return super._giftedSinceJoining;
+  }
+
+  @override
+  int get _giftedSinceJoining => giftedSinceJoining;
+
+  @override
+  set _giftedSinceJoining(int value) {
+    _$_giftedSinceJoiningAtom.reportWrite(value, super._giftedSinceJoining, () {
+      super._giftedSinceJoining = value;
+    });
+  }
+
   late final _$_celebrationAtom = Atom(
     name: 'ChannelEventsStoreBase._celebration',
     context: context,
@@ -210,6 +250,30 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     );
     try {
       return super._applyContentLabels(event);
+    } finally {
+      _$ChannelEventsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void _applyBitsBalance(HermesEvent event) {
+    final _$actionInfo = _$ChannelEventsStoreBaseActionController.startAction(
+      name: 'ChannelEventsStoreBase._applyBitsBalance',
+    );
+    try {
+      return super._applyBitsBalance(event);
+    } finally {
+      _$ChannelEventsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void _applySubGifts(HermesEvent event) {
+    final _$actionInfo = _$ChannelEventsStoreBaseActionController.startAction(
+      name: 'ChannelEventsStoreBase._applySubGifts',
+    );
+    try {
+      return super._applySubGifts(event);
     } finally {
       _$ChannelEventsStoreBaseActionController.endAction(_$actionInfo);
     }

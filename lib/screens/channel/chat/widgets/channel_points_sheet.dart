@@ -67,6 +67,8 @@ class ChannelPointsSheet extends StatelessWidget {
         points: events.points,
         store: events,
         watchStreak: events.watchStreak,
+        bitsBalance: events.bitsBalance,
+        giftedHere: events.giftedSinceJoining,
       ),
     );
   }
@@ -79,7 +81,16 @@ class _Panel extends StatefulWidget {
   /// The viewer's watch streak here, which Twitch shows atop this panel.
   final WatchStreak? watchStreak;
 
-  const _Panel({required this.points, required this.store, this.watchStreak});
+  final int? bitsBalance;
+  final int giftedHere;
+
+  const _Panel({
+    required this.points,
+    required this.store,
+    this.watchStreak,
+    this.bitsBalance,
+    this.giftedHere = 0,
+  });
 
   @override
   State<_Panel> createState() => _PanelState();
@@ -263,6 +274,15 @@ class _PanelState extends State<_Panel> {
                       live: events?.isChannelLive?.call() ?? true,
                       channelName:
                           events?.channelName ?? events?.channelLogin ?? '',
+                    ),
+                  ),
+
+                if (widget.bitsBalance != null || widget.giftedHere > 0)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: ViewerTallies(
+                      bitsBalance: widget.bitsBalance,
+                      giftedHere: widget.giftedHere,
                     ),
                   ),
 
@@ -1247,6 +1267,51 @@ class _RedeemDialogState extends State<_RedeemDialog> {
               ? null
               : () => Navigator.of(context).pop(_controller.text.trim()),
         ),
+      ],
+    );
+  }
+}
+
+class ViewerTallies extends StatelessWidget {
+  const ViewerTallies({super.key, this.bitsBalance, this.giftedHere = 0});
+
+  final int? bitsBalance;
+  final int giftedHere;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
+    final l = context.l10n;
+    final style = SheetText.body.copyWith(color: colors.secondary);
+    return Wrap(
+      spacing: 16,
+      runSpacing: 6,
+      children: [
+        if (bitsBalance case final bits?)
+          Row(
+            key: const ValueKey('viewer-bits'),
+            mainAxisSize: MainAxisSize.min,
+            spacing: 6,
+            children: [
+              SheetGlyph(SheetGlyphKind.coin, color: colors.secondary),
+              Text(
+                l.pointsBitsBalance(
+                  bits: ChannelPointsSheet.formatPoints(bits),
+                ),
+                style: style,
+              ),
+            ],
+          ),
+        if (giftedHere > 0)
+          Row(
+            key: const ValueKey('viewer-gifts'),
+            mainAxisSize: MainAxisSize.min,
+            spacing: 6,
+            children: [
+              SheetGlyph(SheetGlyphKind.gift, color: colors.secondary),
+              Text(l.pointsGiftedHere(count: giftedHere), style: style),
+            ],
+          ),
       ],
     );
   }

@@ -190,6 +190,7 @@ void main() {
       'community-points-user-v1.7',
       'predictions-user-v1.7',
       'user-subscribe-events-v1.7',
+      'user-bits-updates-v1.7',
     ]);
     expect(HermesTopics.userSubscribeEvents('7'), 'user-subscribe-events-v1.7');
     expect(HermesTopics.userBitsUpdates('7'), 'user-bits-updates-v1.7');

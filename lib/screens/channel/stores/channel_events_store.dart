@@ -141,6 +141,38 @@ abstract class ChannelEventsStoreBase with Store {
     ];
   }
 
+  @readonly
+  int? _bitsBalance;
+
+  @readonly
+  var _giftedSinceJoining = 0;
+
+  final _countedGifts = <String>{};
+
+  @action
+  void _applyBitsBalance(HermesEvent event) {
+    final balance = event.data['balance'];
+    if (balance is num && balance.isFinite && balance >= 0) {
+      _bitsBalance = balance.toInt();
+    }
+  }
+
+  @action
+  void _applySubGifts(HermesEvent event) {
+    final data = event.data;
+    final count = data['count'];
+    final uuid = data['uuid'];
+    if (data['channel_id'] != channelId ||
+        count is! num ||
+        !count.isFinite ||
+        count <= 0 ||
+        uuid is! String ||
+        !_countedGifts.add(uuid)) {
+      return;
+    }
+    _giftedSinceJoining += count.toInt();
+  }
+
   /// The celebration waiting to be played. The overlay clears it when done.
   @readonly
   Celebration? _celebration;
@@ -464,6 +496,10 @@ abstract class ChannelEventsStoreBase with Store {
 
     if (event.topic.startsWith('user-subscribe-events')) {
       _sayEntitlementsChanged();
+    } else if (event.topic.startsWith('user-bits-updates')) {
+      _applyBitsBalance(event);
+    } else if (event.topic.startsWith('channel-sub-gifts')) {
+      _applySubGifts(event);
     } else if (event.topic.startsWith('shoutout.')) {
       _applyShoutout(event);
     } else if (event.topic.startsWith('celebration-events')) {

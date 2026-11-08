@@ -11390,6 +11390,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Channel preferences'**
   String get userActionsChannelPrefs;
+
+  /// The channel points panel: the viewer's Bits balance, live from Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'{bits} Bits'**
+  String pointsBitsBalance({required String bits});
+
+  /// The channel points panel: how many subs viewers gifted in this channel since the viewer opened it.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} sub gifted here since you joined} other{{count} subs gifted here since you joined}}'**
+  String pointsGiftedHere({required int count});
 }
 
 class _AppLocalizationsDelegate

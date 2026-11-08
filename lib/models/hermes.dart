@@ -241,7 +241,8 @@ class HermesTopics {
 
   static bool sendsFlatPayloads(String topic) =>
       topic.startsWith('video-playback-by-id.') ||
-      topic.startsWith('broadcast-settings-update.');
+      topic.startsWith('broadcast-settings-update.') ||
+      topic.startsWith('channel-sub-gifts-v1.');
 
   // User-scoped topics. These are the only ones that need authentication;
   // channel topics subscribe fine anonymously (verified 2026-07-30).
@@ -267,6 +268,7 @@ class HermesTopics {
     contentClassificationLabels(channelId),
     videoPlayback(channelId),
     broadcastSettings(channelId),
+    channelSubGifts(channelId),
   ];
 
   /// The viewer's own topics, which carry what happens to *them* rather than to
@@ -278,5 +280,6 @@ class HermesTopics {
     communityPointsUser(userId),
     predictionsUser(userId),
     userSubscribeEvents(userId),
+    userBitsUpdates(userId),
   ];
 }

@@ -10904,5 +10904,25 @@
   "userActionsChannelPrefs": "Channel preferences",
   "@userActionsChannelPrefs": {
     "description": "A channel's More sheet: opens the channel's own preferences."
+  },
+  "pointsBitsBalance": "{bits} Bits",
+  "@pointsBitsBalance": {
+    "description": "The channel points panel: the viewer's Bits balance, live from Twitch.",
+    "placeholders": {
+      "bits": {
+        "type": "String",
+        "example": "1 250"
+      }
+    }
+  },
+  "pointsGiftedHere": "{count, plural, one{{count} sub gifted here since you joined} other{{count} subs gifted here since you joined}}",
+  "@pointsGiftedHere": {
+    "description": "The channel points panel: how many subs viewers gifted in this channel since the viewer opened it.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "25"
+      }
+    }
   }
 }

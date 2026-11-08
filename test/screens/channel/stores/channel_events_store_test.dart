@@ -998,4 +998,67 @@ void main() {
       store.dispose();
     });
   });
+
+  group('Bits balance and gift counter', () {
+    test('the viewer\'s Bits balance follows its topic', () async {
+      final store = build(viewerId: '7');
+      await store.connect();
+      verify(
+        () => hermes.subscribeAll(
+          any(
+            that: allOf(
+              contains('user-bits-updates-v1.7'),
+              contains('channel-sub-gifts-v1.42'),
+            ),
+          ),
+        ),
+      ).called(1);
+      expect(store.bitsBalance, isNull);
+
+      events.add(
+        const HermesEvent(
+          topic: 'user-bits-updates-v1.7',
+          type: 'balance_update',
+          data: {'balance': 1250, 'change_in_balance': -100},
+        ),
+      );
+      events.add(
+        const HermesEvent(
+          topic: 'user-bits-updates-v1.8',
+          type: 'balance_update',
+          data: {'balance': 9},
+        ),
+      );
+      events.add(
+        const HermesEvent(
+          topic: 'user-bits-updates-v1.7',
+          type: 'balance_update',
+          data: {'balance': 'lots'},
+        ),
+      );
+      await pumpEventQueue();
+      expect(store.bitsBalance, 1250);
+      store.dispose();
+    });
+
+    test('gifts in this channel add up once each', () async {
+      final store = build();
+      await store.connect();
+      HermesEvent gift(String uuid, Object count, {String channel = '42'}) =>
+          HermesEvent(
+            topic: 'channel-sub-gifts-v1.42',
+            type: 'mystery-gift-purchase',
+            data: {'uuid': uuid, 'count': count, 'channel_id': channel},
+          );
+      events
+        ..add(gift('a', 5))
+        ..add(gift('a', 5))
+        ..add(gift('b', 1))
+        ..add(gift('c', 3, channel: '43'))
+        ..add(gift('d', -2));
+      await pumpEventQueue();
+      expect(store.giftedSinceJoining, 6);
+      store.dispose();
+    });
+  });
 }

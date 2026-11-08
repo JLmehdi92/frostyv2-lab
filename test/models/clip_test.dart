@@ -99,7 +99,18 @@ void main() {
       'LAST_MONTH',
       'ALL_TIME',
     ]);
-    expect(ClipSort.values.map((s) => s.gqlName), ['VIEWS_DESC', 'TRENDING']);
+    expect(ClipSort.values.map((s) => s.gqlName), [
+      'VIEWS_DESC',
+      'TRENDING',
+      'VIEWS_DESC',
+      'VIEWS_DESC',
+    ]);
+    expect(ClipSort.values.map((s) => s.fetched), [
+      ClipSort.top,
+      ClipSort.trending,
+      ClipSort.top,
+      ClipSort.top,
+    ]);
   });
 
   test('a rendition label reads like the Twitch quality menu', () {
