@@ -1283,33 +1283,38 @@ class ViewerTallies extends StatelessWidget {
     final colors = SheetColors.of(context);
     final l = context.l10n;
     final style = SheetText.body.copyWith(color: colors.secondary);
-    return Wrap(
-      spacing: 16,
-      runSpacing: 6,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 6,
       children: [
         if (bitsBalance case final bits?)
           Row(
             key: const ValueKey('viewer-bits'),
-            mainAxisSize: MainAxisSize.min,
             spacing: 6,
             children: [
               SheetGlyph(SheetGlyphKind.coin, color: colors.secondary),
-              Text(
-                l.pointsBitsBalance(
-                  bits: ChannelPointsSheet.formatPoints(bits),
+              Flexible(
+                child: Text(
+                  l.pointsBitsBalance(
+                    bits: ChannelPointsSheet.formatPoints(bits),
+                  ),
+                  style: style,
                 ),
-                style: style,
               ),
             ],
           ),
         if (giftedHere > 0)
           Row(
             key: const ValueKey('viewer-gifts'),
-            mainAxisSize: MainAxisSize.min,
             spacing: 6,
             children: [
               SheetGlyph(SheetGlyphKind.gift, color: colors.secondary),
-              Text(l.pointsGiftedHere(count: giftedHere), style: style),
+              Flexible(
+                child: Text(
+                  l.pointsGiftedHere(count: giftedHere),
+                  style: style,
+                ),
+              ),
             ],
           ),
       ],
