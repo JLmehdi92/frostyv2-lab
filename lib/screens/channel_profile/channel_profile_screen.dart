@@ -1,17 +1,21 @@
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/models/user.dart';
+import 'package:onset/models/video_collection.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
 import 'package:onset/screens/channel_profile/stores/channel_profile_store.dart';
 import 'package:onset/screens/channel_profile/team_screen.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_about_tab.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_collections_tab.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_header.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_home_tab.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_live_card.dart';
@@ -42,6 +46,7 @@ enum ProfileTab {
   home,
   videos,
   clips,
+  collections,
   schedule,
   about;
 
@@ -50,6 +55,7 @@ enum ProfileTab {
     home => l.profileTabHome,
     videos => l.profileTabVideos,
     clips => l.profileTabClips,
+    collections => l.profileTabCollections,
     schedule => l.profileTabSchedule,
     about => l.profileTabAbout,
   };
@@ -116,12 +122,40 @@ class ChannelProfileScreen extends StatefulWidget {
 }
 
 class _ChannelProfileScreenState extends State<ChannelProfileScreen>
-    with SingleTickerProviderStateMixin {
-  late final _tabs = TabController(
-    length: ProfileTab.values.length,
+    with TickerProviderStateMixin {
+  late List<ProfileTab> _shownTabs = _tabsFor(const []);
+
+  late TabController _tabs = TabController(
+    length: _shownTabs.length,
     vsync: this,
-    initialIndex: widget.initialTab.index,
+    initialIndex: _indexOf(widget.initialTab),
   );
+
+  static List<ProfileTab> _tabsFor(List<VideoCollection> collections) => [
+    for (final tab in ProfileTab.values)
+      if (tab != ProfileTab.collections || collections.isNotEmpty) tab,
+  ];
+
+  int _indexOf(ProfileTab tab) => math.max(_shownTabs.indexOf(tab), 0);
+
+  void _syncTabs(List<VideoCollection> collections) {
+    final next = _tabsFor(collections);
+    if (listEquals(next, _shownTabs)) return;
+    final current = _shownTabs[_tabs.index];
+    final previous = _tabs;
+    setState(() {
+      _shownTabs = next;
+      _tabs = TabController(
+        length: next.length,
+        vsync: this,
+        initialIndex: _indexOf(current),
+      )..addListener(_onTab);
+    });
+    previous.removeListener(_onTab);
+    WidgetsBinding.instance.addPostFrameCallback((_) => previous.dispose());
+  }
+
+  void _showTab(ProfileTab tab) => _tabs.animateTo(_indexOf(tab));
 
   late final _store = ChannelProfileStore(
     login: widget.login,
@@ -130,6 +164,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     teamsOf: (id) => context.twitchApi.getChannelTeams(broadcasterId: id),
     scheduleExtrasOf: (id) =>
         context.twitchApi.getScheduleExtras(broadcasterId: id),
+    collectionsOf: context.twitchVodService.getChannelCollections,
   );
 
   /// Each video type's list, made the first time it shows (past broadcasts
@@ -192,6 +227,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     _reactions = [
       // Reminders follow the schedule as read: a moved segment's moves, a
       // cancelled one's goes.
+      reaction((_) => _store.collections, _syncTabs),
       reaction((_) => _store.schedule, (ChannelSchedule? schedule) {
         if (schedule == null) return;
         unawaited(
@@ -251,7 +287,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
   }
 
   void _onTab() {
-    if (ProfileTab.values[_tabs.index] == ProfileTab.schedule &&
+    if (_shownTabs[_tabs.index] == ProfileTab.schedule &&
         _store.schedule == null &&
         !_store.scheduleLoading) {
       unawaited(_store.loadSchedule());
@@ -483,9 +519,9 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           onPreload: _preload,
           onViewAllVideos: () {
             setState(() => _videoType = VodType.archive);
-            _tabs.animateTo(ProfileTab.videos.index);
+            _showTab(ProfileTab.videos);
           },
-          onViewAllClips: () => _tabs.animateTo(ProfileTab.clips.index),
+          onViewAllClips: () => _showTab(ProfileTab.clips),
           showStream: large,
           large: large,
           status: error != null && profile == null && !retrying
@@ -516,6 +552,23 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           refreshEdgeOffset: edgeOffset,
         ),
       ),
+      if (_shownTabs.contains(ProfileTab.collections))
+        KeyedSubtree(
+          key: const PageStorageKey('collections'),
+          child: ProfileCollectionsTab(
+            collections: _store.collections,
+            onOpen: (collection) => unawaited(
+              VodScreen.open(
+                context,
+                vodId: collection.firstVideoId,
+                collectionId: collection.id,
+              ),
+            ),
+            onRefresh: _refresh,
+            leadingSlivers: leading,
+            refreshEdgeOffset: edgeOffset,
+          ),
+        ),
       _scrollTab(
         ProfileTab.schedule,
         nested: nested,
@@ -625,9 +678,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
               ),
               tabs: ProfileTabBar(
                 controller: _tabs,
-                labels: [
-                  for (final tab in ProfileTab.values) tab.label(context.l10n),
-                ],
+                labels: [for (final tab in _shownTabs) tab.label(context.l10n)],
                 padding: EdgeInsetsDirectional.only(start: 16 + padding.left),
               ),
               actions: (onBar) => _actions(onBar: onBar),
@@ -700,8 +751,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
                 ProfileTabBar(
                   controller: _tabs,
                   labels: [
-                    for (final tab in ProfileTab.values)
-                      tab.label(context.l10n),
+                    for (final tab in _shownTabs) tab.label(context.l10n),
                   ],
                   large: true,
                 ),

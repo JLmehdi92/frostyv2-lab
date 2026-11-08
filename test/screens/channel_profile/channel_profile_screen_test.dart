@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/user.dart';
+import 'package:onset/models/video_collection.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_header.dart';
@@ -67,6 +69,23 @@ class FakeReminderPlatform implements ReminderPlatform {
 }
 
 const _phone = Size(390, 844);
+
+const _baseTabs = [
+  ProfileTab.home,
+  ProfileTab.videos,
+  ProfileTab.clips,
+  ProfileTab.schedule,
+  ProfileTab.about,
+];
+
+final _collection = VideoCollection(
+  id: 'speedruns',
+  title: 'Speedruns',
+  itemCount: 12,
+  firstVideoId: '1000000009',
+  updatedAt: DateTime.now().subtract(const Duration(days: 2)),
+  lengthSeconds: 7200,
+);
 const _tabletLandscape = Size(1280, 854);
 const _tabletPortrait = Size(854, 1280);
 
@@ -104,6 +123,7 @@ void main() {
     when(
       () => profiles.getSchedule(any()),
     ).thenAnswer((_) async => ChannelSchedule.empty);
+    when(() => vods.getChannelCollections(any())).thenAnswer((_) async => []);
     when(
       () => helix.isFollowing(
         userId: any(named: 'userId'),
@@ -258,13 +278,13 @@ void main() {
 
         // The order.
         final xs = [
-          for (final tab in ProfileTab.values)
+          for (final tab in _baseTabs)
             tester
                 .getTopLeft(find.widgetWithText(Tab, tab.label(L10n.english)))
                 .dx,
         ];
         expect(xs, orderedEquals([...xs]..sort()));
-        expect(ProfileTab.values.map((t) => t.label(L10n.english)), [
+        expect(_baseTabs.map((t) => t.label(L10n.english)), [
           'Home',
           'Videos',
           'Clips',
@@ -385,7 +405,7 @@ void main() {
     ) async {
       answerProfile();
       await pump(tester);
-      for (final tab in ProfileTab.values) {
+      for (final tab in _baseTabs) {
         await tapTab(tester, tab);
         final indicators = tester.widgetList<RefreshIndicator>(
           find.byType(RefreshIndicator),
@@ -465,7 +485,7 @@ void main() {
         expect(tester.takeException(), isNull, reason: '$size');
         await tester.drag(find.byType(NestedScrollView), const Offset(0, -600));
         await settle(tester);
-        for (final tab in ProfileTab.values) {
+        for (final tab in _baseTabs) {
           await tapTab(tester, tab);
           expect(
             tester.takeException(),
@@ -475,6 +495,51 @@ void main() {
         }
       }
     });
+  });
+
+  group('collections', () {
+    testWidgets('no tab when the channel has none or they fail', (
+      tester,
+    ) async {
+      answerProfile();
+      when(
+        () => vods.getChannelCollections(any()),
+      ).thenAnswer((_) async => null);
+      await pump(tester);
+      expect(find.widgetWithText(Tab, 'Collections'), findsNothing);
+      expect(find.byType(Tab), findsNWidgets(_baseTabs.length));
+    });
+
+    testWidgets(
+      'the tab comes after Clips, keeps the shown tab, and lists them',
+      (tester) async {
+        answerProfile();
+        final collections = Completer<List<VideoCollection>?>();
+        when(
+          () => vods.getChannelCollections(any()),
+        ).thenAnswer((_) => collections.future);
+        await pump(tester);
+        await tapTab(tester, ProfileTab.about);
+        expect(find.text('About xQc'), findsOneWidget);
+
+        collections.complete([_collection]);
+        await settle(tester);
+        expect(find.text('About xQc'), findsOneWidget);
+        verify(() => vods.getChannelCollections('71092938')).called(1);
+
+        final xs = [
+          for (final label in ['Clips', 'Collections', 'Schedule'])
+            tester.getTopLeft(find.widgetWithText(Tab, label)).dx,
+        ];
+        expect(xs, orderedEquals([...xs]..sort()));
+
+        await tapTab(tester, ProfileTab.collections);
+        expect(tester.takeException(), isNull);
+        expect(find.text('Speedruns'), findsOneWidget);
+        expect(find.text('12 videos · 2 days ago'), findsOneWidget);
+        expect(find.text('2:00:00'), findsOneWidget);
+      },
+    );
   });
 
   group('tablet', () {
@@ -500,7 +565,7 @@ void main() {
           expect(tester.getRect(card).left, greaterThan(rail.right));
           expect(tester.getSize(find.byType(ProfileAvatar)).width, 120);
 
-          for (final tab in ProfileTab.values) {
+          for (final tab in _baseTabs) {
             await tapTab(tester, tab);
             expect(
               tester.takeException(),
@@ -820,6 +885,9 @@ void main() {
 
     void answerWithContent() {
       answerProfile();
+      when(
+        () => vods.getChannelCollections(any()),
+      ).thenAnswer((_) async => [_collection]);
       final now = DateTime.now();
       when(() => profiles.getSchedule(any())).thenAnswer(
         (_) async => ChannelSchedule(
@@ -910,6 +978,9 @@ void main() {
               ProfileTab.home => french.profileRecentBroadcasts,
               ProfileTab.videos => french.profilePastBroadcasts,
               ProfileTab.clips => french.clipPeriodLastWeek,
+              ProfileTab.collections => french.profileCollectionVideos(
+                count: 12,
+              ),
               ProfileTab.schedule => french.profileCancelled,
               ProfileTab.about => french.profileAboutTitle(name: 'xQc'),
             };

@@ -8307,4 +8307,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatGigantifiedEmote => 'Gigantified emote';
+
+  @override
+  String get profileTabCollections => 'Collections';
+
+  @override
+  String profileCollectionVideos({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos',
+      one: '$count video',
+    );
+    return '$_temp0';
+  }
 }

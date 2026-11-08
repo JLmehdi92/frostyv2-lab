@@ -24,6 +24,26 @@ mixin _$ChannelProfileStore on ChannelProfileStoreBase, Store {
     name: 'ChannelProfileStoreBase.displayName',
   )).value;
 
+  late final _$_collectionsAtom = Atom(
+    name: 'ChannelProfileStoreBase._collections',
+    context: context,
+  );
+
+  List<VideoCollection> get collections {
+    _$_collectionsAtom.reportRead();
+    return super._collections;
+  }
+
+  @override
+  List<VideoCollection> get _collections => collections;
+
+  @override
+  set _collections(List<VideoCollection> value) {
+    _$_collectionsAtom.reportWrite(value, super._collections, () {
+      super._collections = value;
+    });
+  }
+
   late final _$_scheduleExtrasAtom = Atom(
     name: 'ChannelProfileStoreBase._scheduleExtras',
     context: context,

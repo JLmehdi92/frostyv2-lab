@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/models/playback_access_token.dart';
+import 'package:onset/models/video_collection.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/models/vod_access.dart';
 import 'package:onset/models/vod_chapter.dart';
@@ -138,6 +139,13 @@ class TwitchVodService extends BaseApiClient {
       '$_videoFields } } } } } }';
 
   static final _collectionId = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
+
+  static const _channelCollectionsQuery =
+      'query ChannelCollections(\$channelId: ID!) { user(id: \$channelId) { '
+      'collections(first: 50) { edges { node { id title '
+      'thumbnailURL(width: 300, height: 300) updatedAt lengthSeconds '
+      'items(first: 1) { totalCount edges { node { ... on Video { id } } } } '
+      '} } } } }';
 
   static const _mutedSegmentsQuery =
       'query VideoMutedSegments(\$id: ID!) { video(id: \$id) { muteInfo { '
@@ -598,6 +606,19 @@ class TwitchVodService extends BaseApiClient {
     } catch (e) {
       debugPrint('Collection videos unavailable: ${e.runtimeType}');
       return const [];
+    }
+  }
+
+  Future<List<VideoCollection>?> getChannelCollections(String channelId) async {
+    if (!RegExp(r'^[0-9]{1,20}$').hasMatch(channelId)) return null;
+    try {
+      final data = await _gql('ChannelCollections', _channelCollectionsQuery, {
+        'channelId': channelId,
+      });
+      return VideoCollection.listFrom(data);
+    } catch (e) {
+      debugPrint('Channel collections unavailable: ${e.runtimeType}');
+      return null;
     }
   }
 

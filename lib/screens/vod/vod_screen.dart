@@ -111,11 +111,17 @@ class VodScreen extends StatefulWidget {
     required String vodId,
     Vod? vod,
     Duration? startAt,
+    String? collectionId,
   }) => Navigator.push(
     context,
     MaterialPageRoute(
       settings: const RouteSettings(name: routeName),
-      builder: (context) => VodScreen(vodId: vodId, vod: vod, startAt: startAt),
+      builder: (context) => VodScreen(
+        vodId: vodId,
+        vod: vod,
+        startAt: startAt,
+        collectionId: collectionId,
+      ),
     ),
   );
 

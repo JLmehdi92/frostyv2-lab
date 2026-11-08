@@ -11084,6 +11084,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gigantified emote'**
   String get chatGigantifiedEmote;
+
+  /// A channel's profile: the Collections tab (the channel's playlists of videos).
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get profileTabCollections;
+
+  /// A collection card on a channel's profile: how many videos the collection holds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} video} other{{count} videos}}'**
+  String profileCollectionVideos({required int count});
 }
 
 class _AppLocalizationsDelegate

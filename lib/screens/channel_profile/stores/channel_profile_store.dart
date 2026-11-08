@@ -4,6 +4,7 @@ import 'package:onset/apis/twitch_channel_profile_service.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/models/team.dart';
 import 'package:onset/models/user.dart';
+import 'package:onset/models/video_collection.dart';
 
 part 'channel_profile_store.g.dart';
 
@@ -20,7 +21,13 @@ abstract class ChannelProfileStoreBase with Store {
     this.helixUser,
     this.teamsOf,
     this.scheduleExtrasOf,
+    this.collectionsOf,
   });
+
+  final Future<List<VideoCollection>?> Function(String userId)? collectionsOf;
+
+  @readonly
+  List<VideoCollection> _collections = const [];
 
   final Future<ScheduleExtras> Function(String userId)? scheduleExtrasOf;
 
@@ -135,7 +142,7 @@ abstract class ChannelProfileStoreBase with Store {
 
   Future<void> _loadExtras(String userId) async {
     final teamsOf = this.teamsOf;
-    final (trailer, teams) = await (
+    final (trailer, teams, collections) = await (
       Future(() => profileService.getTrailer(login)).then<ChannelTrailer?>(
         (trailer) => trailer,
         onError: (Object e) {
@@ -152,12 +159,25 @@ abstract class ChannelProfileStoreBase with Store {
           return const <Team>[];
         },
       ),
+      _loadCollections(userId),
     ).wait;
     if (_disposed) return;
     runInAction(() {
       _trailer = trailer;
       _teams = teams;
+      _collections = collections;
     });
+  }
+
+  Future<List<VideoCollection>> _loadCollections(String userId) async {
+    final collectionsOf = this.collectionsOf;
+    if (collectionsOf == null) return const [];
+    try {
+      return await collectionsOf(userId) ?? const [];
+    } catch (e) {
+      debugPrint('ChannelProfileStore($login) collections failed: $e');
+      return const [];
+    }
   }
 
   Future<void> _loadScheduleExtras() async {

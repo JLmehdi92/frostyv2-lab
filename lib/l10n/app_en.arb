@@ -10650,5 +10650,19 @@
   "chatGigantifiedEmote": "Gigantified emote",
   "@chatGigantifiedEmote": {
     "description": "Header above a message sent with the gigantify an emote power-up; its last emote is drawn large."
+  },
+  "profileTabCollections": "Collections",
+  "@profileTabCollections": {
+    "description": "A channel's profile: the Collections tab (the channel's playlists of videos)."
+  },
+  "profileCollectionVideos": "{count, plural, one{{count} video} other{{count} videos}}",
+  "@profileCollectionVideos": {
+    "description": "A collection card on a channel's profile: how many videos the collection holds.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
   }
 }

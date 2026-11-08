@@ -410,6 +410,67 @@ void main() {
     });
   });
 
+  group('getChannelCollections', () {
+    test('reads each collection with its first video and count', () async {
+      reply({
+        'data': {
+          'user': {
+            'collections': {
+              'edges': [
+                {
+                  'node': {
+                    'id': 'Ab_1',
+                    'title': 'Speedruns',
+                    'thumbnailURL': 'https://example.com/t.jpg',
+                    'updatedAt': '2026-02-01T00:00:00Z',
+                    'lengthSeconds': 7200,
+                    'items': {
+                      'totalCount': 12,
+                      'edges': [
+                        {
+                          'node': {'id': '1000000009'},
+                        },
+                      ],
+                    },
+                  },
+                },
+                {
+                  'node': {
+                    'id': 'empty',
+                    'title': 'Nothing',
+                    'items': {'totalCount': 0, 'edges': <Object>[]},
+                  },
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      final collections = await service.getChannelCollections('42');
+
+      expect(collections, hasLength(1));
+      final first = collections!.single;
+      expect(first.id, 'Ab_1');
+      expect(first.title, 'Speedruns');
+      expect(first.itemCount, 12);
+      expect(first.firstVideoId, '1000000009');
+      expect(first.thumbnailUrl, 'https://example.com/t.jpg');
+      expect(first.lengthSeconds, 7200);
+      expect((gqlRequests.last.data as Map)['operationName'], 'ChannelCollections');
+      expect((gqlRequests.last.data as Map)['variables'], {'channelId': '42'});
+    });
+
+    test('answers null on any error and never asks for a bad id', () async {
+      reply(vodCommentsServiceErrorResponse);
+
+      expect(await service.getChannelCollections('42'), isNull);
+      final asked = gqlRequests.length;
+      expect(await service.getChannelCollections('4/2'), isNull);
+      expect(gqlRequests.length, asked);
+    });
+  });
+
   group('getChapters', () {
     test('parses game chapters in order', () async {
       reply({
