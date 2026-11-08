@@ -683,7 +683,6 @@
   "clipWatchFullVideo": "Regarder la vidéo complète",
   "clipCopyLink": "Copier le lien",
   "clipShare": "Partager",
-  "clipsNoneForPeriod": "Aucun clip sur cette période",
   "clipsShowingTop": "{count, plural, one{Voici le premier clip} other{Voici les {count} premiers clips}}",
   "clipsCategoryNotFound": "Catégorie introuvable",
   "clipsChannelNotFound": "Chaîne introuvable",
@@ -1807,5 +1806,15 @@
   "searchLiveWithTag": "Chaînes en direct avec le tag {tag}",
   "chatGigantifiedEmote": "Emote géante",
   "profileTabCollections": "Collections",
-  "profileCollectionVideos": "{count, plural, one{{count} vidéo} other{{count} vidéos}}"
+  "profileCollectionVideos": "{count, plural, one{{count} vidéo} other{{count} vidéos}}",
+  "clipSortNewest": "Les plus récents",
+  "clipSortOldest": "Les plus anciens",
+  "clipPickDates": "Choisir des dates",
+  "clipDateRange": "Du {start} au {end}",
+  "clipFiltersReset": "Réinitialiser les filtres",
+  "clipsNoneLastDay": "Aucun clip ces dernières 24 heures",
+  "clipsNoneLastWeek": "Aucun clip ces 7 derniers jours",
+  "clipsNoneLastMonth": "Aucun clip ces 30 derniers jours",
+  "clipsNoneAllTime": "Aucun clip pour l’instant",
+  "clipsNoneInRange": "Aucun clip entre le {start} et le {end}"
 }

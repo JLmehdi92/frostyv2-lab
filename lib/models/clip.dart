@@ -20,12 +20,24 @@ enum ClipPeriod {
 /// other sorts (verified 2026-10-13).
 enum ClipSort {
   top('VIEWS_DESC'),
-  trending('TRENDING');
+  trending('TRENDING'),
+  newest('VIEWS_DESC'),
+  oldest('VIEWS_DESC');
 
   const ClipSort(this.gqlName);
 
   final String gqlName;
+
+  ClipSort get fetched => this == trending ? trending : top;
+
+  List<Clip> order(List<Clip> clips) => switch (this) {
+    newest => [...clips]..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
+    oldest => [...clips]..sort((a, b) => a.createdAt.compareTo(b.createdAt)),
+    top || trending => clips,
+  };
 }
+
+typedef ClipDateRange = ({DateTime start, DateTime end});
 
 final _slugPattern = RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$');
 
@@ -102,6 +114,45 @@ class Clip {
           ? null
           : _nonNegative(offset),
       isFeatured: node['isFeatured'] == true,
+    );
+  }
+
+  static Clip? tryHelix(Object? node, {String broadcasterLogin = ''}) {
+    if (node is! Map) return null;
+    final id = node['id'];
+    final createdAt = DateTime.tryParse('${node['created_at']}');
+    final duration = node['duration'];
+    if (id is! String ||
+        !isValidClipSlug(id) ||
+        createdAt == null ||
+        duration is! num ||
+        !duration.isFinite) {
+      return null;
+    }
+    final vodId = _as<String>(node['video_id']);
+    final offset = _as<num>(node['vod_offset']);
+    final hasVod = vodId != null && vodId.isNotEmpty;
+    final thumbnail = _as<String>(node['thumbnail_url']);
+    return Clip(
+      id: id,
+      slug: id,
+      title: _as<String>(node['title']) ?? '',
+      viewCount: _nonNegative(_as<num>(node['view_count'])) ?? 0,
+      createdAt: createdAt,
+      durationSeconds: _nonNegative(duration) ?? 0,
+      broadcasterId: _as<String>(node['broadcaster_id']) ?? '',
+      broadcasterLogin: broadcasterLogin,
+      broadcasterDisplayName: _as<String>(node['broadcaster_name']) ?? '',
+      thumbnailUrl: thumbnail != null && thumbnail.startsWith('https://')
+          ? thumbnail
+          : null,
+      curatorDisplayName: _as<String>(node['creator_name']),
+      gameId: _as<String>(node['game_id']),
+      vodId: hasVod ? vodId : null,
+      vodOffsetSeconds: hasVod && offset != null && offset >= 0
+          ? _nonNegative(offset)
+          : null,
+      isFeatured: node['is_featured'] == true,
     );
   }
 

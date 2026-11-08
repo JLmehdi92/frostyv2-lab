@@ -3402,10 +3402,6 @@
   "@clipShare": {
     "description": "A clip's page: the tooltip of the button that shares its link."
   },
-  "clipsNoneForPeriod": "No clips for this period",
-  "@clipsNoneForPeriod": {
-    "description": "A channel's or a category's clips, when the period picked has none."
-  },
   "clipsShowingTop": "{count, plural, one{Showing the first clip} other{Showing the first {count} clips}}",
   "@clipsShowingTop": {
     "description": "Under a channel's or a category's clips when Twitch has more than it lists.",
@@ -10662,6 +10658,66 @@
       "count": {
         "type": "int",
         "example": "12"
+      }
+    }
+  },
+  "clipSortNewest": "Newest",
+  "@clipSortNewest": {
+    "description": "A clips list's sort chip: the newest clips first."
+  },
+  "clipSortOldest": "Oldest",
+  "@clipSortOldest": {
+    "description": "A clips list's sort chip: the oldest clips first."
+  },
+  "clipPickDates": "Pick dates",
+  "@clipPickDates": {
+    "description": "A clips list's chip that opens a calendar to list the clips made between two dates."
+  },
+  "clipDateRange": "{start} – {end}",
+  "@clipDateRange": {
+    "description": "A clips list's chip once two dates are picked: the first and last day.",
+    "placeholders": {
+      "start": {
+        "type": "String",
+        "example": "Mar 3"
+      },
+      "end": {
+        "type": "String",
+        "example": "Mar 9"
+      }
+    }
+  },
+  "clipFiltersReset": "Reset filters",
+  "@clipFiltersReset": {
+    "description": "A clips list's chip that puts the period, dates and sort back to their defaults."
+  },
+  "clipsNoneLastDay": "No clips in the last 24 hours",
+  "@clipsNoneLastDay": {
+    "description": "A clips list with nothing in the last 24 hours."
+  },
+  "clipsNoneLastWeek": "No clips in the last 7 days",
+  "@clipsNoneLastWeek": {
+    "description": "A clips list with nothing in the last 7 days."
+  },
+  "clipsNoneLastMonth": "No clips in the last 30 days",
+  "@clipsNoneLastMonth": {
+    "description": "A clips list with nothing in the last 30 days."
+  },
+  "clipsNoneAllTime": "No clips yet",
+  "@clipsNoneAllTime": {
+    "description": "A clips list with no clips at all."
+  },
+  "clipsNoneInRange": "No clips between {start} and {end}",
+  "@clipsNoneInRange": {
+    "description": "A clips list with nothing between the two picked dates.",
+    "placeholders": {
+      "start": {
+        "type": "String",
+        "example": "Mar 3"
+      },
+      "end": {
+        "type": "String",
+        "example": "Mar 9"
       }
     }
   }

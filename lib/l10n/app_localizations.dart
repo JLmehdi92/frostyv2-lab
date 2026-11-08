@@ -4211,12 +4211,6 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get clipShare;
 
-  /// A channel's or a category's clips, when the period picked has none.
-  ///
-  /// In en, this message translates to:
-  /// **'No clips for this period'**
-  String get clipsNoneForPeriod;
-
   /// Under a channel's or a category's clips when Twitch has more than it lists.
   ///
   /// In en, this message translates to:
@@ -11096,6 +11090,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} video} other{{count} videos}}'**
   String profileCollectionVideos({required int count});
+
+  /// A clips list's sort chip: the newest clips first.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get clipSortNewest;
+
+  /// A clips list's sort chip: the oldest clips first.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest'**
+  String get clipSortOldest;
+
+  /// A clips list's chip that opens a calendar to list the clips made between two dates.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick dates'**
+  String get clipPickDates;
+
+  /// A clips list's chip once two dates are picked: the first and last day.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} – {end}'**
+  String clipDateRange({required String start, required String end});
+
+  /// A clips list's chip that puts the period, dates and sort back to their defaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filters'**
+  String get clipFiltersReset;
+
+  /// A clips list with nothing in the last 24 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'No clips in the last 24 hours'**
+  String get clipsNoneLastDay;
+
+  /// A clips list with nothing in the last 7 days.
+  ///
+  /// In en, this message translates to:
+  /// **'No clips in the last 7 days'**
+  String get clipsNoneLastWeek;
+
+  /// A clips list with nothing in the last 30 days.
+  ///
+  /// In en, this message translates to:
+  /// **'No clips in the last 30 days'**
+  String get clipsNoneLastMonth;
+
+  /// A clips list with no clips at all.
+  ///
+  /// In en, this message translates to:
+  /// **'No clips yet'**
+  String get clipsNoneAllTime;
+
+  /// A clips list with nothing between the two picked dates.
+  ///
+  /// In en, this message translates to:
+  /// **'No clips between {start} and {end}'**
+  String clipsNoneInRange({required String start, required String end});
 }
 
 class _AppLocalizationsDelegate

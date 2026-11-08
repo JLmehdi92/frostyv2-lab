@@ -215,6 +215,11 @@ class _CategoryViewState extends State<CategoryView> {
     login: '',
     gameId: widget.categoryId,
     clipService: context.twitchClipService,
+    clipsBetween: (start, end) => context.twitchApi.getClipsBetween(
+      gameId: widget.categoryId,
+      start: start,
+      end: end,
+    ),
   );
   var _videosMade = false;
   var _clipsMade = false;

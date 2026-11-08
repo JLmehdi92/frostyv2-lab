@@ -19,6 +19,7 @@ abstract class ChannelClipsStoreBase with Store {
     ClipPeriod period = ClipPeriod.lastWeek,
     ClipSort sort = ClipSort.top,
     this.featuredOnly,
+    this.clipsBetween,
   }) : _period = period,
        _sort = sort;
 
@@ -28,6 +29,27 @@ abstract class ChannelClipsStoreBase with Store {
   final String? gameId;
   final TwitchClipService clipService;
   final bool Function()? featuredOnly;
+  final Future<List<Clip>> Function(DateTime start, DateTime end)?
+  clipsBetween;
+
+  static const defaultPeriod = ClipPeriod.lastWeek;
+
+  @readonly
+  ClipDateRange? _range;
+
+  final _rangePages = <ClipDateRange, ClipPage>{};
+
+  bool get canPickRange => clipsBetween != null;
+
+  @computed
+  bool get isFiltered =>
+      _range != null || _period != defaultPeriod || _sort != ClipSort.top;
+
+  @computed
+  List<ClipSort> get sorts => [
+    for (final sort in ClipSort.values)
+      if (_range == null || sort != ClipSort.trending) sort,
+  ];
 
   final scrollController = ScrollController();
 
@@ -58,11 +80,20 @@ abstract class ChannelClipsStoreBase with Store {
   @readonly
   var _hasMore = false;
 
-  (ClipPeriod, ClipSort) get _key => (_period, _sort);
+  (ClipPeriod, ClipSort) get _key => (_period, _sort.fetched);
 
   /// Shows the list of the current chips, fetching it once; a call while
   /// loading joins the running request.
   Future<void> load() {
+    final range = _range;
+    if (range != null) {
+      final page = _rangePages[range];
+      if (page != null) {
+        _show(page);
+        return Future.value();
+      }
+      return _fetchRange(range);
+    }
     final key = _key;
     final page = _pages[key];
     if (page != null) {
@@ -90,26 +121,92 @@ abstract class ChannelClipsStoreBase with Store {
   /// Switches chips (keeping the other one as it is).
   Future<void> select({ClipPeriod? period, ClipSort? sort}) {
     runInAction(() {
+      if (period != null) _range = null;
       _period = period ?? _period;
       _sort = sort ?? _sort;
     });
     return load();
   }
 
-  /// Fetches the current chips' list again (pull to refresh). A failure
-  /// keeps the list already shown.
-  Future<void> refresh() => _fetch(_key);
+  Future<void> selectRange(DateTime start, DateTime end) {
+    if (!canPickRange || !end.isAfter(start)) return Future.value();
+    runInAction(() {
+      _range = (start: start, end: end);
+      if (_sort == ClipSort.trending) _sort = ClipSort.top;
+    });
+    return load();
+  }
+
+  Future<void> reset() {
+    runInAction(() {
+      _range = null;
+      _period = defaultPeriod;
+      _sort = ClipSort.top;
+    });
+    return load();
+  }
+
+  Future<void> refresh() {
+    final range = _range;
+    return range != null ? _fetchRange(range) : _fetch(_key);
+  }
+
+  Future<void>? _rangeInFlight;
+  ClipDateRange? _rangeInFlightKey;
+
+  Future<void> _fetchRange(ClipDateRange range) {
+    if (_rangeInFlightKey == range && _rangeInFlight != null) {
+      runInAction(() => _isLoading = true);
+      return _rangeInFlight!;
+    }
+    _rangeInFlightKey = range;
+    return _rangeInFlight = _loadRange(range).whenComplete(() {
+      if (_rangeInFlightKey == range) {
+        _rangeInFlight = null;
+        _rangeInFlightKey = null;
+      }
+    });
+  }
+
+  Future<void> _loadRange(ClipDateRange range) async {
+    final clipsBetween = this.clipsBetween;
+    if (clipsBetween == null) return;
+    runInAction(() => _isLoading = true);
+    try {
+      final clips = await clipsBetween(range.start, range.end);
+      final page = ClipPage(items: clips, hasMore: clips.length >= 100);
+      _rangePages[range] = page;
+      if (_range == range) _show(page);
+    } catch (e) {
+      debugPrint('ChannelClipsStore range failed: $e');
+      if (_range != range) return;
+      final kept = _rangePages[range];
+      if (kept != null) {
+        _show(kept);
+        return;
+      }
+      runInAction(() {
+        _clips = const [];
+        _hasMore = false;
+        _error = ChannelClipsProblem.failed;
+        _isLoading = false;
+        _loaded = true;
+      });
+    }
+  }
 
   @action
   void _show(ClipPage page) {
     final featured =
         gameId == null && page.featuredKnown && (featuredOnly?.call() ?? false);
-    _clips = featured
-        ? [
-            for (final clip in page.items)
-              if (clip.isFeatured) clip,
-          ]
-        : page.items;
+    _clips = _sort.order(
+      featured
+          ? [
+              for (final clip in page.items)
+                if (clip.isFeatured) clip,
+            ]
+          : page.items,
+    );
     _hasMore = page.hasMore;
     _error = null;
     _isLoading = false;
@@ -132,8 +229,7 @@ abstract class ChannelClipsStoreBase with Store {
               sort: key.$2,
             );
       _pages[key] = page;
-      // The viewer may have picked other chips meanwhile.
-      if (key == _key) _show(page);
+      if (key == _key && _range == null) _show(page);
     } on NotFoundException {
       _showError(
         key,
@@ -148,7 +244,7 @@ abstract class ChannelClipsStoreBase with Store {
   }
 
   void _showError((ClipPeriod, ClipSort) key, ChannelClipsProblem problem) {
-    if (key != _key) return;
+    if (key != _key || _range != null) return;
     final kept = _pages[key];
     if (kept != null) {
       _show(kept);

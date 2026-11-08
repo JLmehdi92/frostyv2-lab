@@ -107,6 +107,8 @@ extension ClipSortLabel on ClipSort {
   String label(AppLocalizations l) => switch (this) {
     ClipSort.top => l.clipSortTop,
     ClipSort.trending => l.clipSortTrending,
+    ClipSort.newest => l.clipSortNewest,
+    ClipSort.oldest => l.clipSortOldest,
   };
 }
 

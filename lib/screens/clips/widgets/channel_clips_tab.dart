@@ -74,7 +74,7 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
     // not sent there, though its skeletons, while it loads, are shorter
     // than a long list: a deep position ends up nearer the top.
     _onFilter = reaction(
-      (_) => (widget.store.period, widget.store.sort),
+      (_) => (widget.store.period, widget.store.sort, widget.store.range),
       (_) => WidgetsBinding.instance.addPostFrameCallback((_) => _toTop()),
     );
   }
@@ -118,7 +118,7 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
         child: Padding(
           padding: const EdgeInsets.only(top: 100),
           child: error == null
-              ? VideoListEmpty(message: context.l10n.clipsNoneForPeriod)
+              ? VideoListEmpty(message: clipsEmptyText(context, store))
               : FeedStatusView.error(
                   message: channelClipsErrorText(context.l10n, error),
                   onRetry: store.refresh,

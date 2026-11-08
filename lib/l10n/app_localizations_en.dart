@@ -2670,9 +2670,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clipShare => 'Share';
 
   @override
-  String get clipsNoneForPeriod => 'No clips for this period';
-
-  @override
   String clipsShowingTop({required int count}) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8320,5 +8317,39 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '$count video',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get clipSortNewest => 'Newest';
+
+  @override
+  String get clipSortOldest => 'Oldest';
+
+  @override
+  String get clipPickDates => 'Pick dates';
+
+  @override
+  String clipDateRange({required String start, required String end}) {
+    return '$start – $end';
+  }
+
+  @override
+  String get clipFiltersReset => 'Reset filters';
+
+  @override
+  String get clipsNoneLastDay => 'No clips in the last 24 hours';
+
+  @override
+  String get clipsNoneLastWeek => 'No clips in the last 7 days';
+
+  @override
+  String get clipsNoneLastMonth => 'No clips in the last 30 days';
+
+  @override
+  String get clipsNoneAllTime => 'No clips yet';
+
+  @override
+  String clipsNoneInRange({required String start, required String end}) {
+    return 'No clips between $start and $end';
   }
 }

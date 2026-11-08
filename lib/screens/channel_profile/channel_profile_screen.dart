@@ -7,6 +7,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
+import 'package:onset/models/clip.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/video_collection.dart';
 import 'package:onset/models/vod.dart';
@@ -176,7 +177,19 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     login: widget.login,
     clipService: context.twitchClipService,
     featuredOnly: _featuredClipsOnly,
+    clipsBetween: _clipsBetween,
   );
+
+  Future<List<Clip>> _clipsBetween(DateTime start, DateTime end) {
+    final id = _userId;
+    if (id == null) return Future.error(StateError('Channel id unknown'));
+    return context.twitchApi.getClipsBetween(
+      broadcasterId: id,
+      broadcasterLogin: widget.login,
+      start: start,
+      end: end,
+    );
+  }
 
   bool _featuredClipsOnly() => featuredClipsOnly(context);
 

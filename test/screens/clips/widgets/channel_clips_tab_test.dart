@@ -105,7 +105,7 @@ void main() {
     ).thenAnswer((_) async => const ClipPage(items: [], hasMore: false));
     await pump(tester);
     await tester.pump();
-    expect(find.text('No clips for this period'), findsOneWidget);
+    expect(find.text('No clips in the last 7 days'), findsOneWidget);
 
     when(
       () => service.getChannelClips(
@@ -267,7 +267,7 @@ void main() {
     first.complete(const ClipPage(items: [], hasMore: false));
     await tester.pump();
     await tester.pump();
-    expect(find.text('No clips for this period'), findsOneWidget);
+    expect(find.text('No clips in the last 7 days'), findsOneWidget);
     expect(find.byType(ScrollToTopButton), findsNothing);
 
     when(
@@ -312,5 +312,71 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(store.scrollController.offset, 400);
+  });
+
+  testWidgets('each period says it is empty; reset goes back to the week', (
+    tester,
+  ) async {
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenAnswer((_) async => const ClipPage(items: [], hasMore: false));
+    await pump(tester);
+    await tester.pump();
+    expect(find.text('No clips in the last 7 days'), findsOneWidget);
+    expect(find.text('Reset filters'), findsNothing);
+    expect(find.text('Pick dates'), findsNothing);
+
+    for (final (chip, empty) in [
+      ('24 hours', 'No clips in the last 24 hours'),
+      ('30 days', 'No clips in the last 30 days'),
+      ('All time', 'No clips yet'),
+    ]) {
+      await tester.ensureVisible(find.text(chip));
+      await tester.tap(find.text(chip));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(empty), findsOneWidget, reason: chip);
+    }
+
+    await tester.ensureVisible(find.text('Reset filters'));
+    await tester.tap(find.text('Reset filters'));
+    await tester.pump();
+    await tester.pump();
+    expect(store.period, ClipPeriod.lastWeek);
+    expect(find.text('No clips in the last 7 days'), findsOneWidget);
+    expect(find.text('Reset filters'), findsNothing);
+  });
+
+  testWidgets('dates open a calendar and list that range', (tester) async {
+    final ranged = ChannelClipsStore(
+      login: 'xqc',
+      clipService: service,
+      clipsBetween: (_, _) async => const [],
+    );
+    store.dispose();
+    store = ranged;
+    await pump(tester, size: const Size(800, 1000));
+    await tester.pump();
+
+    await tester.ensureVisible(find.text('Pick dates'));
+    await tester.tap(find.text('Pick dates'));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(DateRangePickerDialog), findsOneWidget);
+
+    await ranged.selectRange(DateTime(2026, 3, 3), DateTime(2026, 3, 10));
+    Navigator.of(tester.element(find.byType(DateRangePickerDialog))).pop();
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('Mar 3 – Mar 10'), findsOneWidget);
+    expect(find.text('No clips between Mar 3 and Mar 10'), findsOneWidget);
+    expect(find.text('Trending'), findsNothing);
+    expect(find.text('Newest'), findsOneWidget);
   });
 }

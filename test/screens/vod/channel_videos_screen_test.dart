@@ -134,7 +134,7 @@ void main() {
     await pump(tester, startOnClips: true);
 
     expect(find.byType(ChannelClipsTab), findsOneWidget);
-    expect(find.text('No clips for this period'), findsOneWidget);
+    expect(find.text('No clips in the last 7 days'), findsOneWidget);
   });
 
   testWidgets('a tablet lays the videos out in tiles, light theme too', (

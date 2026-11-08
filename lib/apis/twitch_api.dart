@@ -13,7 +13,7 @@ import 'package:onset/models/category.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/models/channel_profile.dart' show ScheduleExtras;
 import 'package:onset/models/cheermote.dart';
-import 'package:onset/models/clip.dart' show isValidClipSlug;
+import 'package:onset/models/clip.dart' show Clip, isValidClipSlug;
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/followed_channel.dart';
 import 'package:onset/models/shared_chat_session.dart';
@@ -556,6 +556,36 @@ class TwitchApi extends BaseApiClient {
         edit.userInfo.isEmpty &&
         (edit.host == 'twitch.tv' || edit.host.endsWith('.twitch.tv'));
     return ClipCreation(id: clipId, editUrl: onTwitch ? edit : null);
+  }
+
+  Future<List<Clip>> getClipsBetween({
+    String? broadcasterId,
+    String broadcasterLogin = '',
+    String? gameId,
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final owner = broadcasterId != null
+        ? {'broadcaster_id': broadcasterId}
+        : gameId != null
+        ? {'game_id': gameId}
+        : null;
+    if (owner == null || !end.isAfter(start)) return const [];
+    final data = await get<JsonMap>(
+      '/clips',
+      queryParameters: {
+        ...owner,
+        'started_at': start.toUtc().toIso8601String(),
+        'ended_at': end.toUtc().toIso8601String(),
+        'first': '100',
+      },
+    );
+    final list = data['data'];
+    return [
+      if (list is List)
+        for (final node in list)
+          ?Clip.tryHelix(node, broadcasterLogin: broadcasterLogin),
+    ];
   }
 
   /// The clip [id] once Twitch has made it; null while it is being made.

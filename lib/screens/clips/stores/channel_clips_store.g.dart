@@ -9,6 +9,41 @@ part of 'channel_clips_store.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$ChannelClipsStore on ChannelClipsStoreBase, Store {
+  Computed<bool>? _$isFilteredComputed;
+
+  @override
+  bool get isFiltered => (_$isFilteredComputed ??= Computed<bool>(
+    () => super.isFiltered,
+    name: 'ChannelClipsStoreBase.isFiltered',
+  )).value;
+  Computed<List<ClipSort>>? _$sortsComputed;
+
+  @override
+  List<ClipSort> get sorts => (_$sortsComputed ??= Computed<List<ClipSort>>(
+    () => super.sorts,
+    name: 'ChannelClipsStoreBase.sorts',
+  )).value;
+
+  late final _$_rangeAtom = Atom(
+    name: 'ChannelClipsStoreBase._range',
+    context: context,
+  );
+
+  ({DateTime end, DateTime start})? get range {
+    _$_rangeAtom.reportRead();
+    return super._range;
+  }
+
+  @override
+  ({DateTime end, DateTime start})? get _range => range;
+
+  @override
+  set _range(({DateTime end, DateTime start})? value) {
+    _$_rangeAtom.reportWrite(value, super._range, () {
+      super._range = value;
+    });
+  }
+
   late final _$_periodAtom = Atom(
     name: 'ChannelClipsStoreBase._period',
     context: context,
@@ -169,7 +204,8 @@ mixin _$ChannelClipsStore on ChannelClipsStoreBase, Store {
   @override
   String toString() {
     return '''
-
+isFiltered: ${isFiltered},
+sorts: ${sorts}
     ''';
   }
 }

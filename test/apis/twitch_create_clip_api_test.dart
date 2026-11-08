@@ -51,6 +51,68 @@ void main() {
     });
   });
 
+  group('getClipsBetween', () {
+    final start = DateTime.utc(2026, 3);
+    final end = DateTime.utc(2026, 3, 8);
+
+    test('asks Helix for the range and reads each clip', () async {
+      adapter.onGet(
+        _clips,
+        (s) => s.reply(200, {
+          'data': [
+            {
+              'id': 'FunnyClip-abc_1',
+              'broadcaster_id': '42',
+              'broadcaster_name': 'Streamer',
+              'creator_name': 'Fan',
+              'video_id': '',
+              'game_id': '33',
+              'title': 'Wow',
+              'view_count': 120,
+              'created_at': '2026-03-02T10:00:00Z',
+              'thumbnail_url': 'https://clips-media.example/t.jpg',
+              'duration': 29.5,
+              'vod_offset': null,
+              'is_featured': true,
+            },
+            {'id': 'bad/slug', 'created_at': '2026-03-02T10:00:00Z'},
+          ],
+        }),
+        queryParameters: {
+          'broadcaster_id': '42',
+          'started_at': '2026-03-01T00:00:00.000Z',
+          'ended_at': '2026-03-08T00:00:00.000Z',
+          'first': '100',
+        },
+      );
+
+      final clips = await api.getClipsBetween(
+        broadcasterId: '42',
+        broadcasterLogin: 'streamer',
+        start: start,
+        end: end,
+      );
+
+      expect(clips, hasLength(1));
+      final clip = clips.single;
+      expect(clip.slug, 'FunnyClip-abc_1');
+      expect(clip.broadcasterLogin, 'streamer');
+      expect(clip.curatorDisplayName, 'Fan');
+      expect(clip.vodId, isNull);
+      expect(clip.durationSeconds, 29);
+      expect(clip.isFeatured, isTrue);
+    });
+
+    test('asks nothing without an owner or with an empty range', () async {
+      expect(await api.getClipsBetween(start: start, end: end), isEmpty);
+      expect(
+        await api.getClipsBetween(broadcasterId: '42', start: end, end: start),
+        isEmpty,
+      );
+      expect(requests, isEmpty);
+    });
+  });
+
   group('createClip', () {
     void answer(int status, Object body) => adapter.onPost(
       _clips,

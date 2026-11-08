@@ -236,4 +236,98 @@ void main() {
 
     expect(category.error, ChannelClipsProblem.categoryNotFound);
   });
+
+  group('dates, sorts and reset', () {
+    final older = Clip.fromGql({
+      ...clipNode,
+      'id': 'older',
+      'slug': 'OlderClip',
+      'createdAt': '2020-01-01T00:00:00Z',
+    });
+    final newer = Clip.fromGql({
+      ...clipNode,
+      'id': 'newer',
+      'slug': 'NewerClip',
+      'createdAt': '2030-01-01T00:00:00Z',
+    });
+
+    test(
+      'newest and oldest reorder the top clips without a new request',
+      () async {
+        answer(ClipPeriod.lastWeek, ClipSort.top, [older, newer]);
+        await store.load();
+
+        await store.select(sort: ClipSort.newest);
+        expect(store.clips, [newer, older]);
+        await store.select(sort: ClipSort.oldest);
+        expect(store.clips, [older, newer]);
+        verify(
+          () => service.getChannelClips(
+            login: 'xqc',
+            period: ClipPeriod.lastWeek,
+            sort: ClipSort.top,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'a date range lists its clips, hides trending, and reset comes back',
+      () async {
+        final asked = <(DateTime, DateTime)>[];
+        final ranged = ChannelClipsStore(
+          login: 'xqc',
+          clipService: service,
+          clipsBetween: (start, end) async {
+            asked.add((start, end));
+            return [older];
+          },
+        );
+        addTearDown(ranged.dispose);
+        answer(ClipPeriod.lastWeek, ClipSort.top, [clip]);
+        answer(ClipPeriod.lastWeek, ClipSort.trending, [clip]);
+        await ranged.select(sort: ClipSort.trending);
+        expect(ranged.canPickRange, isTrue);
+        expect(ranged.isFiltered, isTrue);
+
+        final start = DateTime(2026, 3, 1);
+        final end = DateTime(2026, 3, 8);
+        await ranged.selectRange(start, end);
+
+        expect(asked, [(start, end)]);
+        expect(ranged.range, (start: start, end: end));
+        expect(ranged.clips, [older]);
+        expect(ranged.sort, ClipSort.top);
+        expect(ranged.sorts, isNot(contains(ClipSort.trending)));
+
+        await ranged.select(period: ClipPeriod.lastWeek);
+        expect(ranged.range, isNull);
+        expect(ranged.clips, [clip]);
+
+        await ranged.selectRange(start, end);
+        expect(asked, hasLength(1));
+        await ranged.reset();
+        expect(ranged.range, isNull);
+        expect(ranged.period, ClipPeriod.lastWeek);
+        expect(ranged.sort, ClipSort.top);
+        expect(ranged.isFiltered, isFalse);
+      },
+    );
+
+    test('a failed range says so, and no range without a source', () async {
+      final ranged = ChannelClipsStore(
+        login: 'xqc',
+        clipService: service,
+        clipsBetween: (_, _) async => throw const NetworkException('down'),
+      );
+      addTearDown(ranged.dispose);
+      await ranged.selectRange(DateTime(2026), DateTime(2026, 2));
+      expect(ranged.error, ChannelClipsProblem.failed);
+      expect(ranged.clips, isEmpty);
+
+      expect(store.canPickRange, isFalse);
+      await store.selectRange(DateTime(2026), DateTime(2026, 2));
+      expect(store.range, isNull);
+    });
+  });
 }
