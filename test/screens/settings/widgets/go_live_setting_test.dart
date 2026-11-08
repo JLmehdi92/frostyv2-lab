@@ -160,29 +160,30 @@ void main() {
     expect(find.text('Android only.'), findsOneWidget);
   });
 
-  testWidgets("a channel's bell shows only while notices are on", (
+  testWidgets("a channel's bell level shows only while notices are on", (
     tester,
   ) async {
     await pump(tester, const GoLiveBellTile(channelId: '42', name: 'Streamer'));
-    expect(find.byType(OnsetSwitch), findsNothing);
+    expect(find.byKey(const ValueKey('bell-all')), findsNothing);
 
     final prefs = await GoLivePrefs.load();
     await prefs.setEnabled(true);
     await pump(tester, const SizedBox());
     await pump(tester, const GoLiveBellTile(channelId: '42', name: 'Streamer'));
-    bool bell() => tester.widget<OnsetSwitch>(find.byType(OnsetSwitch)).value;
-    expect(find.text('Notify when Streamer goes live'), findsOneWidget);
-    expect(bell(), isTrue);
+    bool all() => tester
+        .widget<SheetChoicePill>(find.byKey(const ValueKey('bell-all')))
+        .selected;
+    expect(find.text('Live notifications for Streamer'), findsOneWidget);
+    expect(all(), isTrue);
 
-    // The whole row toggles it.
-    await tester.tap(find.text('Notify when Streamer goes live'));
+    await tester.tap(find.text('None'));
     await tester.pumpAndSettle();
-    expect(bell(), isFalse);
+    expect(all(), isFalse);
     expect((await GoLivePrefs.load()).muted, {'42'});
 
-    await tester.tap(find.byType(OnsetSwitch));
+    await tester.tap(find.text('All lives'));
     await tester.pumpAndSettle();
-    expect(bell(), isTrue);
+    expect(all(), isTrue);
     expect((await GoLivePrefs.load()).muted, isEmpty);
   });
 }

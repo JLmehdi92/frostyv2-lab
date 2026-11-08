@@ -208,13 +208,44 @@ class _GoLiveBellTileState extends State<GoLiveBellTile> {
       if (mounted) setState(() {});
     }
 
-    // The row with a switch (as in the user card's "More").
-    return MergeSemantics(
-      child: SheetRow(
-        glyph: SheetGlyphKind.bell,
-        label: context.l10n.goLiveBell(name: widget.name),
-        onTap: () => change(!on),
-        trailing: OnsetSwitch(value: on, onChanged: change),
+    final colors = SheetColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Row(
+            spacing: 14,
+            children: [
+              SheetGlyph(SheetGlyphKind.bell, color: colors.text),
+              Expanded(
+                child: Text(
+                  context.l10n.goLiveBellLevelTitle(name: widget.name),
+                  style: SheetText.body.copyWith(color: colors.text),
+                ),
+              ),
+            ],
+          ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              SheetChoicePill(
+                key: const ValueKey('bell-all'),
+                label: context.l10n.goLiveBellAll,
+                selected: on,
+                onSelected: () => on ? null : change(true),
+              ),
+              SheetChoicePill(
+                key: const ValueKey('bell-none'),
+                label: context.l10n.goLiveBellNone,
+                selected: !on,
+                onSelected: () => on ? change(false) : null,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
