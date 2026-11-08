@@ -9,6 +9,35 @@ part of 'channel_events_store.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
+  Computed<bool>? _$canShareWatchStreakComputed;
+
+  @override
+  bool get canShareWatchStreak =>
+      (_$canShareWatchStreakComputed ??= Computed<bool>(
+        () => super.canShareWatchStreak,
+        name: 'ChannelEventsStoreBase.canShareWatchStreak',
+      )).value;
+
+  late final _$_sharingWatchStreakAtom = Atom(
+    name: 'ChannelEventsStoreBase._sharingWatchStreak',
+    context: context,
+  );
+
+  bool get sharingWatchStreak {
+    _$_sharingWatchStreakAtom.reportRead();
+    return super._sharingWatchStreak;
+  }
+
+  @override
+  bool get _sharingWatchStreak => sharingWatchStreak;
+
+  @override
+  set _sharingWatchStreak(bool value) {
+    _$_sharingWatchStreakAtom.reportWrite(value, super._sharingWatchStreak, () {
+      super._sharingWatchStreak = value;
+    });
+  }
+
   late final _$_pointsAtom = Atom(
     name: 'ChannelEventsStoreBase._points',
     context: context,
@@ -213,6 +242,16 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     });
   }
 
+  late final _$shareWatchStreakAsyncAction = AsyncAction(
+    'ChannelEventsStoreBase.shareWatchStreak',
+    context: context,
+  );
+
+  @override
+  Future<ViewerActionOutcome?> shareWatchStreak() {
+    return _$shareWatchStreakAsyncAction.run(() => super.shareWatchStreak());
+  }
+
   late final _$refreshPointsAsyncAction = AsyncAction(
     'ChannelEventsStoreBase.refreshPoints',
     context: context,
@@ -362,7 +401,7 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
   @override
   String toString() {
     return '''
-
+canShareWatchStreak: ${canShareWatchStreak}
     ''';
   }
 }

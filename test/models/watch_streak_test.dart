@@ -38,6 +38,20 @@ Map<String, Object?> _milestone({
 
 void main() {
   group('parsing Twitch WatchStreakMilestoneQuery', () {
+    test('keeps the milestone id that sharing names', () {
+      final streak = WatchStreak.tryParse(
+        _milestone(shareStatus: 'CAN_SHARE'),
+      )!;
+
+      expect(streak.milestoneId, 'm1');
+      expect(streak.canShare, isTrue);
+      final shared = streak.shared();
+      expect(shared.canShare, isFalse);
+      expect(shared.value, 4);
+      expect(shared.milestoneId, 'm1');
+      expect(shared.threshold, 5);
+    });
+
     test('reads the streak, the next milestone and its bonus', () {
       final streak = WatchStreak.tryParse(_milestone())!;
 

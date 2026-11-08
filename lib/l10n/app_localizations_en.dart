@@ -8532,4 +8532,10 @@ class AppLocalizationsEn extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String get streakShareInChat => 'Share in chat';
+
+  @override
+  String get streakSharedInChat => 'Your watch streak was shared in chat.';
 }

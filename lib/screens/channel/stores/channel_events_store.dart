@@ -5,6 +5,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_points_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/models/celebration.dart';
 import 'package:onset/models/community_points.dart';
@@ -69,6 +70,50 @@ abstract class ChannelEventsStoreBase with Store {
   /// The viewer's watch streak here; none read without it.
   final TwitchWatchStreakService? _watchStreakService;
 
+  final TwitchViewerActionsService? _viewerActionsService;
+
+  @readonly
+  var _sharingWatchStreak = false;
+
+  @computed
+  bool get canShareWatchStreak {
+    final streak = _watchStreak;
+    return _viewerActionsService != null &&
+        streak != null &&
+        streak.canShare &&
+        streak.milestoneId != null;
+  }
+
+  @action
+  Future<ViewerActionOutcome?> shareWatchStreak() async {
+    final service = _viewerActionsService;
+    final streak = _watchStreak;
+    final milestoneId = streak?.milestoneId;
+    if (_sharingWatchStreak ||
+        service == null ||
+        streak == null ||
+        milestoneId == null ||
+        !canShareWatchStreak) {
+      return null;
+    }
+    _sharingWatchStreak = true;
+    try {
+      final token = await _tokenProvider?.call();
+      if (token == null || token.isEmpty) return ViewerActionOutcome.signedOut;
+      final outcome = await service.shareWatchStreak(
+        channelId: channelId,
+        milestoneId: milestoneId,
+        authToken: token,
+      );
+      if (outcome == ViewerActionOutcome.done) {
+        runInAction(() => _watchStreak = streak.shared());
+      }
+      return outcome;
+    } finally {
+      runInAction(() => _sharingWatchStreak = false);
+    }
+  }
+
   ChannelEventsStoreBase({
     required this.channelId,
     this.channelLogin,
@@ -78,12 +123,14 @@ abstract class ChannelEventsStoreBase with Store {
     HermesClient? client,
     TwitchPointsService? pointsService,
     TwitchWatchStreakService? watchStreakService,
+    TwitchViewerActionsService? viewerActionsService,
     Future<String?> Function()? tokenProvider,
     Future<bool> Function(String channelId)? paidPromotionOf,
   }) : _paidPromotionOf = paidPromotionOf,
        _client = client ?? HermesClient(tokenProvider: tokenProvider),
        _pointsService = pointsService ?? TwitchPointsService.withDefaults(),
        _watchStreakService = watchStreakService,
+       _viewerActionsService = viewerActionsService,
        _tokenProvider = tokenProvider;
 
   /// Channel points, rewards and any running prediction.

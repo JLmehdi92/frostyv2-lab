@@ -11426,6 +11426,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{status, select, done{Done.} refused{Twitch declined this.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.} signedOut{Log in again to do this from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
   String viewerActionResult({required String status});
+
+  /// The watch streak card's button, shown when Twitch lets the viewer share a milestone they just reached: posts it in the channel's chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Share in chat'**
+  String get streakShareInChat;
+
+  /// Snack bar once the viewer's watch streak milestone was shared in chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Your watch streak was shared in chat.'**
+  String get streakSharedInChat;
 }
 
 class _AppLocalizationsDelegate

@@ -991,6 +991,34 @@ void main() {
         });
       }
 
+      testWidgets('a watch streak to share, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: WatchStreakCard(
+                streak: const WatchStreak(
+                  value: 5,
+                  threshold: 5,
+                  pointsBonus: 450,
+                  milestoneId: 'm1',
+                  canShare: true,
+                ),
+                live: true,
+                channelName: 'Streamer',
+                onShare: () {},
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        expect(find.text(french.streakShareInChat), findsOneWidget);
+        await expectFrenchThroughout(tester, 'watch streak share, $at');
+      });
+
       testWidgets('channel points, a prediction and the bet, $at', (
         tester,
       ) async {

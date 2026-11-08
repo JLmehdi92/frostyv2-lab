@@ -4,6 +4,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_points_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/watch_streak.dart';
@@ -15,6 +16,8 @@ class MockPointsService extends Mock implements TwitchPointsService {}
 class MockHermesClient extends Mock implements HermesClient {}
 
 class MockWatchStreakService extends Mock implements TwitchWatchStreakService {}
+
+class MockViewerActions extends Mock implements TwitchViewerActionsService {}
 
 void main() {
   late MockPointsService points;
@@ -137,5 +140,80 @@ void main() {
     await store.refreshWatchStreak();
 
     expect(store.watchStreak, isNull);
+  });
+
+  group('sharing the streak in chat', () {
+    late MockViewerActions actions;
+
+    setUp(() {
+      actions = MockViewerActions();
+      when(
+        () => streaks.getWatchStreak(
+          channelId: any(named: 'channelId'),
+          authToken: any(named: 'authToken'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            const WatchStreak(value: 5, milestoneId: 'm1', canShare: true),
+      );
+    });
+
+    ChannelEventsStore sharing({String? token = 'webtok'}) =>
+        ChannelEventsStore(
+          channelId: '42',
+          channelLogin: 'streamer',
+          client: hermes,
+          pointsService: points,
+          watchStreakService: streaks,
+          viewerActionsService: actions,
+          tokenProvider: () async => token,
+        );
+
+    test('a share sends the milestone once and hides the offer', () async {
+      when(
+        () => actions.shareWatchStreak(
+          channelId: '42',
+          milestoneId: 'm1',
+          authToken: 'webtok',
+        ),
+      ).thenAnswer((_) async => ViewerActionOutcome.done);
+      final store = sharing();
+      await store.refreshWatchStreak();
+      expect(store.canShareWatchStreak, isTrue);
+
+      expect(await store.shareWatchStreak(), ViewerActionOutcome.done);
+      expect(store.watchStreak!.canShare, isFalse);
+      expect(store.canShareWatchStreak, isFalse);
+      expect(await store.shareWatchStreak(), isNull);
+      verify(
+        () => actions.shareWatchStreak(
+          channelId: '42',
+          milestoneId: 'm1',
+          authToken: 'webtok',
+        ),
+      ).called(1);
+    });
+
+    test('a refusal keeps the offer', () async {
+      when(
+        () => actions.shareWatchStreak(
+          channelId: any(named: 'channelId'),
+          milestoneId: any(named: 'milestoneId'),
+          authToken: any(named: 'authToken'),
+        ),
+      ).thenAnswer((_) async => ViewerActionOutcome.refused);
+      final store = sharing();
+      await store.refreshWatchStreak();
+
+      expect(await store.shareWatchStreak(), ViewerActionOutcome.refused);
+      expect(store.watchStreak!.canShare, isTrue);
+    });
+
+    test('without the actions service nothing is offered', () async {
+      final store = build();
+      await store.refreshWatchStreak();
+      expect(store.canShareWatchStreak, isFalse);
+      expect(await store.shareWatchStreak(), isNull);
+    });
   });
 }

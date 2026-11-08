@@ -10952,5 +10952,13 @@
         "example": "refused"
       }
     }
+  },
+  "streakShareInChat": "Share in chat",
+  "@streakShareInChat": {
+    "description": "The watch streak card's button, shown when Twitch lets the viewer share a milestone they just reached: posts it in the channel's chat."
+  },
+  "streakSharedInChat": "Your watch streak was shared in chat.",
+  "@streakSharedInChat": {
+    "description": "Snack bar once the viewer's watch streak milestone was shared in chat."
   }
 }

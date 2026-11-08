@@ -37,6 +37,8 @@ class WatchStreak {
   /// The milestone was just reached (Twitch offers to share it in chat).
   final bool canShare;
 
+  final String? milestoneId;
+
   const WatchStreak({
     required this.value,
     this.threshold,
@@ -44,7 +46,17 @@ class WatchStreak {
     this.state = WatchStreakState.active,
     this.expiresAt,
     this.canShare = false,
+    this.milestoneId,
   });
+
+  WatchStreak shared() => WatchStreak(
+    value: value,
+    threshold: threshold,
+    pointsBonus: pointsBonus,
+    state: state,
+    expiresAt: expiresAt,
+    milestoneId: milestoneId,
+  );
 
   /// The streak in a `WatchStreakMilestoneQuery` answer, or null when there
   /// is none to show: an error (integrity included), no signed-in viewer, no
@@ -77,6 +89,10 @@ class WatchStreak {
       },
       expiresAt: expiresAt is String ? DateTime.tryParse(expiresAt) : null,
       canShare: milestone['shareStatus'] == 'CAN_SHARE',
+      milestoneId: switch (milestone['id']) {
+        final String id when id.isNotEmpty && id.length <= 128 => id,
+        _ => null,
+      },
     );
   }
 

@@ -156,6 +156,7 @@ class _VideoChatState extends State<VideoChat>
     tokenProvider: () async => context.authStore.twitchWebToken,
     // The viewer's watch streak, atop the points panel like Twitch.
     watchStreakService: context.read<TwitchWatchStreakService?>(),
+    viewerActionsService: context.read<TwitchViewerActionsService?>(),
     channelName: widget.userName,
     isChannelLive: () => _videoStore.streamInfo != null,
     paidPromotionOf: context.read<TwitchVodService?>()?.streamHasPaidPromotion,

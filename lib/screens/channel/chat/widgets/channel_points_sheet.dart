@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/watch_streak.dart';
@@ -97,6 +98,24 @@ class _Panel extends StatefulWidget {
 }
 
 class _PanelState extends State<_Panel> {
+  Future<void> _shareStreak(ChannelEventsStore events) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l = context.l10n;
+    final outcome = await events.shareWatchStreak();
+    if (outcome == null || messenger == null || !messenger.mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            outcome == ViewerActionOutcome.done
+                ? l.streakSharedInChat
+                : l.viewerActionResult(status: outcome.name),
+          ),
+        ),
+      );
+  }
+
   SettingsStore? get _settings => maybeSettings(context);
 
   /// The outcome being bet on inside a tablet panel
@@ -274,6 +293,12 @@ class _PanelState extends State<_Panel> {
                       live: events?.isChannelLive?.call() ?? true,
                       channelName:
                           events?.channelName ?? events?.channelLogin ?? '',
+                      onShare:
+                          events != null &&
+                              events.canShareWatchStreak &&
+                              !events.sharingWatchStreak
+                          ? () => _shareStreak(events)
+                          : null,
                     ),
                   ),
 
@@ -384,11 +409,15 @@ class WatchStreakCard extends StatelessWidget {
     required this.streak,
     required this.live,
     required this.channelName,
+    this.onShare,
   });
 
   final WatchStreak streak;
   final bool live;
   final String channelName;
+  final VoidCallback? onShare;
+
+  static const shareKey = ValueKey('watch-streak-share');
 
   @override
   Widget build(BuildContext context) {
@@ -480,6 +509,28 @@ class WatchStreakCard extends StatelessWidget {
                   fontSize: 13,
                   height: 1.35,
                   color: colors.body,
+                ),
+              ),
+            if (onShare case final share?)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: TextButton(
+                  key: shareKey,
+                  onPressed: share,
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(0, 44),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    backgroundColor: SheetColors.accentOf(context),
+                    foregroundColor: SheetColors.onAccentOf(context),
+                    shape: const StadiumBorder(),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    textStyle: const TextStyle(
+                      fontFamily: OnsetTokens.bodyFamily,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  child: Text(context.l10n.streakShareInChat),
                 ),
               ),
             Text(

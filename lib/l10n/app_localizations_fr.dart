@@ -8642,4 +8642,11 @@ class AppLocalizationsFr extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String get streakShareInChat => 'Partager dans le chat';
+
+  @override
+  String get streakSharedInChat =>
+      'Votre série de visionnage a été partagée dans le chat.';
 }

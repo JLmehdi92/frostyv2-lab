@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_points_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/watch_streak.dart';
@@ -14,6 +15,8 @@ class MockPointsService extends Mock implements TwitchPointsService {}
 class MockHermesClient extends Mock implements HermesClient {}
 
 class MockWatchStreakService extends Mock implements TwitchWatchStreakService {}
+
+class MockViewerActions extends Mock implements TwitchViewerActionsService {}
 
 void main() {
   late MockPointsService points;
@@ -34,6 +37,7 @@ void main() {
     WidgetTester tester,
     WatchStreak? streak, {
     bool live = true,
+    TwitchViewerActionsService? actions,
   }) async {
     when(
       () => streaks.getWatchStreak(
@@ -49,6 +53,7 @@ void main() {
       client: MockHermesClient(),
       pointsService: points,
       watchStreakService: streaks,
+      viewerActionsService: actions,
       tokenProvider: () async => 'tok',
     );
     await store.refreshPoints();
@@ -99,5 +104,58 @@ void main() {
 
     expect(find.textContaining('Watch Streak'), findsNothing);
     expect(find.textContaining('may not count'), findsNothing);
+  });
+
+  testWidgets('a milestone to share offers Share in chat, once', (
+    tester,
+  ) async {
+    final actions = MockViewerActions();
+    when(
+      () => actions.shareWatchStreak(
+        channelId: '42',
+        milestoneId: 'm1',
+        authToken: 'tok',
+      ),
+    ).thenAnswer((_) async => ViewerActionOutcome.done);
+    await pump(
+      tester,
+      const WatchStreak(value: 5, milestoneId: 'm1', canShare: true),
+      actions: actions,
+    );
+
+    await tester.tap(find.byKey(WatchStreakCard.shareKey));
+    await tester.pumpAndSettle();
+    expect(find.text('Your watch streak was shared in chat.'), findsOneWidget);
+    expect(find.byKey(WatchStreakCard.shareKey), findsNothing);
+  });
+
+  testWidgets('a refused share says so and keeps the button', (tester) async {
+    final actions = MockViewerActions();
+    when(
+      () => actions.shareWatchStreak(
+        channelId: any(named: 'channelId'),
+        milestoneId: any(named: 'milestoneId'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer((_) async => ViewerActionOutcome.integrityRefused);
+    await pump(
+      tester,
+      const WatchStreak(value: 5, milestoneId: 'm1', canShare: true),
+      actions: actions,
+    );
+
+    await tester.tap(find.byKey(WatchStreakCard.shareKey));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('anti-bot'), findsOneWidget);
+    expect(find.byKey(WatchStreakCard.shareKey), findsOneWidget);
+  });
+
+  testWidgets('nothing to share, no button', (tester) async {
+    await pump(
+      tester,
+      const WatchStreak(value: 5, milestoneId: 'm1'),
+      actions: MockViewerActions(),
+    );
+    expect(find.byKey(WatchStreakCard.shareKey), findsNothing);
   });
 }
