@@ -8655,4 +8655,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaderboardsFailed => 'Couldn’t load the leaderboards.';
+
+  @override
+  String get shoutoutCardEyebrow => 'Shoutout';
+
+  @override
+  String get shoutoutCardRecent => 'Recent categories';
+
+  @override
+  String shoutoutCardNext({required String time}) {
+    return 'Next stream: $time';
+  }
+
+  @override
+  String get shoutoutCardFailed => 'Couldn’t load this channel’s details.';
 }

@@ -533,13 +533,13 @@ abstract class ChatStoreBase with Store {
     _addModLine(
       l.chatShoutoutNotice(name: shoutout.targetName),
       actionLabel: l.chatShoutoutView,
-      onAction: () => _userCardRequests.add((
-        login: shoutout.targetLogin,
-        id: shoutout.targetId,
-        displayName: shoutout.targetName,
-      )),
+      onAction: () => _shoutoutRequests.add(shoutout),
     );
   }
+
+  final _shoutoutRequests = StreamController<ShoutoutNotice>.broadcast();
+
+  Stream<ShoutoutNotice> get shoutoutRequests => _shoutoutRequests.stream;
 
   void _followModTools(String? moderatorId) {
     if (moderatorId == null) {
@@ -2398,6 +2398,7 @@ abstract class ChatStoreBase with Store {
     _cancelChatDelayCountdown();
     sleepTimer?.cancel();
     _userCardRequests.close();
+    _shoutoutRequests.close();
     _chatSettingsRequests.close();
     _sharedChatBannerTimer?.cancel();
     _emoteRefreshTimer?.cancel();

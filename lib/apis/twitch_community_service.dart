@@ -4,12 +4,54 @@ import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/resub_notification.dart';
+import 'package:onset/models/shoutout_profile.dart';
 
 class TwitchCommunityService extends BaseApiClient {
   TwitchCommunityService(Dio dio) : super(dio, '');
 
   static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
+  static final _login = RegExp(r'^[a-z0-9_]{1,25}$');
+
+  static const _shoutoutQuery =
+      'query ShoutoutQuery(\$channelLogin: String!, \$targetLogin: String!) '
+      '{ channel(name: \$channelLogin) { id name } user(login: '
+      '\$targetLogin) { id displayName profileImageURL(width: 300) '
+      'primaryColorHex channel { id name home { shelves { categoryShelf('
+      'first: 3) { edges { node { id boxArtURL(width: 285, height: 380) '
+      'displayName } } } } } schedule { id nextSegment { id categories { id '
+      'displayName } hasReminder startAt endAt isCancelled title } } } } }';
+
+  static const _shoutoutStatusQuery =
+      'query ShoutoutHighlightStatusQuery(\$targetLogin: String!) { '
+      'user(login: \$targetLogin) { id self { follower { followedAt } '
+      'canFollow banStatus { createdAt } } } }';
+
+  Future<ShoutoutProfile?> getShoutoutProfile({
+    required String channelLogin,
+    required String targetLogin,
+    String? authToken,
+  }) async {
+    final channel = channelLogin.toLowerCase();
+    final target = targetLogin.toLowerCase();
+    if (!_login.hasMatch(channel) || !_login.hasMatch(target)) return null;
+    final profile = ShoutoutProfile.tryParse(
+      await _ask('ShoutoutQuery', _shoutoutQuery, {
+        'channelLogin': channel,
+        'targetLogin': target,
+      }),
+    );
+    if (profile == null || authToken == null || authToken.isEmpty) {
+      return profile;
+    }
+    return profile.withFollowing(
+      ShoutoutProfile.followingIn(
+        await _ask('ShoutoutHighlightStatusQuery', _shoutoutStatusQuery, {
+          'targetLogin': target,
+        }, authToken: authToken),
+      ),
+    );
+  }
 
   static const _resubNotificationQuery =
       'query ChannelResubNotificationQuery(\$channelId: ID!) { user(id: '
@@ -46,12 +88,10 @@ class TwitchCommunityService extends BaseApiClient {
   }) async {
     if (!_numericId.hasMatch(channelId)) return null;
     return ChannelLeaderboards.tryParse(
-      await _ask(
-        'ChannelLeaderboardsQuery',
-        _leaderboardsQuery,
-        {'channelId': channelId, 'fetchChannelSettings': true},
-        authToken: authToken,
-      ),
+      await _ask('ChannelLeaderboardsQuery', _leaderboardsQuery, {
+        'channelId': channelId,
+        'fetchChannelSettings': true,
+      }, authToken: authToken),
     );
   }
 

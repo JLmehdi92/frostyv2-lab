@@ -8770,4 +8770,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get leaderboardsFailed => 'Impossible de charger les classements.';
+
+  @override
+  String get shoutoutCardEyebrow => 'Dédicace';
+
+  @override
+  String get shoutoutCardRecent => 'Catégories récentes';
+
+  @override
+  String shoutoutCardNext({required String time}) {
+    return 'Prochain live : $time';
+  }
+
+  @override
+  String get shoutoutCardFailed =>
+      'Impossible de charger les détails de cette chaîne.';
 }

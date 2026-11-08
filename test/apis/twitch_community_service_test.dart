@@ -115,4 +115,61 @@ void main() {
       expect(await service.getLeaderboards(channelId: '4 2'), isNull);
     });
   });
+
+  group('getShoutoutProfile', () {
+    test('reads the profile anonymously without a token', () async {
+      reply(shoutoutResponse);
+
+      final profile = await service.getShoutoutProfile(
+        channelLogin: 'SomeChannel',
+        targetLogin: 'Target',
+      );
+
+      expect(profile?.displayName, 'Target');
+      expect(profile?.following, isNull);
+      expect(sent()['operationName'], 'ShoutoutQuery');
+      expect(sent()['variables'], {
+        'channelLogin': 'somechannel',
+        'targetLogin': 'target',
+      });
+    });
+
+    test('adds whether the viewer follows with a token', () async {
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) => handler.resolve(
+            Response(
+              requestOptions: options,
+              statusCode: 200,
+              data: (options.data as Map)['operationName'] == 'ShoutoutQuery'
+                  ? shoutoutResponse
+                  : followingShoutoutStatusResponse,
+            ),
+          ),
+        ),
+      );
+
+      final profile = await service.getShoutoutProfile(
+        channelLogin: 'somechannel',
+        targetLogin: 'target',
+        authToken: 'tok',
+      );
+
+      expect(profile?.following, isTrue);
+      expect(requests, hasLength(2));
+      expect(requests.first.headers.containsKey('Authorization'), isFalse);
+      expect(requests.last.headers['Authorization'], 'OAuth tok');
+    });
+
+    test('a bad login is never sent', () async {
+      expect(
+        await service.getShoutoutProfile(
+          channelLogin: 'some channel',
+          targetLogin: 'target',
+        ),
+        isNull,
+      );
+      expect(requests, isEmpty);
+    });
+  });
 }

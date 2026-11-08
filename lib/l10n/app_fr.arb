@@ -1885,5 +1885,9 @@
   "leaderboardsGifts": "{count, plural, one{{amount}\u00a0abonnement offert} other{{amount}\u00a0abonnements offerts}}",
   "leaderboardsYourRank": "Votre rang\u00a0: {rank}",
   "leaderboardsEmpty": "Personne ne figure encore dans ce classement.",
-  "leaderboardsFailed": "Impossible de charger les classements."
+  "leaderboardsFailed": "Impossible de charger les classements.",
+  "shoutoutCardEyebrow": "Dédicace",
+  "shoutoutCardRecent": "Catégories récentes",
+  "shoutoutCardNext": "Prochain live\u00a0: {time}",
+  "shoutoutCardFailed": "Impossible de charger les détails de cette chaîne."
 }

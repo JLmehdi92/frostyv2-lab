@@ -58,11 +58,11 @@ void main() {
     async.elapse(const Duration(seconds: 30));
   }
 
-  test('a shoutout is said once, and opens the channel\'s card', () {
+  test('a shoutout is said once, and opens the shoutout card', () {
     fakeAsync((async) {
       final store = createTestChatStore(settings: settings, sockets: sockets);
-      final opened = <ChatUserCardRequest>[];
-      store.userCardRequests.listen(opened.add);
+      final opened = <ShoutoutNotice>[];
+      store.shoutoutRequests.listen(opened.add);
       store.addShoutout(_shoutout);
       store.addShoutout(_shoutout);
       async.flushMicrotasks();
@@ -73,7 +73,7 @@ void main() {
       expect(notices.single.actionLabel, 'View');
       notices.single.actionCallback!();
       async.flushMicrotasks();
-      expect(opened, [(login: 'kai', id: '33', displayName: 'Kai')]);
+      expect(opened.map((notice) => notice.targetLogin), ['kai']);
       finish(store, async);
     });
   });

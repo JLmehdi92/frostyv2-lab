@@ -11094,5 +11094,27 @@
   "leaderboardsFailed": "Couldn’t load the leaderboards.",
   "@leaderboardsFailed": {
     "description": "The leaderboards sheet when Twitch did not answer or answered in a shape ONSET no longer reads."
+  },
+  "shoutoutCardEyebrow": "Shoutout",
+  "@shoutoutCardEyebrow": {
+    "description": "Small heading of the card opened from a shoutout line in chat, which presents the channel the streamer recommends (shown in capitals)."
+  },
+  "shoutoutCardRecent": "Recent categories",
+  "@shoutoutCardRecent": {
+    "description": "Above the categories the shouted-out channel streamed recently, on the shoutout card."
+  },
+  "shoutoutCardNext": "Next stream: {time}",
+  "@shoutoutCardNext": {
+    "description": "The shouted-out channel's next scheduled stream, on the shoutout card; time is a localized date and time.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "Tue, Nov 10, 6:00 PM"
+      }
+    }
+  },
+  "shoutoutCardFailed": "Couldn’t load this channel’s details.",
+  "@shoutoutCardFailed": {
+    "description": "The shoutout card when Twitch did not answer; Follow and Profile still work."
   }
 }

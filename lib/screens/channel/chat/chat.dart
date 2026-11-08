@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
+import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
 import 'package:onset/screens/channel/chat/mod_tools/stores/mod_tools_store.dart';
 import 'package:onset/screens/channel/chat/mod_tools/widgets/mod_tools_sheet.dart';
 import 'package:onset/screens/channel/chat/mod_tools/widgets/shield_mode_indicator.dart';
@@ -16,6 +18,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/screens/channel/chat/widgets/shared_chat_banner.dart';
+import 'package:onset/screens/channel/chat/widgets/shoutout_card.dart';
 import 'package:onset/screens/settings/chat_settings.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
@@ -28,6 +31,7 @@ import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:provider/provider.dart';
 
 typedef ChatSettingsOpener =
     void Function(BuildContext context, SettingsStore settings);
@@ -133,6 +137,41 @@ class _ChatState extends State<Chat> {
   bool get _isMerged => chatTabsStore != null;
 
   StreamSubscription<ChatUserCardRequest>? _userCards;
+  StreamSubscription<ShoutoutNotice>? _shoutoutCards;
+
+  Future<void> _openShoutout(ShoutoutNotice notice) async {
+    final store = chatStore;
+    void openProfile() => widget.openUserCard(
+      context,
+      chatStore: store,
+      user: (
+        login: notice.targetLogin,
+        id: notice.targetId,
+        displayName: notice.targetName,
+      ),
+    );
+    final service = context.read<TwitchCommunityService?>();
+    if (service == null) {
+      openProfile();
+      return;
+    }
+    final profileWanted = await showOnsetSheet<bool>(
+      context: context,
+      panel: true,
+      constraints: const BoxConstraints(maxWidth: 560),
+      builder: (sheetContext) => ShoutoutCard(
+        notice: notice,
+        load: () => service.getShoutoutProfile(
+          channelLogin: store.channelName,
+          targetLogin: notice.targetLogin,
+          authToken: store.auth.twitchWebToken,
+        ),
+        onViewProfile: () => Navigator.pop(sheetContext, true),
+      ),
+    );
+    if (profileWanted == true && mounted) openProfile();
+  }
+
   StreamSubscription<void>? _settingsRequests;
   StreamSubscription<ModToolsView>? _modToolsRequests;
   ReactionDisposer? _expandAnnouncer;
@@ -168,6 +207,7 @@ class _ChatState extends State<Chat> {
   @override
   void dispose() {
     _userCards?.cancel();
+    _shoutoutCards?.cancel();
     _settingsRequests?.cancel();
     _modToolsRequests?.cancel();
     _expandAnnouncer?.call();
@@ -179,6 +219,11 @@ class _ChatState extends State<Chat> {
     _userCards = chatStore.userCardRequests.listen((user) {
       if (!mounted) return;
       widget.openUserCard(context, chatStore: chatStore, user: user);
+    });
+    _shoutoutCards?.cancel();
+    _shoutoutCards = chatStore.shoutoutRequests.listen((notice) {
+      if (!mounted) return;
+      unawaited(_openShoutout(notice));
     });
     _settingsRequests?.cancel();
     _settingsRequests = chatStore.chatSettingsRequests.listen((_) {

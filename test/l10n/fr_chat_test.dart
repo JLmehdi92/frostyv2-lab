@@ -15,6 +15,7 @@ import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/resub_notification.dart';
+import 'package:onset/models/shoutout_profile.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/watch_streak.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
@@ -24,6 +25,7 @@ import 'package:onset/screens/channel/chat/details/chat_mode_controls.dart';
 import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu_section.dart';
+import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
 import 'package:onset/screens/channel/chat/moderation.dart';
 import 'package:onset/screens/channel/chat/moderation_notice.dart';
 import 'package:onset/screens/channel/chat/server_notice.dart';
@@ -36,6 +38,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
 import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
+import 'package:onset/screens/channel/chat/widgets/shoutout_card.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -1147,6 +1150,65 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text(french.leaderboardsFailed), findsOneWidget);
         await expectFrenchThroughout(tester, 'leaderboards failed, $at');
+      });
+
+      testWidgets('the shoutout card, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: ShoutoutCard(
+              notice: const ShoutoutNotice(
+                id: 's',
+                targetId: '2',
+                targetLogin: 'unechaine',
+                targetName: 'UneChaîneAuNomTrèsLong',
+              ),
+              load: () async => ShoutoutProfile(
+                id: '2',
+                login: 'unechaine',
+                displayName: 'UneChaîneAuNomTrèsLong',
+                categories: const [
+                  ShoutoutCategory(id: '1', name: 'Juste discuter'),
+                  ShoutoutCategory(id: '2', name: 'Grand Theft Auto V'),
+                  ShoutoutCategory(id: '3', name: 'VALORANT'),
+                ],
+                nextStream: ShoutoutSchedule(
+                  startAt: DateTime(2026, 12, 1, 20, 30),
+                  title: 'Soirée classée',
+                ),
+              ),
+              onViewProfile: () {},
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text(french.shoutoutCardRecent), findsOneWidget);
+        await expectFrenchThroughout(tester, 'shoutout card, $at');
+      });
+
+      testWidgets('the shoutout card failing, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: ShoutoutCard(
+              notice: const ShoutoutNotice(
+                id: 's',
+                targetId: '2',
+                targetLogin: 'unechaine',
+                targetName: 'UneChaîne',
+              ),
+              load: () async => null,
+              onViewProfile: () {},
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text(french.shoutoutCardFailed), findsOneWidget);
+        await expectFrenchThroughout(tester, 'shoutout failed, $at');
       });
 
       testWidgets('the watch streak help, $at', (tester) async {

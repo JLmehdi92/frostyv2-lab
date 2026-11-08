@@ -11564,6 +11564,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn’t load the leaderboards.'**
   String get leaderboardsFailed;
+
+  /// Small heading of the card opened from a shoutout line in chat, which presents the channel the streamer recommends (shown in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'Shoutout'**
+  String get shoutoutCardEyebrow;
+
+  /// Above the categories the shouted-out channel streamed recently, on the shoutout card.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent categories'**
+  String get shoutoutCardRecent;
+
+  /// The shouted-out channel's next scheduled stream, on the shoutout card; time is a localized date and time.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stream: {time}'**
+  String shoutoutCardNext({required String time});
+
+  /// The shoutout card when Twitch did not answer; Follow and Profile still work.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load this channel’s details.'**
+  String get shoutoutCardFailed;
 }
 
 class _AppLocalizationsDelegate
