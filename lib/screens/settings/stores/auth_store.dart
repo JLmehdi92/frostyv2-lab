@@ -12,6 +12,7 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/main.dart';
+import 'package:onset/screens/settings/account/block_reason_picker.dart';
 import 'package:onset/screens/settings/stores/user_store.dart';
 import 'package:onset/services/telemetry.dart';
 import 'package:onset/services/twitch_web_token_service.dart';
@@ -806,6 +807,7 @@ abstract class AuthBase with Store {
     BuildContext context, {
     required String targetUser,
     required String targetUserId,
+    BlockSource? source,
   }) {
     final isBlocked = user.blockedUsers
         .where((blockedUser) => blockedUser.userId == targetUserId)
@@ -818,30 +820,43 @@ abstract class AuthBase with Store {
         ? l.settingsUnblockMessage(name: targetUser)
         : l.settingsBlockMessage(name: targetUser);
 
-    void onPressed() {
-      if (isBlocked) {
-        user.unblock(targetId: targetUserId);
-      } else {
-        user.block(targetId: targetUserId, displayName: targetUser);
-      }
-      Navigator.pop(context);
-    }
+    BlockReason? reason;
 
     return showDialog(
       context: context,
-      builder: (context) => OnsetAlertDialog(
-        title: title,
-        message: message,
-        actions: [
-          TextButton(
-            onPressed: Navigator.of(context).pop,
-            child: Text(context.l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: onPressed,
-            child: Text(context.l10n.commonYes),
-          ),
-        ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => OnsetAlertDialog(
+          title: title,
+          message: message,
+          content: isBlocked
+              ? null
+              : BlockReasonPicker(
+                  selected: reason,
+                  onSelected: (choice) => setState(() => reason = choice),
+                ),
+          actions: [
+            TextButton(
+              onPressed: Navigator.of(context).pop,
+              child: Text(context.l10n.commonCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (isBlocked) {
+                  user.unblock(targetId: targetUserId);
+                } else {
+                  user.block(
+                    targetId: targetUserId,
+                    displayName: targetUser,
+                    reason: reason,
+                    source: source,
+                  );
+                }
+                Navigator.pop(context);
+              },
+              child: Text(context.l10n.commonYes),
+            ),
+          ],
+        ),
       ),
     );
   }

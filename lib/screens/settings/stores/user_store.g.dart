@@ -65,9 +65,19 @@ mixin _$UserStore on UserStoreBase, Store {
   );
 
   @override
-  Future<void> block({required String targetId, required String displayName}) {
+  Future<void> block({
+    required String targetId,
+    required String displayName,
+    BlockReason? reason,
+    BlockSource? source,
+  }) {
     return _$blockAsyncAction.run(
-      () => super.block(targetId: targetId, displayName: displayName),
+      () => super.block(
+        targetId: targetId,
+        displayName: displayName,
+        reason: reason,
+        source: source,
+      ),
     );
   }
 

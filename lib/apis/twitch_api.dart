@@ -132,6 +132,10 @@ class TokenCheck {
 
 enum _TokenKind { valid, foreign, invalid }
 
+enum BlockReason { harassment, spam, other }
+
+enum BlockSource { chat, whisper }
+
 /// The Twitch service for making API calls.
 class TwitchApi extends BaseApiClient {
   static const String _helixBaseUrl = 'https://api.twitch.tv/helix';
@@ -879,11 +883,19 @@ class TwitchApi extends BaseApiClient {
   }
 
   // Blocks the user with the given ID and returns true on success or false on failure.
-  Future<bool> blockUser({required String userId}) async {
+  Future<bool> blockUser({
+    required String userId,
+    BlockReason? reason,
+    BlockSource? source,
+  }) async {
     try {
       await put<dynamic>(
         '/users/blocks',
-        queryParameters: {'target_user_id': userId},
+        queryParameters: {
+          'target_user_id': userId,
+          'source_context': ?source?.name,
+          'reason': ?reason?.name,
+        },
       );
       return true; // If no exception, operation succeeded
     } on ApiException {

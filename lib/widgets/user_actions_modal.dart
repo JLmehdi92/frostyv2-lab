@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -100,6 +101,7 @@ class UserActionsModal extends StatelessWidget {
                   context,
                   targetUser: name,
                   targetUserId: userId,
+                  source: BlockSource.chat,
                 )
                 .then((_) {
                   if (context.mounted) {

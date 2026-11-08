@@ -47,8 +47,14 @@ abstract class UserStoreBase with Store {
   Future<void> block({
     required String targetId,
     required String displayName,
+    BlockReason? reason,
+    BlockSource? source,
   }) async {
-    final success = await twitchApi.blockUser(userId: targetId);
+    final success = await twitchApi.blockUser(
+      userId: targetId,
+      reason: reason,
+      source: source,
+    );
 
     if (success) {
       _blockedUsers.add(UserBlockedTwitch(targetId, displayName, displayName));
