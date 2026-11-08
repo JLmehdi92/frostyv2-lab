@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -104,6 +105,38 @@ void main() {
 
     expect(find.textContaining('Watch Streak'), findsNothing);
     expect(find.textContaining('may not count'), findsNothing);
+    expect(find.byKey(WatchStreakCard.helpKey), findsOneWidget);
+  });
+
+  testWidgets('no streak and no balance, no help either', (tester) async {
+    when(
+      () => points.fetchContext(
+        userLogin: any(named: 'userLogin'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer((_) async => CommunityPointsContext.empty);
+    await pump(tester, null);
+
+    expect(find.byKey(WatchStreakCard.helpKey), findsNothing);
+  });
+
+  testWidgets('an expiring streak counts down every second', (tester) async {
+    await pump(
+      tester,
+      WatchStreak(
+        value: 9,
+        state: WatchStreakState.suspended,
+        expiresAt: clock.now().add(const Duration(minutes: 1, seconds: 30)),
+      ),
+      live: false,
+    );
+    String subtitle() => tester
+        .widget<Text>(find.textContaining('to save your streak'))
+        .data!;
+
+    final before = subtitle();
+    await tester.pump(const Duration(seconds: 2));
+    expect(subtitle(), isNot(before));
   });
 
   testWidgets('a milestone to share offers Share in chat, once', (

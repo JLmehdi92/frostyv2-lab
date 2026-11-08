@@ -1067,6 +1067,25 @@ void main() {
         await expectFrenchThroughout(tester, 'resub share dialog, $at');
       });
 
+      testWidgets('the streak help without a streak, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          const Scaffold(
+            body: SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: StreakHelpCard(),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        await tester.tap(find.byKey(WatchStreakCard.helpKey));
+        await tester.pumpAndSettle();
+        expect(find.text(french.streakHelpBody), findsOneWidget);
+        await expectFrenchThroughout(tester, 'streak help alone, $at');
+      });
+
       testWidgets('the watch streak help, $at', (tester) async {
         await pumpLocalized(
           tester,

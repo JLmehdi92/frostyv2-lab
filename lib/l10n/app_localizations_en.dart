@@ -8583,4 +8583,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resubSharedInChat => 'Your sub was shared in chat.';
+
+  @override
+  String streakRecovered({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Your watch streak is saved: $count streams in a row.',
+      one: 'Your watch streak is saved: $count stream in a row.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get streakExpired => 'Your watch streak in this channel has ended.';
 }

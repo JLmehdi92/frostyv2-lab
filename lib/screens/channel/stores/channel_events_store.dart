@@ -118,6 +118,11 @@ abstract class ChannelEventsStoreBase with Store {
 
   final TwitchCommunityService? _communityService;
 
+  final _watchStreakChanges = StreamController<WatchStreakChange>.broadcast();
+
+  Stream<WatchStreakChange> get watchStreakChanges =>
+      _watchStreakChanges.stream;
+
   @readonly
   ResubNotification? _resubNotification;
 
@@ -419,7 +424,11 @@ abstract class ChannelEventsStoreBase with Store {
       authToken: token,
     );
     _watchStreakFailed = streak == null;
+    final change = watchStreakChange(_watchStreak, streak);
     runInAction(() => _watchStreak = streak);
+    if (change != null && !_watchStreakChanges.isClosed) {
+      _watchStreakChanges.add(change);
+    }
   }
 
   /// True while a redeem or a bet is in flight, so the sheet can disable its
@@ -768,6 +777,7 @@ abstract class ChannelEventsStoreBase with Store {
   void dispose() {
     unawaited(_entitlementChanges.close());
     unawaited(_shoutouts.close());
+    unawaited(_watchStreakChanges.close());
     unawaited(_streamPushes.close());
     unawaited(_goalsReached.close());
     _pointsRefreshTimer?.cancel();

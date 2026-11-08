@@ -13,6 +13,37 @@ enum WatchStreakState {
   none,
 }
 
+enum WatchStreakChange { recovered, expired }
+
+WatchStreakChange? watchStreakChange(WatchStreak? before, WatchStreak? after) {
+  if (before == null ||
+      after == null ||
+      before.state != WatchStreakState.suspended) {
+    return null;
+  }
+  if (after.state == WatchStreakState.none || after.value < before.value) {
+    return WatchStreakChange.expired;
+  }
+  if (after.state == WatchStreakState.active) {
+    return WatchStreakChange.recovered;
+  }
+  return null;
+}
+
+String watchStreakChangeText(
+  WatchStreakChange change, {
+  required WatchStreak? streak,
+  AppLocalizations? l,
+}) {
+  final words = l ?? L10n.current;
+  return switch (change) {
+    WatchStreakChange.recovered => words.streakRecovered(
+      count: streak?.value ?? 0,
+    ),
+    WatchStreakChange.expired => words.streakExpired,
+  };
+}
+
 /// What the channel points panel says about the streak.
 typedef WatchStreakCopy = ({String title, String? subtitle});
 

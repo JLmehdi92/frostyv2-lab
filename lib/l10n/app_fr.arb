@@ -1875,5 +1875,7 @@
   "resubShareDialogTitle": "Partager votre abonnement dans le chat\u202f?",
   "resubShareMessageHint": "Message (facultatif)",
   "resubShareSend": "Partager",
-  "resubSharedInChat": "Votre abonnement a été partagé dans le chat."
+  "resubSharedInChat": "Votre abonnement a été partagé dans le chat.",
+  "streakRecovered": "{count, plural, one{Votre série de visionnage est sauvée\u00a0: {count}\u00a0live d’affilée.} other{Votre série de visionnage est sauvée\u00a0: {count}\u00a0lives d’affilée.}}",
+  "streakExpired": "Votre série de visionnage sur cette chaîne a pris fin."
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -341,6 +342,14 @@ class _PanelState extends State<_Panel> {
                     ),
                   ),
 
+                if (widget.watchStreak == null &&
+                    events != null &&
+                    points.balance != null)
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: StreakHelpCard(),
+                  ),
+
                 if (widget.bitsBalance != null || widget.giftedHere > 0)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -460,13 +469,23 @@ class WatchStreakCard extends StatelessWidget {
   static const helpKey = ValueKey('watch-streak-help');
   static const helpBodyKey = ValueKey('watch-streak-help-body');
 
+  bool get _countingDown =>
+      !live &&
+      streak.state == WatchStreakState.suspended &&
+      streak.expiresAt != null;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => _EverySecond(
+    ticking: _countingDown,
+    builder: (now) => _card(context, now),
+  );
+
+  Widget _card(BuildContext context, DateTime now) {
     final colors = SheetColors.of(context);
     final copy = streak.copy(
       live: live,
       channelName: channelName,
-      now: DateTime.now(),
+      now: now,
       l: context.l10n,
     );
     final next = streak.threshold;
@@ -583,7 +602,7 @@ class WatchStreakCard extends StatelessWidget {
                 color: colors.tertiary,
               ),
             ),
-            const _StreakHelp(),
+            const StreakHelp(),
           ],
         ),
       ),
@@ -591,14 +610,79 @@ class WatchStreakCard extends StatelessWidget {
   }
 }
 
-class _StreakHelp extends StatefulWidget {
-  const _StreakHelp();
+class _EverySecond extends StatefulWidget {
+  const _EverySecond({required this.ticking, required this.builder});
+
+  final bool ticking;
+  final Widget Function(DateTime now) builder;
 
   @override
-  State<_StreakHelp> createState() => _StreakHelpState();
+  State<_EverySecond> createState() => _EverySecondState();
 }
 
-class _StreakHelpState extends State<_StreakHelp> {
+class _EverySecondState extends State<_EverySecond> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _follow();
+  }
+
+  @override
+  void didUpdateWidget(_EverySecond oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.ticking != widget.ticking) _follow();
+  }
+
+  void _follow() {
+    _timer?.cancel();
+    _timer = widget.ticking
+        ? Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}))
+        : null;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(clock.now());
+}
+
+class StreakHelpCard extends StatelessWidget {
+  const StreakHelpCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.well,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colors.hairline,
+          width: OnsetTokens.hairlineWidth,
+        ),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        child: StreakHelp(),
+      ),
+    );
+  }
+}
+
+class StreakHelp extends StatefulWidget {
+  const StreakHelp({super.key});
+
+  @override
+  State<StreakHelp> createState() => _StreakHelpState();
+}
+
+class _StreakHelpState extends State<StreakHelp> {
   bool _open = false;
 
   @override

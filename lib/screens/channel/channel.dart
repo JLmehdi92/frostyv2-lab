@@ -19,6 +19,7 @@ import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/stream_push.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/models/watch_streak.dart';
 import 'package:onset/screens/channel/celebrations/celebration_overlay.dart';
 import 'package:onset/screens/channel/celebrations/subtle_celebrations.dart';
 import 'package:onset/screens/channel/channel_info.dart';
@@ -749,6 +750,9 @@ class _VideoChatState extends State<VideoChat>
     _shoutouts = _eventsStore.shoutouts.listen(_showShoutout);
     _streamPushes = _eventsStore.streamPushes.listen(_applyStreamPush);
     _goalsReached = _eventsStore.goalsReached.listen(_showGoalReached);
+    _streakChanges = _eventsStore.watchStreakChanges.listen(
+      _showWatchStreakChange,
+    );
     _infoStore.start();
     _watchStreamEnd();
     final auth = context.authStore;
@@ -1208,6 +1212,19 @@ class _VideoChatState extends State<VideoChat>
   StreamSubscription<StreamPush>? _streamPushes;
 
   StreamSubscription<CreatorGoal>? _goalsReached;
+  StreamSubscription<WatchStreakChange>? _streakChanges;
+
+  void _showWatchStreakChange(WatchStreakChange change) {
+    if (!mounted) return;
+    final text = watchStreakChangeText(
+      change,
+      streak: _eventsStore.watchStreak,
+      l: context.l10n,
+    );
+    ScaffoldMessenger.maybeOf(
+      context,
+    )?.showSnackBar(SnackBar(content: Text(text)));
+  }
 
   void _showGoalReached(CreatorGoal goal) {
     if (!mounted) return;
@@ -2087,6 +2104,7 @@ class _VideoChatState extends State<VideoChat>
     unawaited(_shoutouts?.cancel());
     unawaited(_streamPushes?.cancel());
     unawaited(_goalsReached?.cancel());
+    unawaited(_streakChanges?.cancel());
     _eventsStore.dispose();
     _viewerReaction?.call();
     _infoStore.dispose();

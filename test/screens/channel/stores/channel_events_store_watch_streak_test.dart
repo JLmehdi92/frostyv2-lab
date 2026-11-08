@@ -216,4 +216,54 @@ void main() {
       expect(await store.shareWatchStreak(), isNull);
     });
   });
+
+  test('a suspended streak read running again says recovered', () {
+    final answers = [
+      const WatchStreak(value: 6, state: WatchStreakState.suspended),
+      const WatchStreak(value: 7),
+    ];
+    when(
+      () => streaks.getWatchStreak(
+        channelId: any(named: 'channelId'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer((_) async => answers.removeAt(0));
+    fakeAsync((async) {
+      final store = build();
+      final changes = <WatchStreakChange>[];
+      store.watchStreakChanges.listen(changes.add);
+      unawaited(store.refreshWatchStreak());
+      async.flushMicrotasks();
+      expect(changes, isEmpty);
+
+      async.elapse(const Duration(minutes: 2));
+      unawaited(store.refreshWatchStreak());
+      async.flushMicrotasks();
+      expect(changes, [WatchStreakChange.recovered]);
+    });
+  });
+
+  test('a suspended streak read as none says expired', () {
+    final answers = [
+      const WatchStreak(value: 6, state: WatchStreakState.suspended),
+      const WatchStreak(value: 0, state: WatchStreakState.none),
+    ];
+    when(
+      () => streaks.getWatchStreak(
+        channelId: any(named: 'channelId'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer((_) async => answers.removeAt(0));
+    fakeAsync((async) {
+      final store = build();
+      final changes = <WatchStreakChange>[];
+      store.watchStreakChanges.listen(changes.add);
+      unawaited(store.refreshWatchStreak());
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 2));
+      unawaited(store.refreshWatchStreak());
+      async.flushMicrotasks();
+      expect(changes, [WatchStreakChange.expired]);
+    });
+  });
 }

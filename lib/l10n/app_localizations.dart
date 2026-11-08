@@ -11504,6 +11504,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your sub was shared in chat.'**
   String get resubSharedInChat;
+
+  /// Snack bar when a watch streak that was suspended (a stream was missed) is counted again by Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Your watch streak is saved: {count} stream in a row.} other{Your watch streak is saved: {count} streams in a row.}}'**
+  String streakRecovered({required int count});
+
+  /// Snack bar when a suspended watch streak was not saved in time and Twitch reset it.
+  ///
+  /// In en, this message translates to:
+  /// **'Your watch streak in this channel has ended.'**
+  String get streakExpired;
 }
 
 class _AppLocalizationsDelegate

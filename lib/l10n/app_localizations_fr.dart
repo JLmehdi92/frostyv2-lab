@@ -8696,4 +8696,19 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get resubSharedInChat =>
       'Votre abonnement a été partagé dans le chat.';
+
+  @override
+  String streakRecovered({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Votre série de visionnage est sauvée : $count lives d’affilée.',
+      one: 'Votre série de visionnage est sauvée : $count live d’affilée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get streakExpired =>
+      'Votre série de visionnage sur cette chaîne a pris fin.';
 }

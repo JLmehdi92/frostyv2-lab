@@ -11010,5 +11010,19 @@
   "resubSharedInChat": "Your sub was shared in chat.",
   "@resubSharedInChat": {
     "description": "Snack bar once the viewer's resub was announced in chat."
+  },
+  "streakRecovered": "{count, plural, one{Your watch streak is saved: {count} stream in a row.} other{Your watch streak is saved: {count} streams in a row.}}",
+  "@streakRecovered": {
+    "description": "Snack bar when a watch streak that was suspended (a stream was missed) is counted again by Twitch.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "7"
+      }
+    }
+  },
+  "streakExpired": "Your watch streak in this channel has ended.",
+  "@streakExpired": {
+    "description": "Snack bar when a suspended watch streak was not saved in time and Twitch reset it."
   }
 }
