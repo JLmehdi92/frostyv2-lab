@@ -851,4 +851,69 @@ void main() {
       expect(store.celebration, isNull);
     });
   });
+
+  group('audience labels', () {
+    HermesEvent labels(List<Map<String, Object?>> list) => HermesEvent(
+      topic: 'content-classification-labels-v1.42',
+      type: '',
+      data: {'jitter': 0, 'content_classification_labels': list},
+    );
+
+    test('live label changes keep the enabled ones', () async {
+      final store = build();
+      await store.connect();
+      expect(store.contentLabels, isNull);
+
+      events.add(
+        labels([
+          {'label_id': 'Gambling', 'is_enabled': true},
+          {'label_id': 'SexualThemes', 'is_enabled': false},
+          {'label_id': 'ProfanityVulgarity', 'is_enabled': true},
+          {'is_enabled': true},
+        ]),
+      );
+      await pumpEventQueue();
+      expect(store.contentLabels, ['Gambling', 'ProfanityVulgarity']);
+
+      events.add(labels([]));
+      await pumpEventQueue();
+      expect(store.contentLabels, isEmpty);
+      store.dispose();
+    });
+
+    test('an unreadable update changes nothing', () async {
+      final store = build();
+      await store.connect();
+      events.add(
+        const HermesEvent(
+          topic: 'content-classification-labels-v1.42',
+          type: '',
+          data: {'content_classification_labels': 'junk'},
+        ),
+      );
+      await pumpEventQueue();
+      expect(store.contentLabels, isNull);
+      store.dispose();
+    });
+
+    test('paid promotion is read once, false when unknown', () async {
+      var asked = 0;
+      final store = ChannelEventsStore(
+        channelId: '42',
+        client: hermes,
+        pointsService: points,
+        paidPromotionOf: (id) async {
+          asked++;
+          expect(id, '42');
+          return true;
+        },
+      );
+      expect(store.paidPromotion, isFalse);
+      await store.connect();
+      await pumpEventQueue();
+      expect(store.paidPromotion, isTrue);
+      expect(asked, 1);
+      store.dispose();
+    });
+  });
 }

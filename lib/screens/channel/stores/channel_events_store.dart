@@ -77,7 +77,9 @@ abstract class ChannelEventsStoreBase with Store {
     TwitchPointsService? pointsService,
     TwitchWatchStreakService? watchStreakService,
     Future<String?> Function()? tokenProvider,
-  }) : _client = client ?? HermesClient(tokenProvider: tokenProvider),
+    Future<bool> Function(String channelId)? paidPromotionOf,
+  }) : _paidPromotionOf = paidPromotionOf,
+       _client = client ?? HermesClient(tokenProvider: tokenProvider),
        _pointsService = pointsService ?? TwitchPointsService.withDefaults(),
        _watchStreakService = watchStreakService,
        _tokenProvider = tokenProvider;
@@ -104,6 +106,38 @@ abstract class ChannelEventsStoreBase with Store {
 
   /// After a refusal or an error, not asked again for a while.
   static const _watchStreakBackoff = Duration(minutes: 10);
+
+  final Future<bool> Function(String channelId)? _paidPromotionOf;
+
+  @readonly
+  List<String>? _contentLabels;
+
+  @readonly
+  var _paidPromotion = false;
+
+  Future<void> _readPaidPromotion() async {
+    final read = _paidPromotionOf;
+    if (read == null) return;
+    try {
+      final disclosed = await read(channelId);
+      runInAction(() => _paidPromotion = disclosed);
+    } catch (e) {
+      debugPrint('Paid promotion unavailable: ${e.runtimeType}');
+    }
+  }
+
+  @action
+  void _applyContentLabels(HermesEvent event) {
+    final list = event.data['content_classification_labels'];
+    if (list is! List) return;
+    _contentLabels = [
+      for (final label in list)
+        if (label is Map &&
+            label['label_id'] is String &&
+            label['is_enabled'] != false)
+          label['label_id'] as String,
+    ];
+  }
 
   /// The celebration waiting to be played. The overlay clears it when done.
   @readonly
@@ -133,6 +167,7 @@ abstract class ChannelEventsStoreBase with Store {
     // opening a moment later is not.
     unawaited(refreshPoints());
     unawaited(refreshWatchStreak());
+    unawaited(_readPaidPromotion());
 
     _startPointsPolling();
   }
@@ -422,6 +457,8 @@ abstract class ChannelEventsStoreBase with Store {
       _applyShoutout(event);
     } else if (event.topic.startsWith('celebration-events')) {
       _applyCelebration(event);
+    } else if (event.topic.startsWith('content-classification-labels')) {
+      _applyContentLabels(event);
     } else if (event.topic.startsWith('creator-goals-events')) {
       _applyGoal(event);
     } else if (event.topic.startsWith('community-points') ||

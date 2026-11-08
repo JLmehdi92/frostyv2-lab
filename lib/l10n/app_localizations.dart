@@ -3584,6 +3584,24 @@ abstract class AppLocalizations {
   /// **'Go back'**
   String get contentWarningBack;
 
+  /// Player: the label left on the video after the viewer accepted the content warning, with the channel’s content classification labels.
+  ///
+  /// In en, this message translates to:
+  /// **'For certain audiences: {labels}'**
+  String audienceLabelMature({required String labels});
+
+  /// Player: the label on a stream or video whose creator disclosed paid promotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes paid promotion'**
+  String get audienceLabelPaidPromotion;
+
+  /// Tooltip of the button that hides the audience and paid promotion labels on the player.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide labels'**
+  String get audienceLabelHide;
+
   /// Snackbar after « Not interested » on a live preview (Home › Live). name is the channel's display name; « En direct » is the tab's name (shellFeedLive).
   ///
   /// In en, this message translates to:

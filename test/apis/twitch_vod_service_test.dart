@@ -937,4 +937,55 @@ void main() {
       expect(gqlRequests, isEmpty);
     });
   });
+
+  group('paid promotion', () {
+    test('a stream that discloses it', () async {
+      reply({
+        'data': {
+          'user': {
+            'id': '42',
+            'stream': {
+              'contentPolicyProperties': {'hasBrandedContent': true},
+            },
+          },
+        },
+      });
+      expect(await service.streamHasPaidPromotion('42'), isTrue);
+      expect(lastVariables(), {'channelId': '42'});
+      expect(gqlRequests.last.headers['Authorization'], isNull);
+    });
+
+    test('a video that discloses it', () async {
+      reply({
+        'data': {
+          'video': {
+            'contentPolicyProperties': {'hasBrandedContent': true},
+          },
+        },
+      });
+      expect(await service.vodHasPaidPromotion('v1000000001'), isTrue);
+      expect(lastVariables(), {'vodId': '1000000001'});
+    });
+
+    test('anything else is false, never an error', () async {
+      for (final body in [
+        {
+          'data': {
+            'user': {'stream': null},
+          },
+        },
+        {
+          'errors': [
+            {'message': 'Cannot query field'},
+          ],
+        },
+        {'data': 'junk'},
+      ]) {
+        reply(body);
+        expect(await service.streamHasPaidPromotion('42'), isFalse);
+        expect(await service.vodHasPaidPromotion('1'), isFalse);
+      }
+      expect(await service.streamHasPaidPromotion('x y'), isFalse);
+    });
+  });
 }

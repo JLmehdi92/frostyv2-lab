@@ -2222,6 +2222,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contentWarningBack => 'Go back';
 
   @override
+  String audienceLabelMature({required String labels}) {
+    return 'For certain audiences: $labels';
+  }
+
+  @override
+  String get audienceLabelPaidPromotion => 'Includes paid promotion';
+
+  @override
+  String get audienceLabelHide => 'Hide labels';
+
+  @override
   String liveFeedHidden({required String name}) {
     return 'You won’t see $name in Live for now.';
   }

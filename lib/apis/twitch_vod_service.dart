@@ -118,6 +118,15 @@ class TwitchVodService extends BaseApiClient {
       'query VideoContentLabels(\$id: ID!) { video(id: \$id) { '
       'contentClassificationLabels { id } } }';
 
+  static const _streamPaidPromotionQuery =
+      'query BrandedContentStreamMetadataQuery(\$channelId: ID!) { '
+      'user(id: \$channelId) { id stream { contentPolicyProperties { '
+      'hasBrandedContent } } } }';
+
+  static const _vodPaidPromotionQuery =
+      'query BrandedContentVodMetadataQuery(\$vodId: ID!) { '
+      'video(id: \$vodId) { contentPolicyProperties { hasBrandedContent } } }';
+
   static const _collectionFirstVideoQuery =
       'query CollectionFirstVideo(\$id: ID!) { collection(id: \$id) { '
       'items(first: 1) { edges { node { id } } } } }';
@@ -522,6 +531,40 @@ class TwitchVodService extends BaseApiClient {
       for (final label in labels)
         if (label is Map && label['id'] is String) label['id'] as String,
     ];
+  }
+
+  Future<bool> streamHasPaidPromotion(String channelId) async {
+    if (!RegExp(r'^[0-9]{1,20}$').hasMatch(channelId)) return false;
+    return _paidPromotion(
+      'BrandedContentStreamMetadataQuery',
+      _streamPaidPromotionQuery,
+      {'channelId': channelId},
+      (data) => data['user'] is Map ? (data['user'] as Map)['stream'] : null,
+    );
+  }
+
+  Future<bool> vodHasPaidPromotion(String vodId) => _paidPromotion(
+    'BrandedContentVodMetadataQuery',
+    _vodPaidPromotionQuery,
+    {'vodId': normalizeVodId(vodId)},
+    (data) => data['video'],
+  );
+
+  Future<bool> _paidPromotion(
+    String operation,
+    String query,
+    JsonMap variables,
+    Object? Function(JsonMap data) holder,
+  ) async {
+    try {
+      final data = await _gql(operation, query, variables);
+      final owner = holder(data);
+      final policy = owner is Map ? owner['contentPolicyProperties'] : null;
+      return policy is Map && policy['hasBrandedContent'] == true;
+    } catch (e) {
+      debugPrint('Paid promotion unavailable: ${e.runtimeType}');
+      return false;
+    }
   }
 
   Future<String?> firstVideoOfCollection(String collectionId) async {

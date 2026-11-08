@@ -49,6 +49,46 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     });
   }
 
+  late final _$_contentLabelsAtom = Atom(
+    name: 'ChannelEventsStoreBase._contentLabels',
+    context: context,
+  );
+
+  List<String>? get contentLabels {
+    _$_contentLabelsAtom.reportRead();
+    return super._contentLabels;
+  }
+
+  @override
+  List<String>? get _contentLabels => contentLabels;
+
+  @override
+  set _contentLabels(List<String>? value) {
+    _$_contentLabelsAtom.reportWrite(value, super._contentLabels, () {
+      super._contentLabels = value;
+    });
+  }
+
+  late final _$_paidPromotionAtom = Atom(
+    name: 'ChannelEventsStoreBase._paidPromotion',
+    context: context,
+  );
+
+  bool get paidPromotion {
+    _$_paidPromotionAtom.reportRead();
+    return super._paidPromotion;
+  }
+
+  @override
+  bool get _paidPromotion => paidPromotion;
+
+  @override
+  set _paidPromotion(bool value) {
+    _$_paidPromotionAtom.reportWrite(value, super._paidPromotion, () {
+      super._paidPromotion = value;
+    });
+  }
+
   late final _$_celebrationAtom = Atom(
     name: 'ChannelEventsStoreBase._celebration',
     context: context,
@@ -142,6 +182,18 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     name: 'ChannelEventsStoreBase',
     context: context,
   );
+
+  @override
+  void _applyContentLabels(HermesEvent event) {
+    final _$actionInfo = _$ChannelEventsStoreBaseActionController.startAction(
+      name: 'ChannelEventsStoreBase._applyContentLabels',
+    );
+    try {
+      return super._applyContentLabels(event);
+    } finally {
+      _$ChannelEventsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   Future<PointsActionResult> claimBonus() {

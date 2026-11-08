@@ -200,9 +200,7 @@ class HermesClient {
       'id': _newId(),
       'type': 'unsubscribe',
       'timestamp': _timestamp(),
-      'unsubscribe': {
-        'id': subscriptionId,
-      },
+      'unsubscribe': {'id': subscriptionId},
     });
   }
 
@@ -374,11 +372,17 @@ class HermesClient {
     final topic = _subscriptionTopics[message.subscriptionId];
     if (topic == null) return;
 
+    final payload = message.notificationPayload;
+    if (payload == null) return;
     final type = message.payloadType;
-    if (type == null) return;
+    if (type == null && !HermesTopics.sendsUntypedPayloads(topic)) return;
 
     _events.add(
-      HermesEvent(topic: topic, type: type, data: message.payloadData ?? {}),
+      HermesEvent(
+        topic: topic,
+        type: type ?? '',
+        data: type == null ? payload : message.payloadData ?? {},
+      ),
     );
   }
 

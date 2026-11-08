@@ -659,6 +659,38 @@ void main() {
       'creator-goals-events-v1.1',
       'celebration-events-v1.1',
       'shoutout.1',
+      'content-classification-labels-v1.1',
     ]);
+  });
+
+  test('a payload without a type is delivered whole', () async {
+    final received = <HermesEvent>[];
+    client.events.listen(received.add);
+    await client.subscribe('content-classification-labels-v1.1');
+    final socket = sockets.single;
+    socket.receive(welcome);
+    await pumpEventQueue();
+    socket.receive(
+      _subscribeOk(socket, 'content-classification-labels-v1.1', 'sub-1'),
+    );
+    await pumpEventQueue();
+    socket.receive(
+      jsonEncode({
+        'type': 'notification',
+        'id': 'n',
+        'notification': {
+          'subscription': {'id': 'sub-1'},
+          'type': 'pubsub',
+          'pubsub': jsonEncode({
+            'jitter': 0,
+            'content_classification_labels': <Object>[],
+          }),
+        },
+      }),
+    );
+    await pumpEventQueue();
+
+    expect(received.single.type, '');
+    expect(received.single.data['content_classification_labels'], isEmpty);
   });
 }

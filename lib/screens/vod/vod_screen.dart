@@ -10,6 +10,7 @@ import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:onset/screens/channel/video/audience_labels.dart';
 import 'package:onset/screens/channel/video/content_warning_gate.dart';
 import 'package:onset/screens/channel/video/live_progress.dart';
 import 'package:onset/screens/channel/video/player_engine_resolver.dart';
@@ -167,6 +168,19 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   static const _historyTimeout = Duration(seconds: 3);
   var _mutedSegments = const <MutedSegment>[];
 
+  List<String> _audienceLabelIds = const [];
+  var _paidPromotion = false;
+  var _audienceDismissed = false;
+
+  Future<void> _readPaidPromotion(String vodId) async {
+    try {
+      final disclosed = await _service.vodHasPaidPromotion(vodId);
+      if (mounted && disclosed) setState(() => _paidPromotion = true);
+    } catch (e) {
+      debugPrint('VodScreen paid promotion failed: ${e.runtimeType}');
+    }
+  }
+
   /// A tablet's side chat in the dark theme.
   static const _tabletChatColor = Color(0xFF0D0D0D);
   var _fillScreen = false;
@@ -258,6 +272,9 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       _vod = loaded;
       _replay = _buildReplay(loaded);
       _upNext = loaded.isRecording ? null : _buildUpNext(loaded);
+      if (_settings.warnMatureContent && loaded.ownerId.isNotEmpty) {
+        _audienceLabelIds = AcceptedContentWarnings.labelsOf(loaded.ownerId);
+      }
       if (labels.isEmpty) {
         _player = _buildPlayer(loaded, startAt: startAt);
       } else {
@@ -279,6 +296,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       ),
       fallbackLengthSec: loaded.lengthSeconds,
     )..start();
+    unawaited(_readPaidPromotion(loaded.id));
     unawaited(
       _service.getMutedSegments(loaded.id).then((segments) {
         if (mounted) setState(() => _mutedSegments = segments);
@@ -332,8 +350,12 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     final vod = _vod;
     if (vod == null || _warningLabels == null) return;
     _warningAccepted = true;
-    if (vod.ownerId.isNotEmpty) AcceptedContentWarnings.add(vod.ownerId);
+    final accepted = _warningLabels ?? const <String>[];
+    if (vod.ownerId.isNotEmpty) {
+      AcceptedContentWarnings.add(vod.ownerId, accepted);
+    }
     setState(() {
+      _audienceLabelIds = accepted;
       _warningLabels = null;
       _player = _buildPlayer(vod, startAt: _gatedStart);
     });
@@ -662,6 +684,21 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
             );
           },
         ),
+        if (!_audienceDismissed &&
+            (_audienceLabelIds.isNotEmpty || _paidPromotion))
+          PositionedDirectional(
+            start: 12,
+            end: 12,
+            bottom: 64,
+            child: Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: AudienceLabels(
+                labelIds: _audienceLabelIds,
+                paidPromotion: _paidPromotion,
+                onDismiss: () => setState(() => _audienceDismissed = true),
+              ),
+            ),
+          ),
         if (_upNext case final upNext?) UpNextOverlay(store: upNext),
       ],
     );

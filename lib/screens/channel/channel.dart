@@ -7,6 +7,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
@@ -139,6 +140,7 @@ class _VideoChatState extends State<VideoChat>
     watchStreakService: context.read<TwitchWatchStreakService?>(),
     channelName: widget.userName,
     isChannelLive: () => _videoStore.streamInfo != null,
+    paidPromotionOf: context.read<TwitchVodService?>()?.streamHasPaidPromotion,
   );
 
   /// Whether the viewer follows this channel and, beside a tablet's video,
@@ -1307,13 +1309,17 @@ class _VideoChatState extends State<VideoChat>
       },
     );
 
-    Widget gated(Widget child) => ContentWarningGate(
-      key: _contentGateKey,
-      userId: widget.userId,
-      displayName: widget.userName,
-      onStateChanged: _onContentGate,
-      onAccepted: _onContentAccepted,
-      child: child,
+    Widget gated(Widget child) => Observer(
+      builder: (_) => ContentWarningGate(
+        key: _contentGateKey,
+        userId: widget.userId,
+        displayName: widget.userName,
+        onStateChanged: _onContentGate,
+        onAccepted: _onContentAccepted,
+        liveLabels: _eventsStore.contentLabels,
+        paidPromotion: _eventsStore.paidPromotion,
+        child: child,
+      ),
     );
 
     final video = gated(

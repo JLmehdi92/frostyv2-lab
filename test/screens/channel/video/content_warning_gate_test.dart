@@ -449,4 +449,74 @@ void main() {
       expect(find.text('Start watching'), findsOneWidget);
     });
   });
+
+  group('audience labels', () {
+    Future<void> pumpWith(
+      WidgetTester tester, {
+      List<String>? liveLabels,
+      bool paidPromotion = false,
+    }) => tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<TwitchApi>.value(value: api),
+          Provider<SettingsStore>.value(value: settings),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
+            body: ContentWarningGate(
+              userId: '1',
+              displayName: 'Streamer',
+              onStateChanged: states.add,
+              liveLabels: liveLabels,
+              paidPromotion: paidPromotion,
+              child: const Text('VIDEO'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('stay after accepting, until hidden', (tester) async {
+      when(
+        () => api.getChannel(userId: '1'),
+      ).thenAnswer((_) async => _channel(['Gambling']));
+      await pumpWith(tester);
+      await tester.pump();
+      expect(find.text('For certain audiences: Gambling'), findsNothing);
+
+      await tester.tap(find.text('Start watching'));
+      await tester.pump();
+      expect(find.text('For certain audiences: Gambling'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Hide labels'));
+      await tester.pump();
+      expect(find.textContaining('For certain audiences'), findsNothing);
+    });
+
+    testWidgets('follow live changes, back after a change', (tester) async {
+      AcceptedContentWarnings.add('1', ['Gambling']);
+      await pumpWith(tester);
+      await tester.pump();
+      expect(find.text('For certain audiences: Gambling'), findsOneWidget);
+      await tester.tap(find.byTooltip('Hide labels'));
+      await tester.pump();
+
+      await pumpWith(tester, liveLabels: ['SexualThemes']);
+      await tester.pump();
+      expect(find.text('For certain audiences: Sexual themes'), findsOneWidget);
+
+      await pumpWith(tester, liveLabels: const []);
+      await tester.pump();
+      expect(find.textContaining('For certain audiences'), findsNothing);
+    });
+
+    testWidgets('paid promotion, even with warnings off', (tester) async {
+      settings.warnMatureContent = false;
+      await pumpWith(tester, liveLabels: ['Gambling'], paidPromotion: true);
+      await tester.pump();
+      expect(find.text('Includes paid promotion'), findsOneWidget);
+      expect(find.textContaining('For certain audiences'), findsNothing);
+      verifyNever(() => api.getChannel(userId: any(named: 'userId')));
+    });
+  });
 }

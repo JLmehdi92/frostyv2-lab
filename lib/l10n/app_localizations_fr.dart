@@ -2261,6 +2261,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get contentWarningBack => 'Retour';
 
   @override
+  String audienceLabelMature({required String labels}) {
+    return 'Pour certains publics : $labels';
+  }
+
+  @override
+  String get audienceLabelPaidPromotion => 'Inclut une promotion rémunérée';
+
+  @override
+  String get audienceLabelHide => 'Masquer les mentions';
+
+  @override
   String liveFeedHidden({required String name}) {
     return 'Vous ne verrez plus $name dans l’onglet En direct pour le moment';
   }

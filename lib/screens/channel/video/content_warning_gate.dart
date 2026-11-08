@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/channel/video/audience_labels.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
 import 'package:onset/theme.dart';
@@ -15,13 +16,15 @@ import 'package:provider/provider.dart';
 /// (the official app shares its acceptances between live and VODs too).
 /// Kept until the app restarts.
 abstract final class AcceptedContentWarnings {
-  static final _ids = <String>{};
+  static final _labels = <String, List<String>>{};
 
-  static bool has(String userId) => _ids.contains(userId);
-  static void add(String userId) => _ids.add(userId);
+  static bool has(String userId) => _labels.containsKey(userId);
+  static void add(String userId, [List<String> labels = const []]) =>
+      _labels[userId] = labels;
+  static List<String> labelsOf(String userId) => _labels[userId] ?? const [];
 
   @visibleForTesting
-  static void reset() => _ids.clear();
+  static void reset() => _labels.clear();
 }
 
 /// Whether the viewer already chose to watch [channelId]'s labelled content
@@ -53,8 +56,13 @@ class ContentWarningGate extends StatefulWidget {
     required this.displayName,
     required this.onStateChanged,
     this.onAccepted,
+    this.liveLabels,
+    this.paidPromotion = false,
     required this.child,
   });
+
+  final List<String>? liveLabels;
+  final bool paidPromotion;
 
   final String userId;
   final String displayName;
@@ -74,6 +82,8 @@ class ContentWarningGate extends StatefulWidget {
 
 class _ContentWarningGateState extends State<ContentWarningGate> {
   List<String> _labels = const [];
+  List<String> _acceptedLabels = const [];
+  String? _dismissed;
   var _resolved = false;
 
   /// The last state said or about to be said.
@@ -82,8 +92,9 @@ class _ContentWarningGateState extends State<ContentWarningGate> {
   @override
   void initState() {
     super.initState();
-    if (!context.settingsStore.warnMatureContent ||
-        AcceptedContentWarnings.has(widget.userId)) {
+    _warns = context.settingsStore.warnMatureContent;
+    if (!_warns || AcceptedContentWarnings.has(widget.userId)) {
+      _acceptedLabels = AcceptedContentWarnings.labelsOf(widget.userId);
       _resolved = true;
       _report(ContentGate.clear);
     } else {
@@ -128,19 +139,52 @@ class _ContentWarningGateState extends State<ContentWarningGate> {
   }
 
   void _accept() {
-    AcceptedContentWarnings.add(widget.userId);
-    setState(() => _labels = const []);
+    AcceptedContentWarnings.add(widget.userId, _labels);
+    setState(() {
+      _acceptedLabels = _labels;
+      _labels = const [];
+    });
     widget.onAccepted?.call();
     _say(ContentGate.clear);
+  }
+
+  var _warns = true;
+
+  List<String> get _audienceLabelIds =>
+      _warns ? contentLabelIds(widget.liveLabels ?? _acceptedLabels) : const [];
+
+  Widget? _audienceLabels() {
+    if (!_resolved || _labels.isNotEmpty) return null;
+    final ids = _audienceLabelIds;
+    final signature = audienceLabelsSignature(ids, widget.paidPromotion);
+    if (signature == _dismissed || (ids.isEmpty && !widget.paidPromotion)) {
+      return null;
+    }
+    return AudienceLabels(
+      labelIds: ids,
+      paidPromotion: widget.paidPromotion,
+      onDismiss: () => setState(() => _dismissed = signature),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final showWarning = _resolved && _labels.isNotEmpty;
+    final audience = _audienceLabels();
     return Stack(
       fit: StackFit.expand,
       children: [
         widget.child,
+        if (audience != null)
+          PositionedDirectional(
+            start: 12,
+            end: 12,
+            bottom: 64,
+            child: Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: audience,
+            ),
+          ),
         // Last, so it sits above the player and its controls.
         if (showWarning)
           Positioned.fill(

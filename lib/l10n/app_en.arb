@@ -2828,6 +2828,24 @@
   "@contentWarningBack": {
     "description": "Mature-content warning: the button that declines it and leaves."
   },
+  "audienceLabelMature": "For certain audiences: {labels}",
+  "@audienceLabelMature": {
+    "description": "Player: the label left on the video after the viewer accepted the content warning, with the channel’s content classification labels.",
+    "placeholders": {
+      "labels": {
+        "type": "String",
+        "example": "Gambling, Mature-rated game"
+      }
+    }
+  },
+  "audienceLabelPaidPromotion": "Includes paid promotion",
+  "@audienceLabelPaidPromotion": {
+    "description": "Player: the label on a stream or video whose creator disclosed paid promotion."
+  },
+  "audienceLabelHide": "Hide labels",
+  "@audienceLabelHide": {
+    "description": "Tooltip of the button that hides the audience and paid promotion labels on the player."
+  },
   "liveFeedHidden": "You won’t see {name} in Live for now.",
   "@liveFeedHidden": {
     "description": "Snackbar after « Not interested » on a live preview (Home › Live). name is the channel's display name; « En direct » is the tab's name (shellFeedLive).",
