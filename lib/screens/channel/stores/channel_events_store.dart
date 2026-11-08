@@ -8,6 +8,7 @@ import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/models/celebration.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/hermes.dart';
 import 'package:onset/models/stream_push.dart';
 import 'package:onset/models/watch_streak.dart';
@@ -542,9 +543,30 @@ abstract class ChannelEventsStoreBase with Store {
 
   @action
   void _applyGoal(HermesEvent event) {
-    final goal = event.data['goal'];
-    if (goal is Map<String, dynamic>) _creatorGoal = goal;
+    final raw = event.data['goal'];
+    if (raw is Map<String, dynamic>) _creatorGoal = raw;
+    final goal = CreatorGoal.tryParse(raw, eventType: event.type);
+    if (goal == null) return;
+    final wasReached = _goals.any(
+      (known) => known.id == goal.id && known.isReached,
+    );
+    _goals = mergeCreatorGoal(_goals, goal);
+    if (goal.isReached &&
+        !wasReached &&
+        _celebratedGoals.add(goal.id) &&
+        !_goalsReached.isClosed) {
+      _goalsReached.add(goal);
+    }
   }
+
+  @readonly
+  List<CreatorGoal> _goals = const [];
+
+  final _celebratedGoals = <String>{};
+
+  final _goalsReached = StreamController<CreatorGoal>.broadcast();
+
+  Stream<CreatorGoal> get goalsReached => _goalsReached.stream;
 
   /// Called by the overlay once an animation has finished.
   @action
@@ -598,6 +620,7 @@ abstract class ChannelEventsStoreBase with Store {
     unawaited(_entitlementChanges.close());
     unawaited(_shoutouts.close());
     unawaited(_streamPushes.close());
+    unawaited(_goalsReached.close());
     _pointsRefreshTimer?.cancel();
     _pointsPollTimer?.cancel();
     unawaited(_subscription?.cancel());

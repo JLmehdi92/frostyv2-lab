@@ -153,6 +153,26 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     );
   }
 
+  late final _$_goalsAtom = Atom(
+    name: 'ChannelEventsStoreBase._goals',
+    context: context,
+  );
+
+  List<CreatorGoal> get goals {
+    _$_goalsAtom.reportRead();
+    return super._goals;
+  }
+
+  @override
+  List<CreatorGoal> get _goals => goals;
+
+  @override
+  set _goals(List<CreatorGoal> value) {
+    _$_goalsAtom.reportWrite(value, super._goals, () {
+      super._goals = value;
+    });
+  }
+
   late final _$refreshPointsAsyncAction = AsyncAction(
     'ChannelEventsStoreBase.refreshPoints',
     context: context,

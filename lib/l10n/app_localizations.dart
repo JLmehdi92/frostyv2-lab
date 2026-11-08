@@ -11006,6 +11006,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn’t load this channel.'**
   String get streamOfflineLoadFailed;
+
+  /// The title of a creator goal counting subscriptions, on the goal banner at the top of chat and in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub goal'**
+  String get goalKindSubs;
+
+  /// The title of a creator goal counting sub points (a Tier 2 sub counts 2, a Tier 3 sub counts 6), on the goal banner and in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub points goal'**
+  String get goalKindSubPoints;
+
+  /// The title of a creator goal counting only new subscriptions made since it started, on the goal banner and in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'New sub goal'**
+  String get goalKindNewSubs;
+
+  /// The title of a creator goal counting the sub points of new subscriptions only, on the goal banner and in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'New sub points goal'**
+  String get goalKindNewSubPoints;
+
+  /// The title of a creator goal counting followers, on the goal banner and in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Follower goal'**
+  String get goalKindFollowers;
+
+  /// The title of a creator goal of a kind ONSET does not know, on the goal banner and in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get goalKindOther;
+
+  /// Numbers a goal when the channel runs several at once, before its title on the goal banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal {index} of {count}'**
+  String goalOrdinal({required int index, required int count});
+
+  /// How far a creator goal is, on its banner and in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {target}'**
+  String goalProgress({required int current, required int target});
+
+  /// The title of the dialog that opens when the channel reaches a creator goal, and of the goal banner once the goal is reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal reached'**
+  String get goalReachedTitle;
+
+  /// The text of the goal reached dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'The channel reached this goal. Thanks to everyone who chipped in!'**
+  String get goalReachedBody;
 }
 
 class _AppLocalizationsDelegate

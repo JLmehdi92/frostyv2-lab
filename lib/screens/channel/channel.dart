@@ -12,6 +12,7 @@ import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
+import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/stream_push.dart';
@@ -37,6 +38,7 @@ import 'package:onset/screens/channel/community_highlights/stores/community_high
 import 'package:onset/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/raid_heading_overlay.dart';
 import 'package:onset/screens/channel/followed_channels_drawer.dart';
+import 'package:onset/screens/channel/goals/creator_goal_banner.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:onset/screens/channel/landscape_chat_cycle.dart';
 import 'package:onset/screens/channel/portrait_split.dart';
@@ -709,6 +711,7 @@ class _VideoChatState extends State<VideoChat>
     );
     _shoutouts = _eventsStore.shoutouts.listen(_showShoutout);
     _streamPushes = _eventsStore.streamPushes.listen(_applyStreamPush);
+    _goalsReached = _eventsStore.goalsReached.listen(_showGoalReached);
     _infoStore.start();
     _watchStreamEnd();
     final auth = context.authStore;
@@ -1167,6 +1170,14 @@ class _VideoChatState extends State<VideoChat>
 
   StreamSubscription<StreamPush>? _streamPushes;
 
+  StreamSubscription<CreatorGoal>? _goalsReached;
+
+  void _showGoalReached(CreatorGoal goal) {
+    if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? false)) return;
+    if (_chatStore.textFieldFocusNode.hasFocus) return;
+    unawaited(showCreatorGoalDetails(context, goal));
+  }
+
   void _applyStreamPush(StreamPush push) {
     if (_videoStore case final StreamPushTarget target) {
       target.applyStreamPush(push);
@@ -1419,6 +1430,7 @@ class _VideoChatState extends State<VideoChat>
               chatTabsStore: _chatTabsStore,
               chatInputFocus: _chatStore.textFieldFocusNode,
               bottomBarHeight: _chatStore.bottomBarHeight,
+              goals: () => _eventsStore.goals,
             ),
             Observer(
               builder: (_) => AnimatedSwitcher(
@@ -2015,6 +2027,7 @@ class _VideoChatState extends State<VideoChat>
     unawaited(_entitlementChanges?.cancel());
     unawaited(_shoutouts?.cancel());
     unawaited(_streamPushes?.cancel());
+    unawaited(_goalsReached?.cancel());
     _eventsStore.dispose();
     _viewerReaction?.call();
     _infoStore.dispose();

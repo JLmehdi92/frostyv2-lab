@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/models/community_highlights.dart';
+import 'package:onset/models/creator_goal.dart';
 import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:onset/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/highlight_slot.dart';
+import 'package:onset/screens/channel/goals/creator_goal_banner.dart';
 import 'package:onset/screens/channel/hype_train/hype_train_placement.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_sheet.dart';
@@ -152,7 +154,10 @@ class ChannelChatTopOverlay extends StatefulWidget {
     this.pinnedMessage,
     this.chatInputFocus,
     this.bottomBarHeight = 0,
+    this.goals,
   });
+
+  final List<CreatorGoal> Function()? goals;
 
   /// Null while its setting is off.
   final HypeTrainStore? hypeTrain;
@@ -308,6 +313,8 @@ class _ChannelChatTopOverlayState extends State<ChannelChatTopOverlay> {
                             pinnedMessage: widget.pinnedMessage,
                           ),
                         ),
+                      if (widget.goals case final goals?)
+                        CreatorGoalBanner(goals: goals),
                     ],
                   ),
                 ),

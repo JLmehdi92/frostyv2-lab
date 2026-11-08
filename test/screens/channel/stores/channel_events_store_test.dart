@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/models/celebration.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/hermes.dart';
 import 'package:onset/models/stream_push.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
@@ -623,6 +624,49 @@ void main() {
       expect(pushes, hasLength(2));
       expect((pushes.first as ViewerCountPush).viewers, 12);
       expect((pushes.last as BroadcastSettingsPush).title, 'Hi');
+      await sub.cancel();
+      store.dispose();
+    });
+
+    test('creator goals are tracked and a reached one is said once', () async {
+      final store = build();
+      await store.connect();
+      final reached = <CreatorGoal>[];
+      final sub = store.goalsReached.listen(reached.add);
+
+      HermesEvent goal(String type, num current, {String id = 'g'}) =>
+          HermesEvent(
+            topic: 'creator-goals-events-v1.42',
+            type: type,
+            data: {
+              'goal': {
+                'id': id,
+                'contributionType': 'FOLLOWERS',
+                'state': 'STARTED',
+                'currentContributions': current,
+                'targetContributions': 10,
+              },
+            },
+          );
+
+      events
+        ..add(goal('goal_created', 2))
+        ..add(goal('goal_created', 1, id: 'h'));
+      await pumpEventQueue();
+      expect(store.goals.map((g) => g.id), ['g', 'h']);
+      expect(store.goals.first.kind, CreatorGoalKind.followers);
+
+      events
+        ..add(goal('goal_updated', 10))
+        ..add(goal('goal_achieved', 10))
+        ..add(goal('goal_updated', 11));
+      await pumpEventQueue();
+      expect(reached.map((g) => g.id), ['g']);
+      expect(store.goals.first.current, 11);
+
+      events.add(goal('goal_ended', 11));
+      await pumpEventQueue();
+      expect(store.goals.map((g) => g.id), ['h']);
       await sub.cancel();
       store.dispose();
     });

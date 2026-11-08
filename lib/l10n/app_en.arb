@@ -10560,5 +10560,67 @@
   "streamOfflineLoadFailed": "Couldn’t load this channel.",
   "@streamOfflineLoadFailed": {
     "description": "Error message. The player when neither the stream nor the channel could be read; « Try again » follows."
+  },
+  "goalKindSubs": "Sub goal",
+  "@goalKindSubs": {
+    "description": "The title of a creator goal counting subscriptions, on the goal banner at the top of chat and in its dialog."
+  },
+  "goalKindSubPoints": "Sub points goal",
+  "@goalKindSubPoints": {
+    "description": "The title of a creator goal counting sub points (a Tier 2 sub counts 2, a Tier 3 sub counts 6), on the goal banner and in its dialog."
+  },
+  "goalKindNewSubs": "New sub goal",
+  "@goalKindNewSubs": {
+    "description": "The title of a creator goal counting only new subscriptions made since it started, on the goal banner and in its dialog."
+  },
+  "goalKindNewSubPoints": "New sub points goal",
+  "@goalKindNewSubPoints": {
+    "description": "The title of a creator goal counting the sub points of new subscriptions only, on the goal banner and in its dialog."
+  },
+  "goalKindFollowers": "Follower goal",
+  "@goalKindFollowers": {
+    "description": "The title of a creator goal counting followers, on the goal banner and in its dialog."
+  },
+  "goalKindOther": "Goal",
+  "@goalKindOther": {
+    "description": "The title of a creator goal of a kind ONSET does not know, on the goal banner and in its dialog."
+  },
+  "goalOrdinal": "Goal {index} of {count}",
+  "@goalOrdinal": {
+    "description": "Numbers a goal when the channel runs several at once, before its title on the goal banner.",
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "example": "1"
+      },
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "goalProgress": "{current} of {target}",
+  "@goalProgress": {
+    "description": "How far a creator goal is, on its banner and in its dialog.",
+    "placeholders": {
+      "current": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "42"
+      },
+      "target": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "1000"
+      }
+    }
+  },
+  "goalReachedTitle": "Goal reached",
+  "@goalReachedTitle": {
+    "description": "The title of the dialog that opens when the channel reaches a creator goal, and of the goal banner once the goal is reached."
+  },
+  "goalReachedBody": "The channel reached this goal. Thanks to everyone who chipped in!",
+  "@goalReachedBody": {
+    "description": "The text of the goal reached dialog."
   }
 }

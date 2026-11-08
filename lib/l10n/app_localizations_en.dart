@@ -8252,4 +8252,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get streamOfflineLoadFailed => 'Couldn’t load this channel.';
+
+  @override
+  String get goalKindSubs => 'Sub goal';
+
+  @override
+  String get goalKindSubPoints => 'Sub points goal';
+
+  @override
+  String get goalKindNewSubs => 'New sub goal';
+
+  @override
+  String get goalKindNewSubPoints => 'New sub points goal';
+
+  @override
+  String get goalKindFollowers => 'Follower goal';
+
+  @override
+  String get goalKindOther => 'Goal';
+
+  @override
+  String goalOrdinal({required int index, required int count}) {
+    return 'Goal $index of $count';
+  }
+
+  @override
+  String goalProgress({required int current, required int target}) {
+    final intl.NumberFormat currentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String currentString = currentNumberFormat.format(current);
+    final intl.NumberFormat targetNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String targetString = targetNumberFormat.format(target);
+
+    return '$currentString of $targetString';
+  }
+
+  @override
+  String get goalReachedTitle => 'Goal reached';
+
+  @override
+  String get goalReachedBody =>
+      'The channel reached this goal. Thanks to everyone who chipped in!';
 }

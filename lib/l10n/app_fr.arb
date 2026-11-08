@@ -1792,5 +1792,15 @@
   "clipFromPastBroadcast": "Issu d’une diffusion passée",
   "streamCheckBackSoon": "{name} est hors ligne. Revenez bientôt\u202f!",
   "streamCheckBackSoonGeneric": "Cette chaîne est hors ligne. Revenez bientôt\u202f!",
-  "streamOfflineLoadFailed": "Impossible de charger cette chaîne."
+  "streamOfflineLoadFailed": "Impossible de charger cette chaîne.",
+  "goalKindSubs": "Objectif d’abonnements",
+  "goalKindSubPoints": "Objectif de points d’abonnement",
+  "goalKindNewSubs": "Objectif de nouveaux abonnements",
+  "goalKindNewSubPoints": "Objectif de nouveaux points d’abonnement",
+  "goalKindFollowers": "Objectif de followers",
+  "goalKindOther": "Objectif",
+  "goalOrdinal": "Objectif {index} sur {count}",
+  "goalProgress": "{current} sur {target}",
+  "goalReachedTitle": "Objectif atteint",
+  "goalReachedBody": "La chaîne a atteint cet objectif. Merci à toutes les personnes qui y ont contribué\u202f!"
 }

@@ -8359,4 +8359,46 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get streamOfflineLoadFailed => 'Impossible de charger cette chaîne.';
+
+  @override
+  String get goalKindSubs => 'Objectif d’abonnements';
+
+  @override
+  String get goalKindSubPoints => 'Objectif de points d’abonnement';
+
+  @override
+  String get goalKindNewSubs => 'Objectif de nouveaux abonnements';
+
+  @override
+  String get goalKindNewSubPoints => 'Objectif de nouveaux points d’abonnement';
+
+  @override
+  String get goalKindFollowers => 'Objectif de followers';
+
+  @override
+  String get goalKindOther => 'Objectif';
+
+  @override
+  String goalOrdinal({required int index, required int count}) {
+    return 'Objectif $index sur $count';
+  }
+
+  @override
+  String goalProgress({required int current, required int target}) {
+    final intl.NumberFormat currentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String currentString = currentNumberFormat.format(current);
+    final intl.NumberFormat targetNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String targetString = targetNumberFormat.format(target);
+
+    return '$currentString sur $targetString';
+  }
+
+  @override
+  String get goalReachedTitle => 'Objectif atteint';
+
+  @override
+  String get goalReachedBody =>
+      'La chaîne a atteint cet objectif. Merci à toutes les personnes qui y ont contribué !';
 }
