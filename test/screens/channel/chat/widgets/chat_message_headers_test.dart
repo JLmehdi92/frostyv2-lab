@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel/chat/widgets/power_up_frame.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 import '../../../../helpers/chat_message_harness.dart';
 
@@ -92,5 +94,70 @@ void main() {
       fakeChatStore(channelIdToUserTwitch: {'777': partner}),
     );
     expect(find.text('First message'), findsOneWidget);
+  });
+
+  testWidgets('an animated message plays its frame, a plain one has none', (
+    tester,
+  ) async {
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(
+        _privmsg('msg-id=animated-message;animation-id=cosmic-abyss', 'hi'),
+      ),
+      fakeChatStore(),
+    );
+    expect(find.byType(PowerUpMessageFrame), findsOneWidget);
+    expect(
+      tester
+          .widget<PowerUpMessageFrame>(find.byType(PowerUpMessageFrame))
+          .animationId,
+      'cosmic-abyss',
+    );
+    await tester.pumpAndSettle();
+
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(_privmsg('', 'hi')),
+      fakeChatStore(),
+    );
+    expect(find.byType(PowerUpMessageFrame), findsNothing);
+  });
+
+  testWidgets('a gigantified emote is marked and its last emote drawn large', (
+    tester,
+  ) async {
+    double emoteHeight() => tester
+        .widgetList<OnsetCachedNetworkImage>(
+          find.byType(OnsetCachedNetworkImage),
+        )
+        .last
+        .height!;
+
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(_privmsg('emotes=25:3-7', 'hi Kappa')),
+      fakeChatStore(),
+    );
+    final normal = emoteHeight();
+
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(
+        _privmsg('emotes=25:3-7;msg-id=gigantified-emote-message', 'hi Kappa'),
+      ),
+      fakeChatStore(),
+    );
+    expect(find.text('Gigantified emote'), findsOneWidget);
+    expect(
+      emoteHeight(),
+      closeTo(normal * IRCMessage.gigantifiedEmoteFactor, 0.01),
+    );
+  });
+
+  test('every power-up effect has its colours', () {
+    for (final id in ['simmer', 'rainbow-eclipse', 'cosmic-abyss', null]) {
+      expect(powerUpColors(id).length, greaterThanOrEqualTo(2));
+    }
+    expect(powerUpColors('simmer'), isNot(powerUpColors('cosmic-abyss')));
   });
 }

@@ -10646,5 +10646,9 @@
         "example": "Speedrun"
       }
     }
+  },
+  "chatGigantifiedEmote": "Gigantified emote",
+  "@chatGigantifiedEmote": {
+    "description": "Header above a message sent with the gigantify an emote power-up; its last emote is drawn large."
   }
 }

@@ -8304,4 +8304,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String searchLiveWithTag({required String tag}) {
     return 'Live channels tagged $tag';
   }
+
+  @override
+  String get chatGigantifiedEmote => 'Gigantified emote';
 }

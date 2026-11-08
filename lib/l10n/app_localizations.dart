@@ -11078,6 +11078,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Live channels tagged {tag}'**
   String searchLiveWithTag({required String tag});
+
+  /// Header above a message sent with the gigantify an emote power-up; its last emote is drawn large.
+  ///
+  /// In en, this message translates to:
+  /// **'Gigantified emote'**
+  String get chatGigantifiedEmote;
 }
 
 class _AppLocalizationsDelegate

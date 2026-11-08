@@ -841,6 +841,7 @@ class IRCMessage {
     // elsewhere is just text).
     final isCheer = tags['bits'] != null && !cheermotes.isEmpty;
     final dark = Theme.of(context).brightness == Brightness.dark;
+    var giantPending = isGigantified;
 
     // Iterate through the words in reverse-order.
     var index = words.length - 1;
@@ -921,15 +922,22 @@ class IRCMessage {
             animateEmotes: animateEmotes,
           );
         } else {
+          final giant = giantPending;
+          giantPending = false;
+          final height = emote.height != null
+              ? emote.height! * emoteScale
+              : emoteSize;
           localSpan.add(
             _createEmoteSpan(
               context,
               emote: emote,
               animate: animateEmotes,
-              height: emote.height != null
-                  ? emote.height! * emoteScale
-                  : emoteSize,
-              width: emote.width != null ? emote.width! * emoteScale : null,
+              height: giant ? height * gigantifiedEmoteFactor : height,
+              width: emote.width != null
+                  ? emote.width! *
+                        emoteScale *
+                        (giant ? gigantifiedEmoteFactor : 1)
+                  : null,
               launchExternal: launchExternal,
             ),
           );
@@ -1088,6 +1096,10 @@ class IRCMessage {
 
     return index - 1;
   }
+
+  bool get isGigantified => tags['msg-id'] == 'gigantified-emote-message';
+
+  static const gigantifiedEmoteFactor = 3.0;
 
   /// Returns an [InlineSpan] list that corresponds to the badges, username, words, and emotes of the given [IRCMessage].
   List<InlineSpan> generateSpan(

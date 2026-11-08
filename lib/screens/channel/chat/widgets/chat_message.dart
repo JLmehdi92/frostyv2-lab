@@ -18,6 +18,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/chat/widgets/filtered_message_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/gift_bomb_recipients.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
+import 'package:onset/screens/channel/chat/widgets/power_up_frame.dart';
 import 'package:onset/screens/channel/chat/widgets/raid_welcome_card.dart';
 import 'package:onset/screens/channel/chat/widgets/reply_thread.dart';
 import 'package:onset/screens/channel/chat/widgets/user_notice_row.dart';
@@ -384,6 +385,8 @@ class ChatMessage extends StatelessWidget {
                     'skip-subs-mode-message' =>
                       context.l10n.chatSubsOnlyRedemption,
                     'animated-message' => context.l10n.chatAnimatedMessage,
+                    'gigantified-emote-message' =>
+                      context.l10n.chatGigantifiedEmote,
                     _ => null,
                   }
                 : null;
@@ -782,8 +785,20 @@ class ChatMessage extends StatelessWidget {
               )
             : paddedMessage;
 
+        final animatedPowerUp =
+            chatStore.settings.showUserNotices &&
+            ircMessage.mention != true &&
+            ircMessage.tags['msg-id'] == 'animated-message' &&
+            (ircMessage.command == Command.privateMessage ||
+                ircMessage.command == Command.userState);
+
         // Color the message if the color has been set.
-        final coloredMessage = highlightColor == null
+        final coloredMessage = animatedPowerUp
+            ? PowerUpMessageFrame(
+                animationId: ircMessage.tags['animation-id'],
+                child: dividedMessage,
+              )
+            : highlightColor == null
             ? dividedMessage
             : Container(
                 padding: const EdgeInsets.only(left: 8, right: 12),

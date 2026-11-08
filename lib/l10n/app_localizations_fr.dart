@@ -8411,4 +8411,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String searchLiveWithTag({required String tag}) {
     return 'Chaînes en direct avec le tag $tag';
   }
+
+  @override
+  String get chatGigantifiedEmote => 'Emote géante';
 }
