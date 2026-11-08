@@ -403,4 +403,46 @@ void main() {
       expect(find.byType(ClipRRect), findsNothing);
     });
   });
+
+  group('bubbles', () {
+    testWidgets('a bubble is rounded, ringed and keeps the tint', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const UserNoticeRow(
+          segments: _segments,
+          presentation: NoticePresentation(NoticeLayout.special),
+          bubble: true,
+        ),
+      );
+
+      final decoration =
+          tester
+                  .widget<Container>(find.byKey(UserNoticeRow.bubbleKey))
+                  .decoration!
+              as BoxDecoration;
+      expect(decoration.borderRadius, BorderRadius.circular(14));
+      expect(decoration.border, isA<Border>());
+      expect((decoration.border! as Border).left.width, lessThan(4));
+      expect(decoration.color, OnsetColors.dark.subNoticeBackground);
+      expect(find.textContaining('subscribed at Tier 1.'), findsOneWidget);
+      final bubble = tester.getRect(find.byKey(UserNoticeRow.bubbleKey));
+      expect(bubble.left, 8);
+    });
+
+    testWidgets('over the video the row stays a row', (tester) async {
+      await _pump(
+        tester,
+        const UserNoticeRow(
+          segments: _segments,
+          presentation: NoticePresentation(NoticeLayout.special),
+          bubble: true,
+          overlay: true,
+        ),
+      );
+      expect(find.byKey(UserNoticeRow.bubbleKey), findsNothing);
+      expect(find.byKey(UserNoticeRow.bodyKey), findsOneWidget);
+    });
+  });
 }

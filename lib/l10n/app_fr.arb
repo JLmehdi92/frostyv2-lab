@@ -1830,5 +1830,14 @@
   "streamFilterClear": "Effacer les filtres",
   "streamFilterLabel": "Filtres",
   "streamFilterNoMatch": "Aucune chaîne en direct ne correspond à ces filtres",
-  "searchRelatedLives": "Chaînes en direct associées"
+  "searchRelatedLives": "Chaînes en direct associées",
+  "chatBubblesTitle": "Bulles d’événements",
+  "chatBubblesDetail": "Affiche les événements du chat que vous choisissez dans des bulles arrondies.",
+  "chatBubblesOff": "Désactivées",
+  "chatBubblesCount": "{count, plural, one{{count} type} other{{count} types}}",
+  "chatBubblesSubs": "Abonnements",
+  "chatBubblesGifts": "Abonnements offerts",
+  "chatBubblesRaids": "Raids",
+  "chatBubblesAnnouncements": "Annonces",
+  "chatBubblesOther": "Autres événements"
 }

@@ -8396,4 +8396,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchRelatedLives => 'Related live channels';
+
+  @override
+  String get chatBubblesTitle => 'Event bubbles';
+
+  @override
+  String get chatBubblesDetail =>
+      'Draws the chat events you choose as rounded bubbles.';
+
+  @override
+  String get chatBubblesOff => 'Off';
+
+  @override
+  String chatBubblesCount({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count types',
+      one: '$count type',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatBubblesSubs => 'Subs';
+
+  @override
+  String get chatBubblesGifts => 'Gifted subs';
+
+  @override
+  String get chatBubblesRaids => 'Raids';
+
+  @override
+  String get chatBubblesAnnouncements => 'Announcements';
+
+  @override
+  String get chatBubblesOther => 'Other events';
 }

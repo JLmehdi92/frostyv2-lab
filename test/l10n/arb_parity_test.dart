@@ -18,6 +18,7 @@ const _sameInBothLanguages = {
   'vodSeekValueChapter': 'Two placeholders joined by a comma.',
   'goalOrdinal': 'Two numbers joined by a slash.',
   'profileTabCollections': '"Collections" is the French word too.',
+  'chatBubblesRaids': '"Raids" is the French word too.',
   'modToolsPredictionPoints':
       '"point(s)" is the French word too; a number leads.',
   'modToolsRedemptionReward':

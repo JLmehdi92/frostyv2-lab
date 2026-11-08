@@ -142,3 +142,27 @@ NoticePresentation noticePresentation(UserNotice notice) {
       return const NoticePresentation(NoticeLayout.special);
   }
 }
+
+enum ChatBubbleEvent { subs, gifts, raids, announcements, other }
+
+ChatBubbleEvent chatBubbleEventOf(UserNotice notice) => switch (notice.kind) {
+  UserNoticeKind.sub ||
+  UserNoticeKind.resub ||
+  UserNoticeKind.extendSub ||
+  UserNoticeKind.giftPaidUpgrade ||
+  UserNoticeKind.anonGiftPaidUpgrade ||
+  UserNoticeKind.primePaidUpgrade => ChatBubbleEvent.subs,
+  UserNoticeKind.subGift ||
+  UserNoticeKind.communityGift ||
+  UserNoticeKind.anonSubGift ||
+  UserNoticeKind.anonCommunityGift ||
+  UserNoticeKind.giftSubBaseMatch ||
+  UserNoticeKind.rewardGift ||
+  UserNoticeKind.payItForward => ChatBubbleEvent.gifts,
+  UserNoticeKind.raid || UserNoticeKind.unraid => ChatBubbleEvent.raids,
+  UserNoticeKind.announcement => ChatBubbleEvent.announcements,
+  UserNoticeKind.viewerMilestone ||
+  UserNoticeKind.charityDonation ||
+  UserNoticeKind.bitsBadgeTier ||
+  UserNoticeKind.unknown => ChatBubbleEvent.other,
+};

@@ -58,7 +58,13 @@ class UserNoticeRow extends StatelessWidget {
     this.goalTarget,
     this.overlay = false,
     this.footer,
+    this.bubble = false,
   });
+
+  final bool bubble;
+
+  static const bubbleKey = ValueKey('user-notice-row-bubble');
+  static const _bubbleRadius = 14.0;
 
   /// The tinted body, inside the row's 2dp margins.
   static const bodyKey = ValueKey('user-notice-row-body');
@@ -141,6 +147,52 @@ class UserNoticeRow extends StatelessWidget {
         ? overlayBackground
         : _tint(context);
 
+    final inner = icon == null
+        ? content
+        : Stack(
+            children: [
+              content,
+              Positioned(
+                left: _gap,
+                top: 0,
+                bottom: 0,
+                width: _iconSlotWidth,
+                child: Align(
+                  alignment: Alignment(0, presentation.iconBias * 2 - 1),
+                  child: icon,
+                ),
+              ),
+            ],
+          );
+
+    if (bubble && !overlay) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Container(
+          key: bubbleKey,
+          width: double.infinity,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color:
+                background ??
+                context.colorScheme.onSurface.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(_bubbleRadius),
+            border: Border.all(
+              color: accent.withValues(alpha: 0.4),
+              width: OnsetTokens.hairlineWidth,
+            ),
+          ),
+          child: KeyedSubtree(
+            key: bodyKey,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: inner,
+            ),
+          ),
+        ),
+      );
+    }
+
     final body = Container(
       key: bodyKey,
       width: double.infinity,
@@ -150,23 +202,7 @@ class UserNoticeRow extends StatelessWidget {
           left: BorderSide(color: accent, width: _accentWidth),
         ),
       ),
-      child: icon == null
-          ? content
-          : Stack(
-              children: [
-                content,
-                Positioned(
-                  left: _gap,
-                  top: 0,
-                  bottom: 0,
-                  width: _iconSlotWidth,
-                  child: Align(
-                    alignment: Alignment(0, presentation.iconBias * 2 - 1),
-                    child: icon,
-                  ),
-                ),
-              ],
-            ),
+      child: inner,
     );
 
     return Padding(

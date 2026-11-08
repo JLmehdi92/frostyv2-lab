@@ -8505,4 +8505,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get searchRelatedLives => 'Chaînes en direct associées';
+
+  @override
+  String get chatBubblesTitle => 'Bulles d’événements';
+
+  @override
+  String get chatBubblesDetail =>
+      'Affiche les événements du chat que vous choisissez dans des bulles arrondies.';
+
+  @override
+  String get chatBubblesOff => 'Désactivées';
+
+  @override
+  String chatBubblesCount({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count types',
+      one: '$count type',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatBubblesSubs => 'Abonnements';
+
+  @override
+  String get chatBubblesGifts => 'Abonnements offerts';
+
+  @override
+  String get chatBubblesRaids => 'Raids';
+
+  @override
+  String get chatBubblesAnnouncements => 'Annonces';
+
+  @override
+  String get chatBubblesOther => 'Autres événements';
 }

@@ -7,6 +7,7 @@ import 'package:onset/constants.dart';
 import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/chat_bubbles_setting.dart';
 import 'package:onset/screens/settings/widgets/chat_filters_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
@@ -285,6 +286,7 @@ class _ChatSettingsState extends State<ChatSettings> {
                   onChanged: (newValue) =>
                       settingsStore.hideGiftCount = newValue,
                 ),
+                ChatBubblesSetting(settingsStore: settingsStore),
                 SettingsListSwitch(
                   title: l.settingsShowHypeTrains,
                   subtitle: Text(l.settingsShowHypeTrainsDetail),

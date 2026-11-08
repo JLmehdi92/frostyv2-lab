@@ -427,4 +427,25 @@ void main() {
       expect(_systemLine(tester), contains('Partner’s community'));
     });
   });
+
+  testWidgets('a chosen event type is drawn as a bubble, others stay rows', (
+    tester,
+  ) async {
+    final settings = SettingsStore.fromJson({
+      'chatBubbleEvents': ['subs'],
+    });
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(userNoticeSubscription),
+      fakeChatStore(settings: settings),
+    );
+    expect(find.byKey(UserNoticeRow.bubbleKey), findsOneWidget);
+
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(anonymousSubGift),
+      fakeChatStore(settings: settings),
+    );
+    expect(find.byKey(UserNoticeRow.bubbleKey), findsNothing);
+  });
 }

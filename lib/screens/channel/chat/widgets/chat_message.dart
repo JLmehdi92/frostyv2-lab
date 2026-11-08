@@ -907,6 +907,9 @@ class ChatMessage extends StatelessWidget {
       goalTarget: notice.goalTargetContributions,
       overlay: OverlayChatScope.of(context),
       footer: _giftBombFooter(notice),
+      bubble: chatStore.settings.chatBubbleEvents.contains(
+        chatBubbleEventOf(notice).name,
+      ),
     );
   }
 

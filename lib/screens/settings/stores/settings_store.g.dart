@@ -183,6 +183,11 @@ SettingsStore _$SettingsStoreFromJson(
   ..collapseGiftBombs = json['collapseGiftBombs'] as bool? ?? true
   ..hideGiftSubNotices = json['hideGiftSubNotices'] as bool? ?? false
   ..hideGiftCount = json['hideGiftCount'] as bool? ?? false
+  ..chatBubbleEvents =
+      (json['chatBubbleEvents'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      []
   ..showHypeTrain = json['showHypeTrain'] as bool? ?? true
   ..showCommunityHighlights = json['showCommunityHighlights'] as bool? ?? true
   ..showCelebrations = json['showCelebrations'] as bool? ?? true
@@ -335,6 +340,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'collapseGiftBombs': instance.collapseGiftBombs,
   'hideGiftSubNotices': instance.hideGiftSubNotices,
   'hideGiftCount': instance.hideGiftCount,
+  'chatBubbleEvents': instance.chatBubbleEvents,
   'showHypeTrain': instance.showHypeTrain,
   'showCommunityHighlights': instance.showCommunityHighlights,
   'showCelebrations': instance.showCelebrations,
@@ -1904,6 +1910,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$chatBubbleEventsAtom = Atom(
+    name: '_SettingsStoreBase.chatBubbleEvents',
+    context: context,
+  );
+
+  @override
+  List<String> get chatBubbleEvents {
+    _$chatBubbleEventsAtom.reportRead();
+    return super.chatBubbleEvents;
+  }
+
+  @override
+  set chatBubbleEvents(List<String> value) {
+    _$chatBubbleEventsAtom.reportWrite(value, super.chatBubbleEvents, () {
+      super.chatBubbleEvents = value;
+    });
+  }
+
   late final _$showHypeTrainAtom = Atom(
     name: '_SettingsStoreBase.showHypeTrain',
     context: context,
@@ -2914,6 +2938,7 @@ showUserNotices: ${showUserNotices},
 collapseGiftBombs: ${collapseGiftBombs},
 hideGiftSubNotices: ${hideGiftSubNotices},
 hideGiftCount: ${hideGiftCount},
+chatBubbleEvents: ${chatBubbleEvents},
 showHypeTrain: ${showHypeTrain},
 showCommunityHighlights: ${showCommunityHighlights},
 showCelebrations: ${showCelebrations},

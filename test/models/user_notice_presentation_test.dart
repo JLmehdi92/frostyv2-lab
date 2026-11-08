@@ -149,4 +149,20 @@ void main() {
   test('a partner announcement keeps the announcement layout', () {
     expect(_presentRaw(sharedAnnouncement).icon, NoticeGlyph.megaphone);
   });
+
+  group('chatBubbleEventOf', () {
+    ChatBubbleEvent of(String msgId) =>
+        chatBubbleEventOf(UserNotice.fromTags({'msg-id': msgId}));
+
+    test('each notice falls in its bubble type', () {
+      expect(of('sub'), ChatBubbleEvent.subs);
+      expect(of('resub'), ChatBubbleEvent.subs);
+      expect(of('subgift'), ChatBubbleEvent.gifts);
+      expect(of('submysterygift'), ChatBubbleEvent.gifts);
+      expect(of('raid'), ChatBubbleEvent.raids);
+      expect(of('announcement'), ChatBubbleEvent.announcements);
+      expect(of('viewermilestone'), ChatBubbleEvent.other);
+      expect(of('something-new'), ChatBubbleEvent.other);
+    });
+  });
 }

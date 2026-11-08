@@ -10782,5 +10782,47 @@
   "searchRelatedLives": "Related live channels",
   "@searchRelatedLives": {
     "description": "Search: the shelf of live channels in the category the search matched."
+  },
+  "chatBubblesTitle": "Event bubbles",
+  "@chatBubblesTitle": {
+    "description": "Chat settings: the row that draws chosen chat events (subs, gifts, raids…) as rounded bubbles."
+  },
+  "chatBubblesDetail": "Draws the chat events you choose as rounded bubbles.",
+  "@chatBubblesDetail": {
+    "description": "Chat settings: what Event bubbles does."
+  },
+  "chatBubblesOff": "Off",
+  "@chatBubblesOff": {
+    "description": "Chat settings: Event bubbles when no event type is drawn as a bubble (feminine plural in French: les bulles)."
+  },
+  "chatBubblesCount": "{count, plural, one{{count} type} other{{count} types}}",
+  "@chatBubblesCount": {
+    "description": "Chat settings: how many event types are drawn as bubbles.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "chatBubblesSubs": "Subs",
+  "@chatBubblesSubs": {
+    "description": "Event bubbles: subs, resubs and sub upgrades."
+  },
+  "chatBubblesGifts": "Gifted subs",
+  "@chatBubblesGifts": {
+    "description": "Event bubbles: gifted subs."
+  },
+  "chatBubblesRaids": "Raids",
+  "@chatBubblesRaids": {
+    "description": "Event bubbles: raids."
+  },
+  "chatBubblesAnnouncements": "Announcements",
+  "@chatBubblesAnnouncements": {
+    "description": "Event bubbles: announcements."
+  },
+  "chatBubblesOther": "Other events",
+  "@chatBubblesOther": {
+    "description": "Event bubbles: milestones, charity, Bits badges and the rest."
   }
 }

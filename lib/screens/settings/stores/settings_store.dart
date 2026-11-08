@@ -46,6 +46,7 @@ abstract class _SettingsStoreBase with Store {
   // Browse defaults ('' is every language)
   static const defaultStreamLanguage = '';
   static const defaultHiddenContentLabels = <String>[];
+  static const defaultChatBubbleEvents = <String>[];
   static const defaultStartTab = HomeTab.following;
   static const defaultFollowedSort = FollowedSort.viewers;
 
@@ -687,6 +688,10 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var hideGiftCount = defaultHideGiftCount;
 
+  @JsonKey(defaultValue: defaultChatBubbleEvents)
+  @observable
+  List<String> chatBubbleEvents = defaultChatBubbleEvents;
+
   @JsonKey(defaultValue: defaultShowHypeTrain)
   @observable
   var showHypeTrain = defaultShowHypeTrain;
@@ -905,6 +910,7 @@ abstract class _SettingsStoreBase with Store {
     collapseGiftBombs = defaultCollapseGiftBombs;
     hideGiftSubNotices = defaultHideGiftSubNotices;
     hideGiftCount = defaultHideGiftCount;
+    chatBubbleEvents = defaultChatBubbleEvents;
     showHypeTrain = defaultShowHypeTrain;
     showCommunityHighlights = defaultShowCommunityHighlights;
     showCelebrations = defaultShowCelebrations;

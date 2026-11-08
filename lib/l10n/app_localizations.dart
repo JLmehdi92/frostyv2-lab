@@ -11234,6 +11234,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Related live channels'**
   String get searchRelatedLives;
+
+  /// Chat settings: the row that draws chosen chat events (subs, gifts, raids…) as rounded bubbles.
+  ///
+  /// In en, this message translates to:
+  /// **'Event bubbles'**
+  String get chatBubblesTitle;
+
+  /// Chat settings: what Event bubbles does.
+  ///
+  /// In en, this message translates to:
+  /// **'Draws the chat events you choose as rounded bubbles.'**
+  String get chatBubblesDetail;
+
+  /// Chat settings: Event bubbles when no event type is drawn as a bubble (feminine plural in French: les bulles).
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get chatBubblesOff;
+
+  /// Chat settings: how many event types are drawn as bubbles.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} type} other{{count} types}}'**
+  String chatBubblesCount({required int count});
+
+  /// Event bubbles: subs, resubs and sub upgrades.
+  ///
+  /// In en, this message translates to:
+  /// **'Subs'**
+  String get chatBubblesSubs;
+
+  /// Event bubbles: gifted subs.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifted subs'**
+  String get chatBubblesGifts;
+
+  /// Event bubbles: raids.
+  ///
+  /// In en, this message translates to:
+  /// **'Raids'**
+  String get chatBubblesRaids;
+
+  /// Event bubbles: announcements.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcements'**
+  String get chatBubblesAnnouncements;
+
+  /// Event bubbles: milestones, charity, Bits badges and the rest.
+  ///
+  /// In en, this message translates to:
+  /// **'Other events'**
+  String get chatBubblesOther;
 }
 
 class _AppLocalizationsDelegate
