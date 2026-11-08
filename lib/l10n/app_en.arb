@@ -2013,16 +2013,6 @@
   "@goLiveBellFailed": {
     "description": "Error message. Snackbar when a channel's go-live bell could not be changed (the channel's menu)."
   },
-  "goLiveBell": "Notify when {name} goes live",
-  "@goLiveBell": {
-    "description": "A channel's menu (chat user card « More »): the switch for that channel's go-live notifications.",
-    "placeholders": {
-      "name": {
-        "type": "String",
-        "example": "JLTomy"
-      }
-    }
-  },
   "mentionTitle": "Chat mention notifications",
   "@mentionTitle": {
     "description": "Settings › Notifications › Chat: the switch for mention notifications."
@@ -2846,7 +2836,7 @@
   "@audienceLabelHide": {
     "description": "Tooltip of the button that hides the audience and paid promotion labels on the player."
   },
-  "liveFeedHidden": "You won’t see {name} in Live for now.",
+  "liveFeedHidden": "You won’t see {name} in Live anymore.",
   "@liveFeedHidden": {
     "description": "Snackbar after « Not interested » on a live preview (Home › Live). name is the channel's display name; « En direct » is the tab's name (shellFeedLive).",
     "placeholders": {
@@ -10025,5 +10015,153 @@
   "authLogIn": "Log in",
   "@authLogIn": {
     "description": "The dialog's button that opens the Twitch login page."
+  },
+  "whispersNew": "New whisper",
+  "@whispersNew": {
+    "description": "Whispers: the header button (and its sheet title) that starts a whisper with anyone."
+  },
+  "whispersNewSearch": "Search for someone",
+  "@whispersNewSearch": {
+    "description": "Whispers › New whisper: the hint of the search field (Twitch channel search)."
+  },
+  "whispersNewNoMatch": "No one matches “{query}”.",
+  "@whispersNewNoMatch": {
+    "description": "Whispers › New whisper: no channel matches what the viewer typed. query is the text typed.",
+    "placeholders": {
+      "query": {
+        "type": "String",
+        "example": "ninja"
+      }
+    }
+  },
+  "whispersNewFailed": "Couldn’t search. Check your connection and try again.",
+  "@whispersNewFailed": {
+    "description": "Error message. Whispers › New whisper: the channel search failed."
+  },
+  "whisperMore": "Conversation options",
+  "@whisperMore": {
+    "description": "Whispers: tooltip of the conversation header's « more » button (mute, archive, hide)."
+  },
+  "whisperMute": "Mute notifications",
+  "@whisperMute": {
+    "description": "Whispers › conversation options: stop in-app notices for this conversation (kept on this device)."
+  },
+  "whisperUnmute": "Unmute notifications",
+  "@whisperUnmute": {
+    "description": "Whispers › conversation options: notices come back for this conversation."
+  },
+  "whisperMuted": "Notifications muted",
+  "@whisperMuted": {
+    "description": "Whispers: what a screen reader says for the muted icon on a conversation row."
+  },
+  "whisperArchive": "Archive",
+  "@whisperArchive": {
+    "description": "Whispers › conversation options: moves the conversation to the archived section until a new whisper arrives."
+  },
+  "whisperUnarchive": "Unarchive",
+  "@whisperUnarchive": {
+    "description": "Whispers › conversation options: brings an archived conversation back to the list."
+  },
+  "whispersArchived": "{count, plural, one{Archived conversation ({count})} other{Archived conversations ({count})}}",
+  "@whispersArchived": {
+    "description": "Whispers: the row that shows or hides archived conversations. count is how many.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "whisperHide": "Hide conversation",
+  "@whisperHide": {
+    "description": "Whispers › conversation options: removes the conversation from the app (asks first)."
+  },
+  "whisperHideConfirmTitle": "Hide this conversation?",
+  "@whisperHideConfirmTitle": {
+    "description": "Whispers: title of the dialog that confirms hiding a conversation."
+  },
+  "whisperHideConfirmMessage": "Your whispers with {name} will be removed from this app. A new whisper will start a new conversation.",
+  "@whisperHideConfirmMessage": {
+    "description": "Whispers: text of the dialog that confirms hiding a conversation. name is the person's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Ninja"
+      }
+    }
+  },
+  "whisperHideConfirm": "Hide",
+  "@whisperHideConfirm": {
+    "description": "Whispers: the dialog's button that hides the conversation."
+  },
+  "blockReasonTitle": "Reason (optional)",
+  "@blockReasonTitle": {
+    "description": "Block dialog: the label above the reason choices sent to Twitch with the block."
+  },
+  "blockReasonHarassment": "Harassment",
+  "@blockReasonHarassment": {
+    "description": "Block dialog: reason choice."
+  },
+  "blockReasonSpam": "Spam",
+  "@blockReasonSpam": {
+    "description": "Block dialog: reason choice."
+  },
+  "blockReasonOther": "Other",
+  "@blockReasonOther": {
+    "description": "Block dialog: reason choice."
+  },
+  "goLiveBellLevelTitle": "Live notifications for {name}",
+  "@goLiveBellLevelTitle": {
+    "description": "A channel's menu (user card « More », profile « More »): the title above the bell level choices. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Ninja"
+      }
+    }
+  },
+  "goLiveBellAll": "All lives",
+  "@goLiveBellAll": {
+    "description": "Bell level: notify each time the channel goes live."
+  },
+  "goLiveBellNone": "None",
+  "@goLiveBellNone": {
+    "description": "Bell level: never notify for this channel (feminine in French: « aucune notification »)."
+  },
+  "settingsPageNotInterested": "Not interested",
+  "@settingsPageNotInterested": {
+    "description": "Settings › General › Browse: the row (and page title) listing the channels hidden from Live with « Not interested »."
+  },
+  "notInterestedCount": "{count, plural, one{{count} hidden channel} other{{count} hidden channels}}",
+  "@notInterestedCount": {
+    "description": "Not interested page: the section label above the list. count is how many channels.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "notInterestedEmpty": "No hidden channels",
+  "@notInterestedEmpty": {
+    "description": "Not interested page: nothing hidden yet."
+  },
+  "notInterestedNote": "Channels you mark “Not interested” in Live stay out of it until you show them again here.",
+  "@notInterestedNote": {
+    "description": "Not interested page: the note under the list (and under the empty state). « Ça ne m’intéresse pas » must match liveFeedNotInterested in French."
+  },
+  "notInterestedRestore": "Show again",
+  "@notInterestedRestore": {
+    "description": "Not interested page: the button that brings a channel back to Live."
+  },
+  "notInterestedRestoreName": "Show {name} again",
+  "@notInterestedRestoreName": {
+    "description": "Not interested page: what a screen reader says for the button of one channel. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Ninja"
+      }
+    }
   }
 }

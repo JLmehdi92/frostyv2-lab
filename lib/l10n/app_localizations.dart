@@ -2726,12 +2726,6 @@ abstract class AppLocalizations {
   /// **'Couldn’t change the bell.'**
   String get goLiveBellFailed;
 
-  /// A channel's menu (chat user card « More »): the switch for that channel's go-live notifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Notify when {name} goes live'**
-  String goLiveBell({required String name});
-
   /// Settings › Notifications › Chat: the switch for mention notifications.
   ///
   /// In en, this message translates to:
@@ -3605,7 +3599,7 @@ abstract class AppLocalizations {
   /// Snackbar after « Not interested » on a live preview (Home › Live). name is the channel's display name; « En direct » is the tab's name (shellFeedLive).
   ///
   /// In en, this message translates to:
-  /// **'You won’t see {name} in Live for now.'**
+  /// **'You won’t see {name} in Live anymore.'**
   String liveFeedHidden({required String name});
 
   /// The snackbar's action that brings back a channel hidden with « Not interested ».
@@ -10328,6 +10322,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log in'**
   String get authLogIn;
+
+  /// Whispers: the header button (and its sheet title) that starts a whisper with anyone.
+  ///
+  /// In en, this message translates to:
+  /// **'New whisper'**
+  String get whispersNew;
+
+  /// Whispers › New whisper: the hint of the search field (Twitch channel search).
+  ///
+  /// In en, this message translates to:
+  /// **'Search for someone'**
+  String get whispersNewSearch;
+
+  /// Whispers › New whisper: no channel matches what the viewer typed. query is the text typed.
+  ///
+  /// In en, this message translates to:
+  /// **'No one matches “{query}”.'**
+  String whispersNewNoMatch({required String query});
+
+  /// Error message. Whispers › New whisper: the channel search failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t search. Check your connection and try again.'**
+  String get whispersNewFailed;
+
+  /// Whispers: tooltip of the conversation header's « more » button (mute, archive, hide).
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation options'**
+  String get whisperMore;
+
+  /// Whispers › conversation options: stop in-app notices for this conversation (kept on this device).
+  ///
+  /// In en, this message translates to:
+  /// **'Mute notifications'**
+  String get whisperMute;
+
+  /// Whispers › conversation options: notices come back for this conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute notifications'**
+  String get whisperUnmute;
+
+  /// Whispers: what a screen reader says for the muted icon on a conversation row.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications muted'**
+  String get whisperMuted;
+
+  /// Whispers › conversation options: moves the conversation to the archived section until a new whisper arrives.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get whisperArchive;
+
+  /// Whispers › conversation options: brings an archived conversation back to the list.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get whisperUnarchive;
+
+  /// Whispers: the row that shows or hides archived conversations. count is how many.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Archived conversation ({count})} other{Archived conversations ({count})}}'**
+  String whispersArchived({required int count});
+
+  /// Whispers › conversation options: removes the conversation from the app (asks first).
+  ///
+  /// In en, this message translates to:
+  /// **'Hide conversation'**
+  String get whisperHide;
+
+  /// Whispers: title of the dialog that confirms hiding a conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide this conversation?'**
+  String get whisperHideConfirmTitle;
+
+  /// Whispers: text of the dialog that confirms hiding a conversation. name is the person's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Your whispers with {name} will be removed from this app. A new whisper will start a new conversation.'**
+  String whisperHideConfirmMessage({required String name});
+
+  /// Whispers: the dialog's button that hides the conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get whisperHideConfirm;
+
+  /// Block dialog: the label above the reason choices sent to Twitch with the block.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get blockReasonTitle;
+
+  /// Block dialog: reason choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment'**
+  String get blockReasonHarassment;
+
+  /// Block dialog: reason choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam'**
+  String get blockReasonSpam;
+
+  /// Block dialog: reason choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get blockReasonOther;
+
+  /// A channel's menu (user card « More », profile « More »): the title above the bell level choices. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Live notifications for {name}'**
+  String goLiveBellLevelTitle({required String name});
+
+  /// Bell level: notify each time the channel goes live.
+  ///
+  /// In en, this message translates to:
+  /// **'All lives'**
+  String get goLiveBellAll;
+
+  /// Bell level: never notify for this channel (feminine in French: « aucune notification »).
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get goLiveBellNone;
+
+  /// Settings › General › Browse: the row (and page title) listing the channels hidden from Live with « Not interested ».
+  ///
+  /// In en, this message translates to:
+  /// **'Not interested'**
+  String get settingsPageNotInterested;
+
+  /// Not interested page: the section label above the list. count is how many channels.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} hidden channel} other{{count} hidden channels}}'**
+  String notInterestedCount({required int count});
+
+  /// Not interested page: nothing hidden yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No hidden channels'**
+  String get notInterestedEmpty;
+
+  /// Not interested page: the note under the list (and under the empty state). « Ça ne m’intéresse pas » must match liveFeedNotInterested in French.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels you mark “Not interested” in Live stay out of it until you show them again here.'**
+  String get notInterestedNote;
+
+  /// Not interested page: the button that brings a channel back to Live.
+  ///
+  /// In en, this message translates to:
+  /// **'Show again'**
+  String get notInterestedRestore;
+
+  /// Not interested page: what a screen reader says for the button of one channel. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {name} again'**
+  String notInterestedRestoreName({required String name});
 }
 
 class _AppLocalizationsDelegate

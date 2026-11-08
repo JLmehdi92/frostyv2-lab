@@ -135,6 +135,86 @@ void main() {
 
     tearDown(() => store.dispose());
 
+    test('a muted conversation sends no notice and is left out of the unread count', () async {
+      final notices = <IncomingWhisper>[];
+      store.incoming.listen(notices.add);
+      streams.single.add(EventSubData(_event()));
+      await pumpEventQueue();
+
+      store.toggleMute('8');
+      expect(store.isMuted('8'), isTrue);
+      streams.single.add(EventSubData(_event(id: 'w2')));
+      await pumpEventQueue();
+
+      expect(notices, hasLength(1));
+      expect(store.threads.single.unread, 2);
+      expect(store.unreadCount, 0);
+
+      store.toggleMute('8');
+      expect(store.isMuted('8'), isFalse);
+      expect(store.unreadCount, 2);
+    });
+
+    test('an archived conversation leaves the list until a whisper brings it back', () async {
+      streams.single.add(EventSubData(_event()));
+      await pumpEventQueue();
+
+      store.archive('8');
+      expect(store.threads, isEmpty);
+      expect(store.archivedThreads.single.userId, '8');
+      expect(store.unreadCount, 0);
+
+      streams.single.add(EventSubData(_event(id: 'w2')));
+      await pumpEventQueue();
+      expect(store.threads.single.userId, '8');
+      expect(store.archivedThreads, isEmpty);
+
+      store.archive('8');
+      store.unarchive('8');
+      expect(store.threads.single.userId, '8');
+    });
+
+    test('hiding a conversation removes it and its whispers', () async {
+      streams.single.add(EventSubData(_event()));
+      await pumpEventQueue();
+      store.open(userId: '8', login: 'friend', displayName: 'Friend');
+      store.archive('8');
+
+      store.hide('8');
+
+      expect(store.threads, isEmpty);
+      expect(store.archivedThreads, isEmpty);
+      expect(store.openUserId, isNull);
+      streams.single.add(EventSubData(_event(id: 'w2')));
+      await pumpEventQueue();
+      expect(store.threads.single.whispers.map((w) => w.id), ['w2']);
+    });
+
+    test('mute and archive choices are restored and reported', () async {
+      final saved = <({Set<String> muted, Set<String> archived})>[];
+      final restored = WhisperStore(
+        twitchApi: api,
+        currentUserId: () => user.value,
+        listen: (topic) {
+          final stream = StreamController<EventSubTopicEvent>.broadcast();
+          streams.add(stream);
+          return EventSubHandle.forTesting(topic, stream.stream, () {});
+        },
+        mutedUserIds: {'8'},
+        archivedUserIds: {'9'},
+        onPreferencesChanged: (muted, archived) =>
+            saved.add((muted: muted, archived: archived)),
+      );
+      addTearDown(restored.dispose);
+
+      expect(restored.isMuted('8'), isTrue);
+      restored.archive('8');
+      restored.toggleMute('8');
+
+      expect(saved.last.muted, isEmpty);
+      expect(saved.last.archived, {'9', '8'});
+    });
+
     test('listens to the logged-in viewer\'s whispers', () async {
       expect(topics.single.type, 'user.whisper.message');
       expect(topics.single.condition, {'user_id': '7'});

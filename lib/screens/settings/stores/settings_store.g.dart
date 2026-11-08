@@ -42,6 +42,21 @@ SettingsStore _$SettingsStoreFromJson(
   ..confirmExternalLinks = json['confirmExternalLinks'] as bool? ?? true
   ..launchUrlExternal = json['launchUrlExternal'] as bool? ?? false
   ..mentionNotifications = json['mentionNotifications'] as bool? ?? true
+  ..mutedWhisperUserIds =
+      (json['mutedWhisperUserIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      []
+  ..archivedWhisperUserIds =
+      (json['archivedWhisperUserIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      []
+  ..notInterestedChannels =
+      (json['notInterestedChannels'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ) ??
+      {}
   ..appLanguage =
       $enumDecodeNullable(
         _$AppLanguageEnumMap,
@@ -235,6 +250,9 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'confirmExternalLinks': instance.confirmExternalLinks,
   'launchUrlExternal': instance.launchUrlExternal,
   'mentionNotifications': instance.mentionNotifications,
+  'mutedWhisperUserIds': instance.mutedWhisperUserIds,
+  'archivedWhisperUserIds': instance.archivedWhisperUserIds,
+  'notInterestedChannels': instance.notInterestedChannels,
   'appLanguage': _$AppLanguageEnumMap[instance.appLanguage]!,
   'languagePromptVersion': instance.languagePromptVersion,
   'showVideo': instance.savedShowVideo,
@@ -656,6 +674,68 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
       super.mentionNotifications,
       () {
         super.mentionNotifications = value;
+      },
+    );
+  }
+
+  late final _$mutedWhisperUserIdsAtom = Atom(
+    name: '_SettingsStoreBase.mutedWhisperUserIds',
+    context: context,
+  );
+
+  @override
+  List<String> get mutedWhisperUserIds {
+    _$mutedWhisperUserIdsAtom.reportRead();
+    return super.mutedWhisperUserIds;
+  }
+
+  @override
+  set mutedWhisperUserIds(List<String> value) {
+    _$mutedWhisperUserIdsAtom.reportWrite(value, super.mutedWhisperUserIds, () {
+      super.mutedWhisperUserIds = value;
+    });
+  }
+
+  late final _$archivedWhisperUserIdsAtom = Atom(
+    name: '_SettingsStoreBase.archivedWhisperUserIds',
+    context: context,
+  );
+
+  @override
+  List<String> get archivedWhisperUserIds {
+    _$archivedWhisperUserIdsAtom.reportRead();
+    return super.archivedWhisperUserIds;
+  }
+
+  @override
+  set archivedWhisperUserIds(List<String> value) {
+    _$archivedWhisperUserIdsAtom.reportWrite(
+      value,
+      super.archivedWhisperUserIds,
+      () {
+        super.archivedWhisperUserIds = value;
+      },
+    );
+  }
+
+  late final _$notInterestedChannelsAtom = Atom(
+    name: '_SettingsStoreBase.notInterestedChannels',
+    context: context,
+  );
+
+  @override
+  Map<String, String> get notInterestedChannels {
+    _$notInterestedChannelsAtom.reportRead();
+    return super.notInterestedChannels;
+  }
+
+  @override
+  set notInterestedChannels(Map<String, String> value) {
+    _$notInterestedChannelsAtom.reportWrite(
+      value,
+      super.notInterestedChannels,
+      () {
+        super.notInterestedChannels = value;
       },
     );
   }
@@ -2334,6 +2414,30 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   );
 
   @override
+  void markNotInterested(String userId, String name) {
+    final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
+      name: '_SettingsStoreBase.markNotInterested',
+    );
+    try {
+      return super.markNotInterested(userId, name);
+    } finally {
+      _$_SettingsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void clearNotInterested(String userId) {
+    final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
+      name: '_SettingsStoreBase.clearNotInterested',
+    );
+    try {
+      return super.clearNotInterested(userId);
+    } finally {
+      _$_SettingsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void chooseLanguage(AppLanguage language) {
     final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
       name: '_SettingsStoreBase.chooseLanguage',
@@ -2467,6 +2571,9 @@ hiddenContentLabels: ${hiddenContentLabels},
 confirmExternalLinks: ${confirmExternalLinks},
 launchUrlExternal: ${launchUrlExternal},
 mentionNotifications: ${mentionNotifications},
+mutedWhisperUserIds: ${mutedWhisperUserIds},
+archivedWhisperUserIds: ${archivedWhisperUserIds},
+notInterestedChannels: ${notInterestedChannels},
 appLanguage: ${appLanguage},
 languagePromptVersion: ${languagePromptVersion},
 savedShowVideo: ${savedShowVideo},

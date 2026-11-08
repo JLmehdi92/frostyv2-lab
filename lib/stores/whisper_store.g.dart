@@ -87,6 +87,14 @@ mixin _$WhisperStore on WhisperStoreBase, Store {
         () => super.threads,
         name: 'WhisperStoreBase.threads',
       )).value;
+  Computed<List<WhisperThread>>? _$archivedThreadsComputed;
+
+  @override
+  List<WhisperThread> get archivedThreads =>
+      (_$archivedThreadsComputed ??= Computed<List<WhisperThread>>(
+        () => super.archivedThreads,
+        name: 'WhisperStoreBase.archivedThreads',
+      )).value;
   Computed<int>? _$unreadCountComputed;
 
   @override
@@ -136,6 +144,54 @@ mixin _$WhisperStore on WhisperStoreBase, Store {
     name: 'WhisperStoreBase',
     context: context,
   );
+
+  @override
+  void toggleMute(String userId) {
+    final _$actionInfo = _$WhisperStoreBaseActionController.startAction(
+      name: 'WhisperStoreBase.toggleMute',
+    );
+    try {
+      return super.toggleMute(userId);
+    } finally {
+      _$WhisperStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void archive(String userId) {
+    final _$actionInfo = _$WhisperStoreBaseActionController.startAction(
+      name: 'WhisperStoreBase.archive',
+    );
+    try {
+      return super.archive(userId);
+    } finally {
+      _$WhisperStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void unarchive(String userId) {
+    final _$actionInfo = _$WhisperStoreBaseActionController.startAction(
+      name: 'WhisperStoreBase.unarchive',
+    );
+    try {
+      return super.unarchive(userId);
+    } finally {
+      _$WhisperStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void hide(String userId) {
+    final _$actionInfo = _$WhisperStoreBaseActionController.startAction(
+      name: 'WhisperStoreBase.hide',
+    );
+    try {
+      return super.hide(userId);
+    } finally {
+      _$WhisperStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   void _follow(String? me) {
@@ -214,6 +270,7 @@ mixin _$WhisperStore on WhisperStoreBase, Store {
     return '''
 openUserId: ${openUserId},
 threads: ${threads},
+archivedThreads: ${archivedThreads},
 unreadCount: ${unreadCount}
     ''';
   }

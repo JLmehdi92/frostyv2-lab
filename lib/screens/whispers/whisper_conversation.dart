@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/whispers/whisper_actions.dart';
 import 'package:onset/screens/whispers/whisper_kit.dart';
 import 'package:onset/screens/whispers/whispers_screen.dart';
 import 'package:onset/stores/whisper_store.dart';
@@ -13,6 +16,7 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/state_glyph.dart';
 import 'package:onset/widgets/state_views.dart';
 
@@ -31,6 +35,7 @@ class WhisperConversation extends StatefulWidget {
     required this.displayName,
     this.pane = false,
     this.onBack,
+    this.onHidden,
   });
 
   final WhisperStore store;
@@ -44,6 +49,7 @@ class WhisperConversation extends StatefulWidget {
 
   /// The phone's back button; leaves the page when null.
   final VoidCallback? onBack;
+  final VoidCallback? onHidden;
 
   static const routeName = '/whisper';
 
@@ -131,6 +137,16 @@ class _WhisperConversationState extends State<WhisperConversation> {
     });
   }
 
+  void _showActions() => unawaited(
+    showWhisperThreadActions(
+      context,
+      store: widget.store,
+      thread: _thread,
+      onHidden:
+          widget.onHidden ?? widget.onBack ?? () => Navigator.maybePop(context),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final colors = WhisperColors.of(context);
@@ -143,6 +159,7 @@ class _WhisperConversationState extends State<WhisperConversation> {
             login: widget.login,
             displayName: whisperPreview(widget.displayName),
             colors: colors,
+            onMore: _showActions,
           )
         else
           _PageHeader(
@@ -150,6 +167,7 @@ class _WhisperConversationState extends State<WhisperConversation> {
             displayName: whisperPreview(widget.displayName),
             colors: colors,
             onBack: widget.onBack ?? () => Navigator.maybePop(context),
+            onMore: _showActions,
           ),
         Expanded(
           child: _Messages(
@@ -230,12 +248,14 @@ class _PageHeader extends StatelessWidget {
     required this.displayName,
     required this.colors,
     required this.onBack,
+    required this.onMore,
   });
 
   final String login;
   final String displayName;
   final WhisperColors colors;
   final VoidCallback onBack;
+  final VoidCallback onMore;
 
   @override
   Widget build(BuildContext context) {
@@ -276,11 +296,29 @@ class _PageHeader extends StatelessWidget {
                 ),
               ),
             ),
+            _MoreButton(color: colors.text, onPressed: onMore),
           ],
         ),
       ),
     );
   }
+}
+
+class _MoreButton extends StatelessWidget {
+  const _MoreButton({required this.color, required this.onPressed});
+
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    key: const ValueKey('whisper-more'),
+    tooltip: context.l10n.whisperMore,
+    onPressed: onPressed,
+    constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+    padding: EdgeInsets.zero,
+    icon: SheetGlyph(SheetGlyphKind.more, color: color, size: 22),
+  );
 }
 
 /// The 44 dp round back button of the whispers' headers.
@@ -318,11 +356,13 @@ class _PaneHeader extends StatelessWidget {
     required this.login,
     required this.displayName,
     required this.colors,
+    required this.onMore,
   });
 
   final String login;
   final String displayName;
   final WhisperColors colors;
+  final VoidCallback onMore;
 
   @override
   Widget build(BuildContext context) {
@@ -370,6 +410,7 @@ class _PaneHeader extends StatelessWidget {
               ),
             ),
           ),
+          _MoreButton(color: colors.text, onPressed: onMore),
         ],
       ),
     );

@@ -7,6 +7,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
+import 'package:onset/screens/whispers/whisper_actions.dart';
 import 'package:onset/screens/whispers/whisper_conversation.dart';
 import 'package:onset/screens/whispers/whisper_kit.dart';
 import 'package:onset/stores/whisper_store.dart';
@@ -14,6 +15,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/state_glyph.dart';
 import 'package:onset/widgets/state_views.dart';
 
@@ -247,7 +249,26 @@ class _WhispersScreenState extends State<WhispersScreen>
         displayName: target.displayName,
         pane: pane,
         onBack: _back,
+        onHidden: _hidden,
       );
+
+  void _hidden() {
+    if (!context.isLargeScreen) {
+      unawaited(_back());
+      return;
+    }
+    setState(() {
+      _selected = null;
+      _open = false;
+      _autoOpen = false;
+    });
+  }
+
+  Future<void> _startNew() async {
+    final target = await pickWhisperTarget(context, me: widget.store.me);
+    if (target == null || !mounted) return;
+    _select(target);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -311,7 +332,11 @@ class _WhispersScreenState extends State<WhispersScreen>
                       opacity: reduce ? 1 - t : 1 - 0.6 * t,
                       child: ColoredBox(
                         color: ground,
-                        child: _ListPage(store: widget.store, onOpen: _select),
+                        child: _ListPage(
+                          store: widget.store,
+                          onOpen: _select,
+                          onNew: _startNew,
+                        ),
                       ),
                     ),
                   ),
@@ -422,6 +447,10 @@ class _WhispersScreenState extends State<WhispersScreen>
                           ),
                         ),
                       ),
+                      NewWhisperButton(
+                        color: colors.text,
+                        onPressed: _startNew,
+                      ),
                       Text(
                         unread > 0
                             ? context.l10n.whispersUnreadCount(count: unread)
@@ -496,10 +525,15 @@ class _WhispersScreenState extends State<WhispersScreen>
 /// The phone's list page: back and "Whispers" (20/700), then the
 /// conversations.
 class _ListPage extends StatelessWidget {
-  const _ListPage({required this.store, required this.onOpen});
+  const _ListPage({
+    required this.store,
+    required this.onOpen,
+    required this.onNew,
+  });
 
   final WhisperStore store;
   final ValueChanged<WhisperTarget> onOpen;
+  final VoidCallback onNew;
 
   @override
   Widget build(BuildContext context) {
@@ -551,6 +585,7 @@ class _ListPage extends StatelessWidget {
                     ),
                   ),
                 ),
+                NewWhisperButton(color: colors.text, onPressed: onNew),
               ],
             ),
           ),
@@ -615,7 +650,7 @@ class _LoggedOut extends StatelessWidget {
 /// The conversations, most recent first (the phone's whispers, Activity's
 /// Whispers tab, the tablet's list), with why whispers may not arrive
 /// above them.
-class WhispersList extends StatelessWidget {
+class WhispersList extends StatefulWidget {
   const WhispersList({
     super.key,
     required this.store,
@@ -639,34 +674,60 @@ class WhispersList extends StatelessWidget {
   final bool showEmpty;
   final EdgeInsetsGeometry noteMargin;
 
+  @override
+  State<WhispersList> createState() => _WhispersListState();
+}
+
+class _WhispersListState extends State<WhispersList> {
+  var _showArchived = false;
+
   void _open(BuildContext context, WhisperThread thread) {
-    final onOpen = this.onOpen;
+    final onOpen = widget.onOpen;
     if (onOpen != null) {
       onOpen(WhisperTarget.of(thread));
       return;
     }
     WhisperConversation.open(
       context,
-      store: store,
+      store: widget.store,
       userId: thread.userId,
       login: thread.login,
       displayName: thread.displayName,
     );
   }
 
+  Widget _row(BuildContext context, WhisperThread thread) => Padding(
+    padding: EdgeInsets.only(bottom: widget.rounded ? 2 : 0),
+    child: WhisperThreadRow(
+      key: ValueKey(thread.userId),
+      thread: thread,
+      selected: thread.userId == widget.selectedUserId,
+      rounded: widget.rounded,
+      muted: widget.store.isMuted(thread.userId),
+      onTap: () => _open(context, thread),
+      onLongPress: () => unawaited(
+        showWhisperThreadActions(context, store: widget.store, thread: thread),
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
     return Observer(
       builder: (context) {
-        final threads = store.threads;
-        final note = WhisperStatusNote(store: store, margin: noteMargin);
-        if (threads.isEmpty) {
+        final threads = widget.store.threads;
+        final archived = widget.store.archivedThreads;
+        final note = WhisperStatusNote(
+          store: widget.store,
+          margin: widget.noteMargin,
+        );
+        if (threads.isEmpty && archived.isEmpty) {
           return ListView(
             padding: EdgeInsets.only(top: padding.top, bottom: padding.bottom),
             children: [
               note,
-              if (showEmpty)
+              if (widget.showEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 72),
                   child: _NoWhispers(),
@@ -674,30 +735,104 @@ class WhispersList extends StatelessWidget {
             ],
           );
         }
-        return ListView.builder(
+        final shownArchived = _showArchived ? archived : <WhisperThread>[];
+        return ListView(
           padding: EdgeInsets.only(
-            top: padding.top + (rounded ? 0 : 6),
+            top: padding.top + (widget.rounded ? 0 : 6),
             bottom: padding.bottom + 24,
             left: padding.left,
             right: padding.right,
           ),
-          itemCount: threads.length + 1,
-          itemBuilder: (context, index) {
-            if (index == 0) return note;
-            final thread = threads[index - 1];
-            return Padding(
-              padding: EdgeInsets.only(bottom: rounded ? 2 : 0),
-              child: WhisperThreadRow(
-                key: ValueKey(thread.userId),
-                thread: thread,
-                selected: thread.userId == selectedUserId,
-                rounded: rounded,
-                onTap: () => _open(context, thread),
+          children: [
+            note,
+            for (final thread in threads) _row(context, thread),
+            if (archived.isNotEmpty)
+              _ArchivedToggle(
+                count: archived.length,
+                expanded: _showArchived,
+                onTap: () => setState(() => _showArchived = !_showArchived),
               ),
-            );
-          },
+            for (final thread in shownArchived) _row(context, thread),
+          ],
         );
       },
     );
   }
+}
+
+class _ArchivedToggle extends StatelessWidget {
+  const _ArchivedToggle({
+    required this.count,
+    required this.expanded,
+    required this.onTap,
+  });
+
+  final int count;
+  final bool expanded;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = WhisperColors.of(context);
+    return Semantics(
+      button: true,
+      expanded: expanded,
+      child: InkWell(
+        key: const ValueKey('whispers-archived'),
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              spacing: 8,
+              children: [
+                Icon(Icons.archive_outlined, size: 18, color: colors.secondary),
+                Expanded(
+                  child: Text(
+                    context.l10n.whispersArchived(count: count),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: colors.secondary,
+                    ),
+                  ),
+                ),
+                AnimatedRotation(
+                  turns: expanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 200),
+                  child: SheetGlyph(
+                    SheetGlyphKind.chevronDown,
+                    color: colors.secondary,
+                    size: 18,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NewWhisperButton extends StatelessWidget {
+  const NewWhisperButton({
+    super.key,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    key: const ValueKey('whisper-new'),
+    tooltip: context.l10n.whispersNew,
+    onPressed: onPressed,
+    constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+    padding: EdgeInsets.zero,
+    icon: SheetGlyph(SheetGlyphKind.addChat, color: color, size: 22),
+  );
 }

@@ -122,6 +122,28 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var mentionNotifications = defaultMentionNotifications;
 
+  @JsonKey(defaultValue: <String>[])
+  @observable
+  List<String> mutedWhisperUserIds = const [];
+
+  @JsonKey(defaultValue: <String>[])
+  @observable
+  List<String> archivedWhisperUserIds = const [];
+
+  @JsonKey(defaultValue: <String, String>{})
+  @observable
+  Map<String, String> notInterestedChannels = const {};
+
+  @action
+  void markNotInterested(String userId, String name) =>
+      notInterestedChannels = {...notInterestedChannels, userId: name};
+
+  @action
+  void clearNotInterested(String userId) => notInterestedChannels = {
+    for (final entry in notInterestedChannels.entries)
+      if (entry.key != userId) entry.key: entry.value,
+  };
+
   /// The language of the app: the device's ([AppLanguage.system]) or one
   /// the viewer picked. Never reset with the other settings (a reset must
   /// not change the language the viewer reads them in).

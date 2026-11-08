@@ -1577,11 +1577,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goLiveBellFailed => 'Couldn’t change the bell.';
 
   @override
-  String goLiveBell({required String name}) {
-    return 'Notify when $name goes live';
-  }
-
-  @override
   String get mentionTitle => 'Chat mention notifications';
 
   @override
@@ -2234,7 +2229,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String liveFeedHidden({required String name}) {
-    return 'You won’t see $name in Live for now.';
+    return 'You won’t see $name in Live anymore.';
   }
 
   @override
@@ -7836,4 +7831,114 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authLogIn => 'Log in';
+
+  @override
+  String get whispersNew => 'New whisper';
+
+  @override
+  String get whispersNewSearch => 'Search for someone';
+
+  @override
+  String whispersNewNoMatch({required String query}) {
+    return 'No one matches “$query”.';
+  }
+
+  @override
+  String get whispersNewFailed =>
+      'Couldn’t search. Check your connection and try again.';
+
+  @override
+  String get whisperMore => 'Conversation options';
+
+  @override
+  String get whisperMute => 'Mute notifications';
+
+  @override
+  String get whisperUnmute => 'Unmute notifications';
+
+  @override
+  String get whisperMuted => 'Notifications muted';
+
+  @override
+  String get whisperArchive => 'Archive';
+
+  @override
+  String get whisperUnarchive => 'Unarchive';
+
+  @override
+  String whispersArchived({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Archived conversations ($count)',
+      one: 'Archived conversation ($count)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get whisperHide => 'Hide conversation';
+
+  @override
+  String get whisperHideConfirmTitle => 'Hide this conversation?';
+
+  @override
+  String whisperHideConfirmMessage({required String name}) {
+    return 'Your whispers with $name will be removed from this app. A new whisper will start a new conversation.';
+  }
+
+  @override
+  String get whisperHideConfirm => 'Hide';
+
+  @override
+  String get blockReasonTitle => 'Reason (optional)';
+
+  @override
+  String get blockReasonHarassment => 'Harassment';
+
+  @override
+  String get blockReasonSpam => 'Spam';
+
+  @override
+  String get blockReasonOther => 'Other';
+
+  @override
+  String goLiveBellLevelTitle({required String name}) {
+    return 'Live notifications for $name';
+  }
+
+  @override
+  String get goLiveBellAll => 'All lives';
+
+  @override
+  String get goLiveBellNone => 'None';
+
+  @override
+  String get settingsPageNotInterested => 'Not interested';
+
+  @override
+  String notInterestedCount({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hidden channels',
+      one: '$count hidden channel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notInterestedEmpty => 'No hidden channels';
+
+  @override
+  String get notInterestedNote =>
+      'Channels you mark “Not interested” in Live stay out of it until you show them again here.';
+
+  @override
+  String get notInterestedRestore => 'Show again';
+
+  @override
+  String notInterestedRestoreName({required String name}) {
+    return 'Show $name again';
+  }
 }

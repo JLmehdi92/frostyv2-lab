@@ -331,6 +331,13 @@ void main() async {
         authStore.isLoggedIn ? authStore.user.details?.id : null,
     // Logging in again (new scopes) listens anew.
     credentials: () => authStore.token,
+    mutedUserIds: settingsStore.mutedWhisperUserIds.toSet(),
+    archivedUserIds: settingsStore.archivedWhisperUserIds.toSet(),
+    onPreferencesChanged: (muted, archived) => runInAction(() {
+      settingsStore
+        ..mutedWhisperUserIds = muted.toList()
+        ..archivedWhisperUserIds = archived.toList();
+    }),
   );
 
   // Whether, never who: crash reports carry no user id.

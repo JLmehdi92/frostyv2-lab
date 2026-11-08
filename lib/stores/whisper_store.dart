@@ -180,7 +180,14 @@ abstract class WhisperStoreBase with Store {
     required EventSubHandle Function(EventSubTopic topic) listen,
     required String? Function() currentUserId,
     Object? Function()? credentials,
-  }) : _listen = listen {
+    Set<String> mutedUserIds = const {},
+    Set<String> archivedUserIds = const {},
+    void Function(Set<String> muted, Set<String> archived)?
+    onPreferencesChanged,
+  }) : _listen = listen,
+       _onPreferencesChanged = onPreferencesChanged {
+    _muted.addAll(mutedUserIds);
+    _archived.addAll(archivedUserIds);
     _userReaction = reaction(
       (_) => (currentUserId(), credentials?.call()),
       (session) => _follow(session.$1),
@@ -190,6 +197,11 @@ abstract class WhisperStoreBase with Store {
 
   final TwitchApi twitchApi;
   final EventSubHandle Function(EventSubTopic topic) _listen;
+  final void Function(Set<String> muted, Set<String> archived)?
+  _onPreferencesChanged;
+
+  final _muted = ObservableSet<String>();
+  final _archived = ObservableSet<String>();
 
   /// At most this many conversations are kept (the oldest go first).
   static const maxThreads = 50;
@@ -221,13 +233,53 @@ abstract class WhisperStoreBase with Store {
 
   /// Conversations, most recent first.
   @computed
-  List<WhisperThread> get threads => _threads.values.toList()
-    ..sort(
-      (a, b) => (b.lastAt ?? DateTime(0)).compareTo(a.lastAt ?? DateTime(0)),
-    );
+  List<WhisperThread> get threads =>
+      _sorted(_threads.values.where((t) => !_archived.contains(t.userId)));
 
   @computed
-  int get unreadCount => _threads.values.fold(0, (sum, t) => sum + t.unread);
+  List<WhisperThread> get archivedThreads =>
+      _sorted(_threads.values.where((t) => _archived.contains(t.userId)));
+
+  List<WhisperThread> _sorted(Iterable<WhisperThread> threads) =>
+      threads.toList()..sort(
+        (a, b) => (b.lastAt ?? DateTime(0)).compareTo(a.lastAt ?? DateTime(0)),
+      );
+
+  @computed
+  int get unreadCount => threads
+      .where((t) => !_muted.contains(t.userId))
+      .fold(0, (sum, t) => sum + t.unread);
+
+  bool isMuted(String userId) => _muted.contains(userId);
+
+  bool isArchived(String userId) => _archived.contains(userId);
+
+  @action
+  void toggleMute(String userId) {
+    if (!_muted.remove(userId)) _muted.add(userId);
+    _savePreferences();
+  }
+
+  @action
+  void archive(String userId) {
+    _archived.add(userId);
+    _savePreferences();
+  }
+
+  @action
+  void unarchive(String userId) {
+    if (_archived.remove(userId)) _savePreferences();
+  }
+
+  @action
+  void hide(String userId) {
+    _threads.remove(userId);
+    _openUserIds.removeWhere((id) => id == userId);
+    unarchive(userId);
+  }
+
+  void _savePreferences() =>
+      _onPreferencesChanged?.call({..._muted}, {..._archived});
 
   /// Follows the viewer [me]. The same viewer again (a new token, after
   /// logging in again) listens anew, so a refusal gets another try.
@@ -296,7 +348,10 @@ abstract class WhisperStoreBase with Store {
         if (thread.whispers.any((w) => w.id == incoming.whisper.id)) return;
         thread._add(incoming.whisper);
         if (openUserId != thread.userId) thread.unread++;
-        if (!_incoming.isClosed) _incoming.add(incoming);
+        unarchive(thread.userId);
+        if (!_incoming.isClosed && !isMuted(thread.userId)) {
+          _incoming.add(incoming);
+        }
     }
   }
 

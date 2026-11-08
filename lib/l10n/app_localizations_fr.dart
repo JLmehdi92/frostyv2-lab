@@ -1610,11 +1610,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get goLiveBellFailed => 'Impossible de modifier la cloche.';
 
   @override
-  String goLiveBell({required String name}) {
-    return 'Me prévenir quand $name lance un live';
-  }
-
-  @override
   String get mentionTitle => 'Notifications de mention dans le chat';
 
   @override
@@ -2273,7 +2268,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String liveFeedHidden({required String name}) {
-    return 'Vous ne verrez plus $name dans l’onglet En direct pour le moment';
+    return 'Vous ne verrez plus $name dans l’onglet En direct.';
   }
 
   @override
@@ -7938,4 +7933,114 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get authLogIn => 'Se connecter';
+
+  @override
+  String get whispersNew => 'Nouveau chuchotement';
+
+  @override
+  String get whispersNewSearch => 'Rechercher une personne';
+
+  @override
+  String whispersNewNoMatch({required String query}) {
+    return 'Personne ne correspond à « $query ».';
+  }
+
+  @override
+  String get whispersNewFailed =>
+      'Impossible de lancer la recherche. Vérifiez votre connexion, puis réessayez.';
+
+  @override
+  String get whisperMore => 'Options de la conversation';
+
+  @override
+  String get whisperMute => 'Couper les notifications';
+
+  @override
+  String get whisperUnmute => 'Réactiver les notifications';
+
+  @override
+  String get whisperMuted => 'Notifications coupées';
+
+  @override
+  String get whisperArchive => 'Archiver';
+
+  @override
+  String get whisperUnarchive => 'Désarchiver';
+
+  @override
+  String whispersArchived({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Conversations archivées ($count)',
+      one: 'Conversation archivée ($count)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get whisperHide => 'Masquer la conversation';
+
+  @override
+  String get whisperHideConfirmTitle => 'Masquer cette conversation ?';
+
+  @override
+  String whisperHideConfirmMessage({required String name}) {
+    return 'Vos chuchotements avec $name seront retirés de cette application. Un nouveau chuchotement ouvrira une nouvelle conversation.';
+  }
+
+  @override
+  String get whisperHideConfirm => 'Masquer';
+
+  @override
+  String get blockReasonTitle => 'Motif (facultatif)';
+
+  @override
+  String get blockReasonHarassment => 'Harcèlement';
+
+  @override
+  String get blockReasonSpam => 'Spam';
+
+  @override
+  String get blockReasonOther => 'Autre';
+
+  @override
+  String goLiveBellLevelTitle({required String name}) {
+    return 'Notifications de live pour $name';
+  }
+
+  @override
+  String get goLiveBellAll => 'Tous les lives';
+
+  @override
+  String get goLiveBellNone => 'Aucune';
+
+  @override
+  String get settingsPageNotInterested => 'Chaînes masquées';
+
+  @override
+  String notInterestedCount({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count chaînes masquées',
+      one: '$count chaîne masquée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notInterestedEmpty => 'Aucune chaîne masquée';
+
+  @override
+  String get notInterestedNote =>
+      'Les chaînes marquées « Ça ne m’intéresse pas » dans l’onglet En direct n’y apparaissent plus tant que vous ne les réaffichez pas ici.';
+
+  @override
+  String get notInterestedRestore => 'Réafficher';
+
+  @override
+  String notInterestedRestoreName({required String name}) {
+    return 'Réafficher $name';
+  }
 }

@@ -167,13 +167,17 @@ class WhisperThreadRow extends StatelessWidget {
     super.key,
     required this.thread,
     required this.onTap,
+    this.onLongPress,
     this.selected = false,
     this.compact = false,
     this.rounded = false,
+    this.muted = false,
   });
 
   final WhisperThread thread;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final bool muted;
 
   /// On screen in the tablet's pane: tinted, with the accent bar.
   final bool selected;
@@ -204,6 +208,7 @@ class WhisperThreadRow extends StatelessWidget {
               type: MaterialType.transparency,
               child: InkWell(
                 onTap: onTap,
+                onLongPress: onLongPress,
                 splashFactory: NoSplash.splashFactory,
                 borderRadius: rounded ? BorderRadius.circular(14) : null,
                 child: _SelectedBar(
@@ -254,6 +259,15 @@ class WhisperThreadRow extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                                  if (muted) ...[
+                                    const SizedBox(width: 6),
+                                    Icon(
+                                      Icons.notifications_off_outlined,
+                                      size: 14,
+                                      color: colors.tertiary,
+                                      semanticLabel: context.l10n.whisperMuted,
+                                    ),
+                                  ],
                                   const SizedBox(width: 8),
                                   Text(
                                     time,
