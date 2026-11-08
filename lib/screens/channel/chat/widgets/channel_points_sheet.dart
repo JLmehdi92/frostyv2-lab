@@ -7,8 +7,10 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/watch_streak.dart';
 import 'package:onset/screens/channel/chat/widgets/points_intro.dart';
+import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
@@ -68,6 +70,9 @@ class ChannelPointsSheet extends StatelessWidget {
         points: events.points,
         store: events,
         watchStreak: events.watchStreak,
+        resub: events.canShareResub && !events.sharingResub
+            ? events.resubNotification
+            : null,
         bitsBalance: events.bitsBalance,
         giftedHere: events.giftedSinceJoining,
       ),
@@ -82,6 +87,8 @@ class _Panel extends StatefulWidget {
   /// The viewer's watch streak here, which Twitch shows atop this panel.
   final WatchStreak? watchStreak;
 
+  final ResubNotification? resub;
+
   final int? bitsBalance;
   final int giftedHere;
 
@@ -89,6 +96,7 @@ class _Panel extends StatefulWidget {
     required this.points,
     required this.store,
     this.watchStreak,
+    this.resub,
     this.bitsBalance,
     this.giftedHere = 0,
   });
@@ -110,6 +118,29 @@ class _PanelState extends State<_Panel> {
           content: Text(
             outcome == ViewerActionOutcome.done
                 ? l.streakSharedInChat
+                : l.viewerActionResult(status: outcome.name),
+          ),
+        ),
+      );
+  }
+
+  Future<void> _shareResub(ChannelEventsStore events) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l = context.l10n;
+    final message = await showDialog<String>(
+      context: context,
+      builder: (_) => const ResubShareDialog(),
+    );
+    if (message == null) return;
+    final outcome = await events.shareResub(message: message);
+    if (outcome == null || messenger == null || !messenger.mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            outcome == ViewerActionOutcome.done
+                ? l.resubSharedInChat
                 : l.viewerActionResult(status: outcome.name),
           ),
         ),
@@ -283,6 +314,14 @@ class _PanelState extends State<_Panel> {
                             runInAction(() => settings.pointsIntroSeen = true),
                       ),
                       onLearnMore: () => showPointsEarnSheet(context),
+                    ),
+                  ),
+                if (widget.resub case final resub? when events != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: ResubShareCard(
+                      resub: resub,
+                      onShare: () => _shareResub(events),
                     ),
                   ),
                 if (widget.watchStreak case final streak?)

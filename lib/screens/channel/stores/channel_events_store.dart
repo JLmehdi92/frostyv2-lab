@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
@@ -11,6 +12,7 @@ import 'package:onset/models/celebration.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/hermes.dart';
+import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/stream_push.dart';
 import 'package:onset/models/watch_streak.dart';
 import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
@@ -114,6 +116,66 @@ abstract class ChannelEventsStoreBase with Store {
     }
   }
 
+  final TwitchCommunityService? _communityService;
+
+  @readonly
+  ResubNotification? _resubNotification;
+
+  @readonly
+  var _sharingResub = false;
+
+  final _sharedResubTokens = <String>{};
+
+  @computed
+  bool get canShareResub =>
+      _viewerActionsService != null &&
+      _resubNotification != null &&
+      channelLogin != null;
+
+  Future<void> _refreshResub(String token) async {
+    final service = _communityService;
+    if (service == null) return;
+    final resub = await service.getResubNotification(
+      channelId: channelId,
+      authToken: token,
+    );
+    runInAction(
+      () => _resubNotification =
+          resub == null || _sharedResubTokens.contains(resub.tokenId)
+          ? null
+          : resub,
+    );
+  }
+
+  @action
+  Future<ViewerActionOutcome?> shareResub({String? message}) async {
+    final service = _viewerActionsService;
+    final resub = _resubNotification;
+    final login = channelLogin;
+    if (_sharingResub || service == null || resub == null || login == null) {
+      return null;
+    }
+    _sharingResub = true;
+    try {
+      final token = await _tokenProvider?.call();
+      if (token == null || token.isEmpty) return ViewerActionOutcome.signedOut;
+      final outcome = await service.shareResub(
+        channelLogin: login,
+        tokenId: resub.tokenId,
+        message: message,
+        authToken: token,
+      );
+      if (outcome == ViewerActionOutcome.done) {
+        _sharedResubTokens.add(resub.tokenId);
+        runInAction(() => _resubNotification = null);
+        await _refreshResub(token);
+      }
+      return outcome;
+    } finally {
+      runInAction(() => _sharingResub = false);
+    }
+  }
+
   ChannelEventsStoreBase({
     required this.channelId,
     this.channelLogin,
@@ -124,6 +186,7 @@ abstract class ChannelEventsStoreBase with Store {
     TwitchPointsService? pointsService,
     TwitchWatchStreakService? watchStreakService,
     TwitchViewerActionsService? viewerActionsService,
+    TwitchCommunityService? communityService,
     Future<String?> Function()? tokenProvider,
     Future<bool> Function(String channelId)? paidPromotionOf,
   }) : _paidPromotionOf = paidPromotionOf,
@@ -131,6 +194,7 @@ abstract class ChannelEventsStoreBase with Store {
        _pointsService = pointsService ?? TwitchPointsService.withDefaults(),
        _watchStreakService = watchStreakService,
        _viewerActionsService = viewerActionsService,
+       _communityService = communityService,
        _tokenProvider = tokenProvider;
 
   /// Channel points, rewards and any running prediction.
@@ -349,6 +413,7 @@ abstract class ChannelEventsStoreBase with Store {
       _watchStreakAskedAt = null;
       return;
     }
+    unawaited(_refreshResub(token));
     final streak = await service.getWatchStreak(
       channelId: channelId,
       authToken: token,

@@ -14,6 +14,8 @@ class TwitchViewerActionsService extends BaseApiClient {
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
   static final _opaqueId = RegExp(r'^[A-Za-z0-9_:\-]{1,128}$');
   static final _random = Random.secure();
+  static final _login = RegExp(r'^[a-z0-9_]{1,25}$');
+  static const maxResubMessageLength = 255;
 
   static const _pollVoteDocument =
       'mutation PollsVoteMutation(\$input: VoteInPollInput!) { '
@@ -110,6 +112,42 @@ class TwitchViewerActionsService extends BaseApiClient {
     );
   }
 
+  static const _useNotificationTokenDocument =
+      'mutation UseChatNotificationToken(\$channelLogin: String!, \$tokenID: '
+      'ID!, \$message: String, \$selection: '
+      'AlertViewerCustomizationSelectionInput) { useChatNotificationToken('
+      'input: { channelLogin: \$channelLogin tokenID: \$tokenID message: '
+      '\$message selection: \$selection includeStreak: false } ) { '
+      'isSuccess } }';
+
+  Future<ViewerActionOutcome> shareResub({
+    required String channelLogin,
+    required String tokenId,
+    required String authToken,
+    String? message,
+  }) {
+    final login = channelLogin.toLowerCase();
+    if (!_login.hasMatch(login) || !_opaqueId.hasMatch(tokenId)) {
+      return _failedAtOnce(authToken);
+    }
+    final text = message?.trim() ?? '';
+    return _send(
+      operation: 'UseChatNotificationToken',
+      document: _useNotificationTokenDocument,
+      field: 'useChatNotificationToken',
+      authToken: authToken,
+      variables: {
+        'channelLogin': login,
+        'tokenID': tokenId,
+        if (text.isNotEmpty)
+          'message': text.length > maxResubMessageLength
+              ? text.substring(0, maxResubMessageLength)
+              : text,
+      },
+      succeeded: (payload) => payload['isSuccess'] == true,
+    );
+  }
+
   Future<ViewerActionOutcome> acknowledgeWarning({
     required String channelId,
     required String authToken,
@@ -153,7 +191,8 @@ class TwitchViewerActionsService extends BaseApiClient {
     required String document,
     required String field,
     required String authToken,
-    required Object input,
+    Object? input,
+    Map<String, Object?>? variables,
     bool Function(Map<dynamic, dynamic> payload)? succeeded,
   }) async {
     if (authToken.isEmpty) return ViewerActionOutcome.signedOut;
@@ -167,7 +206,7 @@ class TwitchViewerActionsService extends BaseApiClient {
         data: {
           'operationName': operation,
           'query': document,
-          'variables': {'input': input},
+          'variables': variables ?? {'input': input},
         },
       );
       return _outcomeOf(body, field, succeeded);

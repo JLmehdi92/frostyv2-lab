@@ -1869,5 +1869,11 @@
   "streakSharedInChat": "Votre série de visionnage a été partagée dans le chat.",
   "chatWarningTitle": "Confirmer la lecture de l’avertissement\u202f?",
   "chatWarningBody": "Un modérateur vous a adressé un avertissement dans ce chat. Lisez-le dans le chat, puis confirmez sa lecture pour écrire à nouveau.",
-  "chatWarningAcknowledge": "Confirmer la lecture"
+  "chatWarningAcknowledge": "Confirmer la lecture",
+  "resubShareTitle": "{months, plural, one{Partagez votre abonnement de {months} mois} other{Partagez votre abonnement de {months} mois}}",
+  "resubShareBody": "Twitch vous permet de l’annoncer dans ce chat, avec un message si vous le souhaitez.",
+  "resubShareDialogTitle": "Partager votre abonnement dans le chat\u202f?",
+  "resubShareMessageHint": "Message (facultatif)",
+  "resubShareSend": "Partager",
+  "resubSharedInChat": "Votre abonnement a été partagé dans le chat."
 }

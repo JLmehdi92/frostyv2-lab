@@ -11468,6 +11468,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Acknowledge'**
   String get chatWarningAcknowledge;
+
+  /// Title of the card atop the channel points panel when Twitch lets the viewer announce their sub anniversary (resub) in this chat.
+  ///
+  /// In en, this message translates to:
+  /// **'{months, plural, one{Share your {months}-month sub} other{Share your {months}-month sub}}'**
+  String resubShareTitle({required int months});
+
+  /// Text of the resub card in the channel points panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch lets you announce it in this chat, with a message if you like.'**
+  String get resubShareBody;
+
+  /// Title of the dialog that announces the viewer's resub in chat; nothing is sent before the viewer taps Share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your sub in chat?'**
+  String get resubShareDialogTitle;
+
+  /// Hint of the optional message field of the resub share dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Message (optional)'**
+  String get resubShareMessageHint;
+
+  /// The resub share dialog's button that posts the resub in chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get resubShareSend;
+
+  /// Snack bar once the viewer's resub was announced in chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sub was shared in chat.'**
+  String get resubSharedInChat;
 }
 
 class _AppLocalizationsDelegate

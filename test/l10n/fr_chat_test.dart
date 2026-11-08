@@ -13,6 +13,7 @@ import 'package:onset/models/community_points.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/watch_streak.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
@@ -32,6 +33,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
+import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -1031,6 +1033,38 @@ void main() {
         await tester.pump();
         expect(find.text(french.streakShareInChat), findsOneWidget);
         await expectFrenchThroughout(tester, 'watch streak share, $at');
+      });
+
+      testWidgets('a resub to share, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ResubShareCard(
+                resub: const ResubNotification(months: 14, tokenId: 't'),
+                onShare: () {},
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        expect(find.text(french.resubShareTitle(months: 14)), findsOneWidget);
+        await expectFrenchThroughout(tester, 'resub share, $at');
+      });
+
+      testWidgets('the resub share dialog, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          const Scaffold(body: ResubShareDialog()),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        expect(find.text(french.resubShareSend), findsOneWidget);
+        await expectFrenchThroughout(tester, 'resub share dialog, $at');
       });
 
       testWidgets('the watch streak help, $at', (tester) async {

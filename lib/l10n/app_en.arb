@@ -10980,5 +10980,35 @@
   "chatWarningAcknowledge": "Acknowledge",
   "@chatWarningAcknowledge": {
     "description": "The dialog's button that tells Twitch the viewer read the moderator's warning, which lets them chat again."
+  },
+  "resubShareTitle": "{months, plural, one{Share your {months}-month sub} other{Share your {months}-month sub}}",
+  "@resubShareTitle": {
+    "description": "Title of the card atop the channel points panel when Twitch lets the viewer announce their sub anniversary (resub) in this chat.",
+    "placeholders": {
+      "months": {
+        "type": "int",
+        "example": "14"
+      }
+    }
+  },
+  "resubShareBody": "Twitch lets you announce it in this chat, with a message if you like.",
+  "@resubShareBody": {
+    "description": "Text of the resub card in the channel points panel."
+  },
+  "resubShareDialogTitle": "Share your sub in chat?",
+  "@resubShareDialogTitle": {
+    "description": "Title of the dialog that announces the viewer's resub in chat; nothing is sent before the viewer taps Share."
+  },
+  "resubShareMessageHint": "Message (optional)",
+  "@resubShareMessageHint": {
+    "description": "Hint of the optional message field of the resub share dialog."
+  },
+  "resubShareSend": "Share",
+  "@resubShareSend": {
+    "description": "The resub share dialog's button that posts the resub in chat."
+  },
+  "resubSharedInChat": "Your sub was shared in chat.",
+  "@resubSharedInChat": {
+    "description": "Snack bar once the viewer's resub was announced in chat."
   }
 }

@@ -8556,4 +8556,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatWarningAcknowledge => 'Acknowledge';
+
+  @override
+  String resubShareTitle({required int months}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'Share your $months-month sub',
+      one: 'Share your $months-month sub',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get resubShareBody =>
+      'Twitch lets you announce it in this chat, with a message if you like.';
+
+  @override
+  String get resubShareDialogTitle => 'Share your sub in chat?';
+
+  @override
+  String get resubShareMessageHint => 'Message (optional)';
+
+  @override
+  String get resubShareSend => 'Share';
+
+  @override
+  String get resubSharedInChat => 'Your sub was shared in chat.';
 }

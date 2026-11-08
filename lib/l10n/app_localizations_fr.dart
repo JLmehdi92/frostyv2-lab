@@ -8667,4 +8667,33 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatWarningAcknowledge => 'Confirmer la lecture';
+
+  @override
+  String resubShareTitle({required int months}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'Partagez votre abonnement de $months mois',
+      one: 'Partagez votre abonnement de $months mois',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get resubShareBody =>
+      'Twitch vous permet de l’annoncer dans ce chat, avec un message si vous le souhaitez.';
+
+  @override
+  String get resubShareDialogTitle =>
+      'Partager votre abonnement dans le chat ?';
+
+  @override
+  String get resubShareMessageHint => 'Message (facultatif)';
+
+  @override
+  String get resubShareSend => 'Partager';
+
+  @override
+  String get resubSharedInChat =>
+      'Votre abonnement a été partagé dans le chat.';
 }

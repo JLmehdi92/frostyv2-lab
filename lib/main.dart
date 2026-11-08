@@ -20,6 +20,7 @@ import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_community_highlights_service.dart';
+import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/apis/twitch_followed_categories_service.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
@@ -206,6 +207,7 @@ void main() async {
   final twitchViewerActionsService = TwitchViewerActionsService(
     anonymousGqlDio,
   );
+  final twitchCommunityService = TwitchCommunityService(anonymousGqlDio);
 
   // One anonymous realtime connection (Hermes) for public Twitch topics such
   // as the hype train. It connects only when something subscribes and
@@ -380,6 +382,7 @@ void main() async {
         Provider<TwitchViewerActionsService>.value(
           value: twitchViewerActionsService,
         ),
+        Provider<TwitchCommunityService>.value(value: twitchCommunityService),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<TwitchEventSubClient>.value(value: eventSubClient),

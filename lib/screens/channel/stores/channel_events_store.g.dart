@@ -17,6 +17,13 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
         () => super.canShareWatchStreak,
         name: 'ChannelEventsStoreBase.canShareWatchStreak',
       )).value;
+  Computed<bool>? _$canShareResubComputed;
+
+  @override
+  bool get canShareResub => (_$canShareResubComputed ??= Computed<bool>(
+    () => super.canShareResub,
+    name: 'ChannelEventsStoreBase.canShareResub',
+  )).value;
 
   late final _$_sharingWatchStreakAtom = Atom(
     name: 'ChannelEventsStoreBase._sharingWatchStreak',
@@ -35,6 +42,46 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
   set _sharingWatchStreak(bool value) {
     _$_sharingWatchStreakAtom.reportWrite(value, super._sharingWatchStreak, () {
       super._sharingWatchStreak = value;
+    });
+  }
+
+  late final _$_resubNotificationAtom = Atom(
+    name: 'ChannelEventsStoreBase._resubNotification',
+    context: context,
+  );
+
+  ResubNotification? get resubNotification {
+    _$_resubNotificationAtom.reportRead();
+    return super._resubNotification;
+  }
+
+  @override
+  ResubNotification? get _resubNotification => resubNotification;
+
+  @override
+  set _resubNotification(ResubNotification? value) {
+    _$_resubNotificationAtom.reportWrite(value, super._resubNotification, () {
+      super._resubNotification = value;
+    });
+  }
+
+  late final _$_sharingResubAtom = Atom(
+    name: 'ChannelEventsStoreBase._sharingResub',
+    context: context,
+  );
+
+  bool get sharingResub {
+    _$_sharingResubAtom.reportRead();
+    return super._sharingResub;
+  }
+
+  @override
+  bool get _sharingResub => sharingResub;
+
+  @override
+  set _sharingResub(bool value) {
+    _$_sharingResubAtom.reportWrite(value, super._sharingResub, () {
+      super._sharingResub = value;
     });
   }
 
@@ -252,6 +299,18 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     return _$shareWatchStreakAsyncAction.run(() => super.shareWatchStreak());
   }
 
+  late final _$shareResubAsyncAction = AsyncAction(
+    'ChannelEventsStoreBase.shareResub',
+    context: context,
+  );
+
+  @override
+  Future<ViewerActionOutcome?> shareResub({String? message}) {
+    return _$shareResubAsyncAction.run(
+      () => super.shareResub(message: message),
+    );
+  }
+
   late final _$refreshPointsAsyncAction = AsyncAction(
     'ChannelEventsStoreBase.refreshPoints',
     context: context,
@@ -401,7 +460,8 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
   @override
   String toString() {
     return '''
-canShareWatchStreak: ${canShareWatchStreak}
+canShareWatchStreak: ${canShareWatchStreak},
+canShareResub: ${canShareResub}
     ''';
   }
 }

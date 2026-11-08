@@ -7,6 +7,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
+import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
@@ -157,6 +158,7 @@ class _VideoChatState extends State<VideoChat>
     // The viewer's watch streak, atop the points panel like Twitch.
     watchStreakService: context.read<TwitchWatchStreakService?>(),
     viewerActionsService: context.read<TwitchViewerActionsService?>(),
+    communityService: context.read<TwitchCommunityService?>(),
     channelName: widget.userName,
     isChannelLive: () => _videoStore.streamInfo != null,
     paidPromotionOf: context.read<TwitchVodService?>()?.streamHasPaidPromotion,

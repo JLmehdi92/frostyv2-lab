@@ -276,4 +276,88 @@ void main() {
       expect(requests, isEmpty);
     });
   });
+
+  group('shareResub', () {
+    test('sends the token, the channel and the optional message', () async {
+      reply({
+        'data': {
+          'useChatNotificationToken': {'isSuccess': true},
+        },
+      });
+
+      expect(
+        await service.shareResub(
+          channelLogin: 'somechannel',
+          tokenId: 'token-1',
+          message: 'Still here',
+          authToken: 'tok',
+        ),
+        ViewerActionOutcome.done,
+      );
+      final body = sent();
+      expect(body['operationName'], 'UseChatNotificationToken');
+      expect(body['variables'], {
+        'channelLogin': 'somechannel',
+        'tokenID': 'token-1',
+        'message': 'Still here',
+      });
+    });
+
+    test('an empty message is sent as none', () async {
+      reply({
+        'data': {
+          'useChatNotificationToken': {'isSuccess': true},
+        },
+      });
+
+      await service.shareResub(
+        channelLogin: 'somechannel',
+        tokenId: 'token-1',
+        message: '  ',
+        authToken: 'tok',
+      );
+
+      expect(sent()['variables'], {
+        'channelLogin': 'somechannel',
+        'tokenID': 'token-1',
+      });
+    });
+
+    test('isSuccess false is a failure', () async {
+      reply({
+        'data': {
+          'useChatNotificationToken': {'isSuccess': false},
+        },
+      });
+
+      expect(
+        await service.shareResub(
+          channelLogin: 'somechannel',
+          tokenId: 'token-1',
+          authToken: 'tok',
+        ),
+        ViewerActionOutcome.failed,
+      );
+    });
+
+    test('a bad login or token is never sent', () async {
+      expect(
+        await service.shareResub(
+          channelLogin: 'some channel',
+          tokenId: 'token-1',
+          authToken: 'tok',
+        ),
+        ViewerActionOutcome.failed,
+      );
+      expect(
+        await service.shareResub(
+          channelLogin: 'somechannel',
+          tokenId: 'bad token',
+          authToken: 'tok',
+        ),
+        ViewerActionOutcome.failed,
+      );
+      expect(requests, isEmpty);
+    });
+  });
 }
