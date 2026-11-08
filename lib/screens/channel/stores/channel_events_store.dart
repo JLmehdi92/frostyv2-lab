@@ -9,6 +9,7 @@ import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/models/celebration.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/hermes.dart';
+import 'package:onset/models/stream_push.dart';
 import 'package:onset/models/watch_streak.dart';
 import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
 import 'package:onset/services/hermes_client.dart';
@@ -312,6 +313,15 @@ abstract class ChannelEventsStoreBase with Store {
 
   Stream<ShoutoutNotice> get shoutouts => _shoutouts.stream;
 
+  final _streamPushes = StreamController<StreamPush>.broadcast();
+
+  Stream<StreamPush> get streamPushes => _streamPushes.stream;
+
+  void _applyStreamPush(HermesEvent event) {
+    final push = parseStreamPush(event.type, event.data);
+    if (push != null && !_streamPushes.isClosed) _streamPushes.add(push);
+  }
+
   void _applyShoutout(HermesEvent event) {
     final shoutout = parseShoutout(
       event.type,
@@ -459,6 +469,8 @@ abstract class ChannelEventsStoreBase with Store {
       _applyCelebration(event);
     } else if (event.topic.startsWith('content-classification-labels')) {
       _applyContentLabels(event);
+    } else if (HermesTopics.sendsFlatPayloads(event.topic)) {
+      _applyStreamPush(event);
     } else if (event.topic.startsWith('creator-goals-events')) {
       _applyGoal(event);
     } else if (event.topic.startsWith('community-points') ||
@@ -585,6 +597,7 @@ abstract class ChannelEventsStoreBase with Store {
   void dispose() {
     unawaited(_entitlementChanges.close());
     unawaited(_shoutouts.close());
+    unawaited(_streamPushes.close());
     _pointsRefreshTimer?.cancel();
     _pointsPollTimer?.cancel();
     unawaited(_subscription?.cancel());

@@ -11,6 +11,7 @@ import 'package:onset/apis/twitch_stream_service.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/models/hls_variant.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/models/stream_push.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/quality_selection.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -26,7 +27,7 @@ class NativeVideoStore = NativeVideoStoreBase with _$NativeVideoStore;
 /// [PlayerController] surface the overlay/channel expect.
 abstract class NativeVideoStoreBase
     with Store
-    implements PlayerController, StreamInfoStatus {
+    implements PlayerController, StreamInfoStatus, StreamPushTarget {
   final String userLogin;
   final String userId;
   final TwitchApi twitchApi;
@@ -355,6 +356,16 @@ abstract class NativeVideoStoreBase
       delay,
       () => runInAction(() => _overlayVisible = false),
     );
+  }
+
+  @override
+  void applyStreamPush(StreamPush push) {
+    switch (push) {
+      case ViewerCountPush() || BroadcastSettingsPush():
+        runInAction(() => _streamInfo = patchStream(_streamInfo, push));
+      case StreamUpPush() || StreamDownPush():
+        unawaited(updateStreamInfo(forceUpdate: true));
+    }
   }
 
   @action

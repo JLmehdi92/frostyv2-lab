@@ -8,6 +8,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/models/stream_push.dart';
 import 'package:onset/screens/channel/video/content_warning_gate.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/web_content_gate.dart';
@@ -26,7 +27,7 @@ class VideoStore = VideoStoreBase with _$VideoStore implements PlayerController;
 
 abstract class VideoStoreBase
     with Store
-    implements WebPagePlayer, StreamInfoStatus {
+    implements WebPagePlayer, StreamInfoStatus, StreamPushTarget {
   final TwitchApi twitchApi;
 
   /// The userlogin of the current channel.
@@ -1112,6 +1113,16 @@ $kTwitchWebGateShownJs
     // Only refresh immediately in chat-only mode
     if (!settingsStore.showVideo) {
       updateStreamInfo(forceUpdate: true);
+    }
+  }
+
+  @override
+  void applyStreamPush(StreamPush push) {
+    switch (push) {
+      case ViewerCountPush() || BroadcastSettingsPush():
+        runInAction(() => _streamInfo = patchStream(_streamInfo, push));
+      case StreamUpPush() || StreamDownPush():
+        unawaited(updateStreamInfo(forceUpdate: true));
     }
   }
 

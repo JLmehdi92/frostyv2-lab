@@ -7,6 +7,7 @@ import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/models/celebration.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/hermes.dart';
+import 'package:onset/models/stream_push.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/services/hermes_client.dart';
 
@@ -586,6 +587,43 @@ void main() {
 
       store.clearCelebration();
       expect(store.celebration, isNull);
+      store.dispose();
+    });
+
+    test('stream state pushes reach their listeners', () async {
+      final store = build();
+      await store.connect();
+      final pushes = <StreamPush>[];
+      final sub = store.streamPushes.listen(pushes.add);
+
+      events
+        ..add(
+          const HermesEvent(
+            topic: 'video-playback-by-id.42',
+            type: 'viewcount',
+            data: {'type': 'viewcount', 'viewers': 12},
+          ),
+        )
+        ..add(
+          const HermesEvent(
+            topic: 'video-playback-by-id.7',
+            type: 'stream-down',
+            data: {'type': 'stream-down'},
+          ),
+        )
+        ..add(
+          const HermesEvent(
+            topic: 'broadcast-settings-update.42',
+            type: 'broadcast_settings_update',
+            data: {'status': 'Hi'},
+          ),
+        );
+      await pumpEventQueue();
+
+      expect(pushes, hasLength(2));
+      expect((pushes.first as ViewerCountPush).viewers, 12);
+      expect((pushes.last as BroadcastSettingsPush).title, 'Hi');
+      await sub.cancel();
       store.dispose();
     });
 

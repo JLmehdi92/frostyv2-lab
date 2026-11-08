@@ -660,7 +660,39 @@ void main() {
       'celebration-events-v1.1',
       'shoutout.1',
       'content-classification-labels-v1.1',
+      'video-playback-by-id.1',
+      'broadcast-settings-update.1',
     ]);
+  });
+
+  test('a stream state payload is delivered flat, with its type', () async {
+    final received = <HermesEvent>[];
+    client.events.listen(received.add);
+    await client.subscribe('video-playback-by-id.1');
+    final socket = sockets.single;
+    socket.receive(welcome);
+    await pumpEventQueue();
+    socket.receive(_subscribeOk(socket, 'video-playback-by-id.1', 'sub-1'));
+    await pumpEventQueue();
+    socket.receive(
+      jsonEncode({
+        'type': 'notification',
+        'id': 'n',
+        'notification': {
+          'subscription': {'id': 'sub-1'},
+          'type': 'pubsub',
+          'pubsub': jsonEncode({
+            'type': 'viewcount',
+            'server_time': 1,
+            'viewers': 77,
+          }),
+        },
+      }),
+    );
+    await pumpEventQueue();
+
+    expect(received.single.type, 'viewcount');
+    expect(received.single.data['viewers'], 77);
   });
 
   test('a payload without a type is delivered whole', () async {

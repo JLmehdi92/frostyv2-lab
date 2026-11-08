@@ -14,6 +14,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/models/stream_push.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/celebrations/celebration_overlay.dart';
 import 'package:onset/screens/channel/celebrations/subtle_celebrations.dart';
@@ -707,6 +708,7 @@ class _VideoChatState extends State<VideoChat>
       (_) => _refreshEmotesOfEveryTab(),
     );
     _shoutouts = _eventsStore.shoutouts.listen(_showShoutout);
+    _streamPushes = _eventsStore.streamPushes.listen(_applyStreamPush);
     _infoStore.start();
     _watchStreamEnd();
     final auth = context.authStore;
@@ -1162,6 +1164,14 @@ class _VideoChatState extends State<VideoChat>
   StreamSubscription<void>? _entitlementChanges;
 
   StreamSubscription<ShoutoutNotice>? _shoutouts;
+
+  StreamSubscription<StreamPush>? _streamPushes;
+
+  void _applyStreamPush(StreamPush push) {
+    if (_videoStore case final StreamPushTarget target) {
+      target.applyStreamPush(push);
+    }
+  }
 
   void _showShoutout(ShoutoutNotice shoutout) {
     for (final tab in _chatTabsStore.tabs) {
@@ -2004,6 +2014,7 @@ class _VideoChatState extends State<VideoChat>
     // keep a channel's events flowing after leaving it.
     unawaited(_entitlementChanges?.cancel());
     unawaited(_shoutouts?.cancel());
+    unawaited(_streamPushes?.cancel());
     _eventsStore.dispose();
     _viewerReaction?.call();
     _infoStore.dispose();

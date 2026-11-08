@@ -381,7 +381,9 @@ class HermesClient {
       HermesEvent(
         topic: topic,
         type: type ?? '',
-        data: type == null ? payload : message.payloadData ?? {},
+        data: type == null || HermesTopics.sendsFlatPayloads(topic)
+            ? payload
+            : message.payloadData ?? {},
       ),
     );
   }

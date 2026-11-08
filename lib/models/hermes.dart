@@ -233,6 +233,16 @@ class HermesTopics {
   static bool sendsUntypedPayloads(String topic) =>
       topic.startsWith('content-classification-labels-v1.');
 
+  static String videoPlayback(String channelId) =>
+      'video-playback-by-id.$channelId';
+
+  static String broadcastSettings(String channelId) =>
+      'broadcast-settings-update.$channelId';
+
+  static bool sendsFlatPayloads(String topic) =>
+      topic.startsWith('video-playback-by-id.') ||
+      topic.startsWith('broadcast-settings-update.');
+
   // User-scoped topics. These are the only ones that need authentication;
   // channel topics subscribe fine anonymously (verified 2026-07-30).
   static String predictionsUser(String userId) => 'predictions-user-v1.$userId';
@@ -255,6 +265,8 @@ class HermesTopics {
     celebrations(channelId),
     shoutout(channelId),
     contentClassificationLabels(channelId),
+    videoPlayback(channelId),
+    broadcastSettings(channelId),
   ];
 
   /// The viewer's own topics, which carry what happens to *them* rather than to

@@ -15,6 +15,7 @@ import 'package:onset/models/ivs_stats.dart';
 import 'package:onset/models/playback_access_token.dart';
 import 'package:onset/models/quality_ladder.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/models/stream_push.dart';
 import 'package:onset/screens/channel/video/buffer_fallback.dart';
 import 'package:onset/screens/channel/video/ivs_player_config.dart';
 import 'package:onset/screens/channel/video/ivs_recovery.dart';
@@ -49,7 +50,7 @@ enum IvsPlaybackStatus { loading, playing, reconnecting, offline, failed }
 /// surface so the existing overlay/channel can use it unchanged.
 abstract class IvsVideoStoreBase
     with Store
-    implements PlayerController, StreamInfoStatus {
+    implements PlayerController, StreamInfoStatus, StreamPushTarget {
   final String userLogin;
   final String userId;
   final TwitchApi twitchApi;
@@ -1684,6 +1685,18 @@ abstract class IvsVideoStoreBase
       delay,
       () => runInAction(() => _overlayVisible = false),
     );
+  }
+
+  @override
+  void applyStreamPush(StreamPush push) {
+    switch (push) {
+      case ViewerCountPush() || BroadcastSettingsPush():
+        runInAction(() => _streamInfo = patchStream(_streamInfo, push));
+      case StreamUpPush():
+        _onLiveChange(LiveChange.online);
+      case StreamDownPush():
+        unawaited(updateStreamInfo(forceUpdate: true));
+    }
   }
 
   @action

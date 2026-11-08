@@ -6,6 +6,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
 import 'package:onset/models/hls_variant.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/models/stream_push.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/stores/native_video_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -68,11 +70,17 @@ void main() {
 
   tearDown(() => playing.close());
 
-  NativeVideoStore create() {
+  NativeVideoStore create({StreamTwitch? live}) {
     final api = MockTwitchApi();
-    when(
-      () => api.getStream(userLogin: any(named: 'userLogin')),
-    ).thenThrow(Exception('offline'));
+    if (live == null) {
+      when(
+        () => api.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(Exception('offline'));
+    } else {
+      when(
+        () => api.getStream(userLogin: any(named: 'userLogin')),
+      ).thenAnswer((_) async => live);
+    }
     when(
       () => api.getChannel(userId: any(named: 'userId')),
     ).thenThrow(Exception('offline'));
@@ -91,6 +99,32 @@ void main() {
   }
 
   const variant = HlsVariant(name: '1080p60', url: 'https://usher/1080.m3u8');
+
+  test('a pushed viewer count and title patch the stream info', () async {
+    const live = StreamTwitch(
+      '42',
+      'streamer',
+      'Streamer',
+      '1',
+      'Chess',
+      'Old',
+      10,
+      '2026-01-01T00:00:00Z',
+      'thumb',
+    );
+    final store = create(live: live);
+    await pumpEventQueue();
+    expect(store.streamInfo?.viewerCount, 10);
+
+    store
+      ..applyStreamPush(const ViewerCountPush(55))
+      ..applyStreamPush(const BroadcastSettingsPush(title: 'New'));
+
+    expect(store.streamInfo?.viewerCount, 55);
+    expect(store.streamInfo?.title, 'New');
+    expect(store.streamInfo?.gameName, 'Chess');
+    store.dispose();
+  });
 
   test('covered before it opens: opened paused, started on clear', () async {
     final store = create();
