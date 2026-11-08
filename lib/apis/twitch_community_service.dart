@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/channel_leaderboards.dart';
+import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/shoutout_profile.dart';
 
@@ -105,6 +106,60 @@ class TwitchCommunityService extends BaseApiClient {
         'ChannelResubNotificationQuery',
         _resubNotificationQuery,
         {'channelId': channelId},
+        authToken: authToken,
+      ),
+    );
+  }
+
+  static const _dropCampaignFragments =
+      '  fragment DropCampaignModelFragment on DropCampaign { id name game { '
+      'id name boxArtURL(width: 285, height: 380) } owner { name } imageURL '
+      'accountLinkURL detailsURL startAt endAt status self { '
+      'isAccountConnected } summary { isPermanentlyDismissible } }  fragment '
+      'DropBenefitEdgeFragment on DropBenefitEdge { benefit { id game { name '
+      '} imageAssetURL name entitlementLimit distributionType } '
+      'entitlementLimit }  fragment TimeBasedDropModelFragment on '
+      'TimeBasedDrop { id name requiredMinutesWatched requiredSubs '
+      'requiredTurboSubs startAt endAt preconditionDrops { id } benefitEdges '
+      '{ __typename ...DropBenefitEdgeFragment } }  fragment '
+      'TimeBasedDropSelfEdgeFragment on TimeBasedDrop { self { '
+      'currentMinutesWatched currentSubs currentTurboSubs hasPreconditionsMet '
+      'isClaimed dropInstanceID } }';
+
+  static const _dropCampaignsQuery =
+      'query ViewerDropsCampaignsQuery(\$channelID: ID!) { user(id: '
+      '\$channelID) { id channel { viewerDropCampaigns { __typename '
+      '...DropCampaignModelFragment timeBasedDrops { __typename '
+      '...TimeBasedDropModelFragment ...TimeBasedDropSelfEdgeFragment } } } '
+      '} }$_dropCampaignFragments';
+
+  static const _anonymousDropCampaignsQuery =
+      'query ViewerDropsCampaignsQuery(\$channelID: ID!) { user(id: '
+      '\$channelID) { id channel { viewerDropCampaigns { __typename '
+      '...DropCampaignModelFragment timeBasedDrops { __typename '
+      '...TimeBasedDropModelFragment } } } } }  fragment '
+      'DropCampaignModelFragment on DropCampaign { id name game { id name '
+      'boxArtURL(width: 285, height: 380) } owner { name } imageURL '
+      'accountLinkURL detailsURL startAt endAt status summary { '
+      'isPermanentlyDismissible } }  fragment DropBenefitEdgeFragment on '
+      'DropBenefitEdge { benefit { id game { name } imageAssetURL name '
+      'entitlementLimit distributionType } entitlementLimit }  fragment '
+      'TimeBasedDropModelFragment on TimeBasedDrop { id name '
+      'requiredMinutesWatched requiredSubs requiredTurboSubs startAt endAt '
+      'preconditionDrops { id } benefitEdges { __typename '
+      '...DropBenefitEdgeFragment } }';
+
+  Future<List<DropCampaign>?> getDropCampaigns({
+    required String channelId,
+    String? authToken,
+  }) async {
+    if (!_numericId.hasMatch(channelId)) return null;
+    final signedIn = authToken != null && authToken.isNotEmpty;
+    return DropCampaign.listFrom(
+      await _ask(
+        'ViewerDropsCampaignsQuery',
+        signedIn ? _dropCampaignsQuery : _anonymousDropCampaignsQuery,
+        {'channelID': channelId},
         authToken: authToken,
       ),
     );

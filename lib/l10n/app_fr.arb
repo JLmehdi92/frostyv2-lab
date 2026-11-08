@@ -1889,5 +1889,20 @@
   "shoutoutCardEyebrow": "Dédicace",
   "shoutoutCardRecent": "Catégories récentes",
   "shoutoutCardNext": "Prochain live\u00a0: {time}",
-  "shoutoutCardFailed": "Impossible de charger les détails de cette chaîne."
+  "shoutoutCardFailed": "Impossible de charger les détails de cette chaîne.",
+  "dropsCardTitle": "Drops disponibles",
+  "dropsEndsOn": "Se termine le {date}",
+  "dropsMinutesLeft": "{minutes, plural, one{{minutes} minute restante} other{{minutes} minutes restantes}}",
+  "dropsSubsProgress": "{total, plural, one{{current} sur {total} abonnement} other{{current} sur {total} abonnements}}",
+  "dropsClaim": "Récupérer",
+  "dropsClaimed": "Récupéré",
+  "dropsLocked": "Se débloque après le Drop précédent",
+  "dropsSignInForProgress": "Connectez-vous pour voir votre progression et récupérer les récompenses.",
+  "dropsProgressNote": "Twitch compte la progression des Drops depuis son propre lecteur\u00a0: regarder dans ONSET peut ne pas la faire avancer. Vous ne progressez que sur une chaîne à la fois.",
+  "dropsLinkAccount": "Associer votre compte de jeu",
+  "dropClaimResult": "{status, select, claimed{Récompense récupérée.} alreadyClaimed{Vous avez déjà récupéré cette récompense.} needsAccountLink{Associez d’abord votre compte de jeu, puis réessayez.} expired{Ce Drop a expiré.} limitReached{Vous avez atteint la limite de cette récompense.} integrityRefused{Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer, récupérez-la sur twitch.tv.} signedOut{Reconnectez-vous pour récupérer depuis ONSET.} refused{Twitch a refusé cette récupération.} other{Impossible de joindre Twitch. Réessayez.}}",
+  "communityDropsWatch": "{minutes, plural, one{{channel} a activé les Drops pour la communauté\u202f! Regardez pendant {minutes} minute pour récupérer la récompense.} other{{channel} a activé les Drops pour la communauté\u202f! Regardez pendant {minutes} minutes pour récupérer la récompense.}}",
+  "communityDropsSubs": "{count, plural, one{{channel} a activé les Drops pour la communauté\u202f! Achetez ou offrez {count} abonnement pendant le live pour obtenir la récompense.} other{{channel} a activé les Drops pour la communauté\u202f! Achetez ou offrez {count} abonnements pendant le live pour obtenir la récompense.}}",
+  "communityDropsTurbo": "{channel} a activé les Drops pour la communauté\u202f! Prenez Turbo pour gagner les récompenses.",
+  "communityDropsSeveral": "{channel} a activé les Drops pour la communauté\u202f! Regardez le live et achetez des abonnements pour récupérer les récompenses."
 }

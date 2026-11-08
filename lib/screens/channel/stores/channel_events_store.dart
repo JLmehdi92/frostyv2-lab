@@ -12,6 +12,7 @@ import 'package:onset/models/celebration.dart';
 import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/creator_goal.dart';
+import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/hermes.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/stream_push.dart';
@@ -154,6 +155,72 @@ abstract class ChannelEventsStoreBase with Store {
   }
 
   bool get hasLeaderboards => _communityService != null;
+
+  @readonly
+  List<DropCampaign> _dropCampaigns = const [];
+
+  @readonly
+  String? _claimingDropId;
+
+  DateTime? _dropsAskedAt;
+
+  static const _dropsFreshFor = Duration(minutes: 1);
+
+  final _announcedDropCampaigns = <String>{};
+
+  final _communityDrops = StreamController<DropCampaign>.broadcast();
+
+  Stream<DropCampaign> get communityDrops => _communityDrops.stream;
+
+  Future<void> refreshDrops({bool force = false}) async {
+    final service = _communityService;
+    if (service == null) return;
+    final askedAt = _dropsAskedAt;
+    if (!force &&
+        askedAt != null &&
+        clock.now().difference(askedAt) < _dropsFreshFor) {
+      return;
+    }
+    _dropsAskedAt = clock.now();
+    final campaigns = await service.getDropCampaigns(
+      channelId: channelId,
+      authToken: await _tokenProvider?.call(),
+    );
+    if (campaigns == null) {
+      _dropsAskedAt = null;
+      return;
+    }
+    runInAction(() => _dropCampaigns = campaigns);
+    if (isChannelLive?.call() == false) return;
+    for (final campaign in campaigns) {
+      if (_announcedDropCampaigns.add(campaign.id) &&
+          !_communityDrops.isClosed) {
+        _communityDrops.add(campaign);
+      }
+    }
+  }
+
+  @action
+  Future<DropClaimResult?> claimDrop(TimedDrop drop) async {
+    final service = _viewerActionsService;
+    final instance = drop.progress?.dropInstanceId;
+    if (service == null || instance == null || _claimingDropId != null) {
+      return null;
+    }
+    _claimingDropId = drop.id;
+    try {
+      final token = await _tokenProvider?.call();
+      if (token == null || token.isEmpty) return DropClaimResult.signedOut;
+      final result = await service.claimDrop(
+        dropInstanceId: instance,
+        authToken: token,
+      );
+      if (result.isClaimed) await refreshDrops(force: true);
+      return result;
+    } finally {
+      runInAction(() => _claimingDropId = null);
+    }
+  }
 
   Future<ChannelLeaderboards?> loadLeaderboards() async {
     final service = _communityService;
@@ -328,6 +395,7 @@ abstract class ChannelEventsStoreBase with Store {
     // opening a moment later is not.
     unawaited(refreshPoints());
     unawaited(refreshWatchStreak());
+    unawaited(refreshDrops());
     unawaited(_readPaidPromotion());
 
     _startPointsPolling();
@@ -788,6 +856,7 @@ abstract class ChannelEventsStoreBase with Store {
     unawaited(_entitlementChanges.close());
     unawaited(_shoutouts.close());
     unawaited(_watchStreakChanges.close());
+    unawaited(_communityDrops.close());
     unawaited(_streamPushes.close());
     unawaited(_goalsReached.close());
     _pointsRefreshTimer?.cancel();

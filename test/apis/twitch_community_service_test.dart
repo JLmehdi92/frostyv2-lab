@@ -7,6 +7,7 @@ import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/models/channel_leaderboards.dart';
 
 import '../fixtures/community_gql_payloads.dart';
+import '../fixtures/drops_gql_payloads.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
 
@@ -170,6 +171,40 @@ void main() {
         isNull,
       );
       expect(requests, isEmpty);
+    });
+  });
+  group('getDropCampaigns', () {
+    test('asks with the viewer token for the progress', () async {
+      reply(signedInDropCampaignsResponse());
+
+      final campaigns = await service.getDropCampaigns(
+        channelId: '42',
+        authToken: 'tok',
+      );
+
+      expect(campaigns!.single.claimableCount, 1);
+      expect(sent()['operationName'], 'ViewerDropsCampaignsQuery');
+      expect(sent()['variables'], {'channelID': '42'});
+      expect(sent()['query'], contains('TimeBasedDropSelfEdgeFragment'));
+      expect(requests.single.headers['Authorization'], 'OAuth tok');
+    });
+
+    test('asks without the viewer fields when logged out', () async {
+      reply(anonymousDropCampaignsResponse);
+
+      final campaigns = await service.getDropCampaigns(channelId: '42');
+
+      expect(campaigns!.single.drops.single.progress, isNull);
+      expect(sent()['query'], isNot(contains('self')));
+      expect(requests.single.headers.containsKey('Authorization'), isFalse);
+    });
+
+    test('sends nothing for a bad id and answers null on failure', () async {
+      expect(await service.getDropCampaigns(channelId: 'x'), isNull);
+      expect(requests, isEmpty);
+
+      reply({'error': 'boom'}, status: 500);
+      expect(await service.getDropCampaigns(channelId: '42'), isNull);
     });
   });
 }

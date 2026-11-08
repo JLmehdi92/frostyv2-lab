@@ -8785,4 +8785,108 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get shoutoutCardFailed =>
       'Impossible de charger les détails de cette chaîne.';
+
+  @override
+  String get dropsCardTitle => 'Drops disponibles';
+
+  @override
+  String dropsEndsOn({required String date}) {
+    return 'Se termine le $date';
+  }
+
+  @override
+  String dropsMinutesLeft({required int minutes}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes restantes',
+      one: '$minutes minute restante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dropsSubsProgress({required int current, required int total}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$current sur $total abonnements',
+      one: '$current sur $total abonnement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dropsClaim => 'Récupérer';
+
+  @override
+  String get dropsClaimed => 'Récupéré';
+
+  @override
+  String get dropsLocked => 'Se débloque après le Drop précédent';
+
+  @override
+  String get dropsSignInForProgress =>
+      'Connectez-vous pour voir votre progression et récupérer les récompenses.';
+
+  @override
+  String get dropsProgressNote =>
+      'Twitch compte la progression des Drops depuis son propre lecteur : regarder dans ONSET peut ne pas la faire avancer. Vous ne progressez que sur une chaîne à la fois.';
+
+  @override
+  String get dropsLinkAccount => 'Associer votre compte de jeu';
+
+  @override
+  String dropClaimResult({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'claimed': 'Récompense récupérée.',
+      'alreadyClaimed': 'Vous avez déjà récupéré cette récompense.',
+      'needsAccountLink':
+          'Associez d’abord votre compte de jeu, puis réessayez.',
+      'expired': 'Ce Drop a expiré.',
+      'limitReached': 'Vous avez atteint la limite de cette récompense.',
+      'integrityRefused':
+          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer, récupérez-la sur twitch.tv.',
+      'signedOut': 'Reconnectez-vous pour récupérer depuis ONSET.',
+      'refused': 'Twitch a refusé cette récupération.',
+      'other': 'Impossible de joindre Twitch. Réessayez.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String communityDropsWatch({required String channel, required int minutes}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          '$channel a activé les Drops pour la communauté ! Regardez pendant $minutes minutes pour récupérer la récompense.',
+      one:
+          '$channel a activé les Drops pour la communauté ! Regardez pendant $minutes minute pour récupérer la récompense.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityDropsSubs({required String channel, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$channel a activé les Drops pour la communauté ! Achetez ou offrez $count abonnements pendant le live pour obtenir la récompense.',
+      one:
+          '$channel a activé les Drops pour la communauté ! Achetez ou offrez $count abonnement pendant le live pour obtenir la récompense.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityDropsTurbo({required String channel}) {
+    return '$channel a activé les Drops pour la communauté ! Prenez Turbo pour gagner les récompenses.';
+  }
+
+  @override
+  String communityDropsSeveral({required String channel}) {
+    return '$channel a activé les Drops pour la communauté ! Regardez le live et achetez des abonnements pour récupérer les récompenses.';
+  }
 }

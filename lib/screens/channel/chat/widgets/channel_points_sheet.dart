@@ -8,8 +8,10 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/watch_streak.dart';
+import 'package:onset/screens/channel/chat/widgets/drops_card.dart';
 import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/points_intro.dart';
 import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
@@ -22,6 +24,7 @@ import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// The channel points panel: balance, what the channel offers, and any
 /// prediction running.
@@ -123,6 +126,18 @@ class _PanelState extends State<_Panel> {
                 : l.viewerActionResult(status: outcome.name),
           ),
         ),
+      );
+  }
+
+  Future<void> _claimDrop(ChannelEventsStore events, TimedDrop drop) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l = context.l10n;
+    final result = await events.claimDrop(drop);
+    if (result == null || messenger == null || !messenger.mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(l.dropClaimResult(status: result.name))),
       );
   }
 
@@ -325,6 +340,23 @@ class _PanelState extends State<_Panel> {
                       resub: resub,
                       onShare: () => _shareResub(events),
                     ),
+                  ),
+                if (events != null)
+                  Observer(
+                    builder: (_) => events.dropCampaigns.isEmpty
+                        ? const SizedBox.shrink()
+                        : Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            child: DropsCard(
+                              campaigns: events.dropCampaigns,
+                              claimingDropId: events.claimingDropId,
+                              onClaim: (drop) => _claimDrop(events, drop),
+                              onLinkAccount: (url) => launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              ),
+                            ),
+                          ),
                   ),
                 if (widget.watchStreak case final streak?)
                   Padding(

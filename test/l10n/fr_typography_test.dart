@@ -158,6 +158,8 @@ const _properNouns = {
   'Prime',
   'Gaming',
   'Turbo',
+  'Drop',
+  'Drops',
   'BetterTTV',
   'FrankerFaceZ',
   'Firebase',

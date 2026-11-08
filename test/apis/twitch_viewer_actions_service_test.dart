@@ -4,6 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
+import 'package:onset/models/drop_campaign.dart';
+
+import '../fixtures/drops_gql_payloads.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
 
@@ -358,6 +361,50 @@ void main() {
         ViewerActionOutcome.failed,
       );
       expect(requests, isEmpty);
+    });
+  });
+  group('claimDrop', () {
+    test('claims the drop instance with the viewer token', () async {
+      reply(claimDropResponse());
+
+      expect(
+        await service.claimDrop(dropInstanceId: 'instance-a', authToken: 'tok'),
+        DropClaimResult.claimed,
+      );
+      final body = sent();
+      expect(body['operationName'], 'ClaimDropRewardsMutation');
+      expect(body['variables'], {'dropInstanceId': 'instance-a'});
+      expect(requests.single.headers['Authorization'], 'OAuth tok');
+    });
+
+    test('says when the game account must be linked first', () async {
+      reply(claimDropResponse(connected: false));
+
+      expect(
+        await service.claimDrop(dropInstanceId: 'instance-a', authToken: 'tok'),
+        DropClaimResult.needsAccountLink,
+      );
+    });
+
+    test('sends nothing when signed out or for a bad id', () async {
+      expect(
+        await service.claimDrop(dropInstanceId: 'instance-a', authToken: ''),
+        DropClaimResult.signedOut,
+      );
+      expect(
+        await service.claimDrop(dropInstanceId: 'bad id!', authToken: 'tok'),
+        DropClaimResult.failed,
+      );
+      expect(requests, isEmpty);
+    });
+
+    test('a server failure is a failed claim', () async {
+      reply({'error': 'boom'}, status: 500);
+
+      expect(
+        await service.claimDrop(dropInstanceId: 'instance-a', authToken: 'tok'),
+        DropClaimResult.failed,
+      );
     });
   });
 }

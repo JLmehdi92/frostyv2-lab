@@ -11,6 +11,7 @@ import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/raid_arrival.dart';
@@ -36,6 +37,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
+import 'package:onset/screens/channel/chat/widgets/drops_card.dart';
 import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
 import 'package:onset/screens/channel/chat/widgets/shoutout_card.dart';
@@ -47,6 +49,7 @@ import 'package:onset/services/hermes_client.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:provider/provider.dart';
 
+import '../fixtures/drops_gql_payloads.dart';
 import '../fixtures/irc_messages.dart';
 import '../helpers/chat_message_harness.dart';
 import '../helpers/l10n.dart';
@@ -1071,6 +1074,34 @@ void main() {
         expect(find.text(french.resubShareSend), findsOneWidget);
         await expectFrenchThroughout(tester, 'resub share dialog, $at');
       });
+
+      for (final signedIn in [true, false]) {
+        testWidgets('the Drops card, signed in $signedIn, $at', (tester) async {
+          final campaigns = DropCampaign.listFrom(
+            signedIn
+                ? signedInDropCampaignsResponse(connected: false)
+                : anonymousDropCampaignsResponse,
+          )!;
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: DropsCard(
+                  campaigns: campaigns,
+                  onClaim: (_) {},
+                  onLinkAccount: (_) {},
+                ),
+              ),
+            ),
+            size: size,
+            textScale: scale,
+          );
+          await tester.pump();
+          expect(find.text(french.dropsCardTitle), findsOneWidget);
+          await expectFrenchThroughout(tester, 'drops $signedIn, $at');
+        });
+      }
 
       testWidgets('the streak help without a streak, $at', (tester) async {
         await pumpLocalized(

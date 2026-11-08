@@ -195,6 +195,8 @@ const _properNouns = {
   'Gaming',
   'Partner',
   'Turbo',
+  'Drop',
+  'Drops',
   'AutoMod',
   'BetterTTV',
   'FrankerFaceZ',

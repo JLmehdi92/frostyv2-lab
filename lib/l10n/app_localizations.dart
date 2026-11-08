@@ -11588,6 +11588,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn’t load this channel’s details.'**
   String get shoutoutCardFailed;
+
+  /// Title of the card in the channel points panel listing the Twitch Drops this channel offers.
+  ///
+  /// In en, this message translates to:
+  /// **'Drops available'**
+  String get dropsCardTitle;
+
+  /// When a Drops campaign ends, under its name in the Drops card.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends {date}'**
+  String dropsEndsOn({required String date});
+
+  /// Watch time still needed before a Drop can be claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, one{{minutes} minute left} other{{minutes} minutes left}}'**
+  String dropsMinutesLeft({required int minutes});
+
+  /// Subs bought or gifted so far toward a Drop that needs subs.
+  ///
+  /// In en, this message translates to:
+  /// **'{total, plural, one{{current} of {total} sub} other{{current} of {total} subs}}'**
+  String dropsSubsProgress({required int current, required int total});
+
+  /// Button that claims a Drop reward the viewer has earned.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim'**
+  String get dropsClaim;
+
+  /// State of a Drop reward the viewer already claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Claimed'**
+  String get dropsClaimed;
+
+  /// State of a Drop that needs an earlier Drop of the campaign first.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocks after the previous Drop'**
+  String get dropsLocked;
+
+  /// Line in the Drops card for a logged-out viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to see your progress and claim rewards.'**
+  String get dropsSignInForProgress;
+
+  /// Note in the Drops card explaining how Twitch counts Drop progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch counts Drop progress from its own player, so watching in ONSET may not add to it. You can only earn progress in one channel at a time.'**
+  String get dropsProgressNote;
+
+  /// Button in the Drops card that opens the publisher’s page to link a game account, needed before claiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Link your game account'**
+  String get dropsLinkAccount;
+
+  /// Snack bar after claiming a Drop reward from the Drops card.
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, claimed{Reward claimed.} alreadyClaimed{You already claimed this reward.} needsAccountLink{Link your game account first, then claim again.} expired{This Drop has expired.} limitReached{You’ve reached this reward’s limit.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so claim it on twitch.tv.} signedOut{Log in again to claim from ONSET.} refused{Twitch declined this claim.} other{Couldn’t reach Twitch. Try again.}}'**
+  String dropClaimResult({required String status});
+
+  /// ONSET’s own chat line when the channel offers a Drop earned by watch time.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, one{{channel} turned on Drops for the community! Watch for {minutes} minute to claim the reward.} other{{channel} turned on Drops for the community! Watch for {minutes} minutes to claim the reward.}}'**
+  String communityDropsWatch({required String channel, required int minutes});
+
+  /// ONSET’s own chat line when the channel offers a Drop earned by buying or gifting subs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{channel} turned on Drops for the community! Buy or gift {count} sub while the channel is live to get the reward.} other{{channel} turned on Drops for the community! Buy or gift {count} subs while the channel is live to get the reward.}}'**
+  String communityDropsSubs({required String channel, required int count});
+
+  /// ONSET’s own chat line when the channel offers a Drop earned with Turbo.
+  ///
+  /// In en, this message translates to:
+  /// **'{channel} turned on Drops for the community! Get Turbo to earn the rewards.'**
+  String communityDropsTurbo({required String channel});
+
+  /// ONSET’s own chat line when the channel offers several Drops.
+  ///
+  /// In en, this message translates to:
+  /// **'{channel} turned on Drops for the community! Watch the stream and buy subs to claim the rewards.'**
+  String communityDropsSeveral({required String channel});
 }
 
 class _AppLocalizationsDelegate

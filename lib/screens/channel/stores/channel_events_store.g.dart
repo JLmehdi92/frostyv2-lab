@@ -85,6 +85,46 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     });
   }
 
+  late final _$_dropCampaignsAtom = Atom(
+    name: 'ChannelEventsStoreBase._dropCampaigns',
+    context: context,
+  );
+
+  List<DropCampaign> get dropCampaigns {
+    _$_dropCampaignsAtom.reportRead();
+    return super._dropCampaigns;
+  }
+
+  @override
+  List<DropCampaign> get _dropCampaigns => dropCampaigns;
+
+  @override
+  set _dropCampaigns(List<DropCampaign> value) {
+    _$_dropCampaignsAtom.reportWrite(value, super._dropCampaigns, () {
+      super._dropCampaigns = value;
+    });
+  }
+
+  late final _$_claimingDropIdAtom = Atom(
+    name: 'ChannelEventsStoreBase._claimingDropId',
+    context: context,
+  );
+
+  String? get claimingDropId {
+    _$_claimingDropIdAtom.reportRead();
+    return super._claimingDropId;
+  }
+
+  @override
+  String? get _claimingDropId => claimingDropId;
+
+  @override
+  set _claimingDropId(String? value) {
+    _$_claimingDropIdAtom.reportWrite(value, super._claimingDropId, () {
+      super._claimingDropId = value;
+    });
+  }
+
   late final _$_pointsAtom = Atom(
     name: 'ChannelEventsStoreBase._points',
     context: context,
@@ -297,6 +337,16 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
   @override
   Future<ViewerActionOutcome?> shareWatchStreak() {
     return _$shareWatchStreakAsyncAction.run(() => super.shareWatchStreak());
+  }
+
+  late final _$claimDropAsyncAction = AsyncAction(
+    'ChannelEventsStoreBase.claimDrop',
+    context: context,
+  );
+
+  @override
+  Future<DropClaimResult?> claimDrop(TimedDrop drop) {
+    return _$claimDropAsyncAction.run(() => super.claimDrop(drop));
   }
 
   late final _$shareResubAsyncAction = AsyncAction(

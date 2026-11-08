@@ -138,6 +138,7 @@ class ChannelPointsButton extends StatelessWidget {
         void openPoints() {
           // Fresh, like Twitch's panel (at most once a minute).
           unawaited(store.refreshWatchStreak());
+          unawaited(store.refreshDrops());
           // A sheet on a phone; on a tablet a panel above the pill.
           showSheetOrPanel<void>(
             context: context,

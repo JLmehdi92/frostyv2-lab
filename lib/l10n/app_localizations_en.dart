@@ -8669,4 +8669,107 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shoutoutCardFailed => 'Couldn’t load this channel’s details.';
+
+  @override
+  String get dropsCardTitle => 'Drops available';
+
+  @override
+  String dropsEndsOn({required String date}) {
+    return 'Ends $date';
+  }
+
+  @override
+  String dropsMinutesLeft({required int minutes}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes left',
+      one: '$minutes minute left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dropsSubsProgress({required int current, required int total}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$current of $total subs',
+      one: '$current of $total sub',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dropsClaim => 'Claim';
+
+  @override
+  String get dropsClaimed => 'Claimed';
+
+  @override
+  String get dropsLocked => 'Unlocks after the previous Drop';
+
+  @override
+  String get dropsSignInForProgress =>
+      'Log in to see your progress and claim rewards.';
+
+  @override
+  String get dropsProgressNote =>
+      'Twitch counts Drop progress from its own player, so watching in ONSET may not add to it. You can only earn progress in one channel at a time.';
+
+  @override
+  String get dropsLinkAccount => 'Link your game account';
+
+  @override
+  String dropClaimResult({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'claimed': 'Reward claimed.',
+      'alreadyClaimed': 'You already claimed this reward.',
+      'needsAccountLink': 'Link your game account first, then claim again.',
+      'expired': 'This Drop has expired.',
+      'limitReached': 'You’ve reached this reward’s limit.',
+      'integrityRefused':
+          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so claim it on twitch.tv.',
+      'signedOut': 'Log in again to claim from ONSET.',
+      'refused': 'Twitch declined this claim.',
+      'other': 'Couldn’t reach Twitch. Try again.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String communityDropsWatch({required String channel, required int minutes}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          '$channel turned on Drops for the community! Watch for $minutes minutes to claim the reward.',
+      one:
+          '$channel turned on Drops for the community! Watch for $minutes minute to claim the reward.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityDropsSubs({required String channel, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$channel turned on Drops for the community! Buy or gift $count subs while the channel is live to get the reward.',
+      one:
+          '$channel turned on Drops for the community! Buy or gift $count sub while the channel is live to get the reward.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityDropsTurbo({required String channel}) {
+    return '$channel turned on Drops for the community! Get Turbo to earn the rewards.';
+  }
+
+  @override
+  String communityDropsSeveral({required String channel}) {
+    return '$channel turned on Drops for the community! Watch the stream and buy subs to claim the rewards.';
+  }
 }

@@ -15,6 +15,7 @@ import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/models/creator_goal.dart';
+import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/stream_push.dart';
@@ -33,6 +34,7 @@ import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_tabs.dart';
+import 'package:onset/screens/channel/chat/widgets/drops_card.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/screens/channel/community_highlights/gift_bomb_feed.dart';
 import 'package:onset/screens/channel/community_highlights/pinned_notice.dart';
@@ -753,6 +755,11 @@ class _VideoChatState extends State<VideoChat>
     _streakChanges = _eventsStore.watchStreakChanges.listen(
       _showWatchStreakChange,
     );
+    _communityDrops = _eventsStore.communityDrops.listen(
+      (campaign) => _primaryChatStore?.addLocalNotice(
+        communityDropsLine(campaign, widget.userName, L10n.current),
+      ),
+    );
     _infoStore.start();
     _watchStreamEnd();
     final auth = context.authStore;
@@ -1213,6 +1220,8 @@ class _VideoChatState extends State<VideoChat>
 
   StreamSubscription<CreatorGoal>? _goalsReached;
   StreamSubscription<WatchStreakChange>? _streakChanges;
+
+  StreamSubscription<DropCampaign>? _communityDrops;
 
   void _showWatchStreakChange(WatchStreakChange change) {
     if (!mounted) return;
@@ -2105,6 +2114,7 @@ class _VideoChatState extends State<VideoChat>
     unawaited(_streamPushes?.cancel());
     unawaited(_goalsReached?.cancel());
     unawaited(_streakChanges?.cancel());
+    unawaited(_communityDrops?.cancel());
     _eventsStore.dispose();
     _viewerReaction?.call();
     _infoStore.dispose();

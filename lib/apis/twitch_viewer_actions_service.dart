@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/models/drop_campaign.dart';
 
 enum ViewerActionOutcome { done, refused, integrityRefused, signedOut, failed }
 
@@ -178,6 +179,41 @@ class TwitchViewerActionsService extends BaseApiClient {
       input: raidId,
       succeeded: (payload) => payload['raidID'] == raidId,
     );
+  }
+
+  static const _claimDropDocument =
+      'mutation ClaimDropRewardsMutation(\$dropInstanceId: ID!) { '
+      'claimDropRewards(input: { dropInstanceID: \$dropInstanceId } ) { '
+      'dropInstanceID status dropType { id campaign { id } } '
+      'isUserAccountConnected } }';
+
+  Future<DropClaimResult> claimDrop({
+    required String dropInstanceId,
+    required String authToken,
+  }) async {
+    if (authToken.isEmpty) return DropClaimResult.signedOut;
+    if (!_opaqueId.hasMatch(dropInstanceId)) return DropClaimResult.failed;
+    try {
+      return DropClaimResult.fromBody(
+        await post<dynamic>(
+          _gqlUrl,
+          headers: {
+            'Client-ID': kTwitchWebClientId,
+            'Authorization': 'OAuth $authToken',
+          },
+          data: {
+            'operationName': 'ClaimDropRewardsMutation',
+            'query': _claimDropDocument,
+            'variables': {'dropInstanceId': dropInstanceId},
+          },
+        ),
+      );
+    } on UnauthorizedException {
+      return DropClaimResult.signedOut;
+    } catch (e) {
+      if (kDebugMode) debugPrint('ClaimDropRewardsMutation failed: $e');
+      return DropClaimResult.failed;
+    }
   }
 
   Future<ViewerActionOutcome> _failedAtOnce(String authToken) => Future.value(
