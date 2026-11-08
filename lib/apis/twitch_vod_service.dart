@@ -132,6 +132,11 @@ class TwitchVodService extends BaseApiClient {
       'query CollectionFirstVideo(\$id: ID!) { collection(id: \$id) { '
       'items(first: 1) { edges { node { id } } } } }';
 
+  static const _collectionVideosQuery =
+      'query CollectionVideos(\$id: ID!) { collection(id: \$id) { '
+      'items(first: 100) { edges { node { ... on Video { '
+      '$_videoFields } } } } } }';
+
   static final _collectionId = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
 
   static const _mutedSegmentsQuery =
@@ -573,6 +578,34 @@ class TwitchVodService extends BaseApiClient {
     } catch (e) {
       debugPrint('Paid promotion unavailable: ${e.runtimeType}');
       return false;
+    }
+  }
+
+  Future<List<Vod>> getCollectionVideos(String collectionId) async {
+    if (!_collectionId.hasMatch(collectionId)) return const [];
+    try {
+      final data = await _gql('CollectionVideos', _collectionVideosQuery, {
+        'id': collectionId,
+      });
+      final collection = data['collection'];
+      final items = collection is Map ? collection['items'] : null;
+      final edges = items is Map ? items['edges'] : null;
+      return [
+        if (edges is List)
+          for (final edge in edges)
+            if (edge is Map && edge['node'] is Map) ?_tryVod(edge['node']),
+      ];
+    } catch (e) {
+      debugPrint('Collection videos unavailable: ${e.runtimeType}');
+      return const [];
+    }
+  }
+
+  static Vod? _tryVod(Object? node) {
+    try {
+      return Vod.fromGql(JsonMap.from(node! as Map));
+    } on FormatException {
+      return null;
     }
   }
 

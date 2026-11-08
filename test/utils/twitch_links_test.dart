@@ -34,6 +34,21 @@ void main() {
       expect(_p('https://twitch.tv/videos/1?t=soon'), const VodLink('1'));
     });
 
+    test('a collection queue rides with the video', () {
+      expect(
+        _p('https://www.twitch.tv/videos/1?collection=Ab_c-12'),
+        const VodLink('1', collectionId: 'Ab_c-12'),
+      );
+      expect(
+        _p('https://www.twitch.tv/videos/1?collection=bad/id'),
+        const VodLink('1'),
+      );
+      expect(
+        const VodLink('1', collectionId: 'a'),
+        isNot(const VodLink('1')),
+      );
+    });
+
     test('other path forms and hosts', () {
       for (final link in [
         'https://m.twitch.tv/videos/1',
@@ -358,7 +373,7 @@ void main() {
       );
       expect(
         _p('https://www.twitch.tv/videos/12?collection=Xy_9-a'),
-        const VodLink('12'),
+        const VodLink('12', collectionId: 'Xy_9-a'),
       );
     });
 

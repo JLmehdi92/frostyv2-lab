@@ -128,4 +128,17 @@ void main() {
     store.resetVideoSettings();
     expect(store.vodAutoplay, VodAutoplay.always);
   });
+
+  group('collectionQueueAfter', () {
+    test('offers the videos after the current one, in order', () {
+      final list = [_vod('1'), _vod('2'), _vod('3')];
+      expect(collectionQueueAfter('1', list)!.map((v) => v.id), ['2', '3']);
+      expect(collectionQueueAfter('3', list), isEmpty);
+    });
+
+    test('is null when the video is not in the collection', () {
+      expect(collectionQueueAfter('9', [_vod('1')]), isNull);
+      expect(collectionQueueAfter('1', const []), isNull);
+    });
+  });
 }

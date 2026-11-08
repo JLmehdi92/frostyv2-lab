@@ -618,7 +618,7 @@ class _MyAppState extends State<MyApp> {
             .read<TwitchVodService>()
             .firstVideoOfCollection(collectionId);
         if (vodId == null) return false;
-        return _openTwitchLinkInApp(VodLink(vodId));
+        return _openTwitchLinkInApp(VodLink(vodId, collectionId: collectionId));
       default:
         return false;
     }
@@ -635,10 +635,14 @@ class _MyAppState extends State<MyApp> {
   Future<bool> _openTwitchLinkInApp(TwitchLink link) async {
     final Route<void> route;
     switch (link) {
-      case VodLink(:final vodId, :final startAt):
+      case VodLink(:final vodId, :final startAt, :final collectionId):
         route = MaterialPageRoute(
           settings: const RouteSettings(name: VodScreen.routeName),
-          builder: (context) => VodScreen(vodId: vodId, startAt: startAt),
+          builder: (context) => VodScreen(
+            vodId: vodId,
+            startAt: startAt,
+            collectionId: collectionId,
+          ),
         );
       case ChannelVideosLink(:final login, :final type):
         final displayName = await _displayNameOf(login);

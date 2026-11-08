@@ -23,6 +23,7 @@ import 'package:onset/screens/vod/stores/ivs_vod_store.dart';
 import 'package:onset/screens/vod/stores/up_next_store.dart';
 import 'package:onset/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:onset/screens/vod/stores/web_vod_store.dart';
+import 'package:onset/screens/vod/up_next.dart';
 import 'package:onset/screens/vod/vod_overlay.dart';
 import 'package:onset/screens/vod/vod_player_controller.dart';
 import 'package:onset/screens/vod/vod_resume.dart';
@@ -86,9 +87,12 @@ class VodScreen extends StatefulWidget {
     required this.vodId,
     this.vod,
     this.startAt,
+    this.collectionId,
     @visibleForTesting this.playerFactory,
     @visibleForTesting this.replayFactory,
   });
+
+  final String? collectionId;
 
   /// Numeric id, with or without the `v` prefix.
   final String vodId;
@@ -372,9 +376,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
 
   UpNextStore _buildUpNext(Vod vod) => UpNextStore(
     current: vod,
-    channelVideos: () async => vod.ownerLogin.isEmpty
-        ? const <Vod>[]
-        : (await _service.getChannelVideos(login: vod.ownerLogin)).items,
+    channelVideos: () => _nextCandidates(vod),
     similarVideos: (gameId) async =>
         (await _service.getCategoryVideos(gameId)).items,
     savedPositions: () =>
@@ -384,6 +386,19 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     onPlay: _playNext,
     isVisible: _isCurrentRoute,
   );
+
+  Future<List<Vod>> _nextCandidates(Vod vod) async {
+    final collectionId = widget.collectionId;
+    if (collectionId != null) {
+      final queue = collectionQueueAfter(
+        vod.id,
+        await _service.getCollectionVideos(collectionId),
+      );
+      if (queue != null) return queue;
+    }
+    if (vod.ownerLogin.isEmpty) return const <Vod>[];
+    return (await _service.getChannelVideos(login: vod.ownerLogin)).items;
+  }
 
   /// Nothing (a category page, a sheet, a channel) covers this screen.
   bool _isCurrentRoute() =>
@@ -404,6 +419,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         builder: (context) => VodScreen(
           vodId: next.id,
           vod: next,
+          collectionId: widget.collectionId,
           playerFactory: widget.playerFactory,
           replayFactory: widget.replayFactory,
         ),

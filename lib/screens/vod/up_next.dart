@@ -41,3 +41,9 @@ bool autoplayAllowed(VodAutoplay setting, {required bool? metered}) =>
       VodAutoplay.wifiOnly => metered == false,
       VodAutoplay.never => false,
     };
+
+List<Vod>? collectionQueueAfter(String currentId, List<Vod> collection) {
+  final index = collection.indexWhere((vod) => vod.id == currentId);
+  if (index < 0) return null;
+  return collection.sublist(index + 1);
+}

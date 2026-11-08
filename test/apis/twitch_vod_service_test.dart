@@ -371,6 +371,45 @@ void main() {
     });
   });
 
+  group('getCollectionVideos', () {
+    test('reads the videos in order and skips broken ones', () async {
+      reply({
+        'data': {
+          'collection': {
+            'items': {
+              'edges': [
+                {
+                  'node': {
+                    'id': '2',
+                    'title': 'Second',
+                    'lengthSeconds': 60,
+                    'createdAt': '2026-01-01T00:00:00Z',
+                    'viewCount': 1,
+                    'owner': {'id': '1', 'login': 'a', 'displayName': 'A'},
+                  },
+                },
+                {'node': {'title': 'no id'}},
+              ],
+            },
+          },
+        },
+      });
+
+      final videos = await service.getCollectionVideos('abc');
+
+      expect(videos.map((v) => v.id), ['2']);
+    });
+
+    test('never throws and refuses a bad id without asking', () async {
+      reply(vodCommentsServiceErrorResponse);
+
+      expect(await service.getCollectionVideos('abc'), isEmpty);
+      final asked = gqlRequests.length;
+      expect(await service.getCollectionVideos('bad/id'), isEmpty);
+      expect(gqlRequests.length, asked);
+    });
+  });
+
   group('getChapters', () {
     test('parses game chapters in order', () async {
       reply({

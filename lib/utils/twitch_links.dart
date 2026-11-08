@@ -252,7 +252,14 @@ sealed class TwitchLink {
   static TwitchLink _vod(String id, Uri uri) {
     if (!_vodId.hasMatch(id)) return const OtherLink();
     final t = uri.queryParameters['t'];
-    return VodLink(id, startAt: t == null ? null : parseTwitchTimestamp(t));
+    final collection = uri.queryParameters['collection'];
+    return VodLink(
+      id,
+      startAt: t == null ? null : parseTwitchTimestamp(t),
+      collectionId: collection != null && _collectionId.hasMatch(collection)
+          ? collection
+          : null,
+    );
   }
 
   static final _vodId = RegExp(r'^[0-9]{1,20}$');
@@ -317,20 +324,24 @@ sealed class TwitchLink {
 
 /// A past broadcast, highlight or upload, optionally at a time.
 final class VodLink extends TwitchLink {
-  const VodLink(this.vodId, {this.startAt});
+  const VodLink(this.vodId, {this.startAt, this.collectionId});
 
   final String vodId;
   final Duration? startAt;
+  final String? collectionId;
 
   @override
   bool operator ==(Object other) =>
-      other is VodLink && other.vodId == vodId && other.startAt == startAt;
+      other is VodLink &&
+      other.vodId == vodId &&
+      other.startAt == startAt &&
+      other.collectionId == collectionId;
 
   @override
-  int get hashCode => Object.hash(vodId, startAt);
+  int get hashCode => Object.hash(vodId, startAt, collectionId);
 
   @override
-  String toString() => 'VodLink($vodId, $startAt)';
+  String toString() => 'VodLink($vodId, $startAt, $collectionId)';
 }
 
 /// A clip, by its (case-sensitive) slug.
