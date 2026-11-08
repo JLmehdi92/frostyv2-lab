@@ -8711,4 +8711,63 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get streakExpired =>
       'Votre série de visionnage sur cette chaîne a pris fin.';
+
+  @override
+  String get leaderboardsTitle => 'Classements';
+
+  @override
+  String leaderboardsTab({required String kind}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'cheers': 'Bits',
+      'gifts': 'Abonnements offerts',
+      'other': 'Autre',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String leaderboardsPeriod({required String period}) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'day': 'Aujourd’hui',
+      'week': 'Cette semaine',
+      'month': 'Ce mois-ci',
+      'allTime': 'Depuis toujours',
+      'other': 'Récemment',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String leaderboardsBits({required int count, required String amount}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount Bits envoyés',
+      one: '$amount Bit envoyé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String leaderboardsGifts({required int count, required String amount}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount abonnements offerts',
+      one: '$amount abonnement offert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String leaderboardsYourRank({required int rank}) {
+    return 'Votre rang : $rank';
+  }
+
+  @override
+  String get leaderboardsEmpty =>
+      'Personne ne figure encore dans ce classement.';
+
+  @override
+  String get leaderboardsFailed => 'Impossible de charger les classements.';
 }

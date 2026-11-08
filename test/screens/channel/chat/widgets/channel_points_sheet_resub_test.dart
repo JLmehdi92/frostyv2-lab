@@ -5,6 +5,7 @@ import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
+import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/screens/channel/chat/widgets/channel_points_sheet.dart';
@@ -144,5 +145,34 @@ void main() {
       ),
     );
     expect(find.byKey(ResubShareCard.shareKey), findsOneWidget);
+  });
+
+  testWidgets('the leaderboards row opens the boards', (tester) async {
+    when(
+      () => community.getLeaderboards(
+        channelId: any(named: 'channelId'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer(
+      (_) async => const ChannelLeaderboards(
+        boards: {
+          LeaderboardKind.cheers: [
+            LeaderboardEntry(
+              rank: 1,
+              score: 500,
+              userId: '1',
+              displayName: 'TopCheerer',
+            ),
+          ],
+        },
+      ),
+    );
+    await pump(tester, null);
+
+    await tester.tap(find.byKey(const ValueKey('points-leaderboards')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('TopCheerer'), findsOneWidget);
+    expect(find.text('500 Bits cheered'), findsOneWidget);
   });
 }

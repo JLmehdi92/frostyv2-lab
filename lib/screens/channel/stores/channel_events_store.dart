@@ -9,6 +9,7 @@ import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/models/celebration.dart';
+import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/hermes.dart';
@@ -150,6 +151,15 @@ abstract class ChannelEventsStoreBase with Store {
           ? null
           : resub,
     );
+  }
+
+  bool get hasLeaderboards => _communityService != null;
+
+  Future<ChannelLeaderboards?> loadLeaderboards() async {
+    final service = _communityService;
+    if (service == null) return null;
+    final token = await _tokenProvider?.call();
+    return service.getLeaderboards(channelId: channelId, authToken: token);
   }
 
   @action

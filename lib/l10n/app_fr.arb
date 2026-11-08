@@ -1877,5 +1877,13 @@
   "resubShareSend": "Partager",
   "resubSharedInChat": "Votre abonnement a été partagé dans le chat.",
   "streakRecovered": "{count, plural, one{Votre série de visionnage est sauvée\u00a0: {count}\u00a0live d’affilée.} other{Votre série de visionnage est sauvée\u00a0: {count}\u00a0lives d’affilée.}}",
-  "streakExpired": "Votre série de visionnage sur cette chaîne a pris fin."
+  "streakExpired": "Votre série de visionnage sur cette chaîne a pris fin.",
+  "leaderboardsTitle": "Classements",
+  "leaderboardsTab": "{kind, select, cheers{Bits} gifts{Abonnements offerts} other{Autre}}",
+  "leaderboardsPeriod": "{period, select, day{Aujourd’hui} week{Cette semaine} month{Ce mois-ci} allTime{Depuis toujours} other{Récemment}}",
+  "leaderboardsBits": "{count, plural, one{{amount}\u00a0Bit envoyé} other{{amount}\u00a0Bits envoyés}}",
+  "leaderboardsGifts": "{count, plural, one{{amount}\u00a0abonnement offert} other{{amount}\u00a0abonnements offerts}}",
+  "leaderboardsYourRank": "Votre rang\u00a0: {rank}",
+  "leaderboardsEmpty": "Personne ne figure encore dans ce classement.",
+  "leaderboardsFailed": "Impossible de charger les classements."
 }

@@ -130,9 +130,8 @@ void main() {
       ),
       live: false,
     );
-    String subtitle() => tester
-        .widget<Text>(find.textContaining('to save your streak'))
-        .data!;
+    String subtitle() =>
+        tester.widget<Text>(find.textContaining('to save your streak')).data!;
 
     final before = subtitle();
     await tester.pump(const Duration(seconds: 2));

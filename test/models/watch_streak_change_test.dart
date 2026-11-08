@@ -30,7 +30,10 @@ void main() {
   test('nothing to say otherwise', () {
     expect(watchStreakChange(null, const WatchStreak(value: 3)), isNull);
     expect(
-      watchStreakChange(const WatchStreak(value: 3), const WatchStreak(value: 4)),
+      watchStreakChange(
+        const WatchStreak(value: 3),
+        const WatchStreak(value: 4),
+      ),
       isNull,
     );
     expect(watchStreakChange(suspended, suspended), isNull);

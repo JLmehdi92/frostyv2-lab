@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/twitch_community_service.dart';
+import 'package:onset/models/channel_leaderboards.dart';
 
 import '../fixtures/community_gql_payloads.dart';
 
@@ -77,6 +78,41 @@ void main() {
         await service.getResubNotification(channelId: '42', authToken: 'tok'),
         isNull,
       );
+    });
+  });
+
+  group('getLeaderboards', () {
+    test('asks anonymously for the boards and the settings', () async {
+      reply(leaderboardsResponse);
+
+      final boards = await service.getLeaderboards(channelId: '42');
+
+      expect(boards?.kinds, [LeaderboardKind.cheers, LeaderboardKind.gifts]);
+      expect(sent()['operationName'], 'ChannelLeaderboardsQuery');
+      expect(sent()['variables'], {
+        'channelId': '42',
+        'fetchChannelSettings': true,
+      });
+      expect(requests.single.headers.containsKey('Authorization'), isFalse);
+    });
+
+    test('adds the viewer token when there is one', () async {
+      reply(leaderboardsResponse);
+
+      await service.getLeaderboards(channelId: '42', authToken: 'tok');
+
+      expect(requests.single.headers['Authorization'], 'OAuth tok');
+    });
+
+    test('answers null on an error or a bad id', () async {
+      reply({
+        'errors': [
+          {'message': 'service error'},
+        ],
+      });
+
+      expect(await service.getLeaderboards(channelId: '42'), isNull);
+      expect(await service.getLeaderboards(channelId: '4 2'), isNull);
     });
   });
 }

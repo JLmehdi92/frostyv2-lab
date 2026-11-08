@@ -10,6 +10,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/watch_streak.dart';
+import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/points_intro.dart';
 import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
@@ -403,6 +404,15 @@ class _PanelState extends State<_Panel> {
                   ),
                 ],
 
+                if (events != null && events.hasLeaderboards)
+                  SheetRow(
+                    key: const ValueKey('points-leaderboards'),
+                    glyph: SheetGlyphKind.trophy,
+                    label: context.l10n.leaderboardsTitle,
+                    end: SheetRowEnd.chevron,
+                    onTap: () =>
+                        showLeaderboards(context, events.loadLeaderboards),
+                  ),
                 SheetRow(
                   key: const ValueKey('points-how-to-earn'),
                   glyph: SheetGlyphKind.coin,

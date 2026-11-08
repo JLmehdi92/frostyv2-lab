@@ -6,6 +6,7 @@ import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
+import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/watch_streak.dart';
@@ -92,7 +93,8 @@ void main() {
     expect(store.resubNotification, _resub);
     expect(store.canShareResub, isTrue);
     verify(
-      () => community.getResubNotification(channelId: '42', authToken: 'webtok'),
+      () =>
+          community.getResubNotification(channelId: '42', authToken: 'webtok'),
     ).called(1);
   });
 
@@ -152,5 +154,21 @@ void main() {
         authToken: any(named: 'authToken'),
       ),
     );
+  });
+
+  test('leaderboards are read with the viewer token', () async {
+    when(
+      () => community.getLeaderboards(
+        channelId: any(named: 'channelId'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer((_) async => const ChannelLeaderboards());
+    final store = build();
+
+    expect(store.hasLeaderboards, isTrue);
+    expect(await store.loadLeaderboards(), isNotNull);
+    verify(
+      () => community.getLeaderboards(channelId: '42', authToken: 'webtok'),
+    ).called(1);
   });
 }

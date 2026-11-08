@@ -11024,5 +11024,75 @@
   "streakExpired": "Your watch streak in this channel has ended.",
   "@streakExpired": {
     "description": "Snack bar when a suspended watch streak was not saved in time and Twitch reset it."
+  },
+  "leaderboardsTitle": "Leaderboards",
+  "@leaderboardsTitle": {
+    "description": "The channel points panel's row, and the title of the sheet it opens, listing the channel's top Bits cheerers and gift sub givers."
+  },
+  "leaderboardsTab": "{kind, select, cheers{Bits} gifts{Gift subs} other{Other}}",
+  "@leaderboardsTab": {
+    "description": "Choice between the channel's two leaderboards: Bits cheered and subs gifted.",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "cheers"
+      }
+    }
+  },
+  "leaderboardsPeriod": "{period, select, day{Today} week{This week} month{This month} allTime{All time} other{Recent}}",
+  "@leaderboardsPeriod": {
+    "description": "The period the channel's leaderboards cover, as the channel set it on Twitch.",
+    "placeholders": {
+      "period": {
+        "type": "String",
+        "example": "week"
+      }
+    }
+  },
+  "leaderboardsBits": "{count, plural, one{{amount} Bit cheered} other{{amount} Bits cheered}}",
+  "@leaderboardsBits": {
+    "description": "A viewer's score on the Bits leaderboard; amount is count with the locale's digit grouping.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "19800"
+      },
+      "amount": {
+        "type": "String",
+        "example": "19,800"
+      }
+    }
+  },
+  "leaderboardsGifts": "{count, plural, one{{amount} sub gifted} other{{amount} subs gifted}}",
+  "@leaderboardsGifts": {
+    "description": "A viewer's score on the gift sub leaderboard; amount is count with the locale's digit grouping.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "161"
+      },
+      "amount": {
+        "type": "String",
+        "example": "161"
+      }
+    }
+  },
+  "leaderboardsYourRank": "Your rank: {rank}",
+  "@leaderboardsYourRank": {
+    "description": "Under a leaderboard, the logged-in viewer's own position when Twitch gives it.",
+    "placeholders": {
+      "rank": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "leaderboardsEmpty": "No one is on this leaderboard yet.",
+  "@leaderboardsEmpty": {
+    "description": "A leaderboard with no entries."
+  },
+  "leaderboardsFailed": "Couldn’t load the leaderboards.",
+  "@leaderboardsFailed": {
+    "description": "The leaderboards sheet when Twitch did not answer or answered in a shape ONSET no longer reads."
   }
 }

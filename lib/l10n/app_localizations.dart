@@ -11516,6 +11516,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your watch streak in this channel has ended.'**
   String get streakExpired;
+
+  /// The channel points panel's row, and the title of the sheet it opens, listing the channel's top Bits cheerers and gift sub givers.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaderboards'**
+  String get leaderboardsTitle;
+
+  /// Choice between the channel's two leaderboards: Bits cheered and subs gifted.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, cheers{Bits} gifts{Gift subs} other{Other}}'**
+  String leaderboardsTab({required String kind});
+
+  /// The period the channel's leaderboards cover, as the channel set it on Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'{period, select, day{Today} week{This week} month{This month} allTime{All time} other{Recent}}'**
+  String leaderboardsPeriod({required String period});
+
+  /// A viewer's score on the Bits leaderboard; amount is count with the locale's digit grouping.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{amount} Bit cheered} other{{amount} Bits cheered}}'**
+  String leaderboardsBits({required int count, required String amount});
+
+  /// A viewer's score on the gift sub leaderboard; amount is count with the locale's digit grouping.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{amount} sub gifted} other{{amount} subs gifted}}'**
+  String leaderboardsGifts({required int count, required String amount});
+
+  /// Under a leaderboard, the logged-in viewer's own position when Twitch gives it.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rank: {rank}'**
+  String leaderboardsYourRank({required int rank});
+
+  /// A leaderboard with no entries.
+  ///
+  /// In en, this message translates to:
+  /// **'No one is on this leaderboard yet.'**
+  String get leaderboardsEmpty;
+
+  /// The leaderboards sheet when Twitch did not answer or answered in a shape ONSET no longer reads.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load the leaderboards.'**
+  String get leaderboardsFailed;
 }
 
 class _AppLocalizationsDelegate

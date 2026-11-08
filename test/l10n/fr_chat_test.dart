@@ -9,6 +9,7 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
@@ -33,6 +34,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
+import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -1084,6 +1086,67 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text(french.streakHelpBody), findsOneWidget);
         await expectFrenchThroughout(tester, 'streak help alone, $at');
+      });
+
+      for (final kind in LeaderboardKind.values) {
+        testWidgets('the leaderboards, ${kind.name}, $at', (tester) async {
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: LeaderboardsSheet(
+                load: () async => ChannelLeaderboards(
+                  period: LeaderboardPeriod.allTime,
+                  boards: {
+                    for (final board in LeaderboardKind.values)
+                      board: [
+                        const LeaderboardEntry(
+                          rank: 1,
+                          score: 1234567,
+                          userId: '1',
+                          displayName: 'UnSpectateurAuNomTrèsLong',
+                        ),
+                        const LeaderboardEntry(
+                          rank: 2,
+                          score: 1,
+                          userId: '2',
+                          displayName: 'Deux',
+                        ),
+                      ],
+                  },
+                  preferred: kind,
+                  mine: {
+                    kind: const LeaderboardEntry(
+                      rank: 12,
+                      score: 3,
+                      userId: '9',
+                      displayName: 'Moi',
+                    ),
+                  },
+                ),
+              ),
+            ),
+            size: size,
+            textScale: scale,
+          );
+          await tester.pumpAndSettle();
+          expect(find.text(french.leaderboardsTitle), findsOneWidget);
+          await expectFrenchThroughout(
+            tester,
+            'leaderboards ${kind.name}, $at',
+          );
+        });
+      }
+
+      testWidgets('the leaderboards failing, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(body: LeaderboardsSheet(load: () async => null)),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text(french.leaderboardsFailed), findsOneWidget);
+        await expectFrenchThroughout(tester, 'leaderboards failed, $at');
       });
 
       testWidgets('the watch streak help, $at', (tester) async {
