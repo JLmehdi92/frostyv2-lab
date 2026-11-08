@@ -1574,6 +1574,18 @@ abstract class AppLocalizations {
   /// **'Keeps a live stream playing when you leave the app or turn off the screen, with media controls in a notification.'**
   String get settingsBackgroundAudioDetail;
 
+  /// Settings › Video › Playback: switch that lets a playing video move to the floating window when you leave the app (Android).
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic picture-in-picture'**
+  String get settingsAutoPip;
+
+  /// Settings › Video › Playback: what « Automatic picture-in-picture » does.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps a playing video in a floating window when you leave the app.'**
+  String get settingsAutoPipDetail;
+
   /// Settings › Video: the group about the controls drawn over the video.
   ///
   /// In en, this message translates to:
@@ -4199,6 +4211,12 @@ abstract class AppLocalizations {
   /// **'synced to the clip'**
   String get clipSyncedToClip;
 
+  /// A clip's screen, under its details: shown when the clip's video and its chat are gone or never existed.
+  ///
+  /// In en, this message translates to:
+  /// **'This clip has no recorded chat.'**
+  String get clipNoRecordedChat;
+
   /// Error message. Over a video's or a clip's player: only the channel's subscribers may watch it. subject is clip or video.
   ///
   /// In en, this message translates to:
@@ -5182,6 +5200,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start a new latency measurement'**
   String get livePlayerResetStatsDetail;
+
+  /// The live player's settings sheet: the heading over the picture-in-picture and background audio switches.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback'**
+  String get livePlayerPlayback;
+
+  /// The live player: the button and the settings sheet entry that share the channel's link.
+  ///
+  /// In en, this message translates to:
+  /// **'Share channel'**
+  String get livePlayerShareChannel;
 
   /// Over the live video, before the stream's title, while several channels share one chat. title is the stream's title (Twitch's data).
   ///
@@ -9776,6 +9806,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy link at current time'**
   String get vodCopyLinkAtTime;
+
+  /// A video's settings sheet: the entry, and the title of the dialog, that jumps to a typed time.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to time'**
+  String get vodGoToTime;
+
+  /// The « Go to time » dialog: under the field when the typed time is unreadable or past the end. {end} is the video's length, as on the seek bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a time between 0:00 and {end}.'**
+  String vodGoToTimeInvalid({required String end});
+
+  /// The « Go to time » dialog: the button that jumps to the typed time.
+  ///
+  /// In en, this message translates to:
+  /// **'Go'**
+  String get vodGoToTimeGo;
 
   /// What kind of video it is, in a tablet's top row over the player: a stream kept after it ended.
   ///

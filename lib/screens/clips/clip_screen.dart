@@ -107,6 +107,8 @@ class _ClipScreenState extends State<ClipScreen> {
   /// The chat of the clip's VOD, replayed in step with the clip.
   VodChatReplayStore? _replay;
 
+  var _replayMissing = false;
+
   /// The channel's other clips, shown when there is no chat replay.
   ChannelClipsStore? _moreClips;
   final _disposers = <ReactionDisposer>[];
@@ -172,7 +174,9 @@ class _ClipScreenState extends State<ClipScreen> {
   /// The VOD's chat when the VOD still exists (anonymous, best effort).
   Future<void> _loadReplay(Clip clip) async {
     final vodId = clip.vodId;
-    if (vodId == null || clip.vodOffsetSeconds == null || _replay != null) {
+    if (_replay != null) return;
+    if (vodId == null || clip.vodOffsetSeconds == null) {
+      _markReplayMissing();
       return;
     }
     final vodService = context.twitchVodService;
@@ -181,9 +185,14 @@ class _ClipScreenState extends State<ClipScreen> {
       vod = await vodService.getVideo(vodId);
     } catch (e) {
       debugPrint('ClipScreen: no VOD for the chat replay: $e');
+      _markReplayMissing();
       return;
     }
-    if (vod == null || !mounted || _replay != null) return;
+    if (!mounted || _replay != null) return;
+    if (vod == null) {
+      _markReplayMissing();
+      return;
+    }
     final factory = widget.replayFactory;
     setState(() {
       _replay = factory != null
@@ -191,6 +200,10 @@ class _ClipScreenState extends State<ClipScreen> {
           : createVodChatReplay(context, vod!);
     });
     _bindReplay();
+  }
+
+  void _markReplayMissing() {
+    if (mounted) setState(() => _replayMissing = true);
   }
 
   /// Feeds the replay the VOD second under the clip's playback.
@@ -238,6 +251,7 @@ class _ClipScreenState extends State<ClipScreen> {
       player = WebVodStore.forUrl(
         webClipEmbedUrl(widget.slug),
         knownLength: _clip?.duration,
+        autoPipAllowed: () => _settings.autoPictureInPicture,
       );
     } else {
       player = ClipPlayerStore(
@@ -468,6 +482,8 @@ class _ClipScreenState extends State<ClipScreen> {
       return CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: _buildDetails()),
+          if (_replayMissing)
+            const SliverToBoxAdapter(child: _NoRecordedChat()),
           if (clip != null && moreClips != null)
             MoreClipsSliver(
               store: moreClips,
@@ -654,6 +670,32 @@ class _DetailsSkeleton extends StatelessWidget {
               ),
               SkeletonLoader(width: 120, height: 12, borderRadius: radius),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoRecordedChat extends StatelessWidget {
+  const _NoRecordedChat();
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      child: Row(
+        children: [
+          Icon(Icons.speaker_notes_off_outlined, size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              context.l10n.clipNoRecordedChat,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: color),
+            ),
           ),
         ],
       ),

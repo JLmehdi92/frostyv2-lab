@@ -182,6 +182,12 @@ void main() {
           find.text(french.liveCaptionsTrack(number: 2), skipOffstage: false),
           findsOneWidget,
         );
+        await tester.scrollUntilVisible(
+          find.text(french.livePlayerShareChannel),
+          120,
+          scrollable: find.byType(Scrollable).last,
+        );
+        expect(find.text(french.livePlayerShareChannel), findsOneWidget);
         await expectFrenchThroughout(tester, 'settings sheet');
         await tester.pumpWidget(const SizedBox());
       });

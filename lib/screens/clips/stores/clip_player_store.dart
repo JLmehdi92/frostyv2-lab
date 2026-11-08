@@ -12,6 +12,7 @@ import 'package:onset/screens/channel/video/quality_selection.dart';
 import 'package:onset/screens/clips/clip_media_backend.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/vod/vod_player_controller.dart';
+import 'package:onset/services/network_metering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 
@@ -35,9 +36,11 @@ abstract class ClipPlayerStoreBase
     Duration? knownLength,
     ClipMediaBackend? backend,
     bool focused = true,
+    Future<bool?> Function()? isMetered,
     @visibleForTesting Duration overlayHideDelay = const Duration(seconds: 5),
   }) : backend = backend ?? MediaKitClipBackend(),
        _knownLength = knownLength,
+       _isMetered = isMetered ?? NetworkMetering.shared.isMetered,
        _overlayHideDelay = overlayHideDelay {
     // Before anything reads it: a player preloaded behind the one playing
     // (the clips feed) must neither start nor touch auto-PiP.
@@ -57,7 +60,10 @@ abstract class ClipPlayerStoreBase
       _disposeAutoPip = autorun((_) async {
         // Another player on top owns auto-PiP.
         if (!_focused) return;
-        final available = !paused && await SimplePip.isAutoPipAvailable;
+        final available =
+            !paused &&
+            settingsStore.autoPictureInPicture &&
+            await SimplePip.isAutoPipAvailable;
         // Focus may have gone while the plugin answered (the feed covered
         // by a page turns auto-PiP off itself): never arm it after that.
         if (_disposed || !_focused) return;
@@ -73,6 +79,10 @@ abstract class ClipPlayerStoreBase
   final String slug;
   final TwitchClipService clipService;
   final SettingsStore settingsStore;
+
+  final Future<bool?> Function() _isMetered;
+
+  static const _meteredMaxHeight = 480;
   final ClipMediaBackend backend;
   final Duration? _knownLength;
   final Duration _overlayHideDelay;
@@ -195,13 +205,17 @@ abstract class ClipPlayerStoreBase
     if (_disposed) return;
     _playback = playback;
     final labels = [for (final r in playback.renditions) r.label];
-    final quality =
+    final picked =
         pickInitialQuality(
           available: labels,
           defaultToHighest: settingsStore.defaultToHighestQuality,
           lastQuality: prefs.getString('last_stream_quality'),
         ) ??
         labels.first;
+    final quality = settingsStore.defaultToHighestQuality
+        ? picked
+        : await _cappedWhenMetered(playback.renditions, picked);
+    if (_disposed) return;
     runInAction(() {
       _qualities = labels;
       _quality = quality;
@@ -209,6 +223,20 @@ abstract class ClipPlayerStoreBase
     // The viewer may have toggled loop while the token was coming.
     await backend.setLooping(_looping);
     await _open(Duration.zero);
+  }
+
+  Future<String> _cappedWhenMetered(
+    List<ClipRendition> renditions,
+    String picked,
+  ) async {
+    final pickedHeight = renditions
+        .firstWhere((r) => r.label == picked, orElse: () => renditions.first)
+        .height;
+    if (pickedHeight <= _meteredMaxHeight) return picked;
+    if (await _isMetered() != true) return picked;
+    final fitting = renditions.where((r) => r.height <= _meteredMaxHeight);
+    if (fitting.isEmpty) return picked;
+    return fitting.reduce((best, r) => r.height > best.height ? r : best).label;
   }
 
   @action

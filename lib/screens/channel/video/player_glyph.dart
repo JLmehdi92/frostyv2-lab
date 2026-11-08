@@ -26,6 +26,7 @@ enum PlayerGlyphKind {
   eye,
   eyeOff,
   close,
+  share,
 }
 
 class PlayerGlyph extends StatelessWidget {
@@ -385,6 +386,24 @@ class _PlayerGlyphPainter extends CustomPainter {
                 radius: const Radius.circular(2.6),
                 clockwise: false,
               ),
+            stroke,
+          );
+      case PlayerGlyphKind.share:
+        canvas
+          ..drawLine(const Offset(12, 4), const Offset(12, 15), stroke)
+          ..drawPath(
+            Path()
+              ..moveTo(7, 9)
+              ..lineTo(12, 4)
+              ..lineTo(17, 9),
+            stroke,
+          )
+          ..drawPath(
+            Path()
+              ..moveTo(5, 14)
+              ..lineTo(5, 19)
+              ..lineTo(19, 19)
+              ..lineTo(19, 14),
             stroke,
           );
       case PlayerGlyphKind.close:

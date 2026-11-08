@@ -97,6 +97,59 @@ void main() {
     });
   });
 
+  group('off Wi-Fi', () {
+    ClipPlayerStore metered({bool? answer = true}) => ClipPlayerStore(
+      slug: _slug,
+      clipService: service,
+      settingsStore: settings,
+      backend: backend,
+      isMetered: () async => answer,
+    );
+
+    test('starts at 480p or below', () {
+      fakeAsync((async) {
+        final store = metered();
+        async.flushMicrotasks();
+        expect(store.quality, '360p');
+        expect(openedPath(), '/360.mp4');
+        store.dispose();
+      });
+    });
+
+    test('a saved quality above 480p is capped too', () {
+      SharedPreferences.setMockInitialValues({'last_stream_quality': '720p60'});
+      fakeAsync((async) {
+        final store = metered();
+        async.flushMicrotasks();
+        expect(store.quality, '360p');
+        store.dispose();
+      });
+    });
+
+    test('Wi-Fi or an unknown network keeps the best rendition', () {
+      fakeAsync((async) {
+        final wifi = metered(answer: false);
+        async.flushMicrotasks();
+        expect(wifi.quality, '1080p60');
+        wifi.dispose();
+        final unknown = metered(answer: null);
+        async.flushMicrotasks();
+        expect(unknown.quality, '1080p60');
+        unknown.dispose();
+      });
+    });
+
+    test('"default to highest quality" wins over the cap', () {
+      settings.defaultToHighestQuality = true;
+      fakeAsync((async) {
+        final store = metered();
+        async.flushMicrotasks();
+        expect(store.quality, '1080p60');
+        store.dispose();
+      });
+    });
+  });
+
   test('a quality change reopens at the same position', () {
     fakeAsync((async) {
       final store = create();

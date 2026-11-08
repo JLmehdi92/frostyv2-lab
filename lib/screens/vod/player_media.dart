@@ -19,6 +19,7 @@ class PlayerMedia {
     required this.shareLabel,
     required this.shareLink,
     this.kindLabel,
+    this.canGoToTime = false,
   });
 
   /// [vod]'s, its labels in [l]'s language.
@@ -31,6 +32,7 @@ class PlayerMedia {
         shareLabel: l.vodCopyLinkAtTime,
         shareLink: (at) => vodShareLink(vod, at),
         kindLabel: vodKindLabel(vod.type, l),
+        canGoToTime: true,
       );
 
   final String title;
@@ -47,6 +49,8 @@ class PlayerMedia {
   /// What kind of video it is ("Past broadcast"), in the tablet's top row;
   /// null when unknown.
   final String? kindLabel;
+
+  final bool canGoToTime;
 }
 
 /// "Past broadcast", "Highlight" or "Upload" in [l]'s language (null when

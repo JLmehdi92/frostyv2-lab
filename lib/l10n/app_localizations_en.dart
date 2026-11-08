@@ -914,6 +914,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keeps a live stream playing when you leave the app or turn off the screen, with media controls in a notification.';
 
   @override
+  String get settingsAutoPip => 'Automatic picture-in-picture';
+
+  @override
+  String get settingsAutoPipDetail =>
+      'Keeps a playing video in a floating window when you leave the app.';
+
+  @override
   String get settingsOverlay => 'Overlay';
 
   @override
@@ -2670,6 +2677,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clipSyncedToClip => 'synced to the clip';
 
   @override
+  String get clipNoRecordedChat => 'This clip has no recorded chat.';
+
+  @override
   String playbackSubscriberOnly({required String subject}) {
     String _temp0 = intl.Intl.selectLogic(subject, {
       'clip': 'This clip is available only to subscribers.',
@@ -3300,6 +3310,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get livePlayerResetStatsDetail => 'Start a new latency measurement';
+
+  @override
+  String get livePlayerPlayback => 'Playback';
+
+  @override
+  String get livePlayerShareChannel => 'Share channel';
 
   @override
   String livePlayerSharedChatTitle({required String title}) {
@@ -7472,6 +7488,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vodCopyLinkAtTime => 'Copy link at current time';
+
+  @override
+  String get vodGoToTime => 'Go to time';
+
+  @override
+  String vodGoToTimeInvalid({required String end}) {
+    return 'Enter a time between 0:00 and $end.';
+  }
+
+  @override
+  String get vodGoToTimeGo => 'Go';
 
   @override
   String get vodKindArchive => 'Past broadcast';

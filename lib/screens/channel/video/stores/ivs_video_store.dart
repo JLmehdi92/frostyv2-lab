@@ -591,6 +591,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     // picture-in-picture on its own).
     if (_contentGate.value.allowsLeaving &&
         settingsStore.showVideo &&
+        settingsStore.autoPictureInPicture &&
         await SimplePip.isAutoPipAvailable) {
       pip.setAutoPipMode();
     } else {

@@ -35,6 +35,33 @@ void main() {
     });
   });
 
+  group('parseGoToTime', () {
+    test('reads h:mm:ss, m:ss and plain seconds', () {
+      expect(
+        parseGoToTime('1:02:03'),
+        const Duration(hours: 1, minutes: 2, seconds: 3),
+      );
+      expect(
+        parseGoToTime(' 12:34 '),
+        const Duration(minutes: 12, seconds: 34),
+      );
+      expect(parseGoToTime('95'), const Duration(seconds: 95));
+      expect(
+        parseGoToTime('1h2m3s'),
+        const Duration(hours: 1, minutes: 2, seconds: 3),
+      );
+    });
+
+    test('refuses out-of-range parts and anything else', () {
+      expect(parseGoToTime('1:60:00'), isNull);
+      expect(parseGoToTime('1:00:60'), isNull);
+      expect(parseGoToTime('12:345'), isNull);
+      expect(parseGoToTime('::'), isNull);
+      expect(parseGoToTime('abc'), isNull);
+      expect(parseGoToTime(''), isNull);
+    });
+  });
+
   group('parseTwitchTimestamp', () {
     test('accepts the Twitch forms', () {
       expect(

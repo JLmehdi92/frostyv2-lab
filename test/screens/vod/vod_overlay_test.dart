@@ -289,6 +289,68 @@ void main() {
     expect(clipboard, ['https://www.twitch.tv/videos/1000000001?t=10m0s']);
   });
 
+  group('go to time', () {
+    Future<void> openDialog(WidgetTester tester) async {
+      await tester.tap(find.byTooltip('Settings'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Go to time'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.text('Go to time'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('jumps to the typed time', (tester) async {
+      await pump(tester);
+      await openDialog(tester);
+      await tester.enterText(find.byType(TextField), '0:12:34');
+      await tester.pump();
+      await tester.tap(find.text('Go'));
+      await tester.pumpAndSettle();
+      expect(controller.calls, contains('seekTo 754'));
+      expect(find.text('Go to time'), findsNothing);
+    });
+
+    testWidgets('refuses a time past the end or unreadable', (tester) async {
+      await pump(tester);
+      await openDialog(tester);
+      await tester.enterText(find.byType(TextField), '2:00:00');
+      await tester.pump();
+      expect(
+        find.text('Enter a time between 0:00 and 1:00:00.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Go'));
+      await tester.pump();
+      expect(controller.calls.where((c) => c.startsWith('seekTo')), isEmpty);
+      await tester.enterText(find.byType(TextField), 'soon');
+      await tester.pump();
+      expect(
+        find.text('Enter a time between 0:00 and 1:00:00.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('clips have no go to time', (tester) async {
+      await pump(
+        tester,
+        media: const PlayerMedia(
+          title: 'clip',
+          ownerId: '42',
+          ownerLogin: 'streamer',
+          ownerDisplayName: 'Streamer',
+          shareLabel: 'Copy link',
+          shareLink: _clipLink,
+        ),
+      );
+      await tester.tap(find.byTooltip('Settings'));
+      await tester.pumpAndSettle();
+      expect(find.text('Go to time', skipOffstage: false), findsNothing);
+    });
+  });
+
   group('small screens', () {
     const phone = Size(360, 203);
 

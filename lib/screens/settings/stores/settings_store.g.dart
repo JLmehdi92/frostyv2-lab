@@ -81,6 +81,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..useTextureRendering = json['useTextureRendering'] as bool? ?? true
   ..keepScreenAwake = json['keepScreenAwake'] as bool? ?? true
   ..backgroundAudio = json['backgroundAudio'] as bool? ?? false
+  ..autoPictureInPicture = json['autoPictureInPicture'] as bool? ?? true
   ..playerEngine =
       $enumDecodeNullable(
         _$PlayerEngineEnumMap,
@@ -245,6 +246,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'useTextureRendering': instance.useTextureRendering,
   'keepScreenAwake': instance.keepScreenAwake,
   'backgroundAudio': instance.backgroundAudio,
+  'autoPictureInPicture': instance.autoPictureInPicture,
   'playerEngine': _$PlayerEngineEnumMap[instance.playerEngine]!,
   'liveCatchUpMode': _$LiveCatchUpModeEnumMap[instance.liveCatchUpMode]!,
   'bufferProfile': _$BufferProfileEnumMap[instance.bufferProfile]!,
@@ -909,6 +911,28 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     _$backgroundAudioAtom.reportWrite(value, super.backgroundAudio, () {
       super.backgroundAudio = value;
     });
+  }
+
+  late final _$autoPictureInPictureAtom = Atom(
+    name: '_SettingsStoreBase.autoPictureInPicture',
+    context: context,
+  );
+
+  @override
+  bool get autoPictureInPicture {
+    _$autoPictureInPictureAtom.reportRead();
+    return super.autoPictureInPicture;
+  }
+
+  @override
+  set autoPictureInPicture(bool value) {
+    _$autoPictureInPictureAtom.reportWrite(
+      value,
+      super.autoPictureInPicture,
+      () {
+        super.autoPictureInPicture = value;
+      },
+    );
   }
 
   late final _$playerEngineAtom = Atom(
@@ -2374,6 +2398,7 @@ defaultToHighestQuality: ${defaultToHighestQuality},
 useTextureRendering: ${useTextureRendering},
 keepScreenAwake: ${keepScreenAwake},
 backgroundAudio: ${backgroundAudio},
+autoPictureInPicture: ${autoPictureInPicture},
 playerEngine: ${playerEngine},
 liveCatchUpMode: ${liveCatchUpMode},
 bufferProfile: ${bufferProfile},

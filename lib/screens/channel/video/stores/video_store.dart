@@ -266,6 +266,7 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
     // picture-in-picture on its own).
     if (_coverGate.value.allowsLeaving &&
         settingsStore.showVideo &&
+        settingsStore.autoPictureInPicture &&
         await SimplePip.isAutoPipAvailable) {
       pip.setAutoPipMode();
     } else {

@@ -18,6 +18,7 @@ import 'package:onset/screens/vod/player_media.dart';
 import 'package:onset/screens/vod/stores/ivs_vod_store.dart';
 import 'package:onset/screens/vod/vod_player_controller.dart';
 import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/screens/vod/widgets/go_to_time_dialog.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/screens/vod/widgets/vod_seek_bar.dart';
 import 'package:onset/theme.dart';
@@ -1054,6 +1055,18 @@ class VodSettingsSheet extends StatelessWidget {
     Navigator.pop(context);
   }
 
+  Future<void> _goToTime(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    final target = await showGoToTimeDialog(
+      context,
+      position: controller.position,
+      length: controller.duration,
+    );
+    if (target == null) return;
+    controller.seekTo(target);
+    navigator.pop();
+  }
+
   @override
   Widget build(BuildContext context) => Observer(builder: _build);
 
@@ -1149,6 +1162,12 @@ class VodSettingsSheet extends StatelessWidget {
                       await Clipboard.setData(ClipboardData(text: link));
                     },
                   ),
+                  if (media.canGoToTime)
+                    _LinkRow(
+                      glyph: VideoGlyphKind.skipForward,
+                      label: context.l10n.vodGoToTime,
+                      onTap: () => _goToTime(context),
+                    ),
                   _LinkRow(
                     glyph: VideoGlyphKind.share,
                     label: context.l10n.clipShare,

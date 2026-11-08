@@ -416,6 +416,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         startAt: startAt ?? Duration.zero,
         knownLength: Duration(seconds: vod.lengthSeconds),
         acceptContentGate: _webGateConsent(vod),
+        autoPipAllowed: () => _settings.autoPictureInPicture,
       );
     }
     final store = IvsVodStore(

@@ -182,6 +182,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultUseTextureRendering = true;
   static const defaultKeepScreenAwake = true;
   static const defaultBackgroundAudio = false;
+  static const defaultAutoPictureInPicture = true;
   static const defaultPlayerEngine = PlayerEngine.ivs;
   static const defaultLiveCatchUpMode = LiveCatchUpMode.speedUp;
 
@@ -265,6 +266,10 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var backgroundAudio = defaultBackgroundAudio;
 
+  @JsonKey(defaultValue: defaultAutoPictureInPicture)
+  @observable
+  var autoPictureInPicture = defaultAutoPictureInPicture;
+
   @JsonKey(
     defaultValue: defaultPlayerEngine,
     unknownEnumValue: PlayerEngine.ivs,
@@ -332,6 +337,7 @@ abstract class _SettingsStoreBase with Store {
     useTextureRendering = defaultUseTextureRendering;
     keepScreenAwake = defaultKeepScreenAwake;
     backgroundAudio = defaultBackgroundAudio;
+    autoPictureInPicture = defaultAutoPictureInPicture;
     playerEngine = defaultPlayerEngine;
     liveCatchUpMode = defaultLiveCatchUpMode;
     bufferProfile = defaultBufferProfile;

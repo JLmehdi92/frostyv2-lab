@@ -930,6 +930,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Poursuit la lecture d’un live quand vous quittez l’application ou éteignez l’écran, avec les commandes de lecture dans une notification.';
 
   @override
+  String get settingsAutoPip => 'Picture-in-picture automatique';
+
+  @override
+  String get settingsAutoPipDetail =>
+      'Garde une vidéo en cours de lecture dans une fenêtre flottante quand vous quittez l’application.';
+
+  @override
   String get settingsOverlay => 'Interface du lecteur';
 
   @override
@@ -2714,6 +2721,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get clipSyncedToClip => 'synchronisé avec le clip';
 
   @override
+  String get clipNoRecordedChat => 'Ce clip n’a pas de chat enregistré.';
+
+  @override
   String playbackSubscriberOnly({required String subject}) {
     String _temp0 = intl.Intl.selectLogic(subject, {
       'clip': 'Ce clip est réservé aux abonnés.',
@@ -3348,6 +3358,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get livePlayerResetStatsDetail => 'Mesurer à nouveau la latence';
+
+  @override
+  String get livePlayerPlayback => 'Lecture';
+
+  @override
+  String get livePlayerShareChannel => 'Partager la chaîne';
 
   @override
   String livePlayerSharedChatTitle({required String title}) {
@@ -7566,6 +7582,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get vodCopyLinkAtTime => 'Copier le lien à ce moment';
+
+  @override
+  String get vodGoToTime => 'Aller à un moment';
+
+  @override
+  String vodGoToTimeInvalid({required String end}) {
+    return 'Saisissez un moment entre 0:00 et $end.';
+  }
+
+  @override
+  String get vodGoToTimeGo => 'Y aller';
 
   @override
   String get vodKindArchive => 'Ancienne diffusion';

@@ -1199,6 +1199,14 @@
   "@settingsBackgroundAudioDetail": {
     "description": "Settings › Video › Playback: what « Background audio » does."
   },
+  "settingsAutoPip": "Automatic picture-in-picture",
+  "@settingsAutoPip": {
+    "description": "Settings › Video › Playback: switch that lets a playing video move to the floating window when you leave the app (Android)."
+  },
+  "settingsAutoPipDetail": "Keeps a playing video in a floating window when you leave the app.",
+  "@settingsAutoPipDetail": {
+    "description": "Settings › Video › Playback: what « Automatic picture-in-picture » does."
+  },
   "settingsOverlay": "Overlay",
   "@settingsOverlay": {
     "description": "Settings › Video: the group about the controls drawn over the video."
@@ -3406,6 +3414,10 @@
   "@clipSyncedToClip": {
     "description": "A clip's chat replay: the pill saying the messages follow the clip's time. Lower case."
   },
+  "clipNoRecordedChat": "This clip has no recorded chat.",
+  "@clipNoRecordedChat": {
+    "description": "A clip's screen, under its details: shown when the clip's video and its chat are gone or never existed."
+  },
   "playbackSubscriberOnly": "{subject, select, clip{This clip is available only to subscribers.} other{This video is available only to subscribers.}}",
   "@playbackSubscriberOnly": {
     "description": "Error message. Over a video's or a clip's player: only the channel's subscribers may watch it. subject is clip or video.",
@@ -4241,6 +4253,14 @@
   "livePlayerResetStatsDetail": "Start a new latency measurement",
   "@livePlayerResetStatsDetail": {
     "description": "Under « Reset stats », one line in the player's settings sheet (French keeps it short)."
+  },
+  "livePlayerPlayback": "Playback",
+  "@livePlayerPlayback": {
+    "description": "The live player's settings sheet: the heading over the picture-in-picture and background audio switches."
+  },
+  "livePlayerShareChannel": "Share channel",
+  "@livePlayerShareChannel": {
+    "description": "The live player: the button and the settings sheet entry that share the channel's link."
   },
   "livePlayerSharedChatTitle": "Shared chat · {title}",
   "@livePlayerSharedChatTitle": {
@@ -9524,6 +9544,24 @@
   "vodCopyLinkAtTime": "Copy link at current time",
   "@vodCopyLinkAtTime": {
     "description": "Copies the video's link at the playback position: the player settings sheet's tile and a tablet's action pill."
+  },
+  "vodGoToTime": "Go to time",
+  "@vodGoToTime": {
+    "description": "A video's settings sheet: the entry, and the title of the dialog, that jumps to a typed time."
+  },
+  "vodGoToTimeInvalid": "Enter a time between 0:00 and {end}.",
+  "@vodGoToTimeInvalid": {
+    "description": "The « Go to time » dialog: under the field when the typed time is unreadable or past the end. {end} is the video's length, as on the seek bar.",
+    "placeholders": {
+      "end": {
+        "type": "String",
+        "example": "1:00:00"
+      }
+    }
+  },
+  "vodGoToTimeGo": "Go",
+  "@vodGoToTimeGo": {
+    "description": "The « Go to time » dialog: the button that jumps to the typed time."
   },
   "vodKindArchive": "Past broadcast",
   "@vodKindArchive": {

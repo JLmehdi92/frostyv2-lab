@@ -23,6 +23,7 @@ import 'package:onset/screens/vod/channel_videos.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/share_link.dart';
 import 'package:onset/widgets/motion/rolling_number.dart';
 import 'package:onset/widgets/motion/signal_ping.dart';
 import 'package:onset/widgets/profile_picture.dart';
@@ -221,6 +222,14 @@ class VideoOverlay extends StatelessWidget {
             },
           )
         : const SizedBox.shrink();
+
+    final shareButton = Builder(
+      builder: (buttonContext) => _PlayerButton(
+        tooltip: l.livePlayerShareChannel,
+        glyph: PlayerGlyphKind.share,
+        onPressed: () => shareLink(buttonContext, _channelUrl),
+      ),
+    );
 
     final videoSettingsButton = _PlayerButton(
       tooltip: l.livePlayerQualityAndSettings,
@@ -493,6 +502,7 @@ class VideoOverlay extends StatelessWidget {
                     ),
                   ),
                   videosButton,
+                  if (landscape) shareButton,
                   if (fullScreen && landscape) chatOverlayButton,
                   if (landscape) fillScreenButton,
                   if (!Platform.isIOS || isIPad()) videoSettingsButton,
@@ -559,6 +569,8 @@ class VideoOverlay extends StatelessWidget {
       },
     );
   }
+
+  String get _channelUrl => 'https://www.twitch.tv/${chatStore.channelName}';
 
   void _openChatters(BuildContext context, String userLogin) =>
       showOnsetSheet<void>(
@@ -680,6 +692,13 @@ class VideoOverlay extends StatelessWidget {
                         },
                       ),
                     ],
+                    if (Platform.isAndroid)
+                      ..._playbackRows(context, videoStore),
+                    SheetRow(
+                      glyph: SheetGlyphKind.share,
+                      label: context.l10n.livePlayerShareChannel,
+                      onTap: () => shareLink(context, _channelUrl),
+                    ),
                   ],
                 ),
               ),
@@ -689,6 +708,37 @@ class VideoOverlay extends StatelessWidget {
       },
     );
   }
+}
+
+List<Widget> _playbackRows(BuildContext context, PlayerController videoStore) {
+  final l = context.l10n;
+  final settings = videoStore.settingsStore;
+  return [
+    SheetSectionLabel(
+      l.livePlayerPlayback,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+    ),
+    SheetRow(
+      label: l.settingsAutoPip,
+      trailing: OnsetSwitch(
+        value: settings.autoPictureInPicture,
+        semanticsLabel: l.settingsAutoPip,
+        onChanged: (on) => settings.autoPictureInPicture = on,
+      ),
+      onTap: () =>
+          settings.autoPictureInPicture = !settings.autoPictureInPicture,
+    ),
+    if (videoStore is IvsVideoStore)
+      SheetRow(
+        label: l.settingsBackgroundAudio,
+        trailing: OnsetSwitch(
+          value: settings.backgroundAudio,
+          semanticsLabel: l.settingsBackgroundAudio,
+          onChanged: (on) => settings.backgroundAudio = on,
+        ),
+        onTap: () => settings.backgroundAudio = !settings.backgroundAudio,
+      ),
+  ];
 }
 
 /// A 44 dp control over the video: a glyph with its soft shadow.

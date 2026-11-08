@@ -56,7 +56,10 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
         if (!_focused) return;
         // Buffering counts as playing: a rebuffer must not flip auto-PiP.
         final playing = !paused;
-        final available = playing && await SimplePip.isAutoPipAvailable;
+        final available =
+            playing &&
+            settingsStore.autoPictureInPicture &&
+            await SimplePip.isAutoPipAvailable;
         if (_disposed) return;
         if (available) {
           pip.setAutoPipMode();
@@ -74,10 +77,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   static const _textureManager = MethodChannel('onset/ivs-texture-manager');
 
   /// The video's closed captions: the line on screen, its tracks.
-  late final captions = CaptionStore(
-    settings: settingsStore,
-    invoke: _invoke,
-  );
+  late final captions = CaptionStore(settings: settingsStore, invoke: _invoke);
 
   final Duration? _knownLength;
   final IvsRecoveryPolicy _recovery;

@@ -527,6 +527,17 @@ void main() {
     });
   });
 
+  group('autoPictureInPicture', () {
+    test('on by default, kept, and reset with the video settings', () {
+      expect(SettingsStore.fromJson({}).autoPictureInPicture, isTrue);
+      final store = SettingsStore.fromJson({'autoPictureInPicture': false});
+      expect(store.autoPictureInPicture, isFalse);
+      expect(store.toJson()['autoPictureInPicture'], isFalse);
+      store.resetVideoSettings();
+      expect(store.autoPictureInPicture, isTrue);
+    });
+  });
+
   group('showCaptions', () {
     test('off by default, kept, and reset with the video settings', () {
       expect(SettingsStore.fromJson({}).showCaptions, isFalse);

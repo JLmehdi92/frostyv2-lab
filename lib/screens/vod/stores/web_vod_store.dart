@@ -64,12 +64,14 @@ abstract class WebVodStoreBase
     Duration startAt = Duration.zero,
     Duration? knownLength,
     bool acceptContentGate = false,
+    bool Function()? autoPipAllowed,
     @visibleForTesting WebViewController? controller,
   }) : this.forUrl(
          webVodEmbedUrl(vodId: vodId, startAt: startAt),
          startAt: startAt,
          knownLength: knownLength,
          acceptContentGate: acceptContentGate,
+         autoPipAllowed: autoPipAllowed,
          controller: controller,
        );
 
@@ -80,8 +82,10 @@ abstract class WebVodStoreBase
     Duration startAt = Duration.zero,
     Duration? knownLength,
     bool acceptContentGate = false,
+    bool Function()? autoPipAllowed,
     @visibleForTesting WebViewController? controller,
   }) : _knownLength = knownLength,
+       _autoPipAllowed = autoPipAllowed ?? _alwaysAllowed,
        _position = startAt {
     webViewController = controller ?? _createController(url);
     _scheduleOverlayHide();
@@ -90,7 +94,8 @@ abstract class WebVodStoreBase
       _disposeAutoPip = autorun((_) async {
         // Another player on top owns auto-PiP.
         if (!_focused) return;
-        final available = !paused && await SimplePip.isAutoPipAvailable;
+        final available =
+            !paused && _autoPipAllowed() && await SimplePip.isAutoPipAvailable;
         if (_disposed) return;
         if (available) {
           pip.setAutoPipMode();
@@ -108,6 +113,10 @@ abstract class WebVodStoreBase
 
   late final WebViewController webViewController;
   final Duration? _knownLength;
+
+  final bool Function() _autoPipAllowed;
+
+  static bool _alwaysAllowed() => true;
 
   /// Android picture-in-picture controller.
   final pip = SimplePip();

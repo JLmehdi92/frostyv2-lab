@@ -43,6 +43,19 @@ Duration? parseTwitchTimestamp(String raw) {
   return Duration(hours: hours, minutes: minutes, seconds: seconds);
 }
 
+final _clock = RegExp(r'^(?:(\d{1,3}):)?(\d{1,2}):(\d{2})$');
+
+Duration? parseGoToTime(String raw) {
+  final value = raw.trim();
+  final match = _clock.firstMatch(value);
+  if (match == null) return parseTwitchTimestamp(value);
+  final hours = int.parse(match.group(1) ?? '0');
+  final minutes = int.parse(match.group(2)!);
+  final seconds = int.parse(match.group(3)!);
+  if (seconds > 59 || (match.group(1) != null && minutes > 59)) return null;
+  return Duration(hours: hours, minutes: minutes, seconds: seconds);
+}
+
 /// How long ago [date] was, the way Twitch lists videos ("3 days ago"), in
 /// [l]'s language. Starts with a capital: [timeAgoInText] for one inside a
 /// sentence.

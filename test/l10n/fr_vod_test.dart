@@ -15,6 +15,7 @@ import 'package:onset/screens/vod/stores/up_next_store.dart';
 import 'package:onset/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:onset/screens/vod/vod_comment_to_irc.dart';
 import 'package:onset/screens/vod/vod_overlay.dart';
+import 'package:onset/screens/vod/widgets/go_to_time_dialog.dart';
 import 'package:onset/screens/vod/widgets/up_next_overlay.dart';
 import 'package:onset/screens/vod/widgets/vod_chat_replay.dart';
 import 'package:onset/screens/vod/widgets/vod_details_panel.dart';
@@ -128,6 +129,39 @@ void main() {
         await tester.pumpAndSettle();
         await expectFrenchThroughout(tester, 'VOD settings, $at');
         expect(find.text(french.vodCopyLinkAtTime), findsOneWidget);
+      });
+
+      testWidgets('the go to time dialog, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: Builder(
+              builder: (context) => Center(
+                child: IconButton(
+                  key: const ValueKey('open'),
+                  onPressed: () => showGoToTimeDialog(
+                    context,
+                    position: const Duration(minutes: 3),
+                    length: const Duration(hours: 1),
+                  ),
+                  icon: const Icon(Icons.timer),
+                ),
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.tap(find.byKey(const ValueKey('open')));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), '9:99:99');
+        await tester.pump();
+        expect(find.text(french.vodGoToTime), findsOneWidget);
+        expect(
+          find.text(french.vodGoToTimeInvalid(end: '1:00:00')),
+          findsOneWidget,
+        );
+        await expectFrenchThroughout(tester, 'go to time, $at');
       });
 
       testWidgets('a tablet\'s details panel, $at', (tester) async {

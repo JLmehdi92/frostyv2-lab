@@ -189,6 +189,36 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('a clip without a chat replay says it has no recorded chat', (
+    tester,
+  ) async {
+    await pump(tester, known: orphan, slug: orphan.slug);
+    await tester.pump();
+    expect(find.text('This clip has no recorded chat.'), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('a clip with a chat replay never says it has none', (
+    tester,
+  ) async {
+    when(() => vodService.getVideo(any())).thenAnswer(
+      (_) async => Vod(
+        id: '2897283075',
+        title: 'Stream',
+        lengthSeconds: 36000,
+        createdAt: DateTime.utc(2026, 10, 10),
+        viewCount: 1,
+        ownerId: '71092938',
+        ownerLogin: 'xqc',
+        ownerDisplayName: 'xQc',
+      ),
+    );
+    await pump(tester, known: clip);
+    await tester.pump();
+    expect(find.text('This clip has no recorded chat.'), findsNothing);
+    await close(tester);
+  });
+
   testWidgets('copy link copies the clips.twitch.tv link', (tester) async {
     final clipboard = <String>[];
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -452,6 +482,12 @@ void main() {
             locale: fr,
           );
           await tester.pump(const Duration(milliseconds: 500));
+          if (size.height > size.width) {
+            expect(
+              find.text('Ce clip n’a pas de chat enregistré.'),
+              findsOneWidget,
+            );
+          }
           await expectFrenchThroughout(tester, 'clip');
           await close(tester);
         });
