@@ -5237,6 +5237,18 @@ abstract class AppLocalizations {
   /// **'Audio only'**
   String get livePlayerAudioOnly;
 
+  /// The live player's quality list: the line under a quality Twitch withholds from this viewer (greyed out, not selectable).
+  ///
+  /// In en, this message translates to:
+  /// **'Not available to you'**
+  String get livePlayerQualityUnavailable;
+
+  /// The live player's quality list: the line under a quality Twitch withholds from this viewer, with its bitrate first.
+  ///
+  /// In en, this message translates to:
+  /// **'{bitrate} · Not available to you'**
+  String livePlayerQualityUnavailableBitrate({required String bitrate});
+
   /// The live player's settings sheet: the heading over the stats entries.
   ///
   /// In en, this message translates to:

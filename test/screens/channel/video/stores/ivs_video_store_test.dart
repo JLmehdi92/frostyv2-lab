@@ -10,6 +10,7 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/playback_access_token.dart';
+import 'package:onset/models/quality_ladder.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/channel/video/buffer_fallback.dart';
 import 'package:onset/screens/channel/video/ivs_player_config.dart';
@@ -1374,6 +1375,33 @@ void main() {
       store.setContentGate(ContentGate.covering);
       store.setContentGate(ContentGate.clear);
       expect(native.playerCalls, isEmpty);
+    });
+  });
+
+  group('quality details', () {
+    test('loaded once per playlist when the quality list opens', () async {
+      const ladder = QualityLadder(bitrates: {'720p60': 3422999});
+      when(
+        () => streamService.qualityLadder(_usherUrl),
+      ).thenAnswer((_) async => ladder);
+      store = await createStore();
+      expect(store.qualityLadder.bitrates, isEmpty);
+
+      await store.updateStreamQualities();
+      await store.updateStreamQualities();
+      expect(store.qualityLadder.bitrateOf('720p60'), 3422999);
+      verify(() => streamService.qualityLadder(_usherUrl)).called(1);
+    });
+
+    test('a failure leaves the plain names and tries again later', () async {
+      when(
+        () => streamService.qualityLadder(any()),
+      ).thenAnswer((_) async => null);
+      store = await createStore();
+      await store.updateStreamQualities();
+      await store.updateStreamQualities();
+      expect(store.qualityLadder.bitrates, isEmpty);
+      verify(() => streamService.qualityLadder(_usherUrl)).called(2);
     });
   });
 

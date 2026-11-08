@@ -654,6 +654,41 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
       expect(recorder.requests, hasLength(3));
     });
   });
+
+  group('qualityLadder', () {
+    const base = 'https://usher.ttvnw.net/api/channel/hls/streamer.m3u8';
+
+    test(
+      'asks usher for the withheld renditions too and reads bitrates',
+      () async {
+        adapter.onGet(
+          '$base?sig=x&include_unavailable=true',
+          (server) => server.reply(
+            200,
+            '#EXTM3U\n'
+            '#EXT-X-MEDIA:TYPE=VIDEO,GROUP-ID="720p60",NAME="720p60"\n'
+            '#EXT-X-STREAM-INF:BANDWIDTH=3422999,RESOLUTION=1280x720\n'
+            'https://example.test/720.m3u8\n',
+          ),
+        );
+
+        final ladder = await service.qualityLadder('$base?sig=x');
+        expect(ladder?.bitrateOf('720p60'), 3422999);
+      },
+    );
+
+    test('never fetches anything but usher, and a failure is null', () async {
+      expect(
+        await service.qualityLadder('https://evil.example/hls/a.m3u8'),
+        isNull,
+      );
+      adapter.onGet(
+        '$base?sig=y&include_unavailable=true',
+        (server) => server.reply(500, 'down'),
+      );
+      expect(await service.qualityLadder('$base?sig=y'), isNull);
+    });
+  });
 }
 
 /// Minimal adapter that records every GQL request and can reject the

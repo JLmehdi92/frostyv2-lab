@@ -11,6 +11,7 @@ import 'package:onset/screens/channel/tablet_video_column.dart';
 import 'package:onset/screens/channel/video/caption_menu.dart';
 import 'package:onset/screens/channel/video/create_clip_sheet.dart';
 import 'package:onset/screens/channel/video/latency_pill.dart';
+import 'package:onset/screens/channel/video/latency_stats.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
@@ -613,11 +614,20 @@ class VideoOverlay extends StatelessWidget {
                   children: [
                     ...videoStore.availableStreamQualities.map((quality) {
                       final selected = videoStore.streamQuality == quality;
+                      final bitrate = switch (videoStore) {
+                        final IvsVideoStore ivs => ivs.qualityLadder.bitrateOf(
+                          quality,
+                        ),
+                        _ => null,
+                      };
                       return Semantics(
                         selected: selected,
                         inMutuallyExclusiveGroup: true,
                         child: SheetRow(
                           label: qualityLabel(quality, context.l10n),
+                          detail: bitrate == null
+                              ? null
+                              : formatBitrate(bitrate, context.l10n),
                           minHeight: 46,
                           trailing: AnimatedOpacity(
                             opacity: selected ? 1 : 0,
@@ -643,6 +653,19 @@ class VideoOverlay extends StatelessWidget {
                         ),
                       );
                     }),
+                    if (videoStore case final IvsVideoStore ivs)
+                      for (final quality
+                          in ivs.qualityLadder.unavailableBesides(
+                            ivs.availableStreamQualities,
+                          ))
+                        SheetRow(
+                          label: qualityLabel(quality.name, context.l10n),
+                          detail: unavailableQualityDetail(
+                            quality,
+                            context.l10n,
+                          ),
+                          minHeight: 46,
+                        ),
                     if (videoStore case final IvsVideoStore ivs) ...[
                       SheetSectionLabel(
                         context.l10n.playerVolume,

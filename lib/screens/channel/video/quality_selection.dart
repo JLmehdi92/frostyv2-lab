@@ -1,4 +1,6 @@
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/quality_ladder.dart';
+import 'package:onset/screens/channel/video/latency_stats.dart';
 
 /// Normalises a quality name so names saved by any engine compare equal
 /// (e.g. the web player's `1080p60 (source)` and IVS's `1080p60`).
@@ -17,6 +19,16 @@ String qualityLabel(String name, AppLocalizations l) => switch (name) {
   kAudioOnlyQuality => l.livePlayerAudioOnly,
   'Auto' => l.playerConfigAuto,
   _ => name,
+};
+
+String unavailableQualityDetail(
+  UnavailableQuality quality,
+  AppLocalizations l,
+) => switch (quality.bitrate) {
+  final bitrate? => l.livePlayerQualityUnavailableBitrate(
+    bitrate: formatBitrate(bitrate, l),
+  ),
+  null => l.livePlayerQualityUnavailable,
 };
 
 /// Picks the quality to apply once the stream's qualities are known.

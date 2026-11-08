@@ -854,6 +854,8 @@
   "livePlayerExitPip": "Quitter le Picture-in-picture",
   "livePlayerStreamQuality": "Qualité du live",
   "livePlayerAudioOnly": "Audio uniquement",
+  "livePlayerQualityUnavailable": "Non disponible pour vous",
+  "livePlayerQualityUnavailableBitrate": "{bitrate} · Non disponible pour vous",
   "livePlayerMeasurement": "Mesure",
   "livePlayerVideoStats": "Statistiques vidéo",
   "livePlayerVideoStatsDetail": "Latence, mémoire tampon, débit et images par-dessus la vidéo",

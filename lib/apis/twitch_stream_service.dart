@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/models/hls_variant.dart';
 import 'package:onset/models/playback_access_token.dart';
+import 'package:onset/models/quality_ladder.dart';
 import 'package:onset/services/playback_token_cache.dart';
 
 /// Fetches the raw Twitch HLS playlist for a channel so it can be played by a
@@ -176,6 +177,24 @@ class TwitchStreamService extends BaseApiClient {
   /// Why Twitch said [userLogin]'s stream would be refused, from its last
   /// token; null when it plays (or no token was fetched yet).
   PlaybackRefusal? refusalFor(String userLogin) => _refusals[userLogin];
+
+  Future<QualityLadder?> qualityLadder(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null || uri.host != Uri.parse(_usherBase).host) return null;
+    try {
+      final withUnavailable = uri.replace(
+        queryParameters: {
+          ...uri.queryParameters,
+          'include_unavailable': 'true',
+        },
+      );
+      final response = await _http.get<Object?>(withUnavailable.toString());
+      final playlist = response.data;
+      return playlist is String ? QualityLadder.parse(playlist) : null;
+    } on DioException {
+      return null;
+    }
+  }
 
   /// The reason usher gives when it refuses a playlist URL (from
   /// [getUsherUrl]), such as a region or proxy block; null when the

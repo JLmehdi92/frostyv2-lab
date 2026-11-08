@@ -13,6 +13,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/models/ivs_stats.dart';
 import 'package:onset/models/playback_access_token.dart';
+import 'package:onset/models/quality_ladder.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/channel/video/buffer_fallback.dart';
 import 'package:onset/screens/channel/video/ivs_player_config.dart';
@@ -1513,9 +1514,29 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     }
   }
 
+  final _qualityLadder = Observable(QualityLadder.empty);
+  String? _qualityLadderUrl;
+
+  QualityLadder get qualityLadder => _qualityLadder.value;
+
   @override
   Future<void> updateStreamQualities() async {
-    // Qualities arrive via the 'qualities' event; nothing to refresh on demand.
+    final url = _url;
+    if (url == null || url == _qualityLadderUrl) return;
+    _qualityLadderUrl = url;
+    QualityLadder? ladder;
+    try {
+      ladder = await _streamService.qualityLadder(url);
+    } catch (e) {
+      debugPrint('IvsVideoStore quality details: ${e.runtimeType}');
+    }
+    if (_disposed || url != _url) return;
+    if (ladder == null) {
+      _qualityLadderUrl = null;
+      return;
+    }
+    final loaded = ladder;
+    runInAction(() => _qualityLadder.value = loaded);
   }
 
   @override

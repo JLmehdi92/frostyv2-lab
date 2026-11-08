@@ -4296,6 +4296,20 @@
   "@livePlayerAudioOnly": {
     "description": "The quality that plays the sound alone (in the quality list), and the badge over the video while it plays."
   },
+  "livePlayerQualityUnavailable": "Not available to you",
+  "@livePlayerQualityUnavailable": {
+    "description": "The live player's quality list: the line under a quality Twitch withholds from this viewer (greyed out, not selectable)."
+  },
+  "livePlayerQualityUnavailableBitrate": "{bitrate} · Not available to you",
+  "@livePlayerQualityUnavailableBitrate": {
+    "description": "The live player's quality list: the line under a quality Twitch withholds from this viewer, with its bitrate first.",
+    "placeholders": {
+      "bitrate": {
+        "type": "String",
+        "example": "12.0 Mbps"
+      }
+    }
+  },
   "livePlayerMeasurement": "Measurement",
   "@livePlayerMeasurement": {
     "description": "The live player's settings sheet: the heading over the stats entries."

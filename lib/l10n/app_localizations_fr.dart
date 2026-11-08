@@ -3399,6 +3399,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get livePlayerAudioOnly => 'Audio uniquement';
 
   @override
+  String get livePlayerQualityUnavailable => 'Non disponible pour vous';
+
+  @override
+  String livePlayerQualityUnavailableBitrate({required String bitrate}) {
+    return '$bitrate · Non disponible pour vous';
+  }
+
+  @override
   String get livePlayerMeasurement => 'Mesure';
 
   @override

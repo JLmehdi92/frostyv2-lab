@@ -8,6 +8,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/ivs_stats.dart';
+import 'package:onset/models/quality_ladder.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
@@ -88,6 +89,12 @@ void main() {
     ).thenReturn(['Auto', '1080p60', '720p60', 'audio_only']);
     when(() => ivs.streamQuality).thenReturn('Auto');
     when(ivs.updateStreamQualities).thenAnswer((_) async {});
+    when(() => ivs.qualityLadder).thenReturn(
+      const QualityLadder(
+        bitrates: {'1080p60': 8967602, '720p60': 3422999},
+        unavailable: [UnavailableQuality(name: '1440p60', bitrate: 12000000)],
+      ),
+    );
     when(() => ivs.fillScreen).thenReturn(false);
     when(() => ivs.muted).thenReturn(false);
     when(() => ivs.volume).thenReturn(0.8);
@@ -178,6 +185,19 @@ void main() {
           findsOneWidget,
         );
         expect(find.text(french.livePlayerAudioOnly), findsOneWidget);
+        expect(
+          find.text('9,0\u00a0Mbit/s', skipOffstage: false),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            french.livePlayerQualityUnavailableBitrate(
+              bitrate: '12,0\u00a0Mbit/s',
+            ),
+            skipOffstage: false,
+          ),
+          findsOneWidget,
+        );
         expect(
           find.text(french.liveCaptionsTrack(number: 2), skipOffstage: false),
           findsOneWidget,
