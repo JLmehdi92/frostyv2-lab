@@ -29,6 +29,7 @@ class ProfileTrailerCard extends StatelessWidget {
     return Semantics(
       button: true,
       label: l.profileTrailerOpen(title: trailer.title),
+      onTap: onOpen,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(
