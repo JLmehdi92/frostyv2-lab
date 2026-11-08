@@ -3,11 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:mobx/mobx.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/watch_streak.dart';
+import 'package:onset/screens/channel/chat/widgets/points_intro.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
@@ -82,6 +86,8 @@ class _Panel extends StatefulWidget {
 }
 
 class _PanelState extends State<_Panel> {
+  SettingsStore? get _settings => maybeSettings(context);
+
   /// The outcome being bet on inside a tablet panel
   /// (the bet replaces the list in the same panel).
   PredictionOutcome? _betOn;
@@ -237,6 +243,18 @@ class _PanelState extends State<_Panel> {
               shrinkWrap: !panel,
               padding: const EdgeInsets.only(bottom: 20),
               children: [
+                if (_settings case final settings?
+                    when !settings.pointsIntroSeen)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: PointsIntroCard(
+                      onDismiss: () => setState(
+                        () =>
+                            runInAction(() => settings.pointsIntroSeen = true),
+                      ),
+                      onLearnMore: () => showPointsEarnSheet(context),
+                    ),
+                  ),
                 if (widget.watchStreak case final streak?)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -292,6 +310,13 @@ class _PanelState extends State<_Panel> {
                   ),
                 ],
 
+                SheetRow(
+                  key: const ValueKey('points-how-to-earn'),
+                  glyph: SheetGlyphKind.coin,
+                  label: context.l10n.pointsHowToEarn,
+                  end: SheetRowEnd.chevron,
+                  onTap: () => showPointsEarnSheet(context),
+                ),
                 if (points.rewards.isEmpty && prediction == null)
                   Padding(
                     padding: const EdgeInsets.all(16),
