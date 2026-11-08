@@ -17,6 +17,10 @@ import 'package:onset/models/stream.dart';
 import 'package:onset/screens/home/continue_watching/continue_watching.dart';
 import 'package:onset/screens/home/continue_watching/stores/continue_watching_store.dart';
 import 'package:onset/screens/home/followed_videos/followed_videos_screen.dart';
+import 'package:onset/screens/home/followed_videos/new_followed_videos.dart';
+import 'package:onset/screens/home/followed_videos/stores/followed_videos_store.dart';
+import 'package:onset/screens/home/home.dart';
+import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/home/stream_list/expandable_section_header.dart';
 import 'package:onset/screens/home/stream_list/followed_categories_section.dart';
 import 'package:onset/screens/home/stream_list/large_stream_card.dart';
@@ -257,6 +261,13 @@ class _StreamsListState extends State<StreamsList>
               icon: Icons.visibility_off_outlined,
               action: l.streamListShowHidden,
               onAction: _listStore.showLabeledStreams,
+            )
+          : widget.listType == ListType.followed
+          ? FeedStatusView(
+              message: streamListEmptyText(l, widget.listType),
+              action: l.followedBrowseChannels,
+              onAction: () => Home.openPlace(ShellPlace.browse),
+              signalOff: true,
             )
           : FeedStatusView.empty(
               message: streamListEmptyText(l, widget.listType),
@@ -1089,8 +1100,39 @@ class HiddenStreamsBanner extends StatelessWidget {
 
 /// Opens the newest videos of the followed channels (a 60 dp
 /// card, 420 wide on a tablet).
-class FollowedVideosTile extends StatelessWidget {
+class FollowedVideosTile extends StatefulWidget {
   const FollowedVideosTile({super.key});
+
+  @override
+  State<FollowedVideosTile> createState() => _FollowedVideosTileState();
+}
+
+class _FollowedVideosTileState extends State<FollowedVideosTile> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshBadge());
+  }
+
+  void _refreshBadge() {
+    if (!mounted) return;
+    try {
+      final id = context.read<AuthStore>().user.details?.id;
+      if (id == null) return;
+      unawaited(
+        NewFollowedVideos.refresh(
+          FollowedVideosStore(
+            twitchApi: context.read<TwitchApi>(),
+            vodService: context.read<TwitchVodService>(),
+            userId: id,
+          ),
+          context.read<SettingsStore>(),
+        ),
+      );
+    } on ProviderNotFoundException {
+      return;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1145,6 +1187,12 @@ class FollowedVideosTile extends StatelessWidget {
                         color: colors.text,
                       ),
                     ),
+                  ),
+                  ValueListenableBuilder<int>(
+                    valueListenable: NewFollowedVideos.count,
+                    builder: (context, count, _) => count == 0
+                        ? const SizedBox.shrink()
+                        : NewVideosBadge(count: count),
                   ),
                   Icon(
                     Icons.chevron_right_rounded,
@@ -1422,3 +1470,38 @@ String streamListEmptyText(AppLocalizations l, ListType type) => switch (type) {
   ListType.top => l.streamListEmptyTop,
   ListType.category || ListType.tag => l.streamListEmptyLive,
 };
+
+class NewVideosBadge extends StatelessWidget {
+  const NewVideosBadge({super.key, required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.onsetColors.live;
+    return Semantics(
+      label: context.l10n.followedVideosNew(count: count),
+      excludeSemantics: true,
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 22),
+        height: 22,
+        padding: const EdgeInsets.symmetric(horizontal: 7),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: accent,
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: Text(
+          count > 99 ? '99+' : '$count',
+          style: OnsetType.tabular(
+            const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: OnsetTokens.backgroundDark,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

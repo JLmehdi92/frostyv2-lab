@@ -145,7 +145,11 @@ abstract class ListStoreBase with Store {
     // scrolling never reorders the cards above it.
     return (listType == ListType.followed &&
                 settingsStore.followedSort != FollowedSort.viewers
-            ? sortFollowedStreams(shown, settingsStore.followedSort)
+            ? sortFollowedStreams(
+                shown,
+                settingsStore.followedSort,
+                streaks: _watchStreaks,
+              )
             : shown.toList())
         .asObservable();
   }
@@ -164,7 +168,7 @@ abstract class ListStoreBase with Store {
     final sort = settingsStore.followedSort;
     return sort == FollowedSort.viewers
         ? pinned.toList()
-        : sortFollowedStreams(pinned, sort);
+        : sortFollowedStreams(pinned, sort, streaks: _watchStreaks);
   }
 
   /// The list of offline followed channels with blocked users filtered out
@@ -661,8 +665,9 @@ abstract class ListStoreBase with Store {
 /// [streams] in [sort] order (a new list; ties keep Helix's order).
 List<StreamTwitch> sortFollowedStreams(
   Iterable<StreamTwitch> streams,
-  FollowedSort sort,
-) {
+  FollowedSort sort, {
+  Map<String, int> streaks = const {},
+}) {
   final sorted = streams.toList();
   int byViewers(StreamTwitch a, StreamTwitch b) =>
       b.viewerCount.compareTo(a.viewerCount);
@@ -683,6 +688,12 @@ List<StreamTwitch> sortFollowedStreams(
       };
     },
     FollowedSort.name => byName,
+    FollowedSort.recommended => (a, b) {
+      final byStreak = (streaks[b.userId] ?? 0).compareTo(
+        streaks[a.userId] ?? 0,
+      );
+      return byStreak != 0 ? byStreak : byViewers(a, b);
+    },
     FollowedSort.category => (a, b) {
       final x = a.gameName.toLowerCase();
       final y = b.gameName.toLowerCase();

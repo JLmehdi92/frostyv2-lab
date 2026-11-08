@@ -7,6 +7,7 @@ import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/l10n/api_errors.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/screens/home/followed_videos/new_followed_videos.dart';
 import 'package:onset/screens/home/followed_videos/stores/followed_videos_store.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/vod_screen.dart';
@@ -82,6 +83,7 @@ class FollowedVideosScreen extends StatefulWidget {
     super.key,
     required this.store,
     this.now = DateTime.now,
+    this.onSeen,
   });
 
   static const routeName = '/followed-videos';
@@ -91,6 +93,8 @@ class FollowedVideosScreen extends StatefulWidget {
   /// The clock the day sections are read from (fixed in tests, so they do
   /// not depend on the hour the suite runs).
   final DateTime Function() now;
+
+  final VoidCallback? onSeen;
 
   /// Opens the list for the logged-in viewer [userId].
   static Future<void> open(BuildContext context, {required String userId}) =>
@@ -103,6 +107,7 @@ class FollowedVideosScreen extends StatefulWidget {
               vodService: context.twitchVodService,
               userId: userId,
             ),
+            onSeen: () => NewFollowedVideos.markSeen(context.settingsStore),
           ),
         ),
       );
@@ -119,7 +124,12 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen>
   @override
   void initState() {
     super.initState();
-    unawaited(widget.store.load());
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    await widget.store.load();
+    if (mounted && widget.store.error == null) widget.onSeen?.call();
   }
 
   @override
