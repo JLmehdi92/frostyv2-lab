@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_channel_profile_service.dart';
 import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
 import 'package:onset/apis/twitch_community_service.dart';
@@ -194,6 +195,21 @@ class _VideoChatState extends State<VideoChat>
     onOfferFollow: () => unawaited(_offerFollow()),
     offerFollow: widget.offerFollow,
   );
+
+  Future<void> _noticeRestriction() async {
+    final profiles = context.read<TwitchChannelProfileService?>();
+    if (profiles == null) return;
+    final bool restricted;
+    try {
+      restricted = await profiles.isRestricted(widget.userId);
+    } catch (_) {
+      return;
+    }
+    if (!mounted || !restricted) return;
+    _primaryChatStore?.addLocalNotice(
+      L10n.current.channelRestrictedBanner(name: widget.userName),
+    );
+  }
 
   void _showFollowCallout() {
     final l = L10n.current;
@@ -821,6 +837,7 @@ class _VideoChatState extends State<VideoChat>
     );
     _infoStore.start();
     _followPrompts.start();
+    unawaited(_noticeRestriction());
     _watchStreamEnd();
     final auth = context.authStore;
     _viewerReaction = reaction(

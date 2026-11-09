@@ -7,6 +7,7 @@ import 'package:onset/models/channel_profile.dart';
 import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
+import 'package:onset/screens/channel_profile/widgets/channel_restricted_banner.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_about_tab.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_live_card.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
@@ -430,6 +431,8 @@ class ProfileHeader extends StatelessWidget {
               ),
             ],
           ),
+          if (profile != null)
+            ChannelRestrictedBanner(channelId: profile.id, name: displayName),
           if (showCard)
             ProfileLiveCard(
               profile: profile,

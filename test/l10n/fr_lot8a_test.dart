@@ -9,6 +9,7 @@ import 'package:onset/screens/activity/activity_screen.dart';
 import 'package:onset/screens/activity/stores/activity_store.dart';
 import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
+import 'package:onset/screens/channel_profile/widgets/channel_restricted_banner.dart';
 import 'package:onset/screens/settings/account/gift_settings.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:onset/widgets/follow/follow_actions.dart';
@@ -146,6 +147,31 @@ void main() {
           await expectFrenchThroughout(tester, 'gift settings confirm, $at');
         });
       }
+
+      testWidgets('the restricted channel banner, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ChannelRestrictedBanner(
+                channelId: '1000',
+                name: 'StreamerWithALongName',
+                check: (_) async => true,
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(Text), findsOneWidget);
+        await expectFrenchThroughout(
+          tester,
+          'restricted banner, $at',
+          content: const ['StreamerWithALongName'],
+        );
+      });
 
       testWidgets('the follow link confirmation, $at', (tester) async {
         await pumpLocalized(

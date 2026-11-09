@@ -3451,6 +3451,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de charger vos réglages d’abonnements offerts. Reconnectez-vous ou réessayez plus tard.';
 
   @override
+  String channelRestrictedBanner({required String name}) {
+    return 'Le compte de $name est temporairement restreint pour non-respect des règles de la communauté de Twitch.';
+  }
+
+  @override
   String get channelSubscribe => 'S’abonner';
 
   @override

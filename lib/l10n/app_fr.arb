@@ -857,6 +857,7 @@
   "giftSettingsConfirmBody": "Il change sur votre compte Twitch, pas seulement dans ONSET.",
   "giftSettingsChange": "Modifier",
   "giftSettingsUnavailable": "Impossible de charger vos réglages d’abonnements offerts. Reconnectez-vous ou réessayez plus tard.",
+  "channelRestrictedBanner": "Le compte de {name} est temporairement restreint pour non-respect des règles de la communauté de Twitch.",
   "channelSubscribe": "S’abonner",
   "channelSubscribeTooltip": "S’abonner à {name} · ouvre twitch.tv",
   "channelProfile": "Profil de la chaîne",

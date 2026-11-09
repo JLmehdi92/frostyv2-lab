@@ -5255,6 +5255,12 @@ abstract class AppLocalizations {
   /// **'Couldn’t load your gifted sub settings. Log in again, or try again later.'**
   String get giftSettingsUnavailable;
 
+  /// Banner on a channel’s profile, and a chat line on its screen, when Twitch has temporarily restricted the account. name is the channel’s display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}’s account is temporarily restricted for breaking Twitch’s community guidelines.'**
+  String channelRestrictedBanner({required String name});
+
   /// Button that opens the channel's subscription page on twitch.tv (channel profile header, the video's info bar on a tablet), and the title of that page.
   ///
   /// In en, this message translates to:

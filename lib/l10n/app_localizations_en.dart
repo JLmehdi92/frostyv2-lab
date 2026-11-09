@@ -3398,6 +3398,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn’t load your gifted sub settings. Log in again, or try again later.';
 
   @override
+  String channelRestrictedBanner({required String name}) {
+    return '$name’s account is temporarily restricted for breaking Twitch’s community guidelines.';
+  }
+
+  @override
   String get channelSubscribe => 'Subscribe';
 
   @override
