@@ -7,6 +7,7 @@ import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/activity/stores/activity_store.dart';
 import 'package:onset/screens/home/stores/home_store.dart';
+import 'package:onset/screens/notifications/notification_center_screen.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/screens/whispers/whisper_kit.dart';
 import 'package:onset/screens/whispers/whispers_screen.dart';
@@ -408,6 +409,7 @@ class _NotificationsListState extends State<_NotificationsList> {
                 bottom: padding.bottom,
               ),
               children: [
+                TwitchInboxEntry(onOpenChannel: widget.onOpenChannel),
                 FeedStatusView.empty(
                   message: context.l10n.activityEmpty,
                   detail: context.l10n.activityEmptyDetail,
@@ -444,11 +446,13 @@ class _NotificationsListState extends State<_NotificationsList> {
             ),
           );
           children = [
+            TwitchInboxEntry(onOpenChannel: widget.onOpenChannel, tablet: true),
             card(context.l10n.activityMostRecent, first),
             if (second.isNotEmpty) card(context.l10n.activityEarlier, second),
           ];
         } else {
           children = [
+            TwitchInboxEntry(onOpenChannel: widget.onOpenChannel),
             _SectionTitle(
               title: context.l10n.activityMostRecent,
               tablet: false,

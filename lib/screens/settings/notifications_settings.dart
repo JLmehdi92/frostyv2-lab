@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/notifications/notification_center_screen.dart';
+import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/go_live_setting.dart';
 import 'package:onset/screens/settings/widgets/mention_notification_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/screens/settings/widgets/twitch_notification_settings.dart';
 
 /// Settings › Notifications: go-live notices for the
 /// channels followed, chat mentions. Both were under General before.
@@ -44,6 +47,17 @@ class NotificationsSettings extends StatelessWidget {
                 ),
               ],
             ),
+            if (twitchInboxOf(context) case final inbox?)
+              TwitchNotificationSettingsGroup(
+                load: () => inbox.service.notificationSettings(
+                  userId: inbox.userId,
+                  authToken: inbox.token,
+                ),
+                onEdit: () => openTwitchAccountPage(
+                  context,
+                  TwitchAccountPage.notifications,
+                ),
+              ),
           ],
         );
       },

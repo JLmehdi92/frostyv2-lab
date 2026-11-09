@@ -9694,4 +9694,104 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get whisperStopRepliesConfirm => 'Empêcher les réponses';
+
+  @override
+  String get notificationCenterTitle => 'Notifications Twitch';
+
+  @override
+  String get notificationCenterEntryDetail => 'Depuis votre compte Twitch';
+
+  @override
+  String notificationCenterUnseen({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString nouvelles',
+      one: '$countString nouvelle',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notificationCenterEmpty => 'Aucune notification de Twitch';
+
+  @override
+  String get notificationCenterFailed =>
+      'Impossible de charger vos notifications Twitch.';
+
+  @override
+  String get twitchNotificationSettingsTitle => 'Push et e-mail sur Twitch';
+
+  @override
+  String get twitchNotificationSettingsUnavailable =>
+      'Impossible de charger vos réglages de notifications Twitch. Reconnectez-vous ou réessayez plus tard.';
+
+  @override
+  String get twitchNotificationSettingsEdit => 'Les modifier sur twitch.tv';
+
+  @override
+  String twitchNotificationPlatforms({
+    required String push,
+    required String email,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(push, {
+      'on': 'Push activé',
+      'off': 'Push désactivé',
+      'other': 'Pas de push',
+    });
+    String _temp1 = intl.Intl.selectLogic(email, {
+      'on': 'e-mail activé',
+      'off': 'e-mail désactivé',
+      'other': 'pas d’e-mail',
+    });
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get notificationCategoryLive => 'Chaînes en direct';
+
+  @override
+  String get notificationCategoryWhispers => 'Chuchotements';
+
+  @override
+  String get recommendationsTitle => 'Chaînes pour vous';
+
+  @override
+  String recommendationsSimilarTitle({required String name}) {
+    return 'Chaînes similaires à $name';
+  }
+
+  @override
+  String get recommendationsSimilarTooltip => 'Chaînes similaires';
+
+  @override
+  String get recommendationsEmpty => 'Aucune suggestion pour le moment.';
+
+  @override
+  String notInterestedTitle({required String name}) {
+    return '$name ne vous intéresse pas ?';
+  }
+
+  @override
+  String get notInterestedReasonNotInterested => 'Ça ne m’intéresse pas';
+
+  @override
+  String get notInterestedReasonOffensive => 'Contenu offensant';
+
+  @override
+  String get notInterestedReasonOther => 'Autre raison';
+
+  @override
+  String notInterestedDone({required String name}) {
+    return 'Vous ne verrez plus $name dans les suggestions.';
+  }
+
+  @override
+  String notInterestedOnlyHere({required String name}) {
+    return 'La chaîne $name est masquée dans ONSET uniquement. Twitch n’a pas enregistré votre raison.';
+  }
 }

@@ -12514,6 +12514,135 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stop replies'**
   String get whisperStopRepliesConfirm;
+
+  /// Title of the screen listing the notifications Twitch keeps for the account, and of its entry in Activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch notifications'**
+  String get notificationCenterTitle;
+
+  /// Subtitle of the Activity entry that opens the Twitch notification center.
+  ///
+  /// In en, this message translates to:
+  /// **'From your Twitch account'**
+  String get notificationCenterEntryDetail;
+
+  /// Pill on the Activity entry: how many Twitch notifications are unseen.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} new} other{{count} new}}'**
+  String notificationCenterUnseen({required int count});
+
+  /// Empty state of the Twitch notification center.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications from Twitch'**
+  String get notificationCenterEmpty;
+
+  /// Error state of the Twitch notification center.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your Twitch notifications.'**
+  String get notificationCenterFailed;
+
+  /// Settings › Notifications: the group showing the account’s Twitch push and email settings per category.
+  ///
+  /// In en, this message translates to:
+  /// **'Push and email on Twitch'**
+  String get twitchNotificationSettingsTitle;
+
+  /// Shown when Twitch did not return the notification settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your Twitch notification settings. Log in again, or try again later.'**
+  String get twitchNotificationSettingsUnavailable;
+
+  /// Row opening Twitch’s notification settings page, where push and email are changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Change them on twitch.tv'**
+  String get twitchNotificationSettingsEdit;
+
+  /// A category’s push and email state. push and email are on, off or none.
+  ///
+  /// In en, this message translates to:
+  /// **'{push, select, on{Push on} off{Push off} other{No push}} · {email, select, on{email on} off{email off} other{no email}}'**
+  String twitchNotificationPlatforms({
+    required String push,
+    required String email,
+  });
+
+  /// Name of Twitch’s go-live notification category.
+  ///
+  /// In en, this message translates to:
+  /// **'Live channels'**
+  String get notificationCategoryLive;
+
+  /// Name of Twitch’s whisper notification category.
+  ///
+  /// In en, this message translates to:
+  /// **'Whispers'**
+  String get notificationCategoryWhispers;
+
+  /// Browse › Live channels: the shelf of channels Twitch recommends.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels for you'**
+  String get recommendationsTitle;
+
+  /// Sheet title on an offline channel: channels similar to it. name is the channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels like {name}'**
+  String recommendationsSimilarTitle({required String name});
+
+  /// Tooltip of the offline player’s button opening similar channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar channels'**
+  String get recommendationsSimilarTooltip;
+
+  /// The similar channels sheet when Twitch has none.
+  ///
+  /// In en, this message translates to:
+  /// **'No suggestions right now.'**
+  String get recommendationsEmpty;
+
+  /// Sheet title asking why the viewer is not interested in a suggested channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Not interested in {name}?'**
+  String notInterestedTitle({required String name});
+
+  /// Reason: not interested.
+  ///
+  /// In en, this message translates to:
+  /// **'I’m not interested'**
+  String get notInterestedReasonNotInterested;
+
+  /// Reason: the channel is offensive.
+  ///
+  /// In en, this message translates to:
+  /// **'Offensive content'**
+  String get notInterestedReasonOffensive;
+
+  /// Reason: another reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get notInterestedReasonOther;
+
+  /// Snack bar once a suggested channel is hidden and Twitch has the reason.
+  ///
+  /// In en, this message translates to:
+  /// **'You won’t see {name} in suggestions.'**
+  String notInterestedDone({required String name});
+
+  /// Snack bar when the channel is hidden locally but Twitch refused the feedback.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is hidden in ONSET only. Twitch didn’t record your reason.'**
+  String notInterestedOnlyHere({required String name});
 }
 
 class _AppLocalizationsDelegate

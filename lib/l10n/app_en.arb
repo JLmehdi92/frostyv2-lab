@@ -12191,5 +12191,130 @@
   "whisperStopRepliesConfirm": "Stop replies",
   "@whisperStopRepliesConfirm": {
     "description": "Confirmation button that removes the reply allowance."
+  },
+  "notificationCenterTitle": "Twitch notifications",
+  "@notificationCenterTitle": {
+    "description": "Title of the screen listing the notifications Twitch keeps for the account, and of its entry in Activity."
+  },
+  "notificationCenterEntryDetail": "From your Twitch account",
+  "@notificationCenterEntryDetail": {
+    "description": "Subtitle of the Activity entry that opens the Twitch notification center."
+  },
+  "notificationCenterUnseen": "{count, plural, one{{count} new} other{{count} new}}",
+  "@notificationCenterUnseen": {
+    "description": "Pill on the Activity entry: how many Twitch notifications are unseen.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "3"
+      }
+    }
+  },
+  "notificationCenterEmpty": "No notifications from Twitch",
+  "@notificationCenterEmpty": {
+    "description": "Empty state of the Twitch notification center."
+  },
+  "notificationCenterFailed": "Couldn’t load your Twitch notifications.",
+  "@notificationCenterFailed": {
+    "description": "Error state of the Twitch notification center."
+  },
+  "twitchNotificationSettingsTitle": "Push and email on Twitch",
+  "@twitchNotificationSettingsTitle": {
+    "description": "Settings › Notifications: the group showing the account’s Twitch push and email settings per category."
+  },
+  "twitchNotificationSettingsUnavailable": "Couldn’t load your Twitch notification settings. Log in again, or try again later.",
+  "@twitchNotificationSettingsUnavailable": {
+    "description": "Shown when Twitch did not return the notification settings."
+  },
+  "twitchNotificationSettingsEdit": "Change them on twitch.tv",
+  "@twitchNotificationSettingsEdit": {
+    "description": "Row opening Twitch’s notification settings page, where push and email are changed."
+  },
+  "twitchNotificationPlatforms": "{push, select, on{Push on} off{Push off} other{No push}} · {email, select, on{email on} off{email off} other{no email}}",
+  "@twitchNotificationPlatforms": {
+    "description": "A category’s push and email state. push and email are on, off or none.",
+    "placeholders": {
+      "push": {
+        "type": "String",
+        "example": "on"
+      },
+      "email": {
+        "type": "String",
+        "example": "off"
+      }
+    }
+  },
+  "notificationCategoryLive": "Live channels",
+  "@notificationCategoryLive": {
+    "description": "Name of Twitch’s go-live notification category."
+  },
+  "notificationCategoryWhispers": "Whispers",
+  "@notificationCategoryWhispers": {
+    "description": "Name of Twitch’s whisper notification category."
+  },
+  "recommendationsTitle": "Channels for you",
+  "@recommendationsTitle": {
+    "description": "Browse › Live channels: the shelf of channels Twitch recommends."
+  },
+  "recommendationsSimilarTitle": "Channels like {name}",
+  "@recommendationsSimilarTitle": {
+    "description": "Sheet title on an offline channel: channels similar to it. name is the channel.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Streamer"
+      }
+    }
+  },
+  "recommendationsSimilarTooltip": "Similar channels",
+  "@recommendationsSimilarTooltip": {
+    "description": "Tooltip of the offline player’s button opening similar channels."
+  },
+  "recommendationsEmpty": "No suggestions right now.",
+  "@recommendationsEmpty": {
+    "description": "The similar channels sheet when Twitch has none."
+  },
+  "notInterestedTitle": "Not interested in {name}?",
+  "@notInterestedTitle": {
+    "description": "Sheet title asking why the viewer is not interested in a suggested channel.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Streamer"
+      }
+    }
+  },
+  "notInterestedReasonNotInterested": "I’m not interested",
+  "@notInterestedReasonNotInterested": {
+    "description": "Reason: not interested."
+  },
+  "notInterestedReasonOffensive": "Offensive content",
+  "@notInterestedReasonOffensive": {
+    "description": "Reason: the channel is offensive."
+  },
+  "notInterestedReasonOther": "Something else",
+  "@notInterestedReasonOther": {
+    "description": "Reason: another reason."
+  },
+  "notInterestedDone": "You won’t see {name} in suggestions.",
+  "@notInterestedDone": {
+    "description": "Snack bar once a suggested channel is hidden and Twitch has the reason.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Streamer"
+      }
+    }
+  },
+  "notInterestedOnlyHere": "{name} is hidden in ONSET only. Twitch didn’t record your reason.",
+  "@notInterestedOnlyHere": {
+    "description": "Snack bar when the channel is hidden locally but Twitch refused the feedback.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Streamer"
+      }
+    }
   }
 }
