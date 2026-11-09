@@ -45,7 +45,14 @@ void main() {
       expect(store.hasMore, isFalse);
       expect(cursors, [null, 'next']);
 
-      expect(await store.markAllRead(), ViewerActionOutcome.done);
+      final ids = store.markAllReadLocally();
+      expect(ids, ['a', 'c']);
+      expect(store.unreadCount, 0);
+      store.restoreUnread(ids);
+      expect(store.unreadCount, 2);
+      expect(marked, isEmpty);
+      store.markAllReadLocally();
+      expect(await store.sendRead(ids), ViewerActionOutcome.done);
       expect(marked, [
         ['a', 'c'],
       ]);
@@ -59,7 +66,7 @@ void main() {
       );
       await store.refresh();
       expect(store.failed, isTrue);
-      expect(await store.markAllRead(), isNull);
+      expect(store.markAllReadLocally(), isEmpty);
 
       final unread = NotificationCenterStore(
         fetch: (_) async =>
@@ -67,7 +74,11 @@ void main() {
         markRead: (_) async => ViewerActionOutcome.integrityRefused,
       );
       await unread.refresh();
-      expect(await unread.markAllRead(), ViewerActionOutcome.integrityRefused);
+      final ids = unread.markAllReadLocally();
+      expect(
+        await unread.sendRead(ids),
+        ViewerActionOutcome.integrityRefused,
+      );
       expect(unread.unreadCount, 1);
     });
   });
@@ -102,9 +113,21 @@ void main() {
 
     await tester.tap(find.byKey(NotificationCenterScreen.markAllKey));
     await tester.pumpAndSettle();
+    expect(find.text('1 notification marked as read.'), findsOneWidget);
+    expect(find.byKey(NotificationCenterScreen.markAllKey), findsNothing);
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(marked, 0);
+    expect(find.byKey(NotificationCenterScreen.markAllKey), findsOneWidget);
+
+    await tester.tap(find.byKey(NotificationCenterScreen.markAllKey));
+    await tester.pumpAndSettle();
+    ScaffoldMessenger.of(
+      tester.element(find.byType(NotificationCenterRow)),
+    ).hideCurrentSnackBar();
+    await tester.pumpAndSettle();
     expect(marked, 1);
     expect(find.byKey(NotificationCenterScreen.markAllKey), findsNothing);
-    expect(find.text('Done.'), findsOneWidget);
   });
 
   testWidgets('a failure offers to try again', (tester) async {
@@ -159,12 +182,21 @@ void main() {
         category: 'vod_comment_reply',
         platforms: {NotificationPlatform.push: false},
       ),
+      const NotificationCategorySetting(
+        category: 'followeradd',
+        platforms: {NotificationPlatform.email: true},
+      ),
+      const NotificationCategorySetting(
+        category: 'livestream_reminder',
+        platforms: {NotificationPlatform.push: true},
+      ),
     ]);
     await tester.pumpAndSettle();
 
     expect(find.text('Live channels'), findsOneWidget);
     expect(find.text('Push on · email off'), findsOneWidget);
-    expect(find.text('Vod comment reply'), findsOneWidget);
+    expect(find.text('Other notifications'), findsNWidgets(2));
+    expect(find.text('New followers'), findsOneWidget);
     expect(find.text('Push off · no email'), findsOneWidget);
     await tester.tap(find.byKey(TwitchNotificationSettingsGroup.editKey));
     expect(edits, [1]);

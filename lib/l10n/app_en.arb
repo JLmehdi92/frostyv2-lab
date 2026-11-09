@@ -12249,10 +12249,6 @@
   "@notificationCategoryLive": {
     "description": "Name of Twitch’s go-live notification category."
   },
-  "notificationCategoryWhispers": "Whispers",
-  "@notificationCategoryWhispers": {
-    "description": "Name of Twitch’s whisper notification category."
-  },
   "recommendationsTitle": "Channels for you",
   "@recommendationsTitle": {
     "description": "Browse › Live channels: the shelf of channels Twitch recommends."
@@ -12297,7 +12293,7 @@
   "@notInterestedReasonOther": {
     "description": "Reason: another reason."
   },
-  "notInterestedDone": "You won’t see {name} in suggestions.",
+  "notInterestedDone": "You won’t see {name} in suggestions. Undo restores it in ONSET only.",
   "@notInterestedDone": {
     "description": "Snack bar once a suggested channel is hidden and Twitch has the reason.",
     "placeholders": {
@@ -12314,6 +12310,87 @@
       "name": {
         "type": "String",
         "example": "Streamer"
+      }
+    }
+  },
+  "notificationCategoryDevelopers": "Developer updates",
+  "@notificationCategoryDevelopers": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryChat": "Chat mentions",
+  "@notificationCategoryChat": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryClips": "Clips",
+  "@notificationCategoryClips": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryCreator": "For creators",
+  "@notificationCategoryCreator": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryEvents": "Events",
+  "@notificationCategoryEvents": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryGifts": "Gifts and rewards",
+  "@notificationCategoryGifts": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryMarketing": "News and offers",
+  "@notificationCategoryMarketing": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryModeration": "Moderation",
+  "@notificationCategoryModeration": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryRecommendedLive": "Recommended live channels",
+  "@notificationCategoryRecommendedLive": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategorySocial": "Social activity",
+  "@notificationCategorySocial": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategorySubscriptions": "Subscriptions",
+  "@notificationCategorySubscriptions": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryFollowers": "New followers",
+  "@notificationCategoryFollowers": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryVideos": "Past broadcasts",
+  "@notificationCategoryVideos": {
+    "description": "Name of a Twitch notification category in the push and email settings."
+  },
+  "notificationCategoryOther": "Other notifications",
+  "@notificationCategoryOther": {
+    "description": "Fallback name for a Twitch notification category ONSET does not know."
+  },
+  "notInterestedSentToTwitch": "Twitch receives your reason.",
+  "@notInterestedSentToTwitch": {
+    "description": "Note under the not-interested sheet title: the chosen reason is sent to Twitch."
+  },
+  "notInterestedHiddenHere": "You won’t see {name} in suggestions in ONSET.",
+  "@notInterestedHiddenHere": {
+    "description": "Snack bar when the viewer is not logged in to Twitch on the web: the channel is hidden in ONSET only and nothing is sent.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Streamer"
+      }
+    }
+  },
+  "notificationCenterMarkedRead": "{count, plural, one{{count} notification marked as read.} other{{count} notifications marked as read.}}",
+  "@notificationCenterMarkedRead": {
+    "description": "Snack bar after Mark all as read, before it is sent to Twitch; Undo cancels it.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "3"
       }
     }
   }

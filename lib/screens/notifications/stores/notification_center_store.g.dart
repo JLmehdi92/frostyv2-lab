@@ -124,14 +124,41 @@ mixin _$NotificationCenterStore on NotificationCenterStoreBase, Store {
     return _$loadMoreAsyncAction.run(() => super.loadMore());
   }
 
-  late final _$markAllReadAsyncAction = AsyncAction(
-    'NotificationCenterStoreBase.markAllRead',
+  late final _$sendReadAsyncAction = AsyncAction(
+    'NotificationCenterStoreBase.sendRead',
     context: context,
   );
 
   @override
-  Future<ViewerActionOutcome?> markAllRead() {
-    return _$markAllReadAsyncAction.run(() => super.markAllRead());
+  Future<ViewerActionOutcome> sendRead(List<String> ids) {
+    return _$sendReadAsyncAction.run(() => super.sendRead(ids));
+  }
+
+  late final _$NotificationCenterStoreBaseActionController = ActionController(
+    name: 'NotificationCenterStoreBase',
+    context: context,
+  );
+
+  @override
+  List<String> markAllReadLocally() {
+    final _$actionInfo = _$NotificationCenterStoreBaseActionController
+        .startAction(name: 'NotificationCenterStoreBase.markAllReadLocally');
+    try {
+      return super.markAllReadLocally();
+    } finally {
+      _$NotificationCenterStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void restoreUnread(List<String> ids) {
+    final _$actionInfo = _$NotificationCenterStoreBaseActionController
+        .startAction(name: 'NotificationCenterStoreBase.restoreUnread');
+    try {
+      return super.restoreUnread(ids);
+    } finally {
+      _$NotificationCenterStoreBaseActionController.endAction(_$actionInfo);
+    }
   }
 
   @override

@@ -275,6 +275,32 @@ void main() {
       });
     });
 
+    test('only exact platform names count', () async {
+      reply({
+        'data': {
+          'user': {
+            'notificationSettings': [
+              {
+                'category': 'live',
+                'platforms': [
+                  {'platformName': 'push', 'isEnabled': true},
+                  {'platformName': 'email_digest_push', 'isEnabled': false},
+                  {'platformName': 'mobile_onsite', 'isEnabled': false},
+                ],
+              },
+            ],
+          },
+        },
+      });
+
+      final settings = await service.notificationSettings(
+        userId: '100',
+        authToken: 'tok',
+      );
+
+      expect(settings!.single.platforms, {NotificationPlatform.push: true});
+    });
+
     test('an error hides the settings', () async {
       reply({
         'errors': [

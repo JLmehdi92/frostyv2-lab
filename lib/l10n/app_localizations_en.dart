@@ -9619,9 +9619,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationCategoryLive => 'Live channels';
 
   @override
-  String get notificationCategoryWhispers => 'Whispers';
-
-  @override
   String get recommendationsTitle => 'Channels for you';
 
   @override
@@ -9651,11 +9648,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String notInterestedDone({required String name}) {
-    return 'You won’t see $name in suggestions.';
+    return 'You won’t see $name in suggestions. Undo restores it in ONSET only.';
   }
 
   @override
   String notInterestedOnlyHere({required String name}) {
     return '$name is hidden in ONSET only. Twitch didn’t record your reason.';
+  }
+
+  @override
+  String get notificationCategoryDevelopers => 'Developer updates';
+
+  @override
+  String get notificationCategoryChat => 'Chat mentions';
+
+  @override
+  String get notificationCategoryClips => 'Clips';
+
+  @override
+  String get notificationCategoryCreator => 'For creators';
+
+  @override
+  String get notificationCategoryEvents => 'Events';
+
+  @override
+  String get notificationCategoryGifts => 'Gifts and rewards';
+
+  @override
+  String get notificationCategoryMarketing => 'News and offers';
+
+  @override
+  String get notificationCategoryModeration => 'Moderation';
+
+  @override
+  String get notificationCategoryRecommendedLive => 'Recommended live channels';
+
+  @override
+  String get notificationCategorySocial => 'Social activity';
+
+  @override
+  String get notificationCategorySubscriptions => 'Subscriptions';
+
+  @override
+  String get notificationCategoryFollowers => 'New followers';
+
+  @override
+  String get notificationCategoryVideos => 'Past broadcasts';
+
+  @override
+  String get notificationCategoryOther => 'Other notifications';
+
+  @override
+  String get notInterestedSentToTwitch => 'Twitch receives your reason.';
+
+  @override
+  String notInterestedHiddenHere({required String name}) {
+    return 'You won’t see $name in suggestions in ONSET.';
+  }
+
+  @override
+  String notificationCenterMarkedRead({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString notifications marked as read.',
+      one: '$countString notification marked as read.',
+    );
+    return '$_temp0';
   }
 }

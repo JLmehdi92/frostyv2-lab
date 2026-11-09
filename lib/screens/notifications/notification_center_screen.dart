@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_social_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/onsite_notification.dart';
 import 'package:onset/screens/notifications/stores/notification_center_store.dart';
@@ -28,9 +29,7 @@ TwitchInbox? twitchInboxOf(BuildContext context) {
   final service = context.read<TwitchSocialService?>();
   final auth = context.read<AuthStore?>();
   final token = auth?.twitchWebToken;
-  final userId = auth != null && auth.isLoggedIn
-      ? auth.user.details?.id
-      : null;
+  final userId = auth != null && auth.isLoggedIn ? auth.user.details?.id : null;
   if (service == null || token == null || token.isEmpty || userId == null) {
     return null;
   }
@@ -73,10 +72,8 @@ class NotificationCenterScreen extends StatefulWidget {
     context,
     MaterialPageRoute(
       settings: const RouteSettings(name: 'NotificationCenter'),
-      builder: (_) => NotificationCenterScreen(
-        store: store,
-        onOpenChannel: onOpenChannel,
-      ),
+      builder: (_) =>
+          NotificationCenterScreen(store: store, onOpenChannel: onOpenChannel),
     ),
   );
 
@@ -111,13 +108,27 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   Future<void> _markAll() async {
     final messenger = ScaffoldMessenger.maybeOf(context);
     final l = context.l10n;
-    final outcome = await widget.store.markAllRead();
-    if (outcome == null || !mounted) return;
-    messenger
-      ?..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(l.viewerActionResult(status: outcome.name))),
-      );
+    final store = widget.store;
+    final ids = store.markAllReadLocally();
+    if (ids.isEmpty || messenger == null) return;
+    messenger.hideCurrentSnackBar();
+    final reason = await messenger
+        .showSnackBar(
+          SnackBar(
+            content: Text(l.notificationCenterMarkedRead(count: ids.length)),
+            action: SnackBarAction(label: l.commonUndo, onPressed: () {}),
+          ),
+        )
+        .closed;
+    if (reason == SnackBarClosedReason.action) {
+      store.restoreUnread(ids);
+      return;
+    }
+    final outcome = await store.sendRead(ids);
+    if (outcome == ViewerActionOutcome.done) return;
+    messenger.showSnackBar(
+      SnackBar(content: Text(l.viewerActionResult(status: outcome.name))),
+    );
   }
 
   void _open(OnsiteNotification notification) {
@@ -156,7 +167,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     onPressed: widget.store.marking
                         ? null
                         : () => unawaited(_markAll()),
-                    icon: const Icon(Icons.done_all_rounded),
+                    icon: StateGlyph(
+                      StateGlyphKind.checkAll,
+                      color: colors.text,
+                      size: 22,
+                    ),
                   ),
           ),
         ],
@@ -275,20 +290,16 @@ class NotificationCenterRow extends StatelessWidget {
                     child: SizedBox.square(
                       dimension: avatarSize,
                       child: avatar == null
-                          ? ColoredBox(
-                              color: colors.raised,
-                              child: Center(
-                                child: StateGlyph(
-                                  StateGlyphKind.bell,
-                                  color: colors.secondary,
-                                ),
-                              ),
-                            )
+                          ? _AvatarFallback(colors: colors)
                           : OnsetCachedNetworkImage(
                               imageUrl: avatar,
                               width: avatarSize,
                               height: avatarSize,
                               fit: BoxFit.cover,
+                              placeholder: (context, _) =>
+                                  _AvatarFallback(colors: colors),
+                              errorWidget: (context, _, _) =>
+                                  _AvatarFallback(colors: colors),
                             ),
                     ),
                   ),
@@ -429,10 +440,7 @@ class _TwitchInboxEntryState extends State<TwitchInboxEntry> {
               child: Row(
                 spacing: 12,
                 children: [
-                  StateGlyph(
-                    StateGlyphKind.bell,
-                    color: colors.text,
-                  ),
+                  StateGlyph(StateGlyphKind.bell, color: colors.text),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,4 +497,18 @@ class _TwitchInboxEntryState extends State<TwitchInboxEntry> {
       ),
     );
   }
+}
+
+class _AvatarFallback extends StatelessWidget {
+  const _AvatarFallback({required this.colors});
+
+  final WhisperColors colors;
+
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+    color: colors.raised,
+    child: Center(
+      child: StateGlyph(StateGlyphKind.bell, color: colors.secondary),
+    ),
+  );
 }

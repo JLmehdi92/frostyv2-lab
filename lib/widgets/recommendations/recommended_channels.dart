@@ -80,6 +80,7 @@ Future<void> openRecommendedChannel(
 Future<NotInterestedReason?> pickNotInterestedReason(
   BuildContext context, {
   required String name,
+  required bool sendsToTwitch,
 }) {
   final l = context.l10n;
   return showOnsetSheet<NotInterestedReason>(
@@ -99,6 +100,16 @@ Future<NotInterestedReason?> pickNotInterestedReason(
             ),
           ),
         ),
+        if (sendsToTwitch)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              l.notInterestedSentToTwitch,
+              style: SheetText.rowDetail.copyWith(
+                color: SheetColors.of(sheetContext).secondary,
+              ),
+            ),
+          ),
         for (final reason in NotInterestedReason.values)
           SheetRow(
             key: ValueKey('not-interested-${reason.name}'),
@@ -128,6 +139,7 @@ Future<void> markNotInterested(
     NotInterestedReason reason,
   )
   tellTwitch,
+  required bool signedIn,
 }) async {
   final settings = context.read<SettingsStore>();
   final messenger = ScaffoldMessenger.maybeOf(context);
@@ -135,21 +147,23 @@ Future<void> markNotInterested(
   final reason = await pickNotInterestedReason(
     context,
     name: channel.displayName,
+    sendsToTwitch: signedIn,
   );
   if (reason == null) return;
   Haptics.light();
   settings.markNotInterested(channel.userId, channel.displayName);
-  final outcome = await tellTwitch(channel, reason);
-  final recorded = outcome == ViewerActionOutcome.done;
+  final outcome = signedIn ? await tellTwitch(channel, reason) : null;
   messenger
     ?..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        content: Text(
-          recorded || outcome == ViewerActionOutcome.signedOut
-              ? l.notInterestedDone(name: channel.displayName)
-              : l.notInterestedOnlyHere(name: channel.displayName),
-        ),
+        content: Text(switch (outcome) {
+          null => l.notInterestedHiddenHere(name: channel.displayName),
+          ViewerActionOutcome.done => l.notInterestedDone(
+            name: channel.displayName,
+          ),
+          _ => l.notInterestedOnlyHere(name: channel.displayName),
+        }),
         action: SnackBarAction(
           label: l.commonUndo,
           onPressed: () => settings.clearNotInterested(channel.userId),
@@ -253,6 +267,7 @@ class _RecommendationsShelfState extends State<RecommendationsShelf> {
                             context,
                             channel,
                             tellTwitch: r.tellTwitch,
+                            signedIn: r.token != null,
                           ),
                         ),
                         null => null,
@@ -538,6 +553,7 @@ Future<void> showSimilarChannels(
           sheetContext,
           channel,
           tellTwitch: recommendations.tellTwitch,
+          signedIn: recommendations.token != null,
         ),
       ),
     ),

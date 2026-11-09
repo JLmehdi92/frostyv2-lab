@@ -81,21 +81,38 @@ abstract class NotificationCenterStoreBase with Store {
   }
 
   @action
-  Future<ViewerActionOutcome?> markAllRead() async {
-    final ids = [
-      for (final n in notifications)
-        if (!n.isRead) n.id,
-    ];
-    if (ids.isEmpty || _marking) return null;
+  List<String> markAllReadLocally() {
+    final ids = <String>[];
+    for (var i = 0; i < notifications.length; i++) {
+      if (notifications[i].isRead) continue;
+      ids.add(notifications[i].id);
+      notifications[i] = notifications[i].read();
+    }
+    _unsent.addAll(ids);
+    return ids;
+  }
+
+  @action
+  void restoreUnread(List<String> ids) {
+    _unsent.removeAll(ids);
+    for (var i = 0; i < notifications.length; i++) {
+      final n = notifications[i];
+      if (ids.contains(n.id)) notifications[i] = n.unread();
+    }
+  }
+
+  final _unsent = <String>{};
+
+  @action
+  Future<ViewerActionOutcome> sendRead(List<String> ids) async {
     _marking = true;
     final outcome = await markRead(ids);
     runInAction(() {
       _marking = false;
-      if (outcome != ViewerActionOutcome.done) return;
-      for (var i = 0; i < notifications.length; i++) {
-        if (ids.contains(notifications[i].id)) {
-          notifications[i] = notifications[i].read();
-        }
+      if (outcome == ViewerActionOutcome.done) {
+        _unsent.removeAll(ids);
+      } else {
+        restoreUnread(ids);
       }
     });
     return outcome;

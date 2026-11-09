@@ -70,8 +70,9 @@ void main() {
         await expectFrenchThroughout(tester, 'empty center, $at');
       });
 
-      testWidgets('the whisper privacy and Twitch notification settings, $at',
-          (tester) async {
+      testWidgets('the whisper privacy and Twitch notification settings, $at', (
+        tester,
+      ) async {
         await pumpLocalized(
           tester,
           Scaffold(
@@ -94,7 +95,11 @@ void main() {
                       },
                     ),
                     NotificationCategorySetting(
-                      category: 'whispers',
+                      category: 'followeradd',
+                      platforms: {NotificationPlatform.email: true},
+                    ),
+                    NotificationCategorySetting(
+                      category: 'livestream_reminder',
                       platforms: {NotificationPlatform.push: false},
                     ),
                   ],
@@ -133,6 +138,7 @@ void main() {
                         context,
                         lot8cChannels().last,
                         tellTwitch: (c, r) async => ViewerActionOutcome.done,
+                        signedIn: true,
                       ),
                       child: const Text('·'),
                     ),

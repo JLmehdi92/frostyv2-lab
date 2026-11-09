@@ -95,14 +95,21 @@ class _TwitchNotificationSettingsGroupState
   };
 }
 
-String notificationCategoryLabel(AppLocalizations l, String category) {
-  final key = category.toLowerCase();
-  if (key.contains('live') || key.contains('stream_up')) {
-    return l.notificationCategoryLive;
-  }
-  if (key.contains('whisper')) return l.notificationCategoryWhispers;
-  final words = key.replaceAll(RegExp(r'[_\-]+'), ' ').trim();
-  return words.isEmpty
-      ? category
-      : '${words[0].toUpperCase()}${words.substring(1)}';
-}
+String notificationCategoryLabel(AppLocalizations l, String category) =>
+    switch (category) {
+      '3pdevelopers' => l.notificationCategoryDevelopers,
+      'chat' => l.notificationCategoryChat,
+      'clips' => l.notificationCategoryClips,
+      'creator' => l.notificationCategoryCreator,
+      'events' => l.notificationCategoryEvents,
+      'giftsandrewards' => l.notificationCategoryGifts,
+      'live' => l.notificationCategoryLive,
+      'marketing' => l.notificationCategoryMarketing,
+      'moderator' => l.notificationCategoryModeration,
+      'recommendedlive' => l.notificationCategoryRecommendedLive,
+      'social' => l.notificationCategorySocial,
+      'subscriptions' => l.notificationCategorySubscriptions,
+      'followeradd' => l.notificationCategoryFollowers,
+      'videos' => l.notificationCategoryVideos,
+      _ => l.notificationCategoryOther,
+    };

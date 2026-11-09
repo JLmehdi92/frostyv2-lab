@@ -27,11 +27,15 @@ class OnsiteNotification {
   static final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
   static final _markup = RegExp('<[^>]*>');
 
-  OnsiteNotification read() => OnsiteNotification(
+  OnsiteNotification read() => _withRead(true);
+
+  OnsiteNotification unread() => _withRead(false);
+
+  OnsiteNotification _withRead(bool isRead) => OnsiteNotification(
     id: id,
     body: body,
     createdAt: createdAt,
-    isRead: true,
+    isRead: isRead,
     category: category,
     creatorName: creatorName,
     avatarUrl: avatarUrl,
@@ -101,7 +105,7 @@ class OnsiteNotification {
   }
 }
 
-enum NotificationPlatform { push, email, onsite }
+enum NotificationPlatform { push, email }
 
 class NotificationCategorySetting {
   const NotificationCategorySetting({
@@ -134,13 +138,9 @@ class NotificationCategorySetting {
     return NotificationCategorySetting(category: category, platforms: states);
   }
 
-  static NotificationPlatform? _platformOf(String name) {
-    final lower = name.toLowerCase();
-    if (lower.contains('push') || lower.contains('mobile')) {
-      return NotificationPlatform.push;
-    }
-    if (lower.contains('email')) return NotificationPlatform.email;
-    if (lower.contains('onsite')) return NotificationPlatform.onsite;
-    return null;
-  }
+  static NotificationPlatform? _platformOf(String name) => switch (name) {
+    'push' => NotificationPlatform.push,
+    'email' => NotificationPlatform.email,
+    _ => null,
+  };
 }

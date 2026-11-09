@@ -85,6 +85,7 @@ void main() {
               told.add(reason);
               return ViewerActionOutcome.done;
             },
+            signedIn: true,
           ),
           child: const Text('go'),
         ),
@@ -93,11 +94,17 @@ void main() {
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     expect(find.text('Not interested in beta?'), findsOneWidget);
+    expect(find.text('Twitch receives your reason.'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('not-interested-offensive')));
     await tester.pumpAndSettle();
     expect(told, [NotInterestedReason.offensive]);
     expect(settings.notInterestedChannels, {'1002': 'beta'});
-    expect(find.text('You won’t see beta in suggestions.'), findsOneWidget);
+    expect(
+      find.text(
+        'You won’t see beta in suggestions. Undo restores it in ONSET only.',
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('Undo'));
     expect(settings.notInterestedChannels, isEmpty);
@@ -114,6 +121,7 @@ void main() {
             context,
             _channels().last,
             tellTwitch: (c, reason) async => ViewerActionOutcome.failed,
+            signedIn: true,
           ),
           child: const Text('go'),
         ),
@@ -125,5 +133,39 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.notInterestedChannels.keys, ['1002']);
     expect(find.textContaining('hidden in ONSET only'), findsOneWidget);
+  });
+
+  testWidgets('signed out, nothing is sent and the sheet says nothing of Twitch', (
+    tester,
+  ) async {
+    var sent = 0;
+    await pump(
+      tester,
+      Builder(
+        builder: (context) => TextButton(
+          onPressed: () => markNotInterested(
+            context,
+            _channels().last,
+            tellTwitch: (c, reason) async {
+              sent++;
+              return ViewerActionOutcome.done;
+            },
+            signedIn: false,
+          ),
+          child: const Text('go'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+    expect(find.text('Twitch receives your reason.'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('not-interested-other')));
+    await tester.pumpAndSettle();
+    expect(sent, 0);
+    expect(settings.notInterestedChannels.keys, ['1002']);
+    expect(
+      find.text('You won’t see beta in suggestions in ONSET.'),
+      findsOneWidget,
+    );
   });
 }

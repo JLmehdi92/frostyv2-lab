@@ -12578,12 +12578,6 @@ abstract class AppLocalizations {
   /// **'Live channels'**
   String get notificationCategoryLive;
 
-  /// Name of Twitch’s whisper notification category.
-  ///
-  /// In en, this message translates to:
-  /// **'Whispers'**
-  String get notificationCategoryWhispers;
-
   /// Browse › Live channels: the shelf of channels Twitch recommends.
   ///
   /// In en, this message translates to:
@@ -12635,7 +12629,7 @@ abstract class AppLocalizations {
   /// Snack bar once a suggested channel is hidden and Twitch has the reason.
   ///
   /// In en, this message translates to:
-  /// **'You won’t see {name} in suggestions.'**
+  /// **'You won’t see {name} in suggestions. Undo restores it in ONSET only.'**
   String notInterestedDone({required String name});
 
   /// Snack bar when the channel is hidden locally but Twitch refused the feedback.
@@ -12643,6 +12637,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} is hidden in ONSET only. Twitch didn’t record your reason.'**
   String notInterestedOnlyHere({required String name});
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer updates'**
+  String get notificationCategoryDevelopers;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat mentions'**
+  String get notificationCategoryChat;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Clips'**
+  String get notificationCategoryClips;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'For creators'**
+  String get notificationCategoryCreator;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get notificationCategoryEvents;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifts and rewards'**
+  String get notificationCategoryGifts;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'News and offers'**
+  String get notificationCategoryMarketing;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderation'**
+  String get notificationCategoryModeration;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended live channels'**
+  String get notificationCategoryRecommendedLive;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Social activity'**
+  String get notificationCategorySocial;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions'**
+  String get notificationCategorySubscriptions;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'New followers'**
+  String get notificationCategoryFollowers;
+
+  /// Name of a Twitch notification category in the push and email settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Past broadcasts'**
+  String get notificationCategoryVideos;
+
+  /// Fallback name for a Twitch notification category ONSET does not know.
+  ///
+  /// In en, this message translates to:
+  /// **'Other notifications'**
+  String get notificationCategoryOther;
+
+  /// Note under the not-interested sheet title: the chosen reason is sent to Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch receives your reason.'**
+  String get notInterestedSentToTwitch;
+
+  /// Snack bar when the viewer is not logged in to Twitch on the web: the channel is hidden in ONSET only and nothing is sent.
+  ///
+  /// In en, this message translates to:
+  /// **'You won’t see {name} in suggestions in ONSET.'**
+  String notInterestedHiddenHere({required String name});
+
+  /// Snack bar after Mark all as read, before it is sent to Twitch; Undo cancels it.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} notification marked as read.} other{{count} notifications marked as read.}}'**
+  String notificationCenterMarkedRead({required int count});
 }
 
 class _AppLocalizationsDelegate
