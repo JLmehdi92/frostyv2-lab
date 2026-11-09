@@ -33,6 +33,8 @@ class _CoachMarkState extends State<CoachMark> {
   OverlayEntry? _entry;
   var _scheduled = false;
   Timer? _timer;
+  Rect? _target;
+  var _hidden = false;
 
   SettingsStore? get _settings => widget.settings ?? maybeSettings(context);
 
@@ -53,20 +55,49 @@ class _CoachMarkState extends State<CoachMark> {
   void _show() {
     if (!mounted || _entry != null) return;
     final overlay = Overlay.maybeOf(context);
-    final box = context.findRenderObject() as RenderBox?;
-    if (overlay == null || box == null || !box.hasSize) return;
-    final overlayBox = overlay.context.findRenderObject() as RenderBox?;
-    final target =
-        box.localToGlobal(Offset.zero, ancestor: overlayBox) & box.size;
-    final entry = OverlayEntry(
-      builder: (_) => _CoachBubble(
-        target: target,
-        message: widget.message,
-        onDismiss: _dismiss,
-      ),
-    );
+    if (overlay == null || _measure(overlay) == null) return;
+    _target = _measure(overlay);
+    _hidden = _controlHidden();
+    final entry = OverlayEntry(builder: (_) => _bubble());
     _entry = entry;
     overlay.insert(entry);
+    _track();
+  }
+
+  Rect? _measure(OverlayState overlay) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.attached || !box.hasSize) return null;
+    final overlayBox = overlay.context.findRenderObject() as RenderBox?;
+    return box.localToGlobal(Offset.zero, ancestor: overlayBox) & box.size;
+  }
+
+  bool _controlHidden() =>
+      context.findAncestorWidgetOfExactType<IgnorePointer>()?.ignoring ?? false;
+
+  void _track() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final entry = _entry;
+      if (!mounted || entry == null) return;
+      final overlay = Overlay.maybeOf(context);
+      final target = overlay == null ? null : _measure(overlay);
+      final hidden = target == null || _controlHidden();
+      if (target != _target || hidden != _hidden) {
+        _target = target ?? _target;
+        _hidden = hidden;
+        entry.markNeedsBuild();
+      }
+      _track();
+    });
+  }
+
+  Widget _bubble() {
+    final target = _target;
+    if (_hidden || target == null) return const SizedBox.shrink();
+    return _CoachBubble(
+      target: target,
+      message: widget.message,
+      onDismiss: _dismiss,
+    );
   }
 
   void _dismiss() {

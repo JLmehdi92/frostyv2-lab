@@ -13,6 +13,10 @@ class _FakeFloating extends FloatingPlayer {
   bool grantInSettings = false;
   bool startAccepted = true;
   var settingsOpened = 0;
+  var stops = 0;
+
+  @override
+  Future<void> stop() async => stops++;
   final started = <String>[];
   String? channelLabel;
 
@@ -45,6 +49,8 @@ class _FakeFloating extends FloatingPlayer {
   }
 }
 
+VoidCallback? resumeHook;
+
 Future<PopOutResult> _run(
   WidgetTester tester,
   _FakeFloating floating, {
@@ -74,6 +80,10 @@ Future<PopOutResult> _run(
     beforeStart: () => log.add('paused'),
     afterClose: ({required returned}) => log.add('closed $returned'),
     waitForResume: () async => log.add('waited'),
+    watchResume: (onResume) {
+      resumeHook = onResume;
+      return () => log.add('unwatched');
+    },
   );
   await tester.pump();
   await tester.pump();
@@ -96,7 +106,22 @@ void main() {
     expect(log, ['paused']);
 
     floating.closedListener!(true);
-    expect(log, ['paused', 'closed true']);
+    expect(log, ['paused', 'closed true', 'unwatched']);
+  });
+
+  testWidgets('coming back to ONSET closes the window and resumes here', (
+    tester,
+  ) async {
+    final floating = _FakeFloating(allowed: true);
+    final log = <String>[];
+    await _run(tester, floating, log: log);
+
+    resumeHook!();
+    expect(floating.stops, 1);
+    expect(log, ['paused', 'closed true', 'unwatched']);
+
+    floating.closedListener?.call(false);
+    expect(log, ['paused', 'closed true', 'unwatched']);
     expect(find.byType(AlertDialog), findsNothing);
   });
 

@@ -47,11 +47,17 @@ class FloatingPlayerService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val url = intent?.getStringExtra(EXTRA_URL)
-        if (intent?.action == ACTION_STOP || url == null) {
+        if (intent == null) {
             close(returned = false)
             return START_NOT_STICKY
         }
+        val url = intent.getStringExtra(EXTRA_URL)
+        if (intent.action == ACTION_STOP || url == null) {
+            close(returned = false)
+            return START_NOT_STICKY
+        }
+        running = true
+        closing = false
         promote(intent)
         if (!Settings.canDrawOverlays(this)) {
             close(returned = false)
@@ -212,6 +218,7 @@ class FloatingPlayerService : Service() {
     private fun close(returned: Boolean) {
         if (closing) return
         closing = true
+        running = false
         window?.let { view ->
             try {
                 windowManager?.removeView(view)
@@ -291,10 +298,18 @@ class FloatingPlayerService : Service() {
 
         var onClosed: ((Boolean) -> Unit)? = null
 
+        @Volatile
+        var running = false
+
         fun stop(context: Context) {
-            context.startService(
-                Intent(context, FloatingPlayerService::class.java).setAction(ACTION_STOP),
-            )
+            if (!running) return
+            try {
+                context.startService(
+                    Intent(context, FloatingPlayerService::class.java).setAction(ACTION_STOP),
+                )
+            } catch (t: Throwable) {
+                Log.w(FLOATING_TAG, "could not stop: ${t.message}")
+            }
         }
     }
 }

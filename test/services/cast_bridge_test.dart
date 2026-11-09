@@ -62,8 +62,13 @@ void main() {
 
   test('reads the session state', () {
     expect(
-      CastStatus.fromMap({'state': 'connected', 'device': 'Living room'}),
+      CastStatus.fromMap({
+        'state': 'connected',
+        'device': 'Living room',
+        'deviceId': 'tv',
+      }),
       isA<CastStatus>()
+          .having((s) => s.deviceId, 'id', 'tv')
           .having((s) => s.connection, 'connection', CastConnection.connected)
           .having((s) => s.deviceName, 'device', 'Living room'),
     );

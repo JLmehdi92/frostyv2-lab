@@ -550,6 +550,9 @@ class VideoOverlay extends StatelessWidget {
                       onCastStarted: () {
                         if (!ivs.paused) ivs.handlePausePlay();
                       },
+                      onCastStopped: () {
+                        if (ivs.paused) ivs.handlePausePlay();
+                      },
                     ),
                   if (!Platform.isIOS || isIPad())
                     if (Platform.isAndroid && videoStore is IvsVideoStore)

@@ -14,11 +14,13 @@ Widget _sheet(
   CastStore store, {
   CastMediaSource? media,
   VoidCallback? started,
+  VoidCallback? stopped,
 }) => Scaffold(
   body: CastSheet(
     store: store,
     media: media ?? () => _media,
     onCastStarted: started,
+    onCastStopped: stopped,
     searchTimeout: const Duration(seconds: 1),
   ),
 );
@@ -83,12 +85,35 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOne);
 
     bridge.pushStatus(
-      const CastStatus(CastConnection.connected, deviceName: 'Living room'),
+      const CastStatus(
+        CastConnection.connected,
+        deviceName: 'Living room',
+        deviceId: 'tv',
+      ),
     );
     await tester.pump();
     await tester.pump();
     expect(bridge.loaded, const [_media]);
     expect(started, 1);
+  });
+
+  testWidgets('a session that fails to start frees the list and says so', (
+    tester,
+  ) async {
+    await pumpLocalized(tester, _sheet(store), locale: en);
+    await tester.pump();
+    bridge.devices(const [_tv]);
+    await tester.pump();
+    await tester.tap(find.text('Living room'));
+    await tester.pump();
+    bridge.pushStatus(const CastStatus(CastConnection.connecting));
+    bridge.pushStatus(CastStatus.disconnected);
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('Couldn’t start casting. Try again.'), findsOne);
+    await tester.tap(find.text('Living room'));
+    expect(bridge.connected, const [_tv, _tv]);
   });
 
   testWidgets('a video not ready yet is not sent', (tester) async {
@@ -109,7 +134,12 @@ void main() {
       CastConnection.connected,
       deviceName: 'Living room',
     );
-    await pumpLocalized(tester, _sheet(store), locale: en);
+    var stopped = 0;
+    await pumpLocalized(
+      tester,
+      _sheet(store, stopped: () => stopped++),
+      locale: en,
+    );
     await tester.pump();
     await tester.pump();
 
@@ -117,11 +147,16 @@ void main() {
     await tester.tap(find.text('Stop casting'));
     await tester.pump();
     expect(bridge.disconnects, 1);
+    expect(stopped, 1);
   });
 
   testWidgets('the button lights up while connected', (tester) async {
     bridge.pushStatus(
-      const CastStatus(CastConnection.connected, deviceName: 'Living room'),
+      const CastStatus(
+        CastConnection.connected,
+        deviceName: 'Living room',
+        deviceId: 'tv',
+      ),
     );
     await pumpLocalized(
       tester,

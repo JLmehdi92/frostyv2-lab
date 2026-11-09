@@ -17,6 +17,7 @@ class CastButton extends StatelessWidget {
     super.key,
     required this.media,
     this.onCastStarted,
+    this.onCastStopped,
     this.store,
     this.color = Colors.white,
     this.size = 44,
@@ -25,6 +26,7 @@ class CastButton extends StatelessWidget {
 
   final CastMediaSource media;
   final VoidCallback? onCastStarted;
+  final VoidCallback? onCastStopped;
   final CastStore? store;
   final Color color;
   final double size;
@@ -61,6 +63,7 @@ class CastButton extends StatelessWidget {
                 store: store,
                 media: media,
                 onCastStarted: onCastStarted,
+                onCastStopped: onCastStopped,
               ),
               padding: EdgeInsets.zero,
               constraints: BoxConstraints.tightFor(width: size, height: size),
@@ -90,10 +93,15 @@ Future<void> showCastSheet(
   required CastStore store,
   required CastMediaSource media,
   VoidCallback? onCastStarted,
+  VoidCallback? onCastStopped,
 }) => showOnsetSheet<void>(
   context: context,
-  builder: (_) =>
-      CastSheet(store: store, media: media, onCastStarted: onCastStarted),
+  builder: (_) => CastSheet(
+    store: store,
+    media: media,
+    onCastStarted: onCastStarted,
+    onCastStopped: onCastStopped,
+  ),
 );
 
 class CastSheet extends StatefulWidget {
@@ -102,12 +110,14 @@ class CastSheet extends StatefulWidget {
     required this.store,
     required this.media,
     this.onCastStarted,
+    this.onCastStopped,
     this.searchTimeout = const Duration(seconds: 8),
   });
 
   final CastStore store;
   final CastMediaSource media;
   final VoidCallback? onCastStarted;
+  final VoidCallback? onCastStopped;
   final Duration searchTimeout;
 
   @override
@@ -224,12 +234,14 @@ class _CastSheetState extends State<CastSheet> {
           danger: true,
           onTap: () {
             unawaited(store.stopCasting());
+            widget.onCastStopped?.call();
             Navigator.maybePop(context);
           },
         ),
       ];
     }
     final devices = store.devices;
+    final connectingTo = store.loadFailed ? null : _connectingTo;
     if (devices.isEmpty) {
       return [
         if (!_searchedLongEnough) const SheetStatusLine(busy: true),
@@ -242,7 +254,7 @@ class _CastSheetState extends State<CastSheet> {
           key: ValueKey('cast-device-${device.id}'),
           leading: const Icon(Icons.tv_rounded, size: 22),
           label: device.name,
-          trailing: _connectingTo == device.id
+          trailing: connectingTo == device.id
               ? Semantics(
                   label: l.castConnecting,
                   child: const SizedBox.square(
@@ -251,9 +263,7 @@ class _CastSheetState extends State<CastSheet> {
                   ),
                 )
               : null,
-          onTap: _connectingTo == null
-              ? () => unawaited(_castTo(device))
-              : null,
+          onTap: connectingTo == null ? () => unawaited(_castTo(device)) : null,
         ),
     ];
   }

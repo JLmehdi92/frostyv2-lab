@@ -37,7 +37,11 @@ void main() {
     expect(bridge.loaded, isEmpty);
 
     bridge.pushStatus(
-      const CastStatus(CastConnection.connected, deviceName: 'Living room'),
+      const CastStatus(
+        CastConnection.connected,
+        deviceName: 'Living room',
+        deviceId: 'tv',
+      ),
     );
     await Future<void>.delayed(Duration.zero);
 
@@ -48,7 +52,11 @@ void main() {
 
   test('casts straight away to the device already connected', () async {
     bridge.pushStatus(
-      const CastStatus(CastConnection.connected, deviceName: 'Living room'),
+      const CastStatus(
+        CastConnection.connected,
+        deviceName: 'Living room',
+        deviceId: 'tv',
+      ),
     );
 
     expect(await store.castTo(_tv, _media), isTrue);
@@ -60,7 +68,11 @@ void main() {
   test('a refused load is reported and nothing is casting', () async {
     bridge.loadAccepted = false;
     bridge.pushStatus(
-      const CastStatus(CastConnection.connected, deviceName: 'Living room'),
+      const CastStatus(
+        CastConnection.connected,
+        deviceName: 'Living room',
+        deviceId: 'tv',
+      ),
     );
 
     expect(await store.castTo(_tv, _media), isFalse);
@@ -73,11 +85,34 @@ void main() {
     await store.castTo(_tv, _media);
     bridge.pushStatus(CastStatus.disconnected);
     bridge.pushStatus(
-      const CastStatus(CastConnection.connected, deviceName: 'Living room'),
+      const CastStatus(
+        CastConnection.connected,
+        deviceName: 'Living room',
+        deviceId: 'tv',
+      ),
     );
     await Future<void>.delayed(Duration.zero);
 
     expect(bridge.loaded, isEmpty);
+  });
+
+  test('a session that fails to start is reported', () async {
+    await store.castTo(_tv, _media);
+    bridge.pushStatus(const CastStatus(CastConnection.connecting));
+    bridge.pushStatus(CastStatus.disconnected);
+    expect(store.loadFailed, isTrue);
+  });
+
+  test('another device with the same name gets its own session', () async {
+    bridge.pushStatus(
+      const CastStatus(
+        CastConnection.connected,
+        deviceName: 'Living room',
+        deviceId: 'other',
+      ),
+    );
+    await store.castTo(_tv, _media);
+    expect(bridge.connected, const [_tv]);
   });
 
   test('stopping ends the session', () async {

@@ -50,12 +50,13 @@ class CastMedia {
 
 @immutable
 class CastStatus {
-  const CastStatus(this.connection, {this.deviceName});
+  const CastStatus(this.connection, {this.deviceName, this.deviceId});
 
   static const disconnected = CastStatus(CastConnection.disconnected);
 
   final CastConnection connection;
   final String? deviceName;
+  final String? deviceId;
 
   static CastStatus fromMap(Object? raw) {
     if (raw is! Map) return disconnected;
@@ -65,7 +66,12 @@ class CastStatus {
       _ => CastConnection.disconnected,
     };
     final device = raw['device'];
-    return CastStatus(connection, deviceName: device is String ? device : null);
+    final id = raw['deviceId'];
+    return CastStatus(
+      connection,
+      deviceName: device is String ? device : null,
+      deviceId: id is String ? id : null,
+    );
   }
 }
 

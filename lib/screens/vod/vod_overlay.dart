@@ -706,6 +706,9 @@ class _VodOverlayState extends State<VodOverlay> {
             onCastStarted: () {
               if (!_c.paused) _c.togglePlay();
             },
+            onCastStopped: () {
+              if (_c.paused) _c.togglePlay();
+            },
           ),
         _OverlayButton(
           tooltip: context.l10n.playerSettings,

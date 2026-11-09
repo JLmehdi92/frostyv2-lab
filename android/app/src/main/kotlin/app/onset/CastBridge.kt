@@ -41,6 +41,7 @@ class CastBridge(private val context: Context, messenger: BinaryMessenger) {
             ),
         )
         .build()
+    private val castExecutor by lazy { Executors.newSingleThreadExecutor() }
     private var castContext: CastContext? = null
     private var unavailable = false
     private var discovering = false
@@ -115,7 +116,7 @@ class CastBridge(private val context: Context, messenger: BinaryMessenger) {
         castContext?.let { return then(true) }
         if (unavailable) return then(false)
         try {
-            CastContext.getSharedInstance(context, Executors.newSingleThreadExecutor())
+            CastContext.getSharedInstance(context, castExecutor)
                 .addOnSuccessListener { shared ->
                     castContext = shared
                     shared.sessionManager.addSessionManagerListener(
@@ -179,7 +180,12 @@ class CastBridge(private val context: Context, messenger: BinaryMessenger) {
             connecting || session?.isConnecting == true -> "connecting"
             else -> "disconnected"
         }
-        return mapOf("state" to state, "device" to session?.castDevice?.friendlyName)
+        val routeId = router().selectedRoute.takeIf { isCastRoute(it) }?.id
+        return mapOf(
+            "state" to state,
+            "device" to session?.castDevice?.friendlyName,
+            "deviceId" to routeId,
+        )
     }
 
     private fun sendState() = send("state", stateMap())
@@ -226,5 +232,6 @@ class CastBridge(private val context: Context, messenger: BinaryMessenger) {
             CastSession::class.java,
         )
         channel.setMethodCallHandler(null)
+        castExecutor.shutdown()
     }
 }

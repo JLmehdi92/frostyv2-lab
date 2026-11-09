@@ -61,7 +61,7 @@ abstract class CastStoreBase with Store {
     _pending = media;
     _onLoaded = onLoaded;
     _loadFailed = false;
-    if (connected && _status.deviceName == device.name) {
+    if (connected && _status.deviceId == device.id) {
       return _loadPending();
     }
     final requested = await _bridge.connect(device);
@@ -99,6 +99,7 @@ abstract class CastStoreBase with Store {
       case CastConnection.connected:
         if (_pending != null) unawaited(_loadPending());
       case CastConnection.disconnected:
+        if (_pending != null) _loadFailed = true;
         _pending = null;
         _onLoaded = null;
         _casting = null;

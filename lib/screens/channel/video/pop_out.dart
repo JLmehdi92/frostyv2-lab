@@ -11,6 +11,11 @@ enum PopOutResult { floating, pictureInPicture, cancelled, notReady }
 
 typedef WaitForResume = Future<void> Function();
 
+typedef WatchResume = VoidCallback Function(VoidCallback onResume);
+
+VoidCallback watchAppResume(VoidCallback onResume) =>
+    AppLifecycleListener(onResume: onResume).dispose;
+
 Future<void> waitForAppResume({Duration timeout = const Duration(minutes: 3)}) {
   final resumed = Completer<void>();
   late final AppLifecycleListener listener;
@@ -72,6 +77,7 @@ Future<PopOutResult> popOut(
   required VoidCallback beforeStart,
   required void Function({required bool returned}) afterClose,
   WaitForResume waitForResume = waitForAppResume,
+  WatchResume watchResume = watchAppResume,
 }) async {
   final l = context.l10n;
   final messenger = ScaffoldMessenger.maybeOf(context);
@@ -102,6 +108,20 @@ Future<PopOutResult> popOut(
     pictureInPicture();
     return PopOutResult.pictureInPicture;
   }
-  floating.onClosed = (returned) => afterClose(returned: returned);
+  var closed = false;
+  late final VoidCallback unwatch;
+  void finish({required bool returned}) {
+    if (closed) return;
+    closed = true;
+    floating.onClosed = null;
+    afterClose(returned: returned);
+    unwatch();
+  }
+
+  floating.onClosed = (returned) => finish(returned: returned);
+  unwatch = watchResume(() {
+    unawaited(floating.stop());
+    finish(returned: true);
+  });
   return PopOutResult.floating;
 }
