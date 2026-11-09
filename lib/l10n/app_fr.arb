@@ -1924,5 +1924,19 @@
   "communityTopSupporters": "Meilleurs soutiens",
   "communitySeeAll": "Tout voir",
   "communityNothing": "Rien pour le moment.",
-  "communitySectionFailed": "Impossible de charger cette section."
+  "communitySectionFailed": "Impossible de charger cette section.",
+  "predictionTermsTitle": "Prédire « {outcome} » avec {points} {pointsName} ?",
+  "predictionTermsBody": "Vous recevrez un badge de chat temporaire et ne pourrez plus changer votre choix. En continuant, vous acceptez les conditions des prédictions de Twitch.",
+  "predictionSpectatorTitle": "Prédire « {outcome} » avec 0 {pointsName} ?",
+  "predictionSpectatorBody": "Vous recevrez un badge de chat temporaire, mais vous ne pourrez ni changer votre choix ni gagner de {pointsName} avec cette prédiction.",
+  "predictionRegionNotice": "{kind, select, category{Dans votre région, les spectateurs ne peuvent prédire sur ce contenu qu’à 0 {pointsName}.} other{Dans votre région, les spectateurs ne peuvent prédire qu’à 0 {pointsName}.}}",
+  "predictionTermsLink": "Conditions des prédictions",
+  "predictionTermsAccept": "Prédire",
+  "predictionTermsDecline": "Retour",
+  "predictionModeratorTitle": "Vous participez en tant que membre de la modération",
+  "predictionModeratorBody": "{creator, select, streamer{Le streamer a créé cette prédiction. Si vous participez, vous ne pourrez pas aider à choisir le résultat.} self{Vous avez créé cette prédiction. Si vous participez, vous ne pourrez pas aider à choisir le résultat.} unknown{Cette prédiction a été créée par l’équipe de la chaîne. Si vous participez, vous ne pourrez pas aider à choisir le résultat.} other{{name} a créé cette prédiction. Si vous participez, vous ne pourrez pas aider à choisir le résultat.}}",
+  "predictionModeratorAccept": "Participer quand même",
+  "predictionSpectatorDone": "Vous avez prédit « {outcome} » avec 0 {pointsName}.",
+  "predictionRefused": "{kind, select, mustAcceptTerms{Acceptez d’abord les conditions des prédictions.} regionLocked{Dans votre région, impossible de miser des points sur les prédictions.} categoryLocked{Dans votre région, impossible de miser des points sur les prédictions pour ce contenu.} manager{Un streamer ne peut pas prédire sur sa propre chaîne.} spectatorDuplicate{Vous avez déjà fait une prédiction.} spectatorIneligible{Impossible de prédire à 0 point ici.} notEnoughPoints{Vous n’avez pas assez de points.} notActive{Cette prédiction est fermée.} maxPoints{C’est plus que ce que cette prédiction autorise.} multipleOutcomes{Vous avez déjà choisi un autre résultat.} other{Twitch a refusé : {reason}}}",
+  "predictionPointsFallback": "points de chaîne"
 }

@@ -11798,6 +11798,106 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn’t load this section.'**
   String get communitySectionFailed;
+
+  /// Title of the confirmation before a first prediction. outcome is the outcome's title as the streamer wrote it; points is the stake, already formatted; pointsName is the channel's name for its points.
+  ///
+  /// In en, this message translates to:
+  /// **'Predict “{outcome}” with {points} {pointsName}?'**
+  String predictionTermsTitle({
+    required String outcome,
+    required String points,
+    required String pointsName,
+  });
+
+  /// Body of the confirmation before a first prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'You’ll get a temporary chat badge, and you won’t be able to change your pick. By continuing, you accept Twitch’s prediction terms.'**
+  String get predictionTermsBody;
+
+  /// Title of the confirmation before a 0-point prediction (viewers whose region can't spend points). outcome is the outcome's title; pointsName is the channel's name for its points.
+  ///
+  /// In en, this message translates to:
+  /// **'Predict “{outcome}” with 0 {pointsName}?'**
+  String predictionSpectatorTitle({
+    required String outcome,
+    required String pointsName,
+  });
+
+  /// Body of the confirmation before a 0-point prediction. pointsName is the channel's name for its points.
+  ///
+  /// In en, this message translates to:
+  /// **'You’ll get a temporary chat badge, and you won’t be able to change your pick or win {pointsName} from this prediction.'**
+  String predictionSpectatorBody({required String pointsName});
+
+  /// Why only a 0-point prediction is offered. kind is category (the stream's content is restricted in the viewer's region) or region; pointsName is the channel's name for its points.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, category{Viewers in your region can only predict on this content without spending {pointsName}.} other{Viewers in your region can only predict without spending {pointsName}.}}'**
+  String predictionRegionNotice({
+    required String kind,
+    required String pointsName,
+  });
+
+  /// Link to Twitch's prediction terms and conditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Prediction terms'**
+  String get predictionTermsLink;
+
+  /// Confirms a prediction in the terms dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Predict'**
+  String get predictionTermsAccept;
+
+  /// Closes the prediction terms dialog without predicting.
+  ///
+  /// In en, this message translates to:
+  /// **'Go back'**
+  String get predictionTermsDecline;
+
+  /// Title of the step shown before a moderator predicts.
+  ///
+  /// In en, this message translates to:
+  /// **'You’re taking part as a moderator'**
+  String get predictionModeratorTitle;
+
+  /// Explains what a moderator gives up by predicting. creator is streamer, self, other (name is who created it) or unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'{creator, select, streamer{The streamer created this prediction. If you take part, you won’t be able to help choose the outcome.} self{You created this prediction. If you take part, you won’t be able to help choose the outcome.} unknown{This prediction was created by the channel’s team. If you take part, you won’t be able to help choose the outcome.} other{{name} created this prediction. If you take part, you won’t be able to help choose the outcome.}}'**
+  String predictionModeratorBody({
+    required String creator,
+    required String name,
+  });
+
+  /// Confirms the moderator wants to predict.
+  ///
+  /// In en, this message translates to:
+  /// **'Take part anyway'**
+  String get predictionModeratorAccept;
+
+  /// Snackbar after a 0-point prediction. outcome is the outcome's title; pointsName is the channel's name for its points.
+  ///
+  /// In en, this message translates to:
+  /// **'You predicted “{outcome}” with 0 {pointsName}.'**
+  String predictionSpectatorDone({
+    required String outcome,
+    required String pointsName,
+  });
+
+  /// Snackbar when Twitch refuses a prediction. kind names Twitch's refusal; reason is Twitch's own code for any other refusal (never translated).
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, mustAcceptTerms{Accept the prediction terms first.} regionLocked{Viewers in your region can’t spend points on predictions.} categoryLocked{Viewers in your region can’t spend points on predictions for this content.} manager{Streamers can’t predict on their own channel.} spectatorDuplicate{You’ve already made a prediction.} spectatorIneligible{You can’t predict with 0 points here.} notEnoughPoints{You don’t have enough points.} notActive{This prediction is closed.} maxPoints{That’s more than this prediction allows.} multipleOutcomes{You’ve already picked another outcome.} other{Twitch refused: {reason}}}'**
+  String predictionRefused({required String kind, required String reason});
+
+  /// The points' name inside a prediction sentence when the channel didn't name them.
+  ///
+  /// In en, this message translates to:
+  /// **'channel points'**
+  String get predictionPointsFallback;
 }
 
 class _AppLocalizationsDelegate

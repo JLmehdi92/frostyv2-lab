@@ -6,6 +6,7 @@ import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/models/community_points.dart';
 
 import '../fixtures/community_points_payloads.dart';
+import '../fixtures/prediction_gql_payloads.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
 
@@ -351,6 +352,102 @@ void main() {
       expect(context.balance, isNull);
       expect(context.rewards, isEmpty);
       expect(context.predictions, isEmpty);
+    });
+  });
+
+  group('prediction access and terms', () {
+    test('reads the access with the viewer token', () async {
+      reply(
+        predictionAccessResponse(
+          hasAcceptedTerms: false,
+          restriction: 'CAN_MANAGE_PREDICTIONS',
+        ),
+      );
+
+      final access = await service.fetchPredictionAccess(
+        eventId: 'event-1',
+        authToken: 'tok',
+      );
+
+      expect(access!.restriction, PredictionRestriction.moderator);
+      expect(access.needsTerms, isTrue);
+      final sent = requests.single;
+      expect(sent.headers['Authorization'], 'OAuth tok');
+      expect(sent.data['operationName'], 'OnsetPredictionAccess');
+      expect(sent.data['variables'], {'eventID': 'event-1'});
+    });
+
+    test('no token reads nothing, a failure gives null', () async {
+      expect(
+        await service.fetchPredictionAccess(eventId: 'e', authToken: ''),
+        isNull,
+      );
+      expect(requests, isEmpty);
+
+      reply(null, status: 500);
+      expect(
+        await service.fetchPredictionAccess(eventId: 'e', authToken: 'tok'),
+        isNull,
+      );
+    });
+
+    test('accepting the terms sends the official mutation', () async {
+      reply(acceptPredictionTermsResponse);
+
+      final error = await service.acceptPredictionTerms(
+        temporaryBadgeEnabled: false,
+        authToken: 'tok',
+      );
+
+      expect(error, isNull);
+      final sent = requests.single.data as Map;
+      expect(sent['operationName'], 'AcceptPredictionTerms');
+      expect(
+        sent['query'],
+        contains('updateUserPredictionSettings(input: \$input)'),
+      );
+      expect(sent['variables'], {
+        'input': {'hasAcceptedTOS': true, 'isTemporaryChatBadgeEnabled': false},
+      });
+    });
+
+    test('a refused acceptance passes the code through', () async {
+      reply({
+        'data': {
+          'updateUserPredictionSettings': {
+            'error': {'code': 'FORBIDDEN'},
+          },
+        },
+      });
+
+      expect(
+        await service.acceptPredictionTerms(
+          temporaryBadgeEnabled: true,
+          authToken: 'tok',
+        ),
+        'FORBIDDEN',
+      );
+    });
+
+    test('the panel read keeps who created the prediction', () {
+      final context = TwitchPointsService.parseContext({
+        'data': {
+          'channel': {
+            'id': '42',
+            'activePredictionEvents': [
+              {
+                'id': 'p',
+                'title': 'T',
+                'status': 'ACTIVE',
+                'createdBy': {'id': '42', 'displayName': 'Streamer'},
+                'outcomes': [],
+              },
+            ],
+          },
+        },
+      });
+
+      expect(context.predictions.single.creatorId, '42');
     });
   });
 }

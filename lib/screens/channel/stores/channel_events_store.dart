@@ -645,6 +645,58 @@ abstract class ChannelEventsStoreBase with Store {
     what: predictAction,
   );
 
+  final _predictionAccess = <String, PredictionAccess>{};
+
+  Future<PredictionAccess> predictionAccess(String eventId) async {
+    final known = _predictionAccess[eventId];
+    if (known != null) return known;
+    final token = await _tokenProvider?.call();
+    if (token == null || token.isEmpty) return PredictionAccess.unknown;
+    final PredictionAccess? access;
+    try {
+      access = await _pointsService.fetchPredictionAccess(
+        eventId: eventId,
+        authToken: token,
+      );
+    } catch (e) {
+      debugPrint('Prediction access unreadable (${e.runtimeType})');
+      return PredictionAccess.unknown;
+    }
+    if (access == null) return PredictionAccess.unknown;
+    return _predictionAccess[eventId] = access;
+  }
+
+  void rememberPredictionRestriction(
+    String eventId,
+    PredictionRestriction restriction,
+  ) {
+    _predictionAccess[eventId] =
+        (_predictionAccess[eventId] ?? PredictionAccess.unknown)
+            .withRestriction(restriction);
+  }
+
+  Future<PointsActionResult> acceptPredictionTerms({
+    bool temporaryBadgeEnabled = true,
+  }) async {
+    final token = await _tokenProvider?.call();
+    if (token == null || token.isEmpty) {
+      return const PointsActionResult(
+        PointsActionStatus.notAuthenticated,
+        'no_token',
+      );
+    }
+    final result = PointsActionResult.fromError(
+      await _pointsService.acceptPredictionTerms(
+        temporaryBadgeEnabled: temporaryBadgeEnabled,
+        authToken: token,
+      ),
+    );
+    if (result.isSuccess) {
+      _predictionAccess.updateAll((_, access) => access.withTermsAccepted());
+    }
+    return result;
+  }
+
   /// Shared plumbing for the write mutations: guard, token, classify, refresh.
   ///
   /// The in-flight flag is raised before the first `await`: reading the token

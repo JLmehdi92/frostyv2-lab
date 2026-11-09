@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/community_points.dart';
 
+import '../fixtures/prediction_gql_payloads.dart';
+
 void main() {
   group('PointsActionResult', () {
     test('a busy refusal says an action is already running', () {
@@ -253,5 +255,83 @@ void main() {
     );
     expect(other.pointsImageUrlAt(4), 'https://cdn.example/points/custom.png');
     expect(CommunityPointsContext.empty.pointsImageUrlAt(2), isNull);
+  });
+
+  group('prediction access', () {
+    test('reads the terms and the restriction', () {
+      final access = PredictionAccess.fromBody(
+        predictionAccessResponse(
+          hasAcceptedTerms: false,
+          restriction: 'CATEGORY_REGION_LOCKED',
+        ),
+      );
+
+      expect(access.needsTerms, isTrue);
+      expect(access.temporaryBadgeEnabled, isFalse);
+      expect(access.restriction, PredictionRestriction.categoryLocked);
+      expect(access.isSpectator, isTrue);
+    });
+
+    test('a signed-out or failed read restricts nothing', () {
+      final access = PredictionAccess.fromBody(
+        anonymousPredictionAccessResponse,
+      );
+
+      expect(access.needsTerms, isFalse);
+      expect(access.isSpectator, isFalse);
+      expect(access.restriction, PredictionRestriction.none);
+      expect(
+        PredictionAccess.fromBody('nope').restriction,
+        PredictionRestriction.none,
+      );
+    });
+
+    test('maps every restriction Twitch names', () {
+      expect(
+        predictionRestrictionOf('CAN_MANAGE_PREDICTIONS'),
+        PredictionRestriction.moderator,
+      );
+      expect(
+        predictionRestrictionOf('REGION_LOCKED'),
+        PredictionRestriction.regionLocked,
+      );
+      expect(
+        predictionRestrictionOf('SOMETHING_NEW'),
+        PredictionRestriction.none,
+      );
+    });
+
+    test('accepting the terms and a learnt restriction stick', () {
+      const access = PredictionAccess(hasAcceptedTerms: false);
+
+      expect(access.withTermsAccepted().needsTerms, isFalse);
+      expect(
+        access.withRestriction(PredictionRestriction.regionLocked).isSpectator,
+        isTrue,
+      );
+    });
+
+    test('names each refusal, and leaves the rest as Twitch said it', () {
+      expect(predictionRefusalKind('MUST_ACCEPT_TOS'), 'mustAcceptTerms');
+      expect(predictionRefusalKind('EVENT_MANAGER'), 'manager');
+      expect(
+        predictionRefusalKind('SPECTATOR_MODE_DUPLICATE'),
+        'spectatorDuplicate',
+      );
+      expect(predictionRefusalKind('request_failed'), 'other');
+      expect(predictionRefusalKind(null), 'other');
+    });
+
+    test('a prediction keeps who created it', () {
+      final prediction = Prediction.tryParse({
+        'id': 'p',
+        'title': 'T',
+        'createdBy': {'id': '7', 'displayName': 'Mod'},
+      })!;
+
+      expect(prediction.creatorId, '7');
+      expect(prediction.creatorName, 'Mod');
+      expect(Prediction.tryParse({'id': 'p', 'title': 'T'})!.creatorId, isNull);
+    });
   });
 }

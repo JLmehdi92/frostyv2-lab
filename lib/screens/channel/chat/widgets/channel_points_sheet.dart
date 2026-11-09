@@ -16,6 +16,7 @@ import 'package:onset/screens/channel/chat/widgets/community_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/drops_card.dart';
 import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/points_intro.dart';
+import 'package:onset/screens/channel/chat/widgets/prediction_dialogs.dart';
 import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -176,21 +177,36 @@ class _PanelState extends State<_Panel> {
   /// prediction must not send the old outcome against the new event.
   String? _betPrediction;
 
+  PredictionAccess _betAccess = PredictionAccess.unknown;
+
+  String _pointsName() =>
+      widget.points.pointsName ?? context.l10n.predictionPointsFallback;
+
   Future<void> _bet(
-    BuildContext context,
     ChannelEventsStore events,
     Prediction prediction,
     PredictionOutcome outcome,
   ) async {
+    final access = await events.predictionAccess(prediction.id);
+    if (!mounted) return;
+    if (access.restriction == PredictionRestriction.moderator &&
+        !await _confirmModerator(events, prediction)) {
+      return;
+    }
+    if (!mounted) return;
+    if (access.isSpectator) {
+      await _predict(events, prediction, outcome, 0, access);
+      return;
+    }
     final balance = widget.points.balance ?? 0;
     if (SheetPresentation.isPanel(context)) {
       setState(() {
         _betOn = outcome;
         _betPrediction = prediction.id;
+        _betAccess = access;
       });
       return;
     }
-    final messenger = ScaffoldMessenger.of(context);
     final stake = await showOnsetSheet<int>(
       context: context,
       panel: true,
@@ -201,13 +217,106 @@ class _PanelState extends State<_Panel> {
         onBet: (stake) => Navigator.of(context).pop(stake),
       ),
     );
-    if (stake == null) return;
-    final result = await events.placePrediction(
+    if (stake == null || !mounted) return;
+    await _predict(events, prediction, outcome, stake, access);
+  }
+
+  Future<bool> _confirmModerator(
+    ChannelEventsStore events,
+    Prediction prediction,
+  ) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (_) => PredictionModeratorDialog(
+          creator: predictionCreatorOf(
+            prediction,
+            channelId: events.channelId,
+            viewerId: events.viewerId,
+          ),
+          creatorName: prediction.creatorName,
+        ),
+      ) ==
+      true;
+
+  Future<bool> _confirmTerms(
+    PredictionOutcome outcome,
+    int stake,
+    PredictionAccess access, {
+    bool showTerms = false,
+  }) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (_) => PredictionTermsDialog(
+          outcome: outcome.title,
+          stake: stake,
+          stakeLabel: ChannelPointsSheet.formatPoints(stake),
+          pointsName: _pointsName(),
+          restriction: access.restriction,
+          showTerms: showTerms || access.needsTerms,
+        ),
+      ) ==
+      true;
+
+  Future<bool> _acceptTerms(
+    ChannelEventsStore events,
+    ScaffoldMessengerState messenger,
+    PredictionAccess access,
+  ) async {
+    final accepted = await events.acceptPredictionTerms(
+      temporaryBadgeEnabled: access.temporaryBadgeEnabled,
+    );
+    if (!accepted.isSuccess) _report(messenger, accepted);
+    return accepted.isSuccess;
+  }
+
+  Future<bool> _predict(
+    ChannelEventsStore events,
+    Prediction prediction,
+    PredictionOutcome outcome,
+    int stake,
+    PredictionAccess access,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final pointsName = _pointsName();
+    if (stake == 0 || access.needsTerms) {
+      if (!await _confirmTerms(outcome, stake, access)) return false;
+      if (access.needsTerms && !await _acceptTerms(events, messenger, access)) {
+        return false;
+      }
+    }
+    Future<PointsActionResult> send() => events.placePrediction(
       eventId: prediction.id,
       outcomeId: outcome.id,
       points: stake,
     );
-    _report(messenger, result);
+    var result = await send();
+    final kind = predictionRefusalKind(result.rawCode);
+    if (kind == 'regionLocked' || kind == 'categoryLocked') {
+      events.rememberPredictionRestriction(
+        prediction.id,
+        predictionRestrictionOf(result.rawCode),
+      );
+    }
+    if (kind == 'mustAcceptTerms' &&
+        mounted &&
+        await _confirmTerms(outcome, stake, access, showTerms: true) &&
+        await _acceptTerms(events, messenger, access)) {
+      result = await send();
+    }
+    if (messenger.mounted) {
+      _say(
+        messenger,
+        predictionResultText(
+          messenger.context.l10n,
+          result,
+          outcome: outcome.title,
+          stake: stake,
+          pointsName: pointsName,
+        ),
+        success: result.isSuccess,
+      );
+    }
+    return result.isSuccess;
   }
 
   @override
@@ -240,22 +349,16 @@ class _PanelState extends State<_Panel> {
           _betOn = null;
           _betPrediction = null;
         }),
-        onBet: (stake) {
-          // The panel closes with the bet, as the sheet does.
+        onBet: (stake) async {
           final navigator = Navigator.of(context);
-          final messenger = ScaffoldMessenger.of(context);
-          navigator.pop();
-          unawaited(
-            events
-                .placePrediction(
-                  eventId: prediction.id,
-                  outcomeId: betOn.id,
-                  points: stake,
-                )
-                .then((result) {
-                  _report(messenger, result);
-                }),
+          final sent = await _predict(
+            events,
+            prediction,
+            betOn,
+            stake,
+            _betAccess,
           );
+          if (sent && mounted) navigator.pop();
         },
       );
     }
@@ -421,8 +524,7 @@ class _PanelState extends State<_Panel> {
                     // Only an open prediction takes bets. A locked one still
                     // shows its odds, which is why it is rendered at all.
                     onBet: prediction.isOpen && canSpend
-                        ? (outcome) =>
-                              _bet(context, events, prediction, outcome)
+                        ? (outcome) => _bet(events, prediction, outcome)
                         : null,
                   ),
                 ],
@@ -827,15 +929,25 @@ class _StreakHelpState extends State<StreakHelp> {
 /// messenger is not.
 void _report(ScaffoldMessengerState messenger, PointsActionResult result) {
   if (!messenger.mounted) return;
-  messenger
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(
-        content: Text(result.text(messenger.context.l10n)),
-        duration: Duration(seconds: result.isSuccess ? 2 : 6),
-      ),
-    );
+  _say(
+    messenger,
+    result.text(messenger.context.l10n),
+    success: result.isSuccess,
+  );
 }
+
+void _say(
+  ScaffoldMessengerState messenger,
+  String text, {
+  required bool success,
+}) => messenger
+  ..hideCurrentSnackBar()
+  ..showSnackBar(
+    SnackBar(
+      content: Text(text),
+      duration: Duration(seconds: success ? 2 : 6),
+    ),
+  );
 
 /// The bonus chest, shown only while Twitch is actually offering one.
 ///

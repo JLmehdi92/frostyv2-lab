@@ -11350,5 +11350,131 @@
   "communitySectionFailed": "Couldn’t load this section.",
   "@communitySectionFailed": {
     "description": "A Community sheet section Twitch did not answer for."
+  },
+  "predictionTermsTitle": "Predict “{outcome}” with {points} {pointsName}?",
+  "@predictionTermsTitle": {
+    "description": "Title of the confirmation before a first prediction. outcome is the outcome's title as the streamer wrote it; points is the stake, already formatted; pointsName is the channel's name for its points.",
+    "placeholders": {
+      "outcome": {
+        "type": "String",
+        "example": "Yes"
+      },
+      "points": {
+        "type": "String",
+        "example": "500"
+      },
+      "pointsName": {
+        "type": "String",
+        "example": "channel points"
+      }
+    }
+  },
+  "predictionTermsBody": "You’ll get a temporary chat badge, and you won’t be able to change your pick. By continuing, you accept Twitch’s prediction terms.",
+  "@predictionTermsBody": {
+    "description": "Body of the confirmation before a first prediction."
+  },
+  "predictionSpectatorTitle": "Predict “{outcome}” with 0 {pointsName}?",
+  "@predictionSpectatorTitle": {
+    "description": "Title of the confirmation before a 0-point prediction (viewers whose region can't spend points). outcome is the outcome's title; pointsName is the channel's name for its points.",
+    "placeholders": {
+      "outcome": {
+        "type": "String",
+        "example": "Yes"
+      },
+      "pointsName": {
+        "type": "String",
+        "example": "channel points"
+      }
+    }
+  },
+  "predictionSpectatorBody": "You’ll get a temporary chat badge, and you won’t be able to change your pick or win {pointsName} from this prediction.",
+  "@predictionSpectatorBody": {
+    "description": "Body of the confirmation before a 0-point prediction. pointsName is the channel's name for its points.",
+    "placeholders": {
+      "pointsName": {
+        "type": "String",
+        "example": "channel points"
+      }
+    }
+  },
+  "predictionRegionNotice": "{kind, select, category{Viewers in your region can only predict on this content without spending {pointsName}.} other{Viewers in your region can only predict without spending {pointsName}.}}",
+  "@predictionRegionNotice": {
+    "description": "Why only a 0-point prediction is offered. kind is category (the stream's content is restricted in the viewer's region) or region; pointsName is the channel's name for its points.",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "region"
+      },
+      "pointsName": {
+        "type": "String",
+        "example": "channel points"
+      }
+    }
+  },
+  "predictionTermsLink": "Prediction terms",
+  "@predictionTermsLink": {
+    "description": "Link to Twitch's prediction terms and conditions."
+  },
+  "predictionTermsAccept": "Predict",
+  "@predictionTermsAccept": {
+    "description": "Confirms a prediction in the terms dialog."
+  },
+  "predictionTermsDecline": "Go back",
+  "@predictionTermsDecline": {
+    "description": "Closes the prediction terms dialog without predicting."
+  },
+  "predictionModeratorTitle": "You’re taking part as a moderator",
+  "@predictionModeratorTitle": {
+    "description": "Title of the step shown before a moderator predicts."
+  },
+  "predictionModeratorBody": "{creator, select, streamer{The streamer created this prediction. If you take part, you won’t be able to help choose the outcome.} self{You created this prediction. If you take part, you won’t be able to help choose the outcome.} unknown{This prediction was created by the channel’s team. If you take part, you won’t be able to help choose the outcome.} other{{name} created this prediction. If you take part, you won’t be able to help choose the outcome.}}",
+  "@predictionModeratorBody": {
+    "description": "Explains what a moderator gives up by predicting. creator is streamer, self, other (name is who created it) or unknown.",
+    "placeholders": {
+      "creator": {
+        "type": "String",
+        "example": "streamer"
+      },
+      "name": {
+        "type": "String",
+        "example": "Mod"
+      }
+    }
+  },
+  "predictionModeratorAccept": "Take part anyway",
+  "@predictionModeratorAccept": {
+    "description": "Confirms the moderator wants to predict."
+  },
+  "predictionSpectatorDone": "You predicted “{outcome}” with 0 {pointsName}.",
+  "@predictionSpectatorDone": {
+    "description": "Snackbar after a 0-point prediction. outcome is the outcome's title; pointsName is the channel's name for its points.",
+    "placeholders": {
+      "outcome": {
+        "type": "String",
+        "example": "Yes"
+      },
+      "pointsName": {
+        "type": "String",
+        "example": "channel points"
+      }
+    }
+  },
+  "predictionRefused": "{kind, select, mustAcceptTerms{Accept the prediction terms first.} regionLocked{Viewers in your region can’t spend points on predictions.} categoryLocked{Viewers in your region can’t spend points on predictions for this content.} manager{Streamers can’t predict on their own channel.} spectatorDuplicate{You’ve already made a prediction.} spectatorIneligible{You can’t predict with 0 points here.} notEnoughPoints{You don’t have enough points.} notActive{This prediction is closed.} maxPoints{That’s more than this prediction allows.} multipleOutcomes{You’ve already picked another outcome.} other{Twitch refused: {reason}}}",
+  "@predictionRefused": {
+    "description": "Snackbar when Twitch refuses a prediction. kind names Twitch's refusal; reason is Twitch's own code for any other refusal (never translated).",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "region"
+      },
+      "reason": {
+        "type": "String",
+        "example": "FORBIDDEN"
+      }
+    }
+  },
+  "predictionPointsFallback": "channel points",
+  "@predictionPointsFallback": {
+    "description": "The points' name inside a prediction sentence when the channel didn't name them."
   }
 }

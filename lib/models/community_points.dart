@@ -179,11 +179,17 @@ class Prediction {
 
   final List<PredictionOutcome> outcomes;
 
+  final String? creatorId;
+
+  final String? creatorName;
+
   const Prediction({
     required this.id,
     required this.title,
     required this.status,
     this.outcomes = const [],
+    this.creatorId,
+    this.creatorName,
   });
 
   bool get isOpen => status == 'ACTIVE';
@@ -202,10 +208,13 @@ class Prediction {
     if (id is! String || title is! String) return null;
 
     final rawOutcomes = json['outcomes'];
+    final creator = json['createdBy'];
     return Prediction(
       id: id,
       title: title,
       status: json['status'] as String? ?? 'ACTIVE',
+      creatorId: creator is Map ? creator['id'] as String? : null,
+      creatorName: creator is Map ? creator['displayName'] as String? : null,
       outcomes: rawOutcomes is List
           ? rawOutcomes
                 .whereType<Map<String, dynamic>>()
@@ -381,3 +390,80 @@ Color? _hexColor(String? hex) {
   final value = int.tryParse(cleaned, radix: 16);
   return value == null ? null : Color(0xFF000000 | value);
 }
+
+enum PredictionRestriction { none, moderator, regionLocked, categoryLocked }
+
+PredictionRestriction predictionRestrictionOf(Object? raw) => switch (raw) {
+  'CAN_MANAGE_PREDICTIONS' => PredictionRestriction.moderator,
+  'REGION_LOCKED' => PredictionRestriction.regionLocked,
+  'CATEGORY_REGION_LOCKED' => PredictionRestriction.categoryLocked,
+  _ => PredictionRestriction.none,
+};
+
+@immutable
+class PredictionAccess {
+  final PredictionRestriction restriction;
+  final bool? hasAcceptedTerms;
+  final bool temporaryBadgeEnabled;
+
+  const PredictionAccess({
+    this.restriction = PredictionRestriction.none,
+    this.hasAcceptedTerms,
+    this.temporaryBadgeEnabled = true,
+  });
+
+  static const unknown = PredictionAccess();
+
+  bool get isSpectator =>
+      restriction == PredictionRestriction.regionLocked ||
+      restriction == PredictionRestriction.categoryLocked;
+
+  bool get needsTerms => hasAcceptedTerms == false;
+
+  PredictionAccess withTermsAccepted() => PredictionAccess(
+    restriction: restriction,
+    hasAcceptedTerms: true,
+    temporaryBadgeEnabled: temporaryBadgeEnabled,
+  );
+
+  PredictionAccess withRestriction(PredictionRestriction value) =>
+      PredictionAccess(
+        restriction: value,
+        hasAcceptedTerms: hasAcceptedTerms,
+        temporaryBadgeEnabled: temporaryBadgeEnabled,
+      );
+
+  static PredictionAccess fromBody(Object? body) {
+    final data = body is Map ? body['data'] : null;
+    if (data is! Map) return unknown;
+    final user = data['currentUser'];
+    final settings = user is Map ? user['predictionsSettings'] : null;
+    final event = data['predictionEvent'];
+    final self = event is Map ? event['self'] : null;
+    return PredictionAccess(
+      restriction: predictionRestrictionOf(
+        self is Map ? self['restriction'] : null,
+      ),
+      hasAcceptedTerms: settings is Map
+          ? settings['hasAcceptedTOS'] as bool?
+          : null,
+      temporaryBadgeEnabled: settings is Map
+          ? settings['isTemporaryChatBadgeEnabled'] as bool? ?? true
+          : true,
+    );
+  }
+}
+
+String predictionRefusalKind(String? code) => switch (code) {
+  'MUST_ACCEPT_TOS' => 'mustAcceptTerms',
+  'REGION_LOCKED' => 'regionLocked',
+  'CATEGORY_REGION_LOCKED' => 'categoryLocked',
+  'EVENT_MANAGER' => 'manager',
+  'SPECTATOR_MODE_DUPLICATE' => 'spectatorDuplicate',
+  'SPECTATOR_MODE_INELIGIBLE' => 'spectatorIneligible',
+  'NOT_ENOUGH_POINTS' => 'notEnoughPoints',
+  'EVENT_NOT_ACTIVE' => 'notActive',
+  'MAX_POINTS_PER_EVENT' => 'maxPoints',
+  'MULTIPLE_OUTCOMES' => 'multipleOutcomes',
+  _ => 'other',
+};

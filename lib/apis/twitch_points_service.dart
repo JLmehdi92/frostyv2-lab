@@ -62,6 +62,12 @@ query OnsetCommunityPoints(\$login: String!) {
       id
       title
       status
+      createdBy {
+        ... on User {
+          id
+          displayName
+        }
+      }
       outcomes {
         id
         title
@@ -182,12 +188,65 @@ query OnsetCommunityPoints(\$login: String!) {
     authToken: authToken,
   );
 
+  static const _predictionAccessQuery =
+      'query OnsetPredictionAccess(\$eventID: ID!) { currentUser { id '
+      'predictionsSettings { hasAcceptedTOS isTemporaryChatBadgeEnabled } } '
+      'predictionEvent(id: \$eventID) { id self { restriction } } }';
+
+  static const _acceptPredictionTermsDocument =
+      'mutation AcceptPredictionTerms(\$input: '
+      'UpdateUserPredictionSettingsInput!) { updateUserPredictionSettings('
+      'input: \$input) { error { code } settings { hasAcceptedTOS '
+      'isTemporaryChatBadgeEnabled } } }';
+
+  Future<PredictionAccess?> fetchPredictionAccess({
+    required String eventId,
+    required String authToken,
+  }) async {
+    if (authToken.isEmpty || eventId.isEmpty) return null;
+    try {
+      final data = await post<JsonMap>(
+        _gqlUrl,
+        headers: {
+          'Client-ID': _gqlClientId,
+          'Authorization': 'OAuth $authToken',
+        },
+        data: {
+          'operationName': 'OnsetPredictionAccess',
+          'query': _predictionAccessQuery,
+          'variables': {'eventID': eventId},
+        },
+      );
+      return PredictionAccess.fromBody(data);
+    } catch (e) {
+      if (kDebugMode) debugPrint('Prediction access unavailable: $e');
+      return null;
+    }
+  }
+
+  Future<String?> acceptPredictionTerms({
+    required bool temporaryBadgeEnabled,
+    required String authToken,
+  }) => _mutate(
+    operation: 'updateUserPredictionSettings',
+    inputType: 'UpdateUserPredictionSettingsInput!',
+    document: _acceptPredictionTermsDocument,
+    operationName: 'AcceptPredictionTerms',
+    input: {
+      'hasAcceptedTOS': true,
+      'isTemporaryChatBadgeEnabled': temporaryBadgeEnabled,
+    },
+    authToken: authToken,
+  );
+
   /// Runs a mutation and reduces the outcome to an error code or null.
   Future<String?> _mutate({
     required String operation,
     required String inputType,
     required Map<String, dynamic> input,
     required String authToken,
+    String? document,
+    String? operationName,
   }) async {
     try {
       final data = await post<JsonMap>(
@@ -197,9 +256,11 @@ query OnsetCommunityPoints(\$login: String!) {
           'Authorization': 'OAuth $authToken',
         },
         data: {
+          'operationName': ?operationName,
           'query':
+              document ??
               'mutation Onset(\$input: $inputType) { '
-              '$operation(input: \$input) { error { code } } }',
+                  '$operation(input: \$input) { error { code } } }',
           'variables': {'input': input},
         },
       );
@@ -249,7 +310,9 @@ query OnsetCommunityPoints(\$login: String!) {
     final points = self is JsonMap ? self['communityPoints'] : null;
 
     final settings = channel['communityPointsSettings'];
-    final settingsMap = settings is JsonMap ? settings : const <String, Object?>{};
+    final settingsMap = settings is JsonMap
+        ? settings
+        : const <String, Object?>{};
     final image = settingsMap['image'];
 
     final rawRewards = settingsMap['customRewards'];
@@ -260,23 +323,27 @@ query OnsetCommunityPoints(\$login: String!) {
     // over the wire, but one list on screen. Querying only the custom ones is
     // why a channel with three built-ins and one custom reward showed exactly
     // one row.
-    final rewards = <PointsReward>[
-      if (rawAutomatic is List)
-        ...rawAutomatic
-            .whereType<JsonMap>()
-            .map(PointsReward.tryParseAutomatic)
-            .nonNulls,
-      if (rawRewards is List)
-        ...rawRewards.whereType<JsonMap>().map(PointsReward.tryParse).nonNulls,
-    ]
-        // Twitch returns disabled rewards too; showing them would only offer
-        // the viewer something they cannot have.
-        .where((reward) => reward.isEnabled)
-        .toList()
-      // By cost, which is the order the official client shows: the API's own
-      // order puts the 10 000-point reward before the 80-point one, and the
-      // real panel does not.
-      ..sort((a, b) => a.cost.compareTo(b.cost));
+    final rewards =
+        <PointsReward>[
+              if (rawAutomatic is List)
+                ...rawAutomatic
+                    .whereType<JsonMap>()
+                    .map(PointsReward.tryParseAutomatic)
+                    .nonNulls,
+              if (rawRewards is List)
+                ...rawRewards
+                    .whereType<JsonMap>()
+                    .map(PointsReward.tryParse)
+                    .nonNulls,
+            ]
+            // Twitch returns disabled rewards too; showing them would only offer
+            // the viewer something they cannot have.
+            .where((reward) => reward.isEnabled)
+            .toList()
+          // By cost, which is the order the official client shows: the API's own
+          // order puts the 10 000-point reward before the 80-point one, and the
+          // real panel does not.
+          ..sort((a, b) => a.cost.compareTo(b.cost));
 
     final claim = points is JsonMap ? points['availableClaim'] : null;
 

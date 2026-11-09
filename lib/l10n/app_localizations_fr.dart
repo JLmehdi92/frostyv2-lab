@@ -8973,4 +8973,109 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get communitySectionFailed => 'Impossible de charger cette section.';
+
+  @override
+  String predictionTermsTitle({
+    required String outcome,
+    required String points,
+    required String pointsName,
+  }) {
+    return 'Prédire « $outcome » avec $points $pointsName ?';
+  }
+
+  @override
+  String get predictionTermsBody =>
+      'Vous recevrez un badge de chat temporaire et ne pourrez plus changer votre choix. En continuant, vous acceptez les conditions des prédictions de Twitch.';
+
+  @override
+  String predictionSpectatorTitle({
+    required String outcome,
+    required String pointsName,
+  }) {
+    return 'Prédire « $outcome » avec 0 $pointsName ?';
+  }
+
+  @override
+  String predictionSpectatorBody({required String pointsName}) {
+    return 'Vous recevrez un badge de chat temporaire, mais vous ne pourrez ni changer votre choix ni gagner de $pointsName avec cette prédiction.';
+  }
+
+  @override
+  String predictionRegionNotice({
+    required String kind,
+    required String pointsName,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'category':
+          'Dans votre région, les spectateurs ne peuvent prédire sur ce contenu qu’à 0 $pointsName.',
+      'other':
+          'Dans votre région, les spectateurs ne peuvent prédire qu’à 0 $pointsName.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get predictionTermsLink => 'Conditions des prédictions';
+
+  @override
+  String get predictionTermsAccept => 'Prédire';
+
+  @override
+  String get predictionTermsDecline => 'Retour';
+
+  @override
+  String get predictionModeratorTitle =>
+      'Vous participez en tant que membre de la modération';
+
+  @override
+  String predictionModeratorBody({
+    required String creator,
+    required String name,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(creator, {
+      'streamer':
+          'Le streamer a créé cette prédiction. Si vous participez, vous ne pourrez pas aider à choisir le résultat.',
+      'self':
+          'Vous avez créé cette prédiction. Si vous participez, vous ne pourrez pas aider à choisir le résultat.',
+      'unknown':
+          'Cette prédiction a été créée par l’équipe de la chaîne. Si vous participez, vous ne pourrez pas aider à choisir le résultat.',
+      'other':
+          '$name a créé cette prédiction. Si vous participez, vous ne pourrez pas aider à choisir le résultat.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get predictionModeratorAccept => 'Participer quand même';
+
+  @override
+  String predictionSpectatorDone({
+    required String outcome,
+    required String pointsName,
+  }) {
+    return 'Vous avez prédit « $outcome » avec 0 $pointsName.';
+  }
+
+  @override
+  String predictionRefused({required String kind, required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'mustAcceptTerms': 'Acceptez d’abord les conditions des prédictions.',
+      'regionLocked':
+          'Dans votre région, impossible de miser des points sur les prédictions.',
+      'categoryLocked':
+          'Dans votre région, impossible de miser des points sur les prédictions pour ce contenu.',
+      'manager': 'Un streamer ne peut pas prédire sur sa propre chaîne.',
+      'spectatorDuplicate': 'Vous avez déjà fait une prédiction.',
+      'spectatorIneligible': 'Impossible de prédire à 0 point ici.',
+      'notEnoughPoints': 'Vous n’avez pas assez de points.',
+      'notActive': 'Cette prédiction est fermée.',
+      'maxPoints': 'C’est plus que ce que cette prédiction autorise.',
+      'multipleOutcomes': 'Vous avez déjà choisi un autre résultat.',
+      'other': 'Twitch a refusé : $reason',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get predictionPointsFallback => 'points de chaîne';
 }
