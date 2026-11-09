@@ -12347,5 +12347,55 @@
   "unbanConfirmBody": "You can only appeal once. The channel moderators will read your message.",
   "@unbanConfirmBody": {
     "description": "Body of the unban request confirmation."
+  },
+  "castButton": "Cast to a device",
+  "@castButton": {
+    "description": "Tooltip of the Cast button over the player, when nothing is casting."
+  },
+  "castConnectedTo": "Casting to {device}",
+  "@castConnectedTo": {
+    "description": "Tooltip of the lit Cast button and title of the Cast sheet while a device is connected. {device} is the TV or speaker name.",
+    "placeholders": {
+      "device": {
+        "type": "String",
+        "example": "Living room TV"
+      }
+    }
+  },
+  "castSheetTitle": "Cast",
+  "@castSheetTitle": {
+    "description": "Section title of the sheet that lists the Cast devices."
+  },
+  "castSearching": "Looking for Cast devices on this network…",
+  "@castSearching": {
+    "description": "Cast sheet: shown while the phone searches for devices."
+  },
+  "castNoDevices": "No Cast devices found. Check that your TV or speaker is on the same Wi-Fi network.",
+  "@castNoDevices": {
+    "description": "Cast sheet: no device answered after a few seconds of searching."
+  },
+  "castUnavailable": "Casting isn’t available on this device.",
+  "@castUnavailable": {
+    "description": "Cast sheet: the phone has no Google Cast support (no Google Play services)."
+  },
+  "castFailed": "Couldn’t start casting. Try again.",
+  "@castFailed": {
+    "description": "Cast sheet: the device refused the connection or the video."
+  },
+  "castNotReady": "Couldn’t cast: the video isn’t ready yet.",
+  "@castNotReady": {
+    "description": "Cast sheet: the player has no video address to send yet."
+  },
+  "castStop": "Stop casting",
+  "@castStop": {
+    "description": "Cast sheet: ends the Cast session."
+  },
+  "castThisVideo": "Cast this video",
+  "@castThisVideo": {
+    "description": "Cast sheet: sends the video on screen to the connected device."
+  },
+  "castConnecting": "Connecting…",
+  "@castConnecting": {
+    "description": "Cast sheet: screen-reader label of the spinner beside the device being connected."
   }
 }

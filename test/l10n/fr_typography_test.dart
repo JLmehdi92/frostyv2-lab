@@ -168,6 +168,8 @@ const _properNouns = {
   'Android',
   'Wi-Fi',
   'Amazon',
+  'Google',
+  'Cast',
   'Inter',
   'English',
   'Français',

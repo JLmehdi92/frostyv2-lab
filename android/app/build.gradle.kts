@@ -97,5 +97,8 @@ dependencies {
     // low latency on Twitch HLS streams.
     implementation("com.amazonaws:ivs-player:1.57.0")
 
+    implementation("com.google.android.gms:play-services-cast-framework:21.5.0")
+    implementation("androidx.mediarouter:mediarouter:1.7.0")
+
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

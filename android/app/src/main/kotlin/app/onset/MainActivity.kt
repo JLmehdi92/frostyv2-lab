@@ -24,6 +24,7 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
     private var twitchCookies: TwitchCookies? = null
     private var apkInstaller: ApkInstaller? = null
     private var network: NetworkBridge? = null
+    private var cast: CastBridge? = null
 
     /** Whether this activity is the first of a fresh process (read by the
      * launch intro): set before the Flutter engine is configured. */
@@ -87,6 +88,8 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
 
         // Whether the network costs data (the "Wi-Fi Only" autoplay setting).
         network = NetworkBridge(applicationContext, messenger)
+
+        cast = CastBridge(applicationContext, messenger)
 
         // The app's language in the system's per-app language settings
         // (Android 13+): `set(tag)` ("" for the device's) when the viewer
@@ -227,6 +230,8 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
         audioFocus = null
         network?.dispose()
         network = null
+        cast?.dispose()
+        cast = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 

@@ -9686,4 +9686,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get unbanConfirmBody =>
       'You can only appeal once. The channel moderators will read your message.';
+
+  @override
+  String get castButton => 'Cast to a device';
+
+  @override
+  String castConnectedTo({required String device}) {
+    return 'Casting to $device';
+  }
+
+  @override
+  String get castSheetTitle => 'Cast';
+
+  @override
+  String get castSearching => 'Looking for Cast devices on this network…';
+
+  @override
+  String get castNoDevices =>
+      'No Cast devices found. Check that your TV or speaker is on the same Wi-Fi network.';
+
+  @override
+  String get castUnavailable => 'Casting isn’t available on this device.';
+
+  @override
+  String get castFailed => 'Couldn’t start casting. Try again.';
+
+  @override
+  String get castNotReady => 'Couldn’t cast: the video isn’t ready yet.';
+
+  @override
+  String get castStop => 'Stop casting';
+
+  @override
+  String get castThisVideo => 'Cast this video';
+
+  @override
+  String get castConnecting => 'Connecting…';
 }

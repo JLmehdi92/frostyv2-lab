@@ -205,6 +205,8 @@ const _properNouns = {
   'Android',
   'iOS',
   'Amazon',
+  'Google',
+  'Cast',
   'Wi-Fi',
   'WebView',
   'GIF',

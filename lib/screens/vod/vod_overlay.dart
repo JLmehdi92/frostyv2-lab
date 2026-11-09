@@ -25,6 +25,7 @@ import 'package:onset/screens/vod/widgets/vod_seek_bar.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/share_link.dart';
+import 'package:onset/widgets/cast_button.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
@@ -159,6 +160,7 @@ class VodOverlay extends StatefulWidget {
     this.looping,
     this.onToggleLoop,
     this.lockable = false,
+    this.castMedia,
   });
 
   final VodPlayerController controller;
@@ -189,6 +191,8 @@ class VodOverlay extends StatefulWidget {
   final VoidCallback? onToggleLoop;
 
   final bool lockable;
+
+  final CastMediaSource? castMedia;
 
   @override
   State<VodOverlay> createState() => _VodOverlayState();
@@ -695,6 +699,13 @@ class _VodOverlayState extends State<VodOverlay> {
             tooltip: context.l10n.vodLockScreen,
             glyph: VideoGlyphKind.lock,
             onPressed: _lock,
+          ),
+        if (widget.castMedia case final castMedia?)
+          CastButton(
+            media: castMedia,
+            onCastStarted: () {
+              if (!_c.paused) _c.togglePlay();
+            },
           ),
         _OverlayButton(
           tooltip: context.l10n.playerSettings,

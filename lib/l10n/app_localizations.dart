@@ -12662,6 +12662,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can only appeal once. The channel moderators will read your message.'**
   String get unbanConfirmBody;
+
+  /// Tooltip of the Cast button over the player, when nothing is casting.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast to a device'**
+  String get castButton;
+
+  /// Tooltip of the lit Cast button and title of the Cast sheet while a device is connected. {device} is the TV or speaker name.
+  ///
+  /// In en, this message translates to:
+  /// **'Casting to {device}'**
+  String castConnectedTo({required String device});
+
+  /// Section title of the sheet that lists the Cast devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast'**
+  String get castSheetTitle;
+
+  /// Cast sheet: shown while the phone searches for devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for Cast devices on this network…'**
+  String get castSearching;
+
+  /// Cast sheet: no device answered after a few seconds of searching.
+  ///
+  /// In en, this message translates to:
+  /// **'No Cast devices found. Check that your TV or speaker is on the same Wi-Fi network.'**
+  String get castNoDevices;
+
+  /// Cast sheet: the phone has no Google Cast support (no Google Play services).
+  ///
+  /// In en, this message translates to:
+  /// **'Casting isn’t available on this device.'**
+  String get castUnavailable;
+
+  /// Cast sheet: the device refused the connection or the video.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t start casting. Try again.'**
+  String get castFailed;
+
+  /// Cast sheet: the player has no video address to send yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t cast: the video isn’t ready yet.'**
+  String get castNotReady;
+
+  /// Cast sheet: ends the Cast session.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop casting'**
+  String get castStop;
+
+  /// Cast sheet: sends the video on screen to the connected device.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast this video'**
+  String get castThisVideo;
+
+  /// Cast sheet: screen-reader label of the spinner beside the device being connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get castConnecting;
 }
 
 class _AppLocalizationsDelegate

@@ -34,6 +34,7 @@ import 'package:onset/screens/vod/widgets/vod_details_panel.dart';
 import 'package:onset/screens/vod/widgets/vod_error_view.dart';
 import 'package:onset/screens/vod/widgets/vod_info_strip.dart';
 import 'package:onset/screens/vod/widgets/vod_video.dart';
+import 'package:onset/services/cast_bridge.dart';
 import 'package:onset/services/network_metering.dart';
 import 'package:onset/services/playback_focus.dart';
 import 'package:onset/stores/mini_player_store.dart';
@@ -590,6 +591,18 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     });
   }
 
+  CastMedia? _castMedia(IvsVodStore player, Vod vod) {
+    final url = player.playlistUrl;
+    if (url == null) return null;
+    return CastMedia(
+      url: url,
+      title: vod.title,
+      subtitle: vod.ownerDisplayName,
+      live: false,
+      start: player.position,
+    );
+  }
+
   /// Double-tap in landscape, like live: overlay → side column → hidden.
   void _cycleLandscapeChatMode() {
     HapticFeedback.lightImpact();
@@ -702,6 +715,9 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
               mutedSegments: _mutedSegments,
               chapters: _chapters,
               lockable: true,
+              castMedia: player is IvsVodStore
+                  ? () => _castMedia(player, vod)
+                  : null,
               fillScreen: player is IvsVodStore ? _fillScreen : null,
               onToggleFillScreen: player is IvsVodStore
                   ? () => setState(() => _fillScreen = !_fillScreen)

@@ -9826,4 +9826,42 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get unbanConfirmBody =>
       'Vous ne pouvez faire appel qu’une seule fois. Les modérateurs de la chaîne liront votre message.';
+
+  @override
+  String get castButton => 'Caster sur un appareil';
+
+  @override
+  String castConnectedTo({required String device}) {
+    return 'Diffusion sur $device';
+  }
+
+  @override
+  String get castSheetTitle => 'Caster';
+
+  @override
+  String get castSearching => 'Recherche d’appareils Cast sur ce réseau…';
+
+  @override
+  String get castNoDevices =>
+      'Aucun appareil Cast trouvé. Vérifiez que votre téléviseur ou votre enceinte est sur le même réseau Wi-Fi.';
+
+  @override
+  String get castUnavailable =>
+      'La diffusion Cast n’est pas disponible sur cet appareil.';
+
+  @override
+  String get castFailed => 'Impossible de lancer la diffusion. Réessayez.';
+
+  @override
+  String get castNotReady =>
+      'Impossible de caster : la vidéo n’est pas encore prête.';
+
+  @override
+  String get castStop => 'Arrêter la diffusion';
+
+  @override
+  String get castThisVideo => 'Caster cette vidéo';
+
+  @override
+  String get castConnecting => 'Connexion…';
 }

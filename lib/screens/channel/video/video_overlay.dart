@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/stream.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/chat/details/chat_users_list.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
@@ -23,10 +24,12 @@ import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/vod/channel_videos.dart';
 import 'package:onset/screens/vod/vod_screen.dart';
+import 'package:onset/services/cast_bridge.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/settings_lookup.dart';
+import 'package:onset/widgets/cast_button.dart';
 import 'package:onset/widgets/motion/rolling_number.dart';
 import 'package:onset/widgets/motion/signal_ping.dart';
 import 'package:onset/widgets/profile_picture.dart';
@@ -538,6 +541,13 @@ class VideoOverlay extends StatelessWidget {
                   if (landscape) shareButton,
                   if (fullScreen && landscape) chatOverlayButton,
                   if (landscape) fillScreenButton,
+                  if (videoStore case final IvsVideoStore ivs)
+                    CastButton(
+                      media: () => liveCastMedia(ivs, streamInfo),
+                      onCastStarted: () {
+                        if (!ivs.paused) ivs.handlePausePlay();
+                      },
+                    ),
                   if (!Platform.isIOS || isIPad()) videoSettingsButton,
                   // The latency pill is drawn by the channel screen over
                   // this spot, outside the controls that hide: the row
@@ -1322,4 +1332,18 @@ class OfflineChannelMessage extends StatelessWidget {
       ),
     );
   }
+}
+
+CastMedia? liveCastMedia(IvsVideoStore player, StreamTwitch stream) {
+  final url = player.url;
+  if (url == null) return null;
+  return CastMedia(
+    url: url,
+    title: stream.title.trim(),
+    subtitle: getReadableName(stream.userName, stream.userLogin),
+    imageUrl: stream.thumbnailUrl
+        .replaceFirst('{width}', '1280')
+        .replaceFirst('{height}', '720'),
+    live: true,
+  );
 }

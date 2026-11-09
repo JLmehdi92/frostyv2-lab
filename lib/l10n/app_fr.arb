@@ -2064,5 +2064,16 @@
   "privateCalloutOpen": "Ouvrir",
   "predictionWon": "{count, plural, one{Bien vu\u202f! Vous avez gagné {count}\u00a0point.} other{Bien vu\u202f! Vous avez gagné {count}\u00a0points.}}",
   "unbanConfirmTitle": "Envoyer votre demande de débannissement\u202f?",
-  "unbanConfirmBody": "Vous ne pouvez faire appel qu’une seule fois. Les modérateurs de la chaîne liront votre message."
+  "unbanConfirmBody": "Vous ne pouvez faire appel qu’une seule fois. Les modérateurs de la chaîne liront votre message.",
+  "castButton": "Caster sur un appareil",
+  "castConnectedTo": "Diffusion sur {device}",
+  "castSheetTitle": "Caster",
+  "castSearching": "Recherche d’appareils Cast sur ce réseau…",
+  "castNoDevices": "Aucun appareil Cast trouvé. Vérifiez que votre téléviseur ou votre enceinte est sur le même réseau Wi-Fi.",
+  "castUnavailable": "La diffusion Cast n’est pas disponible sur cet appareil.",
+  "castFailed": "Impossible de lancer la diffusion. Réessayez.",
+  "castNotReady": "Impossible de caster\u00a0: la vidéo n’est pas encore prête.",
+  "castStop": "Arrêter la diffusion",
+  "castThisVideo": "Caster cette vidéo",
+  "castConnecting": "Connexion…"
 }

@@ -97,6 +97,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   late final Future<bool> _textureReady;
   MethodChannel? _channel;
   String? _url;
+  String? get playlistUrl => _url;
   Timer? _retryTimer;
   Timer? _overlayTimer;
   var _disposed = false;
