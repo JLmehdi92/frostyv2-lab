@@ -137,6 +137,8 @@ const l10nAllowlist = <String, Map<String, String>>{
     'unmod': _commandName,
     'vip': _commandName,
     'unvip': _commandName,
+    'leadmod': _commandName,
+    'unleadmod': _commandName,
     'marker': _commandName,
     'commercial': _commandName,
     'raid': _commandName,
