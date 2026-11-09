@@ -328,6 +328,21 @@ void main() {
     });
   });
 
+  test('followChannel=true asks to follow the channel', () {
+    expect(
+      _p('https://www.twitch.tv/xqc?followChannel=true'),
+      const ChannelLink('xqc', followRequested: true),
+    );
+    expect(
+      _p('https://www.twitch.tv/xqc?followChannel=false'),
+      const ChannelLink('xqc'),
+    );
+    expect(
+      _p('https://www.twitch.tv/xqc/videos?followChannel=true'),
+      isNot(const ChannelLink('xqc', followRequested: true)),
+    );
+  });
+
   group('app destinations', () {
     test('browse, following and activity', () {
       expect(_p('https://www.twitch.tv/directory'), const BrowseLink());

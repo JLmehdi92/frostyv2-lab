@@ -192,7 +192,12 @@ sealed class TwitchLink {
     if (segments.length == 2 && segments[1].toLowerCase() == 'chat') {
       return ChannelChatLink(first);
     }
-    if (segments.length == 1) return ChannelLink(first);
+    if (segments.length == 1) {
+      return ChannelLink(
+        first,
+        followRequested: uri.queryParameters['followChannel'] == 'true',
+      );
+    }
     return const OtherLink();
   }
 
@@ -423,19 +428,23 @@ final class ChannelProfileLink extends TwitchLink {
 
 /// A channel page.
 final class ChannelLink extends TwitchLink {
-  const ChannelLink(this.login);
+  const ChannelLink(this.login, {this.followRequested = false});
 
   final String login;
+  final bool followRequested;
 
   @override
   bool operator ==(Object other) =>
-      other is ChannelLink && other.login == login;
+      other is ChannelLink &&
+      other.login == login &&
+      other.followRequested == followRequested;
 
   @override
-  int get hashCode => login.hashCode;
+  int get hashCode => Object.hash(login, followRequested);
 
   @override
-  String toString() => 'ChannelLink($login)';
+  String toString() =>
+      'ChannelLink($login${followRequested ? ', followRequested' : ''})';
 }
 
 /// A category's page: by its [slug] (`/directory/category/<slug>`) or, in

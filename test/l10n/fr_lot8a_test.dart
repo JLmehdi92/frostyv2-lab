@@ -69,6 +69,32 @@ void main() {
         await expectFrenchThroughout(tester, 'follow all confirm, $at');
       });
 
+      testWidgets('the follow link confirmation, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: TextButton(
+                  onPressed: () =>
+                      FollowFlow.confirmFollow(context, 'Streamer'),
+                  child: const Text('▶'),
+                ),
+              ),
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.tap(find.text('▶'));
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(
+          tester,
+          'follow link confirm, $at',
+          content: const ['Streamer', '▶'],
+        );
+      });
+
       testWidgets('the unfollow confirmation, $at', (tester) async {
         final info = ChannelInfoStore(
           channelId: '1000',

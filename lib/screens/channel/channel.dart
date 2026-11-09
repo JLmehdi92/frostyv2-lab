@@ -51,6 +51,7 @@ import 'package:onset/screens/channel/landscape_chat_cycle.dart';
 import 'package:onset/screens/channel/portrait_split.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
+import 'package:onset/screens/channel/stores/follow_prompts.dart';
 import 'package:onset/screens/channel/stream_end.dart';
 import 'package:onset/screens/channel/tablet_video_column.dart';
 import 'package:onset/screens/channel/video/content_warning_gate.dart';
@@ -85,9 +86,11 @@ import 'package:onset/utils/pip_callbacks.dart';
 import 'package:onset/widgets/announce.dart';
 import 'package:onset/widgets/blurred_container.dart';
 import 'package:onset/widgets/draggable_divider.dart';
+import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/onset_notification.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
+import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
@@ -106,6 +109,7 @@ class VideoChat extends StatefulWidget {
   final RaidArrival? raidArrival;
 
   final bool startChatOnly;
+  final bool offerFollow;
 
   const VideoChat({
     super.key,
@@ -114,6 +118,7 @@ class VideoChat extends StatefulWidget {
     required this.userLogin,
     this.raidArrival,
     this.startChatOnly = false,
+    this.offerFollow = false,
   });
 
   static bool leaveForShell() {
@@ -181,6 +186,50 @@ class _VideoChatState extends State<VideoChat>
       viewerId: () => auth.user.details?.id,
     );
   }();
+
+  late final FollowPrompts _followPrompts = FollowPrompts(
+    following: _infoStore.following,
+    canFollow: () => mounted && FollowFlow.actionsOf(context) != null,
+    onCallout: _showFollowCallout,
+    onOfferFollow: () => unawaited(_offerFollow()),
+    offerFollow: widget.offerFollow,
+  );
+
+  void _showFollowCallout() {
+    final l = L10n.current;
+    _primaryChatStore?.addLocalNotice(
+      l.followCalloutLine(name: widget.userName),
+      actionLabel: l.channelFollow,
+      onAction: () => unawaited(_followFromPrompt()),
+    );
+  }
+
+  Future<void> _offerFollow() async {
+    if (!mounted || !await FollowFlow.confirmFollow(context, widget.userName)) {
+      return;
+    }
+    await _followFromPrompt();
+  }
+
+  Future<void> _followFromPrompt() async {
+    if (!mounted || _infoStore.following.value == true) return;
+    final now = await FollowFlow.toggle(
+      context,
+      target: FollowTarget.channel,
+      id: widget.userId,
+      name: widget.userName,
+      following: false,
+      openOnTwitch: () async {
+        await TwitchWebPage.open(
+          context,
+          title: widget.userName,
+          url: Uri.https('www.twitch.tv', '/${widget.userLogin.toLowerCase()}'),
+        );
+        _infoStore.refresh();
+      },
+    );
+    if (now != null) _infoStore.following.value = now;
+  }
 
   /// Asks about the viewer again when they become known (a cold start) or
   /// change (signed in or out).
@@ -771,6 +820,7 @@ class _VideoChatState extends State<VideoChat>
       ),
     );
     _infoStore.start();
+    _followPrompts.start();
     _watchStreamEnd();
     final auth = context.authStore;
     _viewerReaction = reaction(
@@ -2158,6 +2208,7 @@ class _VideoChatState extends State<VideoChat>
     unawaited(_predictionWins?.cancel());
     _eventsStore.dispose();
     _viewerReaction?.call();
+    _followPrompts.dispose();
     _infoStore.dispose();
 
     // Skip disposal when handed to the mini window — the player and the live

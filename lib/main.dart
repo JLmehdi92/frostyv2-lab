@@ -867,6 +867,7 @@ class _MyAppState extends State<MyApp> {
             userName: user.displayName,
             userLogin: user.login,
             startChatOnly: link is ChannelChatLink,
+            offerFollow: link is ChannelLink && link.followRequested,
           ),
         );
 
