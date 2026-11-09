@@ -867,5 +867,22 @@ void main() {
         h.store.dispose();
       });
     });
+
+    test('a failed leave does not keep the viewer staying', () {
+      run((async) {
+        h.create(
+          raidMembership: (raidId, {required join}) async =>
+              ViewerActionOutcome.failed,
+        );
+        async.flushMicrotasks();
+        h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+        ViewerActionOutcome? outcome;
+        h.store.stayOnRaid().then((value) => outcome = value);
+        async.flushMicrotasks();
+        expect(outcome, ViewerActionOutcome.failed);
+        expect(h.store.stayingOnRaid, isFalse);
+        h.store.dispose();
+      });
+    });
   });
 }

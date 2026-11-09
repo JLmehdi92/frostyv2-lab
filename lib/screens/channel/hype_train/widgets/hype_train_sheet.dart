@@ -780,25 +780,58 @@ class _PinataDetailsState extends State<PinataDetails> {
     final neutrals = HtNeutrals.of(Theme.of(context).brightness);
     final body = HtType.bodySmall.copyWith(color: neutrals.textBase);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, HtDims.margin, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: HtDims.marginHalf,
-        children: [
-          Semantics(
-            header: true,
-            child: Text(
-              l.pinataTitle,
-              style: HtType.header.copyWith(color: neutrals.textBase),
-            ),
+      padding: const EdgeInsets.fromLTRB(
+        HtDims.margin,
+        HtDims.margin,
+        HtDims.margin,
+        0,
+      ),
+      child: DecoratedBox(
+        key: const ValueKey('pinata-card'),
+        decoration: BoxDecoration(
+          color: neutrals.backgroundAlt,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: neutrals.borderBase),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(HtDims.margin),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: HtDims.marginHalf,
+            children: [
+              Row(
+                spacing: 8,
+                children: [
+                  Icon(
+                    Icons.celebration_rounded,
+                    size: 22,
+                    color: neutrals.textAlt2,
+                  ),
+                  Expanded(
+                    child: Semantics(
+                      header: true,
+                      child: Text(
+                        l.pinataTitle,
+                        style: HtType.bodySemibold.copyWith(
+                          color: neutrals.textAlt2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    l.pinataStage(stage: pinata.stage),
+                    style: HtType.bodySmall.copyWith(color: neutrals.textAlt),
+                  ),
+                ],
+              ),
+              Text(l.pinataBody, style: body),
+              Text(
+                l.pinataEligible(eligible: pinata.eligibility.name),
+                style: body.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
           ),
-          Text(l.pinataStage(stage: pinata.stage), style: body),
-          Text(l.pinataBody, style: body),
-          Text(
-            l.pinataEligible(eligible: pinata.eligibility.name),
-            style: body,
-          ),
-        ],
+        ),
       ),
     );
   }

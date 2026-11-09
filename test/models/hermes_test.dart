@@ -198,6 +198,7 @@ void main() {
 
   test('the private callouts topic names the viewer and the channel', () {
     expect(HermesTopics.forViewerInChannel('7', '42'), [
+      'community-moments-channel-v1.42',
       'private-callout.7.42',
     ]);
   });

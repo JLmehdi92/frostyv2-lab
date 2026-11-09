@@ -7145,7 +7145,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pointsBonusBlocked =>
-      'Twitch empêche de récupérer le bonus depuis l’application (sa vérification anti-bot). Récupérez-le sur twitch.tv : le solde suivra.';
+      'Twitch empêche de récupérer le bonus depuis l’application (son contrôle anti-robot). Récupérez-le sur twitch.tv : le solde suivra.';
 
   @override
   String get pointsCollectBonus => 'Récupérer le bonus';
@@ -7239,7 +7239,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(status, {
       'success': 'C’est fait.',
       'integrityRefused':
-          'Twitch a refusé : vérification anti-bot. Cette application ne peut pas la passer.',
+          'Le contrôle anti-robot de Twitch a refusé cette action. Cette application ne peut pas le passer.',
       'notAuthenticated':
           'Twitch a refusé la connexion. Reconnectez-vous pour dépenser des points.',
       'network': 'Impossible de joindre Twitch. Réessayez.',
@@ -8644,7 +8644,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'done': 'C’est fait.',
       'refused': 'Twitch a refusé.',
       'integrityRefused':
-          'Twitch a refusé : vérification anti-bot. ONSET ne peut pas la passer, essayez sur twitch.tv.',
+          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer ; essayez sur twitch.tv.',
       'signedOut': 'Reconnectez-vous pour le faire depuis ONSET.',
       'other': 'Impossible de joindre Twitch. Réessayez.',
     });
@@ -8846,8 +8846,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'expired': 'Ce Drop a expiré.',
       'limitReached': 'Vous avez atteint la limite de cette récompense.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer, récupérez-la sur twitch.tv.',
-      'signedOut': 'Reconnectez-vous pour récupérer depuis ONSET.',
+          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer ; récupérez-la sur twitch.tv.',
+      'signedOut': 'Reconnectez-vous pour la récupérer depuis ONSET.',
       'refused': 'Twitch a refusé cette récupération.',
       'other': 'Impossible de joindre Twitch. Réessayez.',
     });
@@ -8946,7 +8946,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'notOpen': 'Cet objectif n’accepte pas de points pour le moment.',
       'refused': 'Twitch a refusé cette contribution.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer, contribuez sur twitch.tv.',
+          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer ; contribuez sur twitch.tv.',
       'signedOut': 'Reconnectez-vous pour contribuer depuis ONSET.',
       'other': 'Impossible de joindre Twitch. Réessayez.',
     });
@@ -8997,7 +8997,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String predictionSpectatorBody({required String pointsName}) {
-    return 'Vous recevrez un badge de chat temporaire, mais vous ne pourrez ni changer votre choix ni gagner de $pointsName avec cette prédiction.';
+    return 'Vous recevrez un badge de chat temporaire, mais vous ne pourrez ni changer votre choix ni gagner quoi que ce soit en $pointsName avec cette prédiction.';
   }
 
   @override
@@ -9157,8 +9157,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'expired': 'Ce moment ne peut plus être récupéré.',
       'invalid': 'Twitch ne connaît pas ce moment.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer, récupérez-le sur twitch.tv.',
-      'signedOut': 'Reconnectez-vous pour récupérer depuis ONSET.',
+          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer ; récupérez-le sur twitch.tv.',
+      'signedOut': 'Reconnectez-vous pour le récupérer depuis ONSET.',
       'other': 'Impossible de récupérer ce moment. Réessayez.',
     });
     return '$_temp0';
@@ -9416,7 +9416,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chatBadgeHideFlair => 'Masquer l’ornement du badge d’abonné';
 
   @override
-  String get chatBadgeHideFlairDetail => 'Sans l’apparence du niveau 2 ou 3.';
+  String get chatBadgeHideFlairDetail =>
+      'Le badge perd l’apparence des niveaux 2 et 3.';
 
   @override
   String chatBadgeFlairConfirm({required String hide}) {
@@ -9439,7 +9440,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get unbanRequestOnce =>
-      'Vous ne pouvez faire appel d’un bannissement qu’une seule fois, choisissez bien vos mots.';
+      'Vous ne pouvez faire appel d’un bannissement qu’une seule fois : choisissez bien vos mots.';
 
   @override
   String get unbanRequestSend => 'Envoyer la demande';
@@ -9514,4 +9515,11 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get unbanConfirmTitle => 'Envoyer votre demande de débannissement ?';
+
+  @override
+  String get unbanConfirmBody =>
+      'Vous ne pouvez faire appel qu’une seule fois. Les modérateurs de la chaîne liront votre message.';
 }

@@ -11460,7 +11460,7 @@ abstract class AppLocalizations {
   /// Text of the dialog that acknowledges a moderator's warning; the warning itself is the notice line in chat.
   ///
   /// In en, this message translates to:
-  /// **'A moderator sent you a warning in this chat. Read it in chat, then acknowledge it to chat again.'**
+  /// **'A moderator sent you a warning in this chat. Read it in chat, then acknowledge it to send messages again.'**
   String get chatWarningBody;
 
   /// The dialog's button that tells Twitch the viewer read the moderator's warning, which lets them chat again.
@@ -12206,7 +12206,7 @@ abstract class AppLocalizations {
   /// Detail under the hide flair switch.
   ///
   /// In en, this message translates to:
-  /// **'Without the Tier 2 or Tier 3 look.'**
+  /// **'Your badge drops the Tier 2 or Tier 3 look.'**
   String get chatBadgeHideFlairDetail;
 
   /// Confirmation before changing the sub badge flair setting.
@@ -12254,7 +12254,7 @@ abstract class AppLocalizations {
   /// The viewer's last unban request and its outcome.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, PENDING{You asked to be unbanned on {date}. The moderators haven’t answered yet.} DENIED{The unban request you made on {date} was denied.} APPROVED{Your unban request from {date} was approved.} other{You asked to be unbanned on {date}.}}'**
+  /// **'{status, select, PENDING{You asked to be unbanned on {date}. The moderators haven’t answered yet.} DENIED{Your unban request from {date} was denied.} APPROVED{Your unban request from {date} was approved.} other{You asked to be unbanned on {date}.}}'**
   String unbanRequestStatus({required String status, required String date});
 
   /// Heading above the moderators' note on an unban request.
@@ -12292,6 +12292,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{You predicted it! You won {count} point.} other{You predicted it! You won {count} points.}}'**
   String predictionWon({required int count});
+
+  /// Confirmation before sending the one-time unban request.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your unban request?'**
+  String get unbanConfirmTitle;
+
+  /// Body of the unban request confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only appeal once. The channel moderators will read your message.'**
+  String get unbanConfirmBody;
 }
 
 class _AppLocalizationsDelegate

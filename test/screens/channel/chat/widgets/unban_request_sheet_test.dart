@@ -45,6 +45,10 @@ void main() {
     await tester.pump();
     await tester.tap(send);
     await tester.pumpAndSettle();
+    expect(find.text('Send your unban request?'), findsOneWidget);
+    expect(sent, isEmpty);
+    await tester.tap(find.byKey(UnbanRequestSheet.confirmKey));
+    await tester.pumpAndSettle();
 
     expect(sent, ['Sorry.']);
     expect(find.text('Your unban request will be reviewed.'), findsOneWidget);
@@ -83,6 +87,8 @@ void main() {
     await tester.enterText(find.byKey(UnbanRequestSheet.fieldKey), 'Please.');
     await tester.pump();
     await tester.tap(find.byKey(UnbanRequestSheet.sendKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(UnbanRequestSheet.confirmKey));
     await tester.pumpAndSettle();
 
     expect(

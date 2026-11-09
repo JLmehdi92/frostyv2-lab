@@ -330,6 +330,7 @@ abstract class ChannelEventsStoreBase with Store {
   bool get canClaimMoments => _viewerActionsService != null;
 
   void _applyMoment(HermesEvent event) {
+    if (viewerId == null) return;
     final moment = CommunityMoment.fromEvent(event.data);
     if (moment == null || moment.id == _moment?.id) return;
     runInAction(() => _moment = moment);

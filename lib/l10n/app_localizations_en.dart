@@ -8552,7 +8552,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatWarningBody =>
-      'A moderator sent you a warning in this chat. Read it in chat, then acknowledge it to chat again.';
+      'A moderator sent you a warning in this chat. Read it in chat, then acknowledge it to send messages again.';
 
   @override
   String get chatWarningAcknowledge => 'Acknowledge';
@@ -9288,7 +9288,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatBadgeHideFlair => 'Hide sub badge flair';
 
   @override
-  String get chatBadgeHideFlairDetail => 'Without the Tier 2 or Tier 3 look.';
+  String get chatBadgeHideFlairDetail =>
+      'Your badge drops the Tier 2 or Tier 3 look.';
 
   @override
   String chatBadgeFlairConfirm({required String hide}) {
@@ -9324,7 +9325,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(status, {
       'PENDING':
           'You asked to be unbanned on $date. The moderators haven’t answered yet.',
-      'DENIED': 'The unban request you made on $date was denied.',
+      'DENIED': 'Your unban request from $date was denied.',
       'APPROVED': 'Your unban request from $date was approved.',
       'other': 'You asked to be unbanned on $date.',
     });
@@ -9381,4 +9382,11 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get unbanConfirmTitle => 'Send your unban request?';
+
+  @override
+  String get unbanConfirmBody =>
+      'You can only appeal once. The channel moderators will read your message.';
 }

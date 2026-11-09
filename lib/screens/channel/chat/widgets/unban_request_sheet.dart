@@ -39,6 +39,7 @@ class UnbanRequestSheet extends StatefulWidget {
   static const fieldKey = ValueKey('unban-request-field');
   static const sendKey = ValueKey('unban-request-send');
   static const noteKey = ValueKey('unban-request-note');
+  static const confirmKey = ValueKey('unban-request-confirm');
 
   final Future<UnbanRequestState?> Function() load;
   final Future<UnbanRequestOutcome> Function(String message) send;
@@ -73,6 +74,26 @@ class _UnbanRequestSheetState extends State<UnbanRequestSheet> {
   Future<void> _send() async {
     final l = context.l10n;
     final messenger = ScaffoldMessenger.maybeOf(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => OnsetDialog(
+        title: l.unbanConfirmTitle,
+        message: l.unbanConfirmBody,
+        actions: [
+          SheetButton(
+            label: l.commonCancel,
+            tone: SheetButtonTone.text,
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          SheetButton(
+            key: UnbanRequestSheet.confirmKey,
+            label: l.unbanRequestSend,
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     setState(() {
       _sending = true;
       _error = null;

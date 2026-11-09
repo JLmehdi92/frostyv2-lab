@@ -264,6 +264,7 @@ class HermesTopics {
       'private-callout.$userId.$channelId';
 
   static List<String> forViewerInChannel(String userId, String channelId) => [
+    communityMoments(channelId),
     privateCallout(userId, channelId),
   ];
 
@@ -279,7 +280,6 @@ class HermesTopics {
     videoPlayback(channelId),
     broadcastSettings(channelId),
     channelSubGifts(channelId),
-    communityMoments(channelId),
   ];
 
   /// The viewer's own topics, which carry what happens to *them* rather than to

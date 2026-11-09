@@ -953,40 +953,48 @@ class OnsetDialog extends StatelessWidget {
         label: title,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 326),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 12,
-              children: [
-                if (leading case final leading?)
-                  Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     spacing: 12,
                     children: [
-                      leading,
-                      Expanded(child: titleText),
+                      if (leading case final leading?)
+                        Row(
+                          spacing: 12,
+                          children: [
+                            leading,
+                            Expanded(child: titleText),
+                          ],
+                        )
+                      else
+                        titleText,
+                      if (message case final message?)
+                        Text(
+                          message,
+                          style: SheetText.body.copyWith(color: colors.body),
+                        ),
+                      ?content,
                     ],
-                  )
-                else
-                  titleText,
-                if (message case final message?)
-                  Text(
-                    message,
-                    style: SheetText.body.copyWith(color: colors.body),
-                  ),
-                ?content,
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Wrap(
-                    alignment: WrapAlignment.end,
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: actions,
                   ),
                 ),
-              ],
-            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 2, 20, 20),
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: actions,
+                ),
+              ),
+            ],
           ),
         ),
       ),

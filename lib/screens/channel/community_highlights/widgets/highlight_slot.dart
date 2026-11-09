@@ -39,16 +39,23 @@ IconData highlightIcon(HighlightKind kind) => switch (kind) {
 };
 
 void Function(ViewerActionOutcome? outcome) viewerActionReporter(
-  BuildContext context,
-) {
+  BuildContext context, {
+  VoidCallback? retry,
+}) {
   final messenger = ScaffoldMessenger.maybeOf(context);
   final l = context.l10n;
   return (outcome) {
     if (outcome == null || outcome == ViewerActionOutcome.done) return;
+    final canRetry = retry != null && outcome == ViewerActionOutcome.failed;
     messenger
       ?..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(l.viewerActionResult(status: outcome.name))),
+        SnackBar(
+          content: Text(l.viewerActionResult(status: outcome.name)),
+          action: canRetry
+              ? SnackBarAction(label: l.commonRetry, onPressed: retry)
+              : null,
+        ),
       );
   };
 }
@@ -132,9 +139,14 @@ Widget buildHighlightCard(
           },
           onStay: store.onGoAlong == null
               ? null
-              : () => unawaited(
-                  store.stayOnRaid().then(viewerActionReporter(context)),
-                ),
+              : () {
+                  void stay() => unawaited(
+                    store.stayOnRaid().then(
+                      viewerActionReporter(context, retry: stay),
+                    ),
+                  );
+                  stay();
+                },
           onDismiss: dismissible ? store.dismissCurrent : null,
           onOpen: compact ? onToggle : null,
           staying: store.stayingOnRaid,

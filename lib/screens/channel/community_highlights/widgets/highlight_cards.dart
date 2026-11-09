@@ -224,8 +224,9 @@ class _PollCardState extends State<PollCard> {
     }
 
     final footer = choosing
-        ? Align(
+        ? Container(
             alignment: AlignmentDirectional.centerEnd,
+            padding: const EdgeInsetsDirectional.only(end: 8, bottom: 4),
             child: TextButton(
               key: PollCard.voteKey,
               onPressed: selected == null || card.voting

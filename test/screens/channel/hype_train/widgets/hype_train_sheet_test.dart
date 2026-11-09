@@ -509,7 +509,13 @@ void main() {
     await tester.pump();
 
     expect(find.text('Piñata train'), findsOneWidget);
-    expect(find.text('Damage stage 2'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('pinata-card')),
+        matching: find.text('Damage stage 2'),
+      ),
+      findsOneWidget,
+    );
     expect(
       find.text('You’ll share the rewards when it breaks.'),
       findsOneWidget,

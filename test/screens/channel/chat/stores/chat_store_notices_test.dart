@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -159,6 +161,34 @@ void main() {
         async.flushMicrotasks();
         expect(outcome, ViewerActionOutcome.done);
         expect(store.restriction, isNull);
+        finish(store, async);
+      });
+    });
+
+    test('a second acknowledge while the first is sent asks nothing', () {
+      fakeAsync((async) {
+        final actions = _MockViewerActions();
+        final reply = Completer<ViewerActionOutcome>();
+        when(
+          () => actions.acknowledgeWarning(
+            channelId: any(named: 'channelId'),
+            authToken: any(named: 'authToken'),
+          ),
+        ).thenAnswer((_) => reply.future);
+        final store = warned(async);
+        store.acknowledgeWarning(actions);
+        ViewerActionOutcome? second = ViewerActionOutcome.failed;
+        store.acknowledgeWarning(actions).then((o) => second = o);
+        async.flushMicrotasks();
+        expect(second, isNull);
+        reply.complete(ViewerActionOutcome.done);
+        async.flushMicrotasks();
+        verify(
+          () => actions.acknowledgeWarning(
+            channelId: any(named: 'channelId'),
+            authToken: any(named: 'authToken'),
+          ),
+        ).called(1);
         finish(store, async);
       });
     });

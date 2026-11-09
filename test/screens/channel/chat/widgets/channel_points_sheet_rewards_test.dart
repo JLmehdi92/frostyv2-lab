@@ -109,6 +109,7 @@ void main() {
       channelId: '42',
       channelLogin: 'streamer',
       channelName: 'Streamer',
+      viewerId: '7',
       client: hermes,
       pointsService: points,
       viewerActionsService: actions,
@@ -188,6 +189,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Choose an emote to unlock'), findsNWidgets(2));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('emote-tile-fallback')), findsWidgets);
     final confirm = find.byKey(EmoteUnlockSheet.confirmKey);
     expect(tester.widget<SheetButton>(confirm).onPressed, isNull);
 
@@ -255,5 +258,6 @@ void main() {
       find.bySemanticsLabel('chestTwo, not collected yet'),
       findsOneWidget,
     );
+    expect(find.byKey(const ValueKey('emote-tile-fallback')), findsWidgets);
   });
 }

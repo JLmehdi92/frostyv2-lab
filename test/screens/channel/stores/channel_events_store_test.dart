@@ -543,6 +543,7 @@ void main() {
         () => hermes.subscribeAll([
           ...HermesTopics.forChannel('42'),
           ...HermesTopics.forViewer('7'),
+          'community-moments-channel-v1.42',
           'private-callout.7.42',
         ]),
       ).called(1);
@@ -1161,5 +1162,22 @@ void main() {
       expect(wins.map((w) => w.points), [1250]);
       store.dispose();
     });
+  });
+
+  test('a logged-out viewer gets no community moments', () async {
+    final store = build();
+    final moments = [];
+    store.communityMoments.listen(moments.add);
+    await store.connect();
+    events.add(
+      const HermesEvent(
+        topic: 'community-moments-channel-v1.42',
+        type: 'active',
+        data: {'moment_id': 'm1', 'channel_id': '42'},
+      ),
+    );
+    await pumpEventQueue();
+    expect(moments, isEmpty);
+    store.dispose();
   });
 }

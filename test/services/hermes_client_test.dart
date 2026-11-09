@@ -663,7 +663,6 @@ void main() {
       'video-playback-by-id.1',
       'broadcast-settings-update.1',
       'channel-sub-gifts-v1.1',
-      'community-moments-channel-v1.1',
     ]);
   });
 

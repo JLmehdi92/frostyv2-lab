@@ -205,7 +205,30 @@ class _GoalContributionDialogState extends State<GoalContributionDialog> {
   }
 }
 
+final _goalsInFlight = <String>{};
+
 Future<void> contributeToGoal(
+  BuildContext context, {
+  required CommunityGoal goal,
+  required int balance,
+  required GoalContributor contribute,
+  VoidCallback? onDone,
+}) async {
+  if (!_goalsInFlight.add(goal.id)) return;
+  try {
+    await _contributeOnce(
+      context,
+      goal: goal,
+      balance: balance,
+      contribute: contribute,
+      onDone: onDone,
+    );
+  } finally {
+    _goalsInFlight.remove(goal.id);
+  }
+}
+
+Future<void> _contributeOnce(
   BuildContext context, {
   required CommunityGoal goal,
   required int balance,

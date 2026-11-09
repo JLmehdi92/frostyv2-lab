@@ -430,11 +430,8 @@ class _EmoteChoice extends StatelessWidget {
           child: SizedBox.square(
             dimension: 48,
             child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Image.network(
-                url,
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
-              ),
+              padding: const EdgeInsets.all(6),
+              child: EmoteImageTile(url: url, name: label),
             ),
           ),
         ),
@@ -547,10 +544,11 @@ class HypeChestsSheet extends StatelessWidget {
                       child: Opacity(
                         opacity: emote.isOwned ? 1 : 0.35,
                         child: SizedBox.square(
-                          dimension: 40,
-                          child: Image.network(
-                            emote.imageUrl,
-                            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                          dimension: 44,
+                          child: EmoteImageTile(
+                            url: emote.imageUrl,
+                            name: emote.token,
+                            framed: true,
                           ),
                         ),
                       ),
@@ -561,6 +559,63 @@ class HypeChestsSheet extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class EmoteImageTile extends StatelessWidget {
+  const EmoteImageTile({
+    super.key,
+    required this.url,
+    required this.name,
+    this.framed = false,
+  });
+
+  final String url;
+  final String name;
+  final bool framed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
+    final fallback = Container(
+      key: const ValueKey('emote-tile-fallback'),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: colors.well,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        name,
+        maxLines: 2,
+        overflow: TextOverflow.clip,
+        textAlign: TextAlign.center,
+        textScaler: TextScaler.noScaling,
+        style: SheetText.rowDetail.copyWith(
+          fontSize: 8,
+          height: 1.1,
+          color: colors.secondary,
+        ),
+      ),
+    );
+    final image = Image.network(
+      url,
+      fit: BoxFit.contain,
+      loadingBuilder: (context, child, progress) =>
+          progress == null ? child : fallback,
+      errorBuilder: (_, _, _) => fallback,
+    );
+    if (!framed) return image;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: colors.hairline,
+          width: OnsetTokens.hairlineWidth,
+        ),
+      ),
+      child: Padding(padding: const EdgeInsets.all(4), child: image),
     );
   }
 }

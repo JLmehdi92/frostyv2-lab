@@ -870,17 +870,27 @@ abstract class ChatStoreBase with Store {
     }
   }
 
+  var _acknowledging = false;
+
   @action
   Future<ViewerActionOutcome?> acknowledgeWarning(
     TwitchViewerActionsService service,
   ) async {
-    if (_refusedFor != ChatRestrictionKind.warned) return null;
+    if (_refusedFor != ChatRestrictionKind.warned || _acknowledging) {
+      return null;
+    }
     final token = auth.twitchWebToken;
     if (token == null || token.isEmpty) return ViewerActionOutcome.signedOut;
-    final outcome = await service.acknowledgeWarning(
-      channelId: channelId,
-      authToken: token,
-    );
+    _acknowledging = true;
+    final ViewerActionOutcome outcome;
+    try {
+      outcome = await service.acknowledgeWarning(
+        channelId: channelId,
+        authToken: token,
+      );
+    } finally {
+      _acknowledging = false;
+    }
     if (outcome == ViewerActionOutcome.done &&
         _refusedFor == ChatRestrictionKind.warned) {
       runInAction(() {

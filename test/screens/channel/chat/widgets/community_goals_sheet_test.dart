@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/community_goal.dart';
@@ -80,6 +82,41 @@ void main() {
       findsOneWidget,
     );
     expect(loads, 2);
+  });
+
+  testWidgets('a contribution in flight cannot be sent again', (tester) async {
+    final reply = Completer<GoalContributionResult>();
+    tester.view
+      ..physicalSize = const Size(800, 1400)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CommunityGoalsSheet(
+            load: () async => _goals([communityGoalFixture()]),
+            balance: () => 5000,
+            contribute: (goal, amount) {
+              sent.add((goal.id, amount));
+              return reply.future;
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(CommunityGoalTile.contributeKey('goal-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(GoalContributionDialog.sendKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(CommunityGoalTile.contributeKey('goal-1')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(GoalContributionDialog.sendKey), findsNothing);
+    expect(sent, hasLength(1));
+    reply.complete(GoalContributionResult.contributed);
+    await tester.pumpAndSettle();
   });
 
   testWidgets('an amount above the maximum cannot be sent', (tester) async {

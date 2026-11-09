@@ -212,8 +212,15 @@ abstract class CommunityHighlightsStoreBase with Store {
   Future<ViewerActionOutcome?> stayOnRaid() async {
     final raid = _nextRaid ?? _raid;
     if (raid == null) return null;
-    _stayingFor = raid.raid.id;
-    return raidMembership?.call(raid.raid.id, join: false);
+    final id = raid.raid.id;
+    _stayingFor = id;
+    final outcome = await raidMembership?.call(id, join: false);
+    if (outcome != null &&
+        outcome != ViewerActionOutcome.done &&
+        _stayingFor == id) {
+      runInAction(() => _stayingFor = null);
+    }
+    return outcome;
   }
 
   @action

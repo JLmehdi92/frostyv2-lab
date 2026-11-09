@@ -144,6 +144,21 @@ void main() {
       expect(sent, ['a']);
     });
 
+    testWidgets('Vote sits inside the card padding, in line with the bars', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        PollCard(
+          poll: _poll(),
+          card: voting(onVote: (_) {}),
+        ),
+      );
+      final vote = tester.getRect(find.byKey(PollCard.voteKey));
+      final bar = tester.getRect(find.byKey(PollCard.choiceKey('a')));
+      expect(vote.right, lessThanOrEqualTo(bar.right));
+    });
+
     testWidgets('the picked choice is announced as selected', (tester) async {
       final handle = tester.ensureSemantics();
       await pump(
