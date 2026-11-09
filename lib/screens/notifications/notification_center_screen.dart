@@ -150,12 +150,13 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           Observer(
             builder: (_) => widget.store.unreadCount == 0
                 ? const SizedBox.shrink()
-                : TextButton(
+                : IconButton(
                     key: NotificationCenterScreen.markAllKey,
+                    tooltip: l.activityMarkAllRead,
                     onPressed: widget.store.marking
                         ? null
                         : () => unawaited(_markAll()),
-                    child: Text(l.activityMarkAllRead),
+                    icon: const Icon(Icons.done_all_rounded),
                   ),
           ),
         ],
