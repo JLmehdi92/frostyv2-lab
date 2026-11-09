@@ -3421,6 +3421,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un lien demande à ONSET de suivre cette chaîne avec votre compte Twitch.';
 
   @override
+  String get followWebFallbackTitle => 'Suivre sur twitch.tv ?';
+
+  @override
+  String get followWebFallbackBody =>
+      'ONSET envoie les suivis par votre session Twitch, qui n’est pas connectée. Reconnectez-vous à ONSET pour la connecter, ou faites-le sur twitch.tv dès maintenant.';
+
+  @override
+  String get followWebFallbackAction => 'Ouvrir twitch.tv';
+
+  @override
   String followSuggestionsTitle({required String name}) {
     return 'Vous suivez $name';
   }

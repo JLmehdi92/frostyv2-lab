@@ -4,6 +4,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/shoutout_profile.dart';
 import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
@@ -30,16 +31,33 @@ class ShoutoutCard extends StatefulWidget {
 
 class _ShoutoutCardState extends State<ShoutoutCard> {
   late Future<ShoutoutProfile?> _profile = widget.load();
+  bool? _following;
 
   static final _login = RegExp(r'^[a-z0-9_]{1,25}$');
 
-  Future<void> _follow(String login, String name) async {
-    await TwitchWebPage.open(
+  Future<void> _follow({
+    required String id,
+    required String login,
+    required String name,
+    required bool following,
+  }) async {
+    final now = await FollowFlow.toggle(
       context,
-      title: name,
-      url: Uri.https('www.twitch.tv', '/$login'),
+      target: FollowTarget.channel,
+      id: id,
+      name: name,
+      following: following,
+      openOnTwitch: () => TwitchWebPage.open(
+        context,
+        title: name,
+        url: Uri.https('www.twitch.tv', '/$login'),
+      ),
     );
-    if (mounted) setState(() => _profile = widget.load());
+    if (!mounted) return;
+    setState(() {
+      _following = now;
+      if (now == null) _profile = widget.load();
+    });
   }
 
   @override
@@ -52,6 +70,7 @@ class _ShoutoutCardState extends State<ShoutoutCard> {
         final loading = snapshot.connectionState != ConnectionState.done;
         final profile = snapshot.data;
         final name = profile?.displayName ?? widget.notice.targetName;
+        final following = _following ?? profile?.following == true;
         final login = (profile?.login ?? widget.notice.targetLogin)
             .toLowerCase();
         return ConstrainedBox(
@@ -135,15 +154,18 @@ class _ShoutoutCardState extends State<ShoutoutCard> {
                     Expanded(
                       child: SheetButton(
                         key: ShoutoutCard.followKey,
-                        label: profile?.following == true
-                            ? l.channelFollowing
-                            : l.channelFollow,
+                        label: following ? l.channelFollowing : l.channelFollow,
                         large: true,
                         expand: true,
-                        tone: profile?.following == true
+                        tone: following
                             ? SheetButtonTone.text
                             : SheetButtonTone.primary,
-                        onPressed: () => _follow(login, name),
+                        onPressed: () => _follow(
+                          id: profile?.id ?? widget.notice.targetId,
+                          login: login,
+                          name: name,
+                          following: following,
+                        ),
                       ),
                     ),
                   Expanded(

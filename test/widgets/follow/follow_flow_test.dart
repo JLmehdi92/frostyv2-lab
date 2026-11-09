@@ -143,7 +143,7 @@ void main() {
     expect(find.byKey(const ValueKey('web')), findsOneWidget);
   });
 
-  testWidgets('without a web token the follow happens on twitch.tv', (
+  testWidgets('without a web token it asks before opening twitch.tv', (
     tester,
   ) async {
     when(() => actions.canFollowInApp).thenReturn(false);
@@ -151,9 +151,26 @@ void main() {
 
     await tester.tap(find.text('Follow'));
     await tester.pumpAndSettle();
+    expect(find.text('Follow on twitch.tv?'), findsOneWidget);
+    expect(find.byKey(const ValueKey('web')), findsNothing);
+
+    await tester.tap(find.byKey(FollowFlow.confirmKey));
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('web')), findsOneWidget);
     verifyNever(() => actions.followChannel(any()));
+  });
+
+  testWidgets('without a web token, Cancel opens nothing', (tester) async {
+    when(() => actions.canFollowInApp).thenReturn(false);
+    await pump(tester);
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('web')), findsNothing);
   });
 
   testWidgets('after a follow, suggested channels and Follow all', (

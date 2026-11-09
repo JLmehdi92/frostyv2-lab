@@ -4299,6 +4299,18 @@
   "@followDeepLinkBody": {
     "description": "Dialog text when a link with followChannel=true opens a channel."
   },
+  "followWebFallbackTitle": "Follow on twitch.tv?",
+  "@followWebFallbackTitle": {
+    "description": "Dialog title when a follow or an unfollow can’t be sent from ONSET because the Twitch session that sends it isn’t connected (or the viewer is logged out)."
+  },
+  "followWebFallbackBody": "ONSET sends follows through your Twitch session, which isn’t connected. Log in to ONSET again to connect it, or do it on twitch.tv now.",
+  "@followWebFallbackBody": {
+    "description": "Dialog text under followWebFallbackTitle. It says why the follow can’t happen in the app and what fixes it."
+  },
+  "followWebFallbackAction": "Open twitch.tv",
+  "@followWebFallbackAction": {
+    "description": "Dialog button under followWebFallbackBody. It opens the channel or category page on twitch.tv inside ONSET."
+  },
   "followSuggestionsTitle": "You follow {name}",
   "@followSuggestionsTitle": {
     "description": "Title of the sheet of suggested channels shown after following a channel.",

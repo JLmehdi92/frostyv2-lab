@@ -5213,6 +5213,24 @@ abstract class AppLocalizations {
   /// **'A link asked ONSET to follow this channel with your Twitch account.'**
   String get followDeepLinkBody;
 
+  /// Dialog title when a follow or an unfollow can’t be sent from ONSET because the Twitch session that sends it isn’t connected (or the viewer is logged out).
+  ///
+  /// In en, this message translates to:
+  /// **'Follow on twitch.tv?'**
+  String get followWebFallbackTitle;
+
+  /// Dialog text under followWebFallbackTitle. It says why the follow can’t happen in the app and what fixes it.
+  ///
+  /// In en, this message translates to:
+  /// **'ONSET sends follows through your Twitch session, which isn’t connected. Log in to ONSET again to connect it, or do it on twitch.tv now.'**
+  String get followWebFallbackBody;
+
+  /// Dialog button under followWebFallbackBody. It opens the channel or category page on twitch.tv inside ONSET.
+  ///
+  /// In en, this message translates to:
+  /// **'Open twitch.tv'**
+  String get followWebFallbackAction;
+
   /// Title of the sheet of suggested channels shown after following a channel.
   ///
   /// In en, this message translates to:

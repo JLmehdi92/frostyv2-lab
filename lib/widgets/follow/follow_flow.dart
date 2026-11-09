@@ -37,7 +37,7 @@ class FollowFlow {
   }) async {
     final actions = actionsOf(context);
     if (actions == null) {
-      await openOnTwitch();
+      if (await _confirmWebFallback(context)) await openOnTwitch();
       return null;
     }
     if (following && !await _confirmUnfollow(context, name)) return null;
@@ -92,6 +92,13 @@ class FollowFlow {
         message: context.l10n.followDeepLinkBody,
         action: context.l10n.channelFollow,
       );
+
+  static Future<bool> _confirmWebFallback(BuildContext context) => _confirm(
+    context,
+    title: context.l10n.followWebFallbackTitle,
+    message: context.l10n.followWebFallbackBody,
+    action: context.l10n.followWebFallbackAction,
+  );
 
   static Future<bool> _confirmUnfollow(BuildContext context, String name) =>
       _confirm(
