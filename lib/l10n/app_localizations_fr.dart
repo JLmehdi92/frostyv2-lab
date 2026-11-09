@@ -4085,10 +4085,12 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(reason, {
       'notSubscribed': 'Abonnez-vous à cette chaîne pour créer un clip.',
       'notFollowing': 'Suivez cette chaîne pour créer un clip.',
+      'followingTooShort':
+          'Vous ne suivez pas cette chaîne depuis assez longtemps pour créer un clip.',
       'djCategory':
           'Dans la catégorie DJs, seules les chaînes du programme DJ de Twitch peuvent faire l’objet d’un clip.',
       'participatingDj':
-          'Les chaînes DJ ne peuvent pas faire l’objet d’un clip.',
+          'Les chaînes du programme DJ de Twitch ne peuvent pas faire l’objet d’un clip.',
       'other': 'Vous ne pouvez pas créer de clip de cette chaîne.',
     });
     return '$_temp0';
@@ -4096,7 +4098,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String clipCreateFollowLength({required String duration}) {
-    return 'Vous devez suivre cette chaîne depuis $duration pour créer un clip.';
+    return 'Vous devez suivre cette chaîne depuis au moins $duration pour créer un clip.';
+  }
+
+  @override
+  String leadModConfirmTitle({required String change, required String name}) {
+    String _temp0 = intl.Intl.selectLogic(change, {
+      'add': 'Attribuer le rôle de modérateur principal à $name ?',
+      'other': 'Retirer le rôle de modérateur principal à $name ?',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get leadModConfirmBody =>
+      'Ce rôle sera modifié sur votre chaîne Twitch.';
+
+  @override
+  String leadModConfirmAction({required String change}) {
+    String _temp0 = intl.Intl.selectLogic(change, {
+      'add': 'Attribuer',
+      'other': 'Retirer',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -5467,8 +5491,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'unmod': 'Retirer le rôle de modérateur',
       'vip': 'Attribuer le statut VIP',
       'unvip': 'Retirer le statut VIP',
-      'leadmod': 'Nommer un modérateur principal',
-      'unleadmod': 'Retirer un modérateur principal',
+      'leadmod': 'Attribuer le rôle de modérateur principal',
+      'unleadmod': 'Retirer le rôle de modérateur principal',
       'marker': 'Ajouter un repère au live',
       'commercial':
           'Lancer une publicité (30, 60, 90, 120, 150 ou 180 secondes)',

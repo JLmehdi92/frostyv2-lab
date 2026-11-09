@@ -125,6 +125,8 @@ abstract class ChatStoreBase with Store {
 
   final TwitchViewerActionsService? viewerActions;
 
+  Future<bool> Function(LeadModCommand command)? confirmLeadModerator;
+
   /// The ids of the history lines shown (and of history gifts folded into
   /// their bomb): the same message arriving live afterwards is not shown,
   /// or counted, twice.
@@ -621,6 +623,10 @@ abstract class ChatStoreBase with Store {
         );
         done();
       case ModerationCommand():
+        if (command is LeadModCommand &&
+            !(await confirmLeadModerator?.call(command) ?? false)) {
+          return;
+        }
         final outcome = await moderate(command);
         if (outcome?.ok ?? false) done();
       case UnsupportedCommand():

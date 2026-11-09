@@ -4026,9 +4026,11 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(reason, {
       'notSubscribed': 'Subscribe to this channel to create a clip.',
       'notFollowing': 'Follow this channel to create a clip.',
+      'followingTooShort':
+          'You haven’t followed this channel long enough to create a clip.',
       'djCategory':
           'In the DJs category, only channels in the Twitch DJ program can be clipped.',
-      'participatingDj': 'DJ channels can’t be clipped.',
+      'participatingDj': 'Channels in the Twitch DJ program can’t be clipped.',
       'other': 'You can’t clip this channel.',
     });
     return '$_temp0';
@@ -4036,7 +4038,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String clipCreateFollowLength({required String duration}) {
-    return 'Follow this channel for $duration to create a clip.';
+    return 'You need to have followed this channel for at least $duration to create a clip.';
+  }
+
+  @override
+  String leadModConfirmTitle({required String change, required String name}) {
+    String _temp0 = intl.Intl.selectLogic(change, {
+      'add': 'Make $name a lead moderator?',
+      'other': 'Remove $name as a lead moderator?',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get leadModConfirmBody =>
+      'This changes the role on your Twitch channel.';
+
+  @override
+  String leadModConfirmAction({required String change}) {
+    String _temp0 = intl.Intl.selectLogic(change, {
+      'add': 'Add',
+      'other': 'Remove',
+    });
+    return '$_temp0';
   }
 
   @override

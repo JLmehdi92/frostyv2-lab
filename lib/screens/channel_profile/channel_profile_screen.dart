@@ -624,6 +624,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
                 profile: profile,
                 onOpenLink: _openLink,
                 teams: _store.teams,
+                isParticipatingDj: _store.isParticipatingDj,
                 onOpenTeam: (team) => unawaited(TeamScreen.open(context, team)),
               ),
       ),

@@ -176,18 +176,17 @@ class ChatMessage extends StatelessWidget {
     _effectiveInputStore.updateNotification(L10n.current.chatMessageCopied);
   }
 
-  /// A moderator may delete this message: one sent in this chat (not from
-  /// another channel of a shared chat), not by the broadcaster, and not by
-  /// another moderator unless the viewer is the broadcaster.
   bool get _canPin {
     final source = ircMessage.tags['source-room-id'];
-    return chatStore.canModerate &&
-        chatStore.canPinMessages &&
+    return chatStore.canPinMessages &&
         ircMessage.command == Command.privateMessage &&
         ircMessage.tags['id'] != null &&
         (source == null || source == chatStore.channelId);
   }
 
+  /// A moderator may delete this message: one sent in this chat (not from
+  /// another channel of a shared chat), not by the broadcaster, and not by
+  /// another moderator unless the viewer is the broadcaster.
   bool get _canDelete {
     final source = ircMessage.tags['source-room-id'];
     return chatStore.canModerate &&

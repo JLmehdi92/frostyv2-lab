@@ -1,11 +1,13 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
-import 'package:onset/models/channel_profile.dart';
+import 'package:onset/l10n/app_localizations.dart';
+import 'package:onset/screens/channel/video/create_clip_sheet.dart';
 
 import '../fixtures/clip_eligibility_payloads.dart';
 
@@ -117,15 +119,26 @@ void main() {
     });
   });
 
-  test('the profile reads the DJ role seen live', () {
-    final profile = ChannelProfile.fromGql(djProfileUser)!;
-    expect(profile.isParticipatingDj, isTrue);
+  test('a following-length refusal without minutes keeps its own reason', () {
+    final refusal = ClipEligibilityRefusal.fromGql({
+      'canCreateClip': {
+        'isAllowed': false,
+        'errorCode': 'FOLLOWING_LENGTH_REQUIREMENT_NOT_MET',
+        'requiredFollowingLengthMinutes': 0,
+      },
+    })!;
+    expect(refusal.reason, ClipIneligibility.followingTooShort);
+    expect(refusal.requiredFollowMinutes, isNull);
+  });
+
+  test('the sheet names a too-recent follow without minutes on its own', () {
+    final l = lookupAppLocalizations(const Locale('en'));
     expect(
-      ChannelProfile.fromGql({
-        ...djProfileUser,
-        'roles': nonDjRoles,
-      })!.isParticipatingDj,
-      isFalse,
+      clipRefusalMessage(
+        const ClipEligibilityRefusal(ClipIneligibility.followingTooShort),
+        l,
+      ),
+      'You haven’t followed this channel long enough to create a clip.',
     );
   });
 }

@@ -26,7 +26,7 @@ class TwitchChannelProfileService extends BaseApiClient {
       'query ChannelProfile(\$login: String!) { user(login: \$login) { id '
       'login displayName description createdAt profileImageURL(width: 300) '
       'bannerImageURL offlineImageURL primaryColorHex '
-      'roles { isPartner isAffiliate isParticipatingDJ } followers { totalCount } '
+      'roles { isPartner isAffiliate } followers { totalCount } '
       'channel { id socialMedias { name title url } } '
       'panels { id type ... on DefaultPanel { title imageURL linkURL '
       'description altText } } '
@@ -54,6 +54,31 @@ class TwitchChannelProfileService extends BaseApiClient {
     'SUSPENDED',
     'TEMPORARILY_RESTRICTED',
   };
+
+  static const _djRoleQuery =
+      'query ChannelDjRole(\$login: String!) { user(login: \$login) { id '
+      'roles { isParticipatingDJ } } }';
+
+  Future<bool> isParticipatingDj(String login) async {
+    if (!_login.hasMatch(login)) return false;
+    try {
+      final Object? body = await post<dynamic>(
+        _gqlUrl,
+        headers: {'Client-ID': kTwitchWebClientId},
+        data: {
+          'operationName': 'ChannelDjRole',
+          'query': _djRoleQuery,
+          'variables': {'login': login},
+        },
+      );
+      final data = body is Map ? body['data'] : null;
+      final user = data is Map ? data['user'] : null;
+      final roles = user is Map ? user['roles'] : null;
+      return roles is Map && roles['isParticipatingDJ'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<bool> isRestricted(String channelId) async {
     if (!_channelId.hasMatch(channelId)) return false;

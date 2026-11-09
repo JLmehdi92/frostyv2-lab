@@ -40,12 +40,14 @@ class ProfileAboutContent extends StatelessWidget {
     required this.onOpenLink,
     this.teams = const [],
     this.onOpenTeam,
+    this.isParticipatingDj = false,
   });
 
   final ChannelProfile profile;
   final ValueChanged<String> onOpenLink;
   final List<Team> teams;
   final ValueChanged<Team>? onOpenTeam;
+  final bool isParticipatingDj;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +62,7 @@ class ProfileAboutContent extends StatelessWidget {
       if (joined != null) l.profileJoined(date: joined),
       if (profile.role == BroadcasterRole.partner) l.profilePartner,
       if (profile.role == BroadcasterRole.affiliate) l.profileAffiliate,
-      if (profile.isParticipatingDj) l.profileDjBadge,
+      if (isParticipatingDj) l.profileDjBadge,
     ];
     final noBio = description == null || description.isEmpty;
 

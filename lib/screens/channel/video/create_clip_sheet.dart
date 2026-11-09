@@ -38,9 +38,7 @@ String clipRefusalMessage(ClipEligibilityRefusal refusal, AppLocalizations l) =>
           duration: followAgeLength(Duration(minutes: minutes), l),
         ),
       ClipEligibilityRefusal(:final reason) => l.clipCreateIneligible(
-        reason: reason == ClipIneligibility.followingTooShort
-            ? ClipIneligibility.notFollowing.name
-            : reason.name,
+        reason: reason.name,
       ),
     };
 

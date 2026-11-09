@@ -174,4 +174,31 @@ void main() {
     expect(store.trailer, isNull);
     expect(store.teams, isEmpty);
   });
+
+  test(
+    'the profile loads when the DJ query fails, and the flag stays off',
+    () async {
+      when(() => service.getProfile(any())).thenAnswer((_) async => _profile);
+      when(() => service.getTrailer(any())).thenAnswer((_) async => null);
+      when(
+        () => service.isParticipatingDj(any()),
+      ).thenAnswer((_) async => throw StateError('schema changed'));
+      final store = create();
+      await store.load();
+      expect(store.profile, same(_profile));
+      expect(store.error, isNull);
+      expect(store.isParticipatingDj, isFalse);
+    },
+  );
+
+  test('the DJ flag comes from its own query', () async {
+    when(() => service.getProfile(any())).thenAnswer((_) async => _profile);
+    when(() => service.getTrailer(any())).thenAnswer((_) async => null);
+    when(
+      () => service.isParticipatingDj('streamer'),
+    ).thenAnswer((_) async => true);
+    final store = create();
+    await store.load();
+    expect(store.isParticipatingDj, isTrue);
+  });
 }

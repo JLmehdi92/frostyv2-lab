@@ -25,10 +25,17 @@ Map<String, Object?> canCreateClipRefused(String code) => {
   },
 };
 
-const djProfileUser = <String, Object?>{
-  'id': '1',
-  'login': 'djchannel',
-  'roles': {'isParticipatingDJ': true},
+const djRoleLive = {
+  'data': {
+    'user': {
+      'id': '594263972',
+      'roles': {'isParticipatingDJ': true},
+    },
+  },
 };
 
-const nonDjRoles = {'isParticipatingDJ': false};
+const djRoleRejected = {
+  'errors': [
+    {'message': 'Cannot query field "isParticipatingDJ" on type "Roles".'},
+  ],
+};

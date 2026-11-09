@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/widgets/lead_mod_confirm.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_about_tab.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
@@ -14,7 +18,6 @@ const _djProfile = ChannelProfile(
   displayName: 'DjChannel',
   description: 'Sets tous les soirs.',
   role: BroadcasterRole.affiliate,
-  isParticipatingDj: true,
   followers: 12400,
 );
 
@@ -22,7 +25,11 @@ Widget lot9bScreen(String name) => Scaffold(
   body: SingleChildScrollView(
     padding: const EdgeInsets.all(16),
     child: name == 'dj about'
-        ? ProfileAboutContent(profile: _djProfile, onOpenLink: (_) {})
+        ? ProfileAboutContent(
+            profile: _djProfile,
+            onOpenLink: (_) {},
+            isParticipatingDj: true,
+          )
         : Builder(
             builder: (context) => SheetRow(
               glyph: SheetGlyphKind.pin,
@@ -33,7 +40,12 @@ Widget lot9bScreen(String name) => Scaffold(
   ),
 );
 
-const lot9bScreenNames = ['dj about', 'pin row'];
+const lot9bScreenNames = [
+  'dj about',
+  'pin row',
+  'lead mod add',
+  'lead mod remove',
+];
 
 void main() {
   for (final (sizeName, size) in frenchScreenSizes) {
@@ -47,6 +59,16 @@ void main() {
             textScale: scale,
           );
           await tester.pump();
+          if (name.startsWith('lead mod')) {
+            unawaited(
+              confirmLeadModerator(
+                tester.element(find.byType(Scaffold)),
+                LeadModCommand('kai', granted: name.endsWith('add')),
+              ),
+            );
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 400));
+          }
           if (name == 'dj about') {
             expect(
               find.textContaining('DJ officiel de Twitch'),
@@ -56,7 +78,7 @@ void main() {
           await expectFrenchThroughout(
             tester,
             '$name, $sizeName, ×$scale',
-            content: const ['DjChannel', 'Sets tous les soirs.'],
+            content: const ['DjChannel', 'Sets tous les soirs.', 'kai'],
           );
         });
       }

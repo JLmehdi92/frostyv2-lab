@@ -6,6 +6,7 @@ import 'package:onset/apis/twitch_mod_api.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/moderation.dart';
 import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
 import 'package:onset/screens/channel/chat/mod_tools/stores/mod_tools_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
@@ -112,6 +113,38 @@ void main() {
       line.actionCallback!();
       async.flushMicrotasks();
       expect(requested, [ModToolsView.moderators]);
+      finish(store, async);
+    });
+  });
+
+  test('/leadmod asks first, names the user, and stops when declined', () {
+    fakeAsync((async) {
+      final api = MockTwitchApi();
+      when(() => api.getTokenScopes()).thenAnswer((_) async => {});
+      final store = createTestChatStore(
+        settings: settings,
+        sockets: sockets,
+        api: api,
+        user: owner(),
+      );
+      final asked = <LeadModCommand>[];
+      store.confirmLeadModerator = (command) async {
+        asked.add(command);
+        return false;
+      };
+      async.flushMicrotasks();
+      store.textController.text = '/leadmod kai';
+      store.sendMessage('/leadmod kai');
+      async.flushMicrotasks();
+      expect(asked.single.login, 'kai');
+      expect(asked.single.granted, isTrue);
+      verifyNever(() => api.getUser(userLogin: any(named: 'userLogin')));
+      expect(store.textController.text, '/leadmod kai');
+
+      store.confirmLeadModerator = null;
+      store.sendMessage('/unleadmod kai');
+      async.flushMicrotasks();
+      verifyNever(() => api.getUser(userLogin: any(named: 'userLogin')));
       finish(store, async);
     });
   });

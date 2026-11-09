@@ -6211,14 +6211,32 @@ abstract class AppLocalizations {
   /// Why Twitch won't let the viewer clip this channel, checked before the clip is requested.
   ///
   /// In en, this message translates to:
-  /// **'{reason, select, notSubscribed{Subscribe to this channel to create a clip.} notFollowing{Follow this channel to create a clip.} djCategory{In the DJs category, only channels in the Twitch DJ program can be clipped.} participatingDj{DJ channels can’t be clipped.} other{You can’t clip this channel.}}'**
+  /// **'{reason, select, notSubscribed{Subscribe to this channel to create a clip.} notFollowing{Follow this channel to create a clip.} followingTooShort{You haven’t followed this channel long enough to create a clip.} djCategory{In the DJs category, only channels in the Twitch DJ program can be clipped.} participatingDj{Channels in the Twitch DJ program can’t be clipped.} other{You can’t clip this channel.}}'**
   String clipCreateIneligible({required String reason});
 
   /// The channel only lets followers of a given age clip; duration is like “10 minutes”.
   ///
   /// In en, this message translates to:
-  /// **'Follow this channel for {duration} to create a clip.'**
+  /// **'You need to have followed this channel for at least {duration} to create a clip.'**
   String clipCreateFollowLength({required String duration});
+
+  /// Asked before /leadmod or /unleadmod runs; name is the login typed.
+  ///
+  /// In en, this message translates to:
+  /// **'{change, select, add{Make {name} a lead moderator?} other{Remove {name} as a lead moderator?}}'**
+  String leadModConfirmTitle({required String change, required String name});
+
+  /// The body of the lead moderator confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This changes the role on your Twitch channel.'**
+  String get leadModConfirmBody;
+
+  /// The confirm button of the lead moderator confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'{change, select, add{Add} other{Remove}}'**
+  String leadModConfirmAction({required String change});
 
   /// A fact on a channel's About tab when the channel takes part in the Twitch DJ program.
   ///

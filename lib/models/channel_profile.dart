@@ -206,7 +206,6 @@ class ChannelProfile {
     this.offlineImageUrl,
     this.accentColor,
     this.role = BroadcasterRole.none,
-    this.isParticipatingDj = false,
     this.followers,
     this.socials = const [],
     this.panels = const [],
@@ -226,7 +225,6 @@ class ChannelProfile {
   /// 0xFFRRGGBB.
   final int? accentColor;
   final BroadcasterRole role;
-  final bool isParticipatingDj;
   final int? followers;
   final List<SocialLink> socials;
   final List<ChannelPanel> panels;
@@ -263,7 +261,6 @@ class ChannelProfile {
           : roles?['isAffiliate'] == true
           ? BroadcasterRole.affiliate
           : BroadcasterRole.none,
-      isParticipatingDj: roles?['isParticipatingDJ'] == true,
       followers: chInt(chMap(map['followers'])?['totalCount']),
       socials: [
         for (final item in chList(channel?['socialMedias']))

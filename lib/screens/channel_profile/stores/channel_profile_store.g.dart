@@ -224,6 +224,26 @@ mixin _$ChannelProfileStore on ChannelProfileStoreBase, Store {
     });
   }
 
+  late final _$_isParticipatingDjAtom = Atom(
+    name: 'ChannelProfileStoreBase._isParticipatingDj',
+    context: context,
+  );
+
+  bool get isParticipatingDj {
+    _$_isParticipatingDjAtom.reportRead();
+    return super._isParticipatingDj;
+  }
+
+  @override
+  bool get _isParticipatingDj => isParticipatingDj;
+
+  @override
+  set _isParticipatingDj(bool value) {
+    _$_isParticipatingDjAtom.reportWrite(value, super._isParticipatingDj, () {
+      super._isParticipatingDj = value;
+    });
+  }
+
   late final _$_scheduleAtom = Atom(
     name: 'ChannelProfileStoreBase._schedule',
     context: context,

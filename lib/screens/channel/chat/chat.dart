@@ -16,6 +16,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
+import 'package:onset/screens/channel/chat/widgets/lead_mod_confirm.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/screens/channel/chat/widgets/shared_chat_banner.dart';
 import 'package:onset/screens/channel/chat/widgets/shoutout_card.dart';
@@ -215,6 +216,8 @@ class _ChatState extends State<Chat> {
   }
 
   void _listenUserCards() {
+    chatStore.confirmLeadModerator = (command) =>
+        mounted ? confirmLeadModerator(context, command) : Future.value(false);
     _userCards?.cancel();
     _userCards = chatStore.userCardRequests.listen((user) {
       if (!mounted) return;

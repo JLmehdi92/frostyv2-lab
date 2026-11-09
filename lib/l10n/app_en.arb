@@ -5241,7 +5241,7 @@
   "@clipCreateFailedNotClippable": {
     "description": "Error message. Create clip sheet, failed: the channel forbids clips of the current category."
   },
-  "clipCreateIneligible": "{reason, select, notSubscribed{Subscribe to this channel to create a clip.} notFollowing{Follow this channel to create a clip.} djCategory{In the DJs category, only channels in the Twitch DJ program can be clipped.} participatingDj{DJ channels can’t be clipped.} other{You can’t clip this channel.}}",
+  "clipCreateIneligible": "{reason, select, notSubscribed{Subscribe to this channel to create a clip.} notFollowing{Follow this channel to create a clip.} followingTooShort{You haven’t followed this channel long enough to create a clip.} djCategory{In the DJs category, only channels in the Twitch DJ program can be clipped.} participatingDj{Channels in the Twitch DJ program can’t be clipped.} other{You can’t clip this channel.}}",
   "@clipCreateIneligible": {
     "description": "Why Twitch won't let the viewer clip this channel, checked before the clip is requested.",
     "placeholders": {
@@ -5251,13 +5251,41 @@
       }
     }
   },
-  "clipCreateFollowLength": "Follow this channel for {duration} to create a clip.",
+  "clipCreateFollowLength": "You need to have followed this channel for at least {duration} to create a clip.",
   "@clipCreateFollowLength": {
     "description": "The channel only lets followers of a given age clip; duration is like “10 minutes”.",
     "placeholders": {
       "duration": {
         "type": "String",
         "example": "10 minutes"
+      }
+    }
+  },
+  "leadModConfirmTitle": "{change, select, add{Make {name} a lead moderator?} other{Remove {name} as a lead moderator?}}",
+  "@leadModConfirmTitle": {
+    "description": "Asked before /leadmod or /unleadmod runs; name is the login typed.",
+    "placeholders": {
+      "change": {
+        "type": "String",
+        "example": "add"
+      },
+      "name": {
+        "type": "String",
+        "example": "kai"
+      }
+    }
+  },
+  "leadModConfirmBody": "This changes the role on your Twitch channel.",
+  "@leadModConfirmBody": {
+    "description": "The body of the lead moderator confirmation."
+  },
+  "leadModConfirmAction": "{change, select, add{Add} other{Remove}}",
+  "@leadModConfirmAction": {
+    "description": "The confirm button of the lead moderator confirmation.",
+    "placeholders": {
+      "change": {
+        "type": "String",
+        "example": "add"
       }
     }
   },

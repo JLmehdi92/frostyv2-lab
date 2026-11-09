@@ -75,6 +75,9 @@ abstract class ChannelProfileStoreBase with Store {
   Object? _error;
 
   @readonly
+  var _isParticipatingDj = false;
+
+  @readonly
   ChannelSchedule? _schedule;
 
   @readonly
@@ -142,7 +145,7 @@ abstract class ChannelProfileStoreBase with Store {
 
   Future<void> _loadExtras(String userId) async {
     final teamsOf = this.teamsOf;
-    final (trailer, teams, collections) = await (
+    final (trailer, teams, collections, dj) = await (
       Future(() => profileService.getTrailer(login)).then<ChannelTrailer?>(
         (trailer) => trailer,
         onError: (Object e) {
@@ -160,12 +163,16 @@ abstract class ChannelProfileStoreBase with Store {
         },
       ),
       _loadCollections(userId),
+      Future(
+        () => profileService.isParticipatingDj(login),
+      ).then<bool>((dj) => dj, onError: (Object e) => false),
     ).wait;
     if (_disposed) return;
     runInAction(() {
       _trailer = trailer;
       _teams = teams;
       _collections = collections;
+      _isParticipatingDj = dj;
     });
   }
 
