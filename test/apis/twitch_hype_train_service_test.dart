@@ -11,6 +11,7 @@ import 'package:onset/models/hype_train.dart';
 import '../fixtures/hype_train_gql.dart';
 import '../fixtures/hype_train_payloads.dart';
 import '../fixtures/hype_train_payloads_tbc.dart';
+import '../fixtures/pinata_payloads.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
 
@@ -370,5 +371,23 @@ void main() {
         reason: bad,
       );
     }
+  });
+
+  group('getOngoingPinata', () {
+    test('reads the piñata with the official document', () async {
+      reply(pinataResponse());
+
+      final pinata = await service.getOngoingPinata('1000');
+
+      expect(pinata!.stage, 2);
+      expect(lastBody()['operationName'], 'GetOngoingPinata');
+      expect(lastBody()['variables'], {'channelID': '1000'});
+    });
+
+    test('a failure or a bad id is no piñata', () async {
+      reply(noPinataResponse);
+      expect(await service.getOngoingPinata('1000'), isNull);
+      expect(await service.getOngoingPinata('nope'), isNull);
+    });
   });
 }

@@ -4,10 +4,12 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/models/hype_train_event.dart';
+import 'package:onset/models/pinata.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_sheet.dart';
 import 'package:onset/theme.dart';
 
+import '../../../../fixtures/pinata_payloads.dart';
 import '../hype_train_test_data.dart';
 import 'hype_train_widget_harness.dart';
 
@@ -467,5 +469,33 @@ void main() {
       );
       await h.close(tester);
     });
+  });
+
+  testWidgets('a piñata train explains itself and the viewer share', (
+    tester,
+  ) async {
+    final h = harnessFor(liveTrain());
+    when(
+      () => h.service.getOngoingPinata(any()),
+    ).thenAnswer((_) async => PinataState.fromBody(pinataResponse()));
+    await pumpSheet(tester, h.store);
+    await tester.pump();
+
+    expect(find.text('Piñata train'), findsOneWidget);
+    expect(find.text('Damage stage 2'), findsOneWidget);
+    expect(
+      find.text('You’ll share the rewards when it breaks.'),
+      findsOneWidget,
+    );
+    await h.close(tester);
+  });
+
+  testWidgets('no piñata section on another train', (tester) async {
+    final h = harnessFor(liveTrain());
+    when(() => h.service.getOngoingPinata(any())).thenAnswer((_) async => null);
+    await pumpSheet(tester, h.store);
+
+    expect(find.text('Piñata train'), findsNothing);
+    await h.close(tester);
   });
 }

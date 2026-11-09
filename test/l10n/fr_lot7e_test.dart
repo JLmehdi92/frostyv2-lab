@@ -3,12 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/legendary_collection.dart';
+import 'package:onset/models/pinata.dart';
 import 'package:onset/models/unlockable_emote.dart';
 import 'package:onset/models/weekly_rewards.dart';
 import 'package:onset/screens/channel/chat/widgets/prediction_dialogs.dart';
 import 'package:onset/screens/channel/chat/widgets/viewer_rewards.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_sheet.dart';
 
 import '../fixtures/legendary_payloads.dart';
+import '../fixtures/pinata_payloads.dart';
 import '../fixtures/weekly_rewards_payloads.dart';
 import '../helpers/l10n.dart';
 
@@ -150,6 +153,25 @@ void main() {
           content: const ['Winter Chests'],
         );
       });
+
+      for (final eligible in [true, false]) {
+        testWidgets('the piñata, eligible $eligible, $at', (tester) async {
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: PinataDetails(
+                load: () async =>
+                    PinataState.fromBody(pinataResponse(eligible: eligible)),
+              ),
+            ),
+            size: size,
+            textScale: scale,
+          );
+          await tester.pump();
+          expect(find.text(french.pinataTitle), findsOneWidget);
+          await expectFrenchThroughout(tester, 'piñata $eligible, $at');
+        });
+      }
 
       testWidgets('the moderator step, $at', (tester) async {
         await pumpLocalized(

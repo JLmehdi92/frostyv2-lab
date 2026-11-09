@@ -9257,4 +9257,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String hypeChestsMissing({required String name}) {
     return '$name, pas encore obtenue';
   }
+
+  @override
+  String get pinataTitle => 'Train piñata';
+
+  @override
+  String get pinataBody =>
+      'Chaque contribution fissure un peu plus la piñata. Quand elle se brise, elle fait pleuvoir des récompenses sur les participants.';
+
+  @override
+  String pinataStage({required int stage}) {
+    return 'Niveau de dégâts $stage';
+  }
+
+  @override
+  String pinataEligible({required String eligible}) {
+    String _temp0 = intl.Intl.selectLogic(eligible, {
+      'yes': 'Vous recevrez une part des récompenses quand elle se brisera.',
+      'other':
+          'Contribuez pour recevoir une part des récompenses quand elle se brisera.',
+    });
+    return '$_temp0';
+  }
 }

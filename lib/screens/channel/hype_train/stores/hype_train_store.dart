@@ -7,6 +7,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/models/hype_train_event.dart';
+import 'package:onset/models/pinata.dart';
 import 'package:onset/screens/channel/hype_train/hype_train_clock.dart';
 import 'package:onset/screens/channel/hype_train/hype_train_math.dart' as htm;
 import 'package:onset/screens/channel/hype_train/hype_train_queue.dart';
@@ -307,6 +308,23 @@ abstract class HypeTrainStoreBase with Store {
       _upcoming = _service.getUpcomingRewards(channelId);
     }
     return _upcoming!;
+  }
+
+  String? _pinataFor;
+  Future<PinataState?>? _pinata;
+
+  Future<PinataState?> loadPinata() {
+    final id = _train?.id;
+    if (id == null) return Future.value();
+    if (_pinataFor != id || _pinata == null) {
+      _pinataFor = id;
+      try {
+        _pinata = _service.getOngoingPinata(channelId);
+      } on Object {
+        _pinata = Future.value();
+      }
+    }
+    return _pinata!;
   }
 
   @visibleForTesting

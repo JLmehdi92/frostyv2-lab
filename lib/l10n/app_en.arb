@@ -11684,5 +11684,33 @@
         "example": "chanHi"
       }
     }
+  },
+  "pinataTitle": "Piñata train",
+  "@pinataTitle": {
+    "description": "Title of the piñata section in the hype train details."
+  },
+  "pinataBody": "Every contribution cracks the piñata a little more. When it breaks, it showers rewards on the people who took part.",
+  "@pinataBody": {
+    "description": "What a piñata hype train is."
+  },
+  "pinataStage": "Damage stage {stage}",
+  "@pinataStage": {
+    "description": "How cracked the piñata is.",
+    "placeholders": {
+      "stage": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "pinataEligible": "{eligible, select, yes{You’ll share the rewards when it breaks.} other{Contribute to share the rewards when it breaks.}}",
+  "@pinataEligible": {
+    "description": "Whether the viewer will get piñata rewards. eligible is yes or no.",
+    "placeholders": {
+      "eligible": {
+        "type": "String",
+        "example": "yes"
+      }
+    }
   }
 }

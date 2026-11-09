@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/pinata.dart';
 
 /// A GQL error answered for a hype train request.
 class HypeTrainApiException extends ApiException {
@@ -217,6 +218,23 @@ class TwitchHypeTrainService extends BaseApiClient {
       return [for (final level in levels) (level, byLevel[level]!)];
     } on Object {
       return const [];
+    }
+  }
+
+  static const _pinataQuery =
+      'query GetOngoingPinata(\$channelID: ID!) { user(id: \$channelID) { id '
+      'channel { id hypeTrain { execution { id isActive endedAt expiresAt '
+      'variantTrainDetails { __typename ... on PinataTrainDetails { id '
+      'deteriorationStage } } self { isEligibleForRewards } } } } } }';
+
+  Future<PinataState?> getOngoingPinata(String channelId) async {
+    try {
+      final data = await _gql('GetOngoingPinata', _pinataQuery, {
+        'channelID': normalizeChannelId(channelId),
+      });
+      return PinataState.fromBody({'data': data});
+    } on Object {
+      return null;
     }
   }
 

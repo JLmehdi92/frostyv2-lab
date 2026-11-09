@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/pinata.dart';
 import 'package:onset/screens/channel/hype_train/hype_train_math.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart';
@@ -153,6 +154,10 @@ class HypeTrainSheet extends StatelessWidget {
                   ),
                 ),
               ],
+              PinataDetails(
+                key: ValueKey('ht-pinata-${train.id}'),
+                load: store.loadPinata,
+              ),
               _padded(
                 top: HtDims.margin,
                 child: _UpcomingRewards(
@@ -716,6 +721,58 @@ class _ApproachingDetails extends StatelessWidget {
               color: palette.fill,
               backgroundColor: palette.barTrack,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PinataDetails extends StatefulWidget {
+  const PinataDetails({super.key, required this.load});
+
+  final Future<PinataState?> Function() load;
+
+  @override
+  State<PinataDetails> createState() => _PinataDetailsState();
+}
+
+class _PinataDetailsState extends State<PinataDetails> {
+  PinataState? _pinata;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.load().then((pinata) {
+      if (mounted) setState(() => _pinata = pinata);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pinata = _pinata;
+    if (pinata == null) return const SizedBox.shrink();
+    final l = context.l10n;
+    final neutrals = HtNeutrals.of(Theme.of(context).brightness);
+    final body = HtType.bodySmall.copyWith(color: neutrals.textBase);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, HtDims.margin, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: HtDims.marginHalf,
+        children: [
+          Semantics(
+            header: true,
+            child: Text(
+              l.pinataTitle,
+              style: HtType.header.copyWith(color: neutrals.textBase),
+            ),
+          ),
+          Text(l.pinataStage(stage: pinata.stage), style: body),
+          Text(l.pinataBody, style: body),
+          Text(
+            l.pinataEligible(eligible: pinata.eligibility.name),
+            style: body,
           ),
         ],
       ),

@@ -12052,6 +12052,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}, not collected yet'**
   String hypeChestsMissing({required String name});
+
+  /// Title of the piñata section in the hype train details.
+  ///
+  /// In en, this message translates to:
+  /// **'Piñata train'**
+  String get pinataTitle;
+
+  /// What a piñata hype train is.
+  ///
+  /// In en, this message translates to:
+  /// **'Every contribution cracks the piñata a little more. When it breaks, it showers rewards on the people who took part.'**
+  String get pinataBody;
+
+  /// How cracked the piñata is.
+  ///
+  /// In en, this message translates to:
+  /// **'Damage stage {stage}'**
+  String pinataStage({required int stage});
+
+  /// Whether the viewer will get piñata rewards. eligible is yes or no.
+  ///
+  /// In en, this message translates to:
+  /// **'{eligible, select, yes{You’ll share the rewards when it breaks.} other{Contribute to share the rewards when it breaks.}}'**
+  String pinataEligible({required String eligible});
 }
 
 class _AppLocalizationsDelegate

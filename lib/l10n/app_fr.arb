@@ -1963,5 +1963,9 @@
   "hypeChestsSeeCollection": "Voir la collection",
   "hypeChestsTier": "{tier, select, LEGENDARY{Légendaire} EPIC{Épique} RARE{Rare} UNCOMMON{Peu commune} COMMON{Commune} other{Autre}}",
   "hypeChestsOwned": "{name}, obtenue",
-  "hypeChestsMissing": "{name}, pas encore obtenue"
+  "hypeChestsMissing": "{name}, pas encore obtenue",
+  "pinataTitle": "Train piñata",
+  "pinataBody": "Chaque contribution fissure un peu plus la piñata. Quand elle se brise, elle fait pleuvoir des récompenses sur les participants.",
+  "pinataStage": "Niveau de dégâts {stage}",
+  "pinataEligible": "{eligible, select, yes{Vous recevrez une part des récompenses quand elle se brisera.} other{Contribuez pour recevoir une part des récompenses quand elle se brisera.}}"
 }
