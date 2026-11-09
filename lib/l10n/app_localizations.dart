@@ -7529,7 +7529,7 @@ abstract class AppLocalizations {
   /// What a chat command does, beside its usage in the input's suggestions. command is the command's name (never translated, nor are the lengths « 10m », « 30s » and their units « s, m, h, d, w, mo » that Twitch reads).
   ///
   /// In en, this message translates to:
-  /// **'{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} user{Open a user’s card} disconnect{Reconnect to chat} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} announce{Send an announcement} announceblue{Send a blue announcement} announcegreen{Send a green announcement} announceorange{Send an orange announcement} announcepurple{Send a purple announcement} shoutout{Give a shoutout to a channel} shield{Turn shield mode on} shieldoff{Turn shield mode off} monitor{Monitor a user’s messages} unmonitor{Stop monitoring a user} restrict{Restrict a user (only moderators see their messages)} unrestrict{Lift a user’s restriction} mods{List the moderators} vips{List the VIPs} mod{Make a user a moderator} unmod{Remove a moderator} vip{Make a user a VIP} unvip{Remove a VIP} marker{Add a stream marker} commercial{Run an ad break (30, 60, 90, 120, 150, or 180 seconds)} raid{Raid a channel} unraid{Cancel the raid} other{}}'**
+  /// **'{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} user{Open a user’s card} disconnect{Reconnect to chat} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} announce{Send an announcement} announceblue{Send a blue announcement} announcegreen{Send a green announcement} announceorange{Send an orange announcement} announcepurple{Send a purple announcement} shoutout{Give a shoutout to a channel} shield{Turn shield mode on} shieldoff{Turn shield mode off} monitor{Monitor a user’s messages} unmonitor{Stop monitoring a user} restrict{Restrict a user (only moderators see their messages)} unrestrict{Lift a user’s restriction} mods{List the moderators} vips{List the VIPs} mod{Make a user a moderator} unmod{Remove a moderator} vip{Make a user a VIP} unvip{Remove a VIP} leadmod{Add a lead moderator} unleadmod{Remove a lead moderator} marker{Add a stream marker} commercial{Run an ad break (30, 60, 90, 120, 150, or 180 seconds)} raid{Raid a channel} unraid{Cancel the raid} other{}}'**
   String chatCommandDescription({required String command});
 
   /// A line in chat when a command is typed wrong: how to type it. usage is the command and its words (/ban <user> [reason]).
@@ -7732,10 +7732,10 @@ abstract class AppLocalizations {
   /// **'Preparing the raid on {name}.'**
   String chatModRaidStarted({required String name});
 
-  /// A chat line after /mod, /unmod, /vip or /unvip worked; name is the user's display name.
+  /// A chat line after /mod, /unmod, /vip, /unvip, /leadmod or /unleadmod worked; name is the user's display name.
   ///
   /// In en, this message translates to:
-  /// **'{change, select, moderatorAdded{{name} is now a moderator.} moderatorRemoved{{name} is no longer a moderator.} vipAdded{{name} is now a VIP.} vipRemoved{{name} is no longer a VIP.} other{{name}’s role changed.}}'**
+  /// **'{change, select, moderatorAdded{{name} is now a moderator.} moderatorRemoved{{name} is no longer a moderator.} vipAdded{{name} is now a VIP.} vipRemoved{{name} is no longer a VIP.} leadModeratorAdded{{name} is now a lead moderator.} leadModeratorRemoved{{name} is no longer a lead moderator.} other{{name}’s role changed.}}'**
   String chatModRoleChanged({required String change, required String name});
 
   /// The answer to /mods or /vips, and the empty list in the mod tools, when nobody has the role.
@@ -9021,6 +9021,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete message'**
   String get chatDeleteMessage;
+
+  /// A row of a message's options, for moderators: pins the message above chat for 20 minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin message'**
+  String get chatPinMessage;
+
+  /// A button on the pinned message card, for moderators.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get chatUnpinMessage;
+
+  /// A chat line after a moderator pinned or unpinned a message.
+  ///
+  /// In en, this message translates to:
+  /// **'{state, select, pinned{Message pinned for 20 minutes.} other{Message unpinned.}}'**
+  String chatModPinChanged({required String state});
 
   /// Above a viewer's first message in the channel, highlighted.
   ///

@@ -160,6 +160,8 @@ class Harness {
     void Function(String pinId)? onHidePin,
     PollVoter? pollVoter,
     RaidMembership? raidMembership,
+    PinRemover? pinRemover,
+    bool Function()? canRemovePins,
   }) => store = CommunityHighlightsStore(
     channelId: harnessChannel,
     service: service,
@@ -170,6 +172,8 @@ class Harness {
     onHidePin: onHidePin,
     pollVoter: pollVoter,
     raidMembership: raidMembership,
+    pinRemover: pinRemover,
+    canRemovePins: canRemovePins,
   );
 
   void send(HighlightTopic topic, String payload) =>

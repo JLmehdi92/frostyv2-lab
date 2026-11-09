@@ -119,6 +119,7 @@ Widget buildHighlightCard(
           pin: pin,
           card: cardFor(context),
           message: pinnedMessage?.call(context, pin),
+          onUnpin: store.canUnpin ? () => unawaited(store.unpin()) : null,
         ),
         null => const SizedBox.shrink(),
       },

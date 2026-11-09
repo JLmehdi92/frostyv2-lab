@@ -5373,6 +5373,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'unmod': 'Remove a moderator',
       'vip': 'Make a user a VIP',
       'unvip': 'Remove a VIP',
+      'leadmod': 'Add a lead moderator',
+      'unleadmod': 'Remove a lead moderator',
       'marker': 'Add a stream marker',
       'commercial': 'Run an ad break (30, 60, 90, 120, 150, or 180 seconds)',
       'raid': 'Raid a channel',
@@ -5703,6 +5705,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'moderatorRemoved': '$name is no longer a moderator.',
       'vipAdded': '$name is now a VIP.',
       'vipRemoved': '$name is no longer a VIP.',
+      'leadModeratorAdded': '$name is now a lead moderator.',
+      'leadModeratorRemoved': '$name is no longer a lead moderator.',
       'other': '$name’s role changed.',
     });
     return '$_temp0';
@@ -6758,6 +6762,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatDeleteMessage => 'Delete message';
+
+  @override
+  String get chatPinMessage => 'Pin message';
+
+  @override
+  String get chatUnpinMessage => 'Unpin';
+
+  @override
+  String chatModPinChanged({required String state}) {
+    String _temp0 = intl.Intl.selectLogic(state, {
+      'pinned': 'Message pinned for 20 minutes.',
+      'other': 'Message unpinned.',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get chatFirstMessage => 'First message';

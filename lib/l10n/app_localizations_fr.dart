@@ -5445,6 +5445,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'unmod': 'Retirer le rôle de modérateur',
       'vip': 'Attribuer le statut VIP',
       'unvip': 'Retirer le statut VIP',
+      'leadmod': 'Nommer un modérateur principal',
+      'unleadmod': 'Retirer un modérateur principal',
       'marker': 'Ajouter un repère au live',
       'commercial':
           'Lancer une publicité (30, 60, 90, 120, 150 ou 180 secondes)',
@@ -5781,6 +5783,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'moderatorRemoved': 'Rôle de modérateur retiré : $name.',
       'vipAdded': 'Statut VIP attribué : $name.',
       'vipRemoved': 'Statut VIP retiré : $name.',
+      'leadModeratorAdded': 'Rôle de modérateur principal attribué : $name.',
+      'leadModeratorRemoved': 'Rôle de modérateur principal retiré : $name.',
       'other': 'Rôle modifié : $name.',
     });
     return '$_temp0';
@@ -6855,6 +6859,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatDeleteMessage => 'Supprimer le message';
+
+  @override
+  String get chatPinMessage => 'Épingler le message';
+
+  @override
+  String get chatUnpinMessage => 'Désépingler';
+
+  @override
+  String chatModPinChanged({required String state}) {
+    String _temp0 = intl.Intl.selectLogic(state, {
+      'pinned': 'Message épinglé pendant 20 minutes.',
+      'other': 'Message désépinglé.',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get chatFirstMessage => 'Premier message';

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
@@ -16,13 +17,21 @@ const _line =
 void main() {
   setUpAll(() => registerFallbackValue(const DeleteMessageCommand('x')));
 
-  Future<MockChatStore> open(WidgetTester tester, {required bool mod}) async {
+  Future<MockChatStore> open(
+    WidgetTester tester, {
+    required bool mod,
+    bool canPin = false,
+  }) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     captureClipboard(tester);
     final store = fakeChatStore();
     when(() => store.canModerate).thenReturn(mod);
+    when(() => store.canPinMessages).thenReturn(canPin);
+    when(
+      () => store.pinMessage(any()),
+    ).thenAnswer((_) async => ViewerActionOutcome.done);
     when(
       () => store.moderate(any(), userId: any(named: 'userId')),
     ).thenAnswer((_) async => (ok: true, message: 'Message deleted.'));
@@ -64,5 +73,22 @@ void main() {
             as DeleteMessageCommand;
     expect(command.messageId, 'msg-1');
     expect(find.byType(BottomSheet), findsNothing);
+  });
+
+  testWidgets('a moderator with a web session pins the message', (
+    tester,
+  ) async {
+    final store = await open(tester, mod: true, canPin: true);
+    await tester.tap(find.widgetWithText(SheetRow, 'Pin message'));
+    await tester.pumpAndSettle();
+    verify(() => store.pinMessage('msg-1')).called(1);
+    expect(find.byType(BottomSheet), findsNothing);
+  });
+
+  testWidgets('no pin row without the web session or for viewers', (
+    tester,
+  ) async {
+    await open(tester, mod: true);
+    expect(find.text('Pin message'), findsNothing);
   });
 }

@@ -151,6 +151,13 @@ final class RoleCommand extends ModerationCommand {
   final bool granted;
 }
 
+final class LeadModCommand extends ModerationCommand {
+  const LeadModCommand(this.login, {required this.granted});
+
+  final String login;
+  final bool granted;
+}
+
 final class ShieldCommand extends ModerationCommand {
   const ShieldCommand({required this.on});
 
@@ -196,6 +203,7 @@ String? broadcasterOnlyName(ModerationCommand command) => switch (command) {
   RoleCommand(role: ChannelRole.moderator, granted: false) => 'unmod',
   RoleCommand(role: ChannelRole.vip, granted: true) => 'vip',
   RoleCommand(role: ChannelRole.vip, granted: false) => 'unvip',
+  LeadModCommand(:final granted) => granted ? 'leadmod' : 'unleadmod',
   MarkerCommand() => 'marker',
   CommercialCommand() => 'commercial',
   RaidCommand() => 'raid',
@@ -414,6 +422,8 @@ const kModeratorChatCommands = <ChatCommandInfo>[
   ChatCommandInfo('unmod', required: [ChatCommandArg.user]),
   ChatCommandInfo('vip', required: [ChatCommandArg.user]),
   ChatCommandInfo('unvip', required: [ChatCommandArg.user]),
+  ChatCommandInfo('leadmod', required: [ChatCommandArg.user]),
+  ChatCommandInfo('unleadmod', required: [ChatCommandArg.user]),
   ChatCommandInfo('marker', optional: [ChatCommandArg.description]),
   ChatCommandInfo('commercial', optional: [ChatCommandArg.seconds]),
   ChatCommandInfo('raid', required: [ChatCommandArg.channel]),
@@ -532,6 +542,10 @@ ChatCommand? _parseChannelCommand(String name, List<String> args) {
         name.endsWith('mod') ? ChannelRole.moderator : ChannelRole.vip,
         granted: !name.startsWith('un'),
       );
+    case 'leadmod' || 'unleadmod':
+      final login = onlyLogin();
+      if (login == null) return _usage(name);
+      return LeadModCommand(login, granted: name == 'leadmod');
     case 'shield' || 'shieldoff':
       if (args.isNotEmpty) return _usage(name);
       return ShieldCommand(on: name == 'shield');

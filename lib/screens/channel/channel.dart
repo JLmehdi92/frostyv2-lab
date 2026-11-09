@@ -342,6 +342,7 @@ class _VideoChatState extends State<VideoChat>
           listenEvents: context.read<TwitchEventSubClient>().listen,
           chatRulesService: context.read<TwitchChatRulesService>(),
           chatHistoryService: context.read<TwitchChatHistoryService?>(),
+          viewerActionsService: context.read<TwitchViewerActionsService?>(),
           primaryChannelId: widget.userId,
           primaryChannelLogin: widget.userLogin,
           primaryDisplayName: widget.userName,
@@ -470,6 +471,10 @@ class _VideoChatState extends State<VideoChat>
         onHidePin: context.settingsStore.hidePinnedChat,
         pollVoter: _pollVoter(),
         raidMembership: _raidMembership(),
+        pinRemover: (pinId) async =>
+            await _primaryChatStore?.unpinMessage(pinId) ??
+            ViewerActionOutcome.failed,
+        canRemovePins: () => _primaryChatStore?.canPinMessages ?? false,
       );
       _newPins = _highlightsStore!.newPins.listen(_sayPinned);
       _giftBombFeed = feedGiftBombs(

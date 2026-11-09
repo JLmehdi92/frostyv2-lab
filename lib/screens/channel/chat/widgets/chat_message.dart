@@ -179,6 +179,15 @@ class ChatMessage extends StatelessWidget {
   /// A moderator may delete this message: one sent in this chat (not from
   /// another channel of a shared chat), not by the broadcaster, and not by
   /// another moderator unless the viewer is the broadcaster.
+  bool get _canPin {
+    final source = ircMessage.tags['source-room-id'];
+    return chatStore.canModerate &&
+        chatStore.canPinMessages &&
+        ircMessage.command == Command.privateMessage &&
+        ircMessage.tags['id'] != null &&
+        (source == null || source == chatStore.channelId);
+  }
+
   bool get _canDelete {
     final source = ircMessage.tags['source-room-id'];
     return chatStore.canModerate &&
@@ -334,6 +343,16 @@ class ChatMessage extends StatelessWidget {
                     title: outerContext.l10n.chatReportMessage,
                     url: url,
                   );
+                },
+              ),
+            if (_canPin)
+              SheetRow(
+                key: const ValueKey('pin-message'),
+                glyph: SheetGlyphKind.pin,
+                label: context.l10n.chatPinMessage,
+                onTap: () {
+                  Navigator.pop(context);
+                  chatStore.pinMessage(ircMessage.tags['id']!);
                 },
               ),
             if (_canDelete)

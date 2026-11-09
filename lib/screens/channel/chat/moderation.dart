@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_mod_api.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/api_errors.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
@@ -26,6 +27,18 @@ class _BroadcasterOnly implements Exception {
   final String command;
 }
 
+class _ViewerActionNotDone implements Exception {
+  const _ViewerActionNotDone(this.outcome);
+
+  final ViewerActionOutcome outcome;
+}
+
+typedef LeadModeratorSetter =
+    Future<ViewerActionOutcome> Function(
+      String userId, {
+      required bool granted,
+    });
+
 /// The login a moderation command named belongs to nobody.
 class _NoSuchUser extends NotFoundException {
   // The login in the message, so the failure's log names it.
@@ -41,11 +54,13 @@ class ChatModeration {
     required this.api,
     required this.broadcasterId,
     required this.moderatorId,
+    this.setLeadModerator,
   });
 
   final TwitchApi api;
   final String broadcasterId;
   final String moderatorId;
+  final LeadModeratorSetter? setLeadModerator;
 
   /// Runs [command] and says how it went. Never throws.
   ///
@@ -61,7 +76,9 @@ class ChatModeration {
       debugPrint('Moderation ${command.runtimeType} failed: $error');
       // A refusal or a network error is expected now and then; anything
       // else is a bug (or Twitch changed something).
-      if (error is! ApiException && error is! _BroadcasterOnly) {
+      if (error is! ApiException &&
+          error is! _BroadcasterOnly &&
+          error is! _ViewerActionNotDone) {
         Telemetry.recordError(
           error,
           stack,
@@ -126,6 +143,20 @@ class ChatModeration {
         );
         return l.chatModRoleChanged(
           change: '${role.name}${granted ? 'Added' : 'Removed'}',
+          name: user.name,
+        );
+      case LeadModCommand(:final login, :final granted):
+        final setter = setLeadModerator;
+        if (setter == null) {
+          throw const _ViewerActionNotDone(ViewerActionOutcome.signedOut);
+        }
+        final user = await target(login);
+        final outcome = await setter(user.id, granted: granted);
+        if (outcome != ViewerActionOutcome.done) {
+          throw _ViewerActionNotDone(outcome);
+        }
+        return l.chatModRoleChanged(
+          change: granted ? 'leadModeratorAdded' : 'leadModeratorRemoved',
           name: user.name,
         );
       case ShieldCommand(:final on):
@@ -284,6 +315,7 @@ String moderationCommand(ModerationCommand command) => switch (command) {
     granted ? 'mod' : 'unmod',
   RoleCommand(role: ChannelRole.vip, :final granted) =>
     granted ? 'vip' : 'unvip',
+  LeadModCommand(:final granted) => granted ? 'leadmod' : 'unleadmod',
   ShieldCommand(:final on) => on ? 'shieldOn' : 'shieldOff',
   MarkerCommand() => 'marker',
   CommercialCommand() => 'commercial',
@@ -318,6 +350,9 @@ String moderationFailure(Object error, String command) {
     // The login dialog shows too (the moderator scopes came with this app
     // version).
     UnauthorizedException() => l.chatModLogInAgain,
+    _ViewerActionNotDone(:final outcome) => l.viewerActionResult(
+      status: outcome.name,
+    ),
     _BroadcasterOnly(command: final typed) => l.chatModBroadcasterOnly(
       command: commandInChatLine(typed),
     ),

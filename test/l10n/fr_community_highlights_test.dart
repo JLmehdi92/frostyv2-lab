@@ -156,6 +156,8 @@ void main() {
       card: card(),
     ),
     'pinned': () => PinnedCard(pin: pin, card: card()),
+    'pinned, moderator': () =>
+        PinnedCard(pin: pin, card: card(), onUnpin: () {}),
     'pinned, timed': () => PinnedCard(
       pin: PinnedChatMessage(
         id: 'pin',

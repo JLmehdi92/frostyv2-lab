@@ -156,6 +156,89 @@ class TwitchViewerActionsService extends BaseApiClient {
     );
   }
 
+  static const _assignLeadModDocument =
+      'mutation AssignLeadModMutation(\$input: AssignChannelRoleInput!) { '
+      'assignChannelRole(input: \$input) { isAssigned error { code } } }';
+
+  static const _unassignLeadModDocument =
+      'mutation UnassignLeadModMutation(\$input: UnassignChannelRoleInput!) '
+      '{ unassignChannelRole(input: \$input) { isUnassigned error { code } } }';
+
+  static const _pinMessageDocument =
+      'mutation PinChatMessage(\$input: PinChatMessageInput!) { '
+      'pinChatMessage(input: \$input) { pinnedChatMessage { id '
+      'pinnedMessage { id } } error { code } } }';
+
+  static const _unpinMessageDocument =
+      'mutation unpinChatMessage(\$input: UnpinChatMessageInput!) { '
+      'unpinChatMessage(input: \$input) { unpinnedChatMessage { id '
+      'pinnedMessage { id } } error { code } } }';
+
+  static const modPinSeconds = 1200;
+
+  Future<ViewerActionOutcome> setLeadModerator({
+    required String channelId,
+    required String userId,
+    required bool granted,
+    required String authToken,
+  }) {
+    if (!_numericId.hasMatch(channelId) || !_numericId.hasMatch(userId)) {
+      return _failedAtOnce(authToken);
+    }
+    final field = granted ? 'assignChannelRole' : 'unassignChannelRole';
+    return _send(
+      operation: granted ? 'AssignLeadModMutation' : 'UnassignLeadModMutation',
+      document: granted ? _assignLeadModDocument : _unassignLeadModDocument,
+      field: field,
+      authToken: authToken,
+      input: {
+        'channelID': channelId,
+        'roleID': 'lead_mod',
+        'targetUserID': userId,
+      },
+      succeeded: (payload) =>
+          payload[granted ? 'isAssigned' : 'isUnassigned'] == true,
+    );
+  }
+
+  Future<ViewerActionOutcome> pinMessage({
+    required String channelId,
+    required String messageId,
+    required String authToken,
+  }) {
+    if (!_numericId.hasMatch(channelId) || !_opaqueId.hasMatch(messageId)) {
+      return _failedAtOnce(authToken);
+    }
+    return _send(
+      operation: 'PinChatMessage',
+      document: _pinMessageDocument,
+      field: 'pinChatMessage',
+      authToken: authToken,
+      input: {
+        'channelID': channelId,
+        'durationSeconds': modPinSeconds,
+        'messageID': messageId,
+        'type': 'MOD',
+      },
+      succeeded: (payload) => payload['pinnedChatMessage'] is Map,
+    );
+  }
+
+  Future<ViewerActionOutcome> unpinMessage({
+    required String pinId,
+    required String authToken,
+  }) {
+    if (!_opaqueId.hasMatch(pinId)) return _failedAtOnce(authToken);
+    return _send(
+      operation: 'unpinChatMessage',
+      document: _unpinMessageDocument,
+      field: 'unpinChatMessage',
+      authToken: authToken,
+      input: {'id': pinId, 'reason': 'UNPIN'},
+      succeeded: (payload) => payload['unpinnedChatMessage'] is Map,
+    );
+  }
+
   Future<ViewerActionOutcome> acknowledgeWarning({
     required String channelId,
     required String authToken,

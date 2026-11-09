@@ -369,6 +369,21 @@ void main() {
       );
       expect(find.text('rendered like chat'), findsOneWidget);
     });
+
+    testWidgets('a moderator gets Unpin under the message', (tester) async {
+      var unpinned = 0;
+      await pump(
+        tester,
+        PinnedCard(pin: pin, card: card(), onUnpin: () => unpinned++),
+      );
+      await tester.tap(find.text('Unpin'));
+      expect(unpinned, 1);
+    });
+
+    testWidgets('no Unpin for viewers', (tester) async {
+      await pump(tester, PinnedCard(pin: pin, card: card()));
+      expect(find.text('Unpin'), findsNothing);
+    });
   });
 
   testWidgets('large text fits a 360 dp phone', (tester) async {

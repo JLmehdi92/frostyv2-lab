@@ -25,6 +25,8 @@ typedef PollVoter =
       required String choiceId,
     });
 
+typedef PinRemover = Future<ViewerActionOutcome> Function(String pinId);
+
 typedef RaidMembership =
     Future<ViewerActionOutcome> Function(String raidId, {required bool join});
 
@@ -55,6 +57,8 @@ abstract class CommunityHighlightsStoreBase with Store {
     this.onHidePin,
     this.pollVoter,
     this.raidMembership,
+    this.pinRemover,
+    this.canRemovePins,
   }) : _service = service,
        serverClock = serverClock ?? ServerClock() {
     for (final topic in HighlightTopic.values) {
@@ -98,6 +102,29 @@ abstract class CommunityHighlightsStoreBase with Store {
   final PollVoter? pollVoter;
 
   final RaidMembership? raidMembership;
+
+  final PinRemover? pinRemover;
+
+  final bool Function()? canRemovePins;
+
+  var _unpinning = false;
+
+  bool get canUnpin =>
+      pinRemover != null && _pinned != null && (canRemovePins?.call() ?? false);
+
+  Future<ViewerActionOutcome?> unpin() async {
+    final remover = pinRemover;
+    final pin = _pinned;
+    if (_unpinning || remover == null || pin == null || !canUnpin) return null;
+    _unpinning = true;
+    try {
+      final outcome = await remover(pin.id);
+      if (outcome == ViewerActionOutcome.done) unawaited(_fetchPinned());
+      return outcome;
+    } finally {
+      _unpinning = false;
+    }
+  }
 
   final _newPins = StreamController<PinnedChatMessage>.broadcast();
 

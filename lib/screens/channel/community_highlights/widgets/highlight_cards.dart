@@ -527,11 +527,13 @@ class PinnedCard extends StatelessWidget {
     required this.pin,
     required this.card,
     this.message,
+    this.onUnpin,
   });
 
   final PinnedChatMessage pin;
   final HighlightCardContext card;
   final Widget? message;
+  final VoidCallback? onUnpin;
 
   @override
   Widget build(BuildContext context) {
@@ -597,7 +599,25 @@ class PinnedCard extends StatelessWidget {
                 child: message,
               ),
             ),
-      body: message ?? plain,
+      body: switch (onUnpin) {
+        final unpin? => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            message ?? plain,
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: TextButton.icon(
+                key: const ValueKey('unpin-message'),
+                onPressed: unpin,
+                icon: const SheetGlyph(SheetGlyphKind.pin, size: 16),
+                label: Text(context.l10n.chatUnpinMessage),
+              ),
+            ),
+          ],
+        ),
+        null => message ?? plain,
+      },
     );
   }
 

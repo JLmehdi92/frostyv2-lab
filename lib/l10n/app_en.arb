@@ -7004,7 +7004,7 @@
   "@chatCommandArgMessageId": {
     "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the id of the message to delete. French joins its words with no-break spaces, so the argument never breaks inside its brackets."
   },
-  "chatCommandDescription": "{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} user{Open a user’s card} disconnect{Reconnect to chat} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} announce{Send an announcement} announceblue{Send a blue announcement} announcegreen{Send a green announcement} announceorange{Send an orange announcement} announcepurple{Send a purple announcement} shoutout{Give a shoutout to a channel} shield{Turn shield mode on} shieldoff{Turn shield mode off} monitor{Monitor a user’s messages} unmonitor{Stop monitoring a user} restrict{Restrict a user (only moderators see their messages)} unrestrict{Lift a user’s restriction} mods{List the moderators} vips{List the VIPs} mod{Make a user a moderator} unmod{Remove a moderator} vip{Make a user a VIP} unvip{Remove a VIP} marker{Add a stream marker} commercial{Run an ad break (30, 60, 90, 120, 150, or 180 seconds)} raid{Raid a channel} unraid{Cancel the raid} other{}}",
+  "chatCommandDescription": "{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} user{Open a user’s card} disconnect{Reconnect to chat} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} announce{Send an announcement} announceblue{Send a blue announcement} announcegreen{Send a green announcement} announceorange{Send an orange announcement} announcepurple{Send a purple announcement} shoutout{Give a shoutout to a channel} shield{Turn shield mode on} shieldoff{Turn shield mode off} monitor{Monitor a user’s messages} unmonitor{Stop monitoring a user} restrict{Restrict a user (only moderators see their messages)} unrestrict{Lift a user’s restriction} mods{List the moderators} vips{List the VIPs} mod{Make a user a moderator} unmod{Remove a moderator} vip{Make a user a VIP} unvip{Remove a VIP} leadmod{Add a lead moderator} unleadmod{Remove a lead moderator} marker{Add a stream marker} commercial{Run an ad break (30, 60, 90, 120, 150, or 180 seconds)} raid{Raid a channel} unraid{Cancel the raid} other{}}",
   "@chatCommandDescription": {
     "description": "What a chat command does, beside its usage in the input's suggestions. command is the command's name (never translated, nor are the lengths « 10m », « 30s » and their units « s, m, h, d, w, mo » that Twitch reads).",
     "placeholders": {
@@ -7284,9 +7284,9 @@
       }
     }
   },
-  "chatModRoleChanged": "{change, select, moderatorAdded{{name} is now a moderator.} moderatorRemoved{{name} is no longer a moderator.} vipAdded{{name} is now a VIP.} vipRemoved{{name} is no longer a VIP.} other{{name}’s role changed.}}",
+  "chatModRoleChanged": "{change, select, moderatorAdded{{name} is now a moderator.} moderatorRemoved{{name} is no longer a moderator.} vipAdded{{name} is now a VIP.} vipRemoved{{name} is no longer a VIP.} leadModeratorAdded{{name} is now a lead moderator.} leadModeratorRemoved{{name} is no longer a lead moderator.} other{{name}’s role changed.}}",
   "@chatModRoleChanged": {
-    "description": "A chat line after /mod, /unmod, /vip or /unvip worked; name is the user's display name.",
+    "description": "A chat line after /mod, /unmod, /vip, /unvip, /leadmod or /unleadmod worked; name is the user's display name.",
     "placeholders": {
       "change": {
         "type": "String",
@@ -8556,6 +8556,24 @@
   "chatDeleteMessage": "Delete message",
   "@chatDeleteMessage": {
     "description": "A row of a message's options, for moderators."
+  },
+  "chatPinMessage": "Pin message",
+  "@chatPinMessage": {
+    "description": "A row of a message's options, for moderators: pins the message above chat for 20 minutes."
+  },
+  "chatUnpinMessage": "Unpin",
+  "@chatUnpinMessage": {
+    "description": "A button on the pinned message card, for moderators."
+  },
+  "chatModPinChanged": "{state, select, pinned{Message pinned for 20 minutes.} other{Message unpinned.}}",
+  "@chatModPinChanged": {
+    "description": "A chat line after a moderator pinned or unpinned a message.",
+    "placeholders": {
+      "state": {
+        "type": "String",
+        "example": "pinned"
+      }
+    }
   },
   "chatFirstMessage": "First message",
   "@chatFirstMessage": {

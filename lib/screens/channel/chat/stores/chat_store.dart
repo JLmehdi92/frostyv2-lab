@@ -123,6 +123,8 @@ abstract class ChatStoreBase with Store {
   /// (null in tests and when not given).
   final TwitchChatHistoryService? chatHistory;
 
+  final TwitchViewerActionsService? viewerActions;
+
   /// The ids of the history lines shown (and of history gifts folded into
   /// their bomb): the same message arriving live afterwards is not shown,
   /// or counted, twice.
@@ -826,6 +828,7 @@ abstract class ChatStoreBase with Store {
         api: twitchApi,
         broadcasterId: channelId,
         moderatorId: me,
+        setLeadModerator: _leadModeratorSetter,
       ).run(command, userId: userId);
       if (_shouldDisconnect) return null;
     }
@@ -845,6 +848,59 @@ abstract class ChatStoreBase with Store {
                     ? ModToolsView.moderators
                     : ModToolsView.vips,
               ),
+      ),
+    );
+    return outcome;
+  }
+
+  LeadModeratorSetter? get _leadModeratorSetter {
+    final service = viewerActions;
+    if (service == null) return null;
+    return (userId, {required granted}) => service.setLeadModerator(
+      channelId: channelId,
+      userId: userId,
+      granted: granted,
+      authToken: auth.twitchWebToken ?? '',
+    );
+  }
+
+  bool get canPinMessages =>
+      canModerate &&
+      viewerActions != null &&
+      (auth.twitchWebToken?.isNotEmpty ?? false);
+
+  Future<ViewerActionOutcome?> pinMessage(String messageId) => _sayPinOutcome(
+    (service, token) => service.pinMessage(
+      channelId: channelId,
+      messageId: messageId,
+      authToken: token,
+    ),
+    pinned: true,
+  );
+
+  Future<ViewerActionOutcome?> unpinMessage(String pinId) => _sayPinOutcome(
+    (service, token) => service.unpinMessage(pinId: pinId, authToken: token),
+    pinned: false,
+  );
+
+  Future<ViewerActionOutcome?> _sayPinOutcome(
+    Future<ViewerActionOutcome> Function(
+      TwitchViewerActionsService service,
+      String token,
+    )
+    send, {
+    required bool pinned,
+  }) async {
+    final service = viewerActions;
+    if (service == null) return null;
+    final outcome = await send(service, auth.twitchWebToken ?? '');
+    if (_shouldDisconnect) return null;
+    final l = L10n.current;
+    messageBuffer.add(
+      IRCMessage.createNotice(
+        message: outcome == ViewerActionOutcome.done
+            ? l.chatModPinChanged(state: pinned ? 'pinned' : 'unpinned')
+            : l.viewerActionResult(status: outcome.name),
       ),
     );
     return outcome;
@@ -1013,6 +1069,7 @@ abstract class ChatStoreBase with Store {
     required this.displayName,
     this.whispers,
     this.chatHistory,
+    this.viewerActions,
     this.listenEvents,
     this.mentionAlerts,
     this.chatRules,
