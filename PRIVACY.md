@@ -1,6 +1,6 @@
 # ONSET privacy policy
 
-**Effective date:** 8 November 2026
+**Effective date:** 9 November 2026
 
 ONSET is a free, open-source (AGPL-3.0-or-later) Twitch client for Android
 (package `app.onset`). It is an independent project, not affiliated with,
@@ -102,7 +102,7 @@ user agent).
 | Service | When | What is sent |
 |---|---|---|
 | **ONSET token service** (a Cloudflare Worker run by the developer, on workers.dev) | When you are not logged in and the app has no anonymous token that Twitch still accepts: at the first launch, and later when the stored token has expired or been revoked | A request with no account information. The service answers with the same shared anonymous Twitch token for every viewer. It uses your IP address only to limit how often a single address can ask (a short-lived counter); it does not log or store it, and stores nothing about you. Cloudflare, which hosts it, processes the connection under its own privacy policy. |
-| **Twitch** (api.twitch.tv, id.twitch.tv, gql.twitch.tv, irc-ws.chat.twitch.tv, eventsub.wss.twitch.tv, hermes.twitch.tv, usher.ttvnw.net, static-cdn.jtvnw.net, twitch.tv, player.twitch.tv, and Twitch's video servers) | Whenever you use the app | Your access token or web token when logged in; when you open a channel's chat while logged in, a request for that chat's recent messages, sent with your twitch.tv web token; the channels, videos, categories, and searches you open; the chat messages, whispers, and moderation actions you send; follows, blocks, clips, and channel-point and prediction actions you take; when logged in, your position in past broadcasts (saved to your Twitch account). While go-live notifications are on, the app checks your followed channels about every 15 minutes in the background. When you log out, ONSET asks Twitch to revoke your access token. |
+| **Twitch** (api.twitch.tv, id.twitch.tv, gql.twitch.tv, irc-ws.chat.twitch.tv, eventsub.wss.twitch.tv, hermes.twitch.tv, usher.ttvnw.net, static-cdn.jtvnw.net, twitch.tv, player.twitch.tv, and Twitch's video servers) | Whenever you use the app | Your access token or web token when logged in; when you open a channel's chat while logged in, a request for that chat's recent messages, sent with your twitch.tv web token; the channels, videos, categories, and searches you open; the chat messages, whispers, and moderation actions you send; follows, blocks, clips, the GIFs you send, and channel-point and prediction actions you take; when logged in, your position in past broadcasts (saved to your Twitch account). While go-live notifications are on, the app checks your followed channels about every 15 minutes in the background. When you log out, ONSET asks Twitch to revoke your access token. |
 | **Amazon IVS player** (built into the app) | When a stream or video plays in the native player | The video comes from Twitch's servers. The IVS player library may also send playback quality statistics to Amazon's IVS service (player.stats.live-video.net). ONSET does not configure or receive this data. |
 | **Twitch web player** (in a web view) | When you choose the web player in **Settings › Video**, or when the native player fails | Twitch's own player page runs as it would on twitch.tv, under Twitch's Privacy Notice, and may show Twitch's ads. |
 | **7TV** (7tv.io, events.7tv.io, and its image servers) | When you open a channel, unless **Show 7TV emotes** is off | The channel's Twitch ID; a live connection for that channel's emote changes. |
@@ -110,6 +110,7 @@ user agent).
 | **FrankerFaceZ** (api.frankerfacez.com and its image servers) | When you open a channel, unless **Show FFZ emotes** and **Show FFZ badges** are off | The channel's Twitch ID; requests for global emote and badge lists. |
 | **recent-messages.robotty.de** | Only if you turn on **Fallback chat history (third-party)** (off by default), and only when Twitch's own recent chat is unavailable, fails, or is empty (for example when you are not logged in) | The login name of the channel whose chat you open. |
 | **GIPHY** (giphy.com and its subdomains) | When a chat message contains a GIF from Twitch's GIF keyboard, unless **Show GIFs in chat** is off | A request for that GIF image. Only GIPHY and Twitch image addresses are loaded. |
+| **GIPHY** (api.giphy.com) | When you open the **GIFs** tab of the emote menu, and each time you search there | Your search terms, the GIPHY key and content rating that Twitch gives ONSET for that chat, and your IP address. The GIF you choose is sent to Twitch, not to GIPHY. |
 | **GitHub** (api.github.com, github.com, objects.githubusercontent.com, and release-assets.githubusercontent.com) | In builds that include the updater (the APKs published in the ONSET GitHub releases do; a build made without it never contacts GitHub): at launch and when the app returns to the foreground (at most every 6 hours once up to date), and when you tap **Update** or **Check for updates** | A request for the latest release of the ONSET repository; the download of the new APK when you tap Update. No account information. |
 | **Google Firebase** (Crashlytics, Google Analytics for Firebase, and Performance Monitoring, run by Google) | Reports, analytics, and performance data: only while **Share crash logs and analytics** is on (off by default), both in the app and during the background go-live check; never in debug builds. The libraries may contact Google whenever the app starts, whatever the setting | Crash and error reports, the names of the app screens you open, request timings cut to the service's domain, and device and app details. No Twitch user ID, username, or channel name. See section 5. |
 | **Google Play** (in-app review) | After several launches, if Google Play is installed | The app may ask Google Play to show its rating prompt, through Google Play's in-app review service. |
@@ -359,6 +360,7 @@ GitHub repository.
 - 1 November 2026: a section about the website was added.
 - 8 November 2026: the moderation permissions are listed, and managing your
   own channel is asked for only when you turn on its channel tools.
+- 9 November 2026: searching GIPHY from the emote menu’s GIFs tab is listed.
 
 ## 14. Contact
 
