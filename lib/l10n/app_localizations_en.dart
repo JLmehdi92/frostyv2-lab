@@ -8500,6 +8500,145 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clipDownloadFailed => 'Couldn’t download this clip.';
 
   @override
+  String get clipAutoLabel => 'Auto clip';
+
+  @override
+  String get clipWatchPortrait => 'Portrait version';
+
+  @override
+  String get clipComments => 'Comments';
+
+  @override
+  String get clipCommentsFailed => 'Couldn’t load the comments.';
+
+  @override
+  String get clipCommentsEmpty => 'No comments yet.';
+
+  @override
+  String get clipCommentsMore => 'More comments';
+
+  @override
+  String clipCommentReplies({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString replies',
+      one: '$countString reply',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clipCommentHearted => 'Liked by the channel';
+
+  @override
+  String get clipCommentCollapsed => 'Hidden by the community';
+
+  @override
+  String get clipCommentShow => 'Show';
+
+  @override
+  String clipCommentLikes({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString likes',
+      one: '$countString like',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clipCommentLikeFailed => 'Couldn’t update your like.';
+
+  @override
+  String get clipCommentHint => 'Add a comment…';
+
+  @override
+  String get clipCommentSend => 'Post';
+
+  @override
+  String get clipCommentPostFailed => 'Couldn’t post your comment.';
+
+  @override
+  String get clipCommentIntegrity =>
+      'Twitch refused this comment from the app. Post it on twitch.tv instead.';
+
+  @override
+  String get clipCommentSignedOut => 'Log in again to post comments.';
+
+  @override
+  String clipCommentRefused({required String code}) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'BODY_TOO_LONG': 'This comment is too long.',
+      'CONTAINS_LINK': 'Comments can’t contain links.',
+      'FAILED_MODERATION': 'This comment didn’t pass moderation.',
+      'RATE_LIMITED': 'You’re commenting too fast. Try again in a moment.',
+      'COMMENTS_DISABLED': 'Comments are turned off for this clip.',
+      'COMMENTS_RESTRICTED': 'Comments on this clip are restricted.',
+      'NOT_ELIGIBLE': 'You can’t comment on this clip.',
+      'other': 'Twitch refused this comment.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get clipCommentSignInToPost => 'Log in to post comments.';
+
+  @override
+  String get clipCommentEligibilityUnknown =>
+      'Couldn’t check whether you can comment on this clip.';
+
+  @override
+  String get clipCommentsDisabled => 'Comments are turned off for this clip.';
+
+  @override
+  String get clipCommentFollowFirst =>
+      'Follow this channel to comment on its clips.';
+
+  @override
+  String clipCommentFollowLonger({required int minutes}) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'You need to follow this channel for at least $minutesString minutes to comment on its clips.',
+      one:
+          'You need to follow this channel for at least $minutesString minute to comment on its clips.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clipCommentSubscribersOnly =>
+      'Only subscribers can comment on this clip.';
+
+  @override
+  String get clipCommentVerifyAccount =>
+      'Verify your email or phone number on twitch.tv to comment.';
+
+  @override
+  String get clipCommentNotAllowed => 'You can’t comment on this clip.';
+
+  @override
+  String get clipStoryPrevious => 'Previous clip';
+
+  @override
+  String get clipStoryNext => 'Next clip';
+
+  @override
   String get myClipsTitle => 'My clips';
 
   @override

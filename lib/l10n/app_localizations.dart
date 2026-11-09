@@ -11331,6 +11331,174 @@ abstract class AppLocalizations {
   /// **'Couldn’t download this clip.'**
   String get clipDownloadFailed;
 
+  /// A pill on a clip Twitch made automatically from the stream, not a person.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto clip'**
+  String get clipAutoLabel;
+
+  /// A clip's action: plays the vertical version Twitch made of the clip, full screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Portrait version'**
+  String get clipWatchPortrait;
+
+  /// A clip's action, and the title of the sheet listing the comments viewers posted on the clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments'**
+  String get clipComments;
+
+  /// The comments sheet when Twitch did not send the clip's comments.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load the comments.'**
+  String get clipCommentsFailed;
+
+  /// The comments sheet when nobody commented on the clip.
+  ///
+  /// In en, this message translates to:
+  /// **'No comments yet.'**
+  String get clipCommentsEmpty;
+
+  /// The button at the end of the comments that loads the next ones.
+  ///
+  /// In en, this message translates to:
+  /// **'More comments'**
+  String get clipCommentsMore;
+
+  /// Under a clip comment: how many replies it has.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} reply} other{{count} replies}}'**
+  String clipCommentReplies({required int count});
+
+  /// Under a clip comment the channel's owner liked.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked by the channel'**
+  String get clipCommentHearted;
+
+  /// In place of a clip comment other viewers voted down; a Show button reveals it.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden by the community'**
+  String get clipCommentCollapsed;
+
+  /// Reveals a clip comment the community hid.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get clipCommentShow;
+
+  /// For screen readers, the like button of a clip comment: how many likes it has; a tap likes or unlikes it.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} like} other{{count} likes}}'**
+  String clipCommentLikes({required int count});
+
+  /// A snack bar when liking or unliking a clip comment failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t update your like.'**
+  String get clipCommentLikeFailed;
+
+  /// The hint of the field that writes a comment on a clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a comment…'**
+  String get clipCommentHint;
+
+  /// Posts the comment written on a clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get clipCommentSend;
+
+  /// Under the comment field when posting failed for an unknown reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t post your comment.'**
+  String get clipCommentPostFailed;
+
+  /// Under the comment field when Twitch's anti-bot check refused the comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch refused this comment from the app. Post it on twitch.tv instead.'**
+  String get clipCommentIntegrity;
+
+  /// Under the comment field when Twitch no longer accepts the viewer's session.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again to post comments.'**
+  String get clipCommentSignedOut;
+
+  /// Under the comment field: why Twitch refused the comment ({code} is Twitch's error code, never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'{code, select, BODY_TOO_LONG{This comment is too long.} CONTAINS_LINK{Comments can’t contain links.} FAILED_MODERATION{This comment didn’t pass moderation.} RATE_LIMITED{You’re commenting too fast. Try again in a moment.} COMMENTS_DISABLED{Comments are turned off for this clip.} COMMENTS_RESTRICTED{Comments on this clip are restricted.} NOT_ELIGIBLE{You can’t comment on this clip.} other{Twitch refused this comment.}}'**
+  String clipCommentRefused({required String code});
+
+  /// At the bottom of the comments sheet for a viewer who is not logged in (or has no Twitch web session).
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to post comments.'**
+  String get clipCommentSignInToPost;
+
+  /// At the bottom of the comments sheet when Twitch did not say whether the viewer may comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t check whether you can comment on this clip.'**
+  String get clipCommentEligibilityUnknown;
+
+  /// At the bottom of the comments sheet when the channel turned comments off.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments are turned off for this clip.'**
+  String get clipCommentsDisabled;
+
+  /// At the bottom of the comments sheet when only followers may comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow this channel to comment on its clips.'**
+  String get clipCommentFollowFirst;
+
+  /// At the bottom of the comments sheet when the viewer has not followed the channel long enough to comment.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, one{You need to follow this channel for at least {minutes} minute to comment on its clips.} other{You need to follow this channel for at least {minutes} minutes to comment on its clips.}}'**
+  String clipCommentFollowLonger({required int minutes});
+
+  /// At the bottom of the comments sheet when only subscribers may comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Only subscribers can comment on this clip.'**
+  String get clipCommentSubscribersOnly;
+
+  /// At the bottom of the comments sheet when Twitch requires a verified email or phone number.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email or phone number on twitch.tv to comment.'**
+  String get clipCommentVerifyAccount;
+
+  /// At the bottom of the comments sheet when Twitch refuses comments for another reason.
+  ///
+  /// In en, this message translates to:
+  /// **'You can’t comment on this clip.'**
+  String get clipCommentNotAllowed;
+
+  /// For screen readers, the left side of a recap or portrait clip: goes back one clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous clip'**
+  String get clipStoryPrevious;
+
+  /// For screen readers, the right side of a recap or portrait clip: skips to the next clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next clip'**
+  String get clipStoryNext;
+
   /// The screen listing the viewer's own clips: those of their channel and those they made.
   ///
   /// In en, this message translates to:

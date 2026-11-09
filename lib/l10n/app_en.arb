@@ -10901,6 +10901,145 @@
   "@clipDownloadFailed": {
     "description": "A snack bar when the clip's video could not be downloaded."
   },
+  "clipAutoLabel": "Auto clip",
+  "@clipAutoLabel": {
+    "description": "A pill on a clip Twitch made automatically from the stream, not a person."
+  },
+  "clipWatchPortrait": "Portrait version",
+  "@clipWatchPortrait": {
+    "description": "A clip's action: plays the vertical version Twitch made of the clip, full screen."
+  },
+  "clipComments": "Comments",
+  "@clipComments": {
+    "description": "A clip's action, and the title of the sheet listing the comments viewers posted on the clip."
+  },
+  "clipCommentsFailed": "Couldn’t load the comments.",
+  "@clipCommentsFailed": {
+    "description": "The comments sheet when Twitch did not send the clip's comments."
+  },
+  "clipCommentsEmpty": "No comments yet.",
+  "@clipCommentsEmpty": {
+    "description": "The comments sheet when nobody commented on the clip."
+  },
+  "clipCommentsMore": "More comments",
+  "@clipCommentsMore": {
+    "description": "The button at the end of the comments that loads the next ones."
+  },
+  "clipCommentReplies": "{count, plural, one{{count} reply} other{{count} replies}}",
+  "@clipCommentReplies": {
+    "description": "Under a clip comment: how many replies it has.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "3"
+      }
+    }
+  },
+  "clipCommentHearted": "Liked by the channel",
+  "@clipCommentHearted": {
+    "description": "Under a clip comment the channel's owner liked."
+  },
+  "clipCommentCollapsed": "Hidden by the community",
+  "@clipCommentCollapsed": {
+    "description": "In place of a clip comment other viewers voted down; a Show button reveals it."
+  },
+  "clipCommentShow": "Show",
+  "@clipCommentShow": {
+    "description": "Reveals a clip comment the community hid."
+  },
+  "clipCommentLikes": "{count, plural, one{{count} like} other{{count} likes}}",
+  "@clipCommentLikes": {
+    "description": "For screen readers, the like button of a clip comment: how many likes it has; a tap likes or unlikes it.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "12"
+      }
+    }
+  },
+  "clipCommentLikeFailed": "Couldn’t update your like.",
+  "@clipCommentLikeFailed": {
+    "description": "A snack bar when liking or unliking a clip comment failed."
+  },
+  "clipCommentHint": "Add a comment…",
+  "@clipCommentHint": {
+    "description": "The hint of the field that writes a comment on a clip."
+  },
+  "clipCommentSend": "Post",
+  "@clipCommentSend": {
+    "description": "Posts the comment written on a clip."
+  },
+  "clipCommentPostFailed": "Couldn’t post your comment.",
+  "@clipCommentPostFailed": {
+    "description": "Under the comment field when posting failed for an unknown reason."
+  },
+  "clipCommentIntegrity": "Twitch refused this comment from the app. Post it on twitch.tv instead.",
+  "@clipCommentIntegrity": {
+    "description": "Under the comment field when Twitch's anti-bot check refused the comment."
+  },
+  "clipCommentSignedOut": "Log in again to post comments.",
+  "@clipCommentSignedOut": {
+    "description": "Under the comment field when Twitch no longer accepts the viewer's session."
+  },
+  "clipCommentRefused": "{code, select, BODY_TOO_LONG{This comment is too long.} CONTAINS_LINK{Comments can’t contain links.} FAILED_MODERATION{This comment didn’t pass moderation.} RATE_LIMITED{You’re commenting too fast. Try again in a moment.} COMMENTS_DISABLED{Comments are turned off for this clip.} COMMENTS_RESTRICTED{Comments on this clip are restricted.} NOT_ELIGIBLE{You can’t comment on this clip.} other{Twitch refused this comment.}}",
+  "@clipCommentRefused": {
+    "description": "Under the comment field: why Twitch refused the comment ({code} is Twitch's error code, never shown).",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "BODY_TOO_LONG"
+      }
+    }
+  },
+  "clipCommentSignInToPost": "Log in to post comments.",
+  "@clipCommentSignInToPost": {
+    "description": "At the bottom of the comments sheet for a viewer who is not logged in (or has no Twitch web session)."
+  },
+  "clipCommentEligibilityUnknown": "Couldn’t check whether you can comment on this clip.",
+  "@clipCommentEligibilityUnknown": {
+    "description": "At the bottom of the comments sheet when Twitch did not say whether the viewer may comment."
+  },
+  "clipCommentsDisabled": "Comments are turned off for this clip.",
+  "@clipCommentsDisabled": {
+    "description": "At the bottom of the comments sheet when the channel turned comments off."
+  },
+  "clipCommentFollowFirst": "Follow this channel to comment on its clips.",
+  "@clipCommentFollowFirst": {
+    "description": "At the bottom of the comments sheet when only followers may comment."
+  },
+  "clipCommentFollowLonger": "{minutes, plural, one{You need to follow this channel for at least {minutes} minute to comment on its clips.} other{You need to follow this channel for at least {minutes} minutes to comment on its clips.}}",
+  "@clipCommentFollowLonger": {
+    "description": "At the bottom of the comments sheet when the viewer has not followed the channel long enough to comment.",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "10"
+      }
+    }
+  },
+  "clipCommentSubscribersOnly": "Only subscribers can comment on this clip.",
+  "@clipCommentSubscribersOnly": {
+    "description": "At the bottom of the comments sheet when only subscribers may comment."
+  },
+  "clipCommentVerifyAccount": "Verify your email or phone number on twitch.tv to comment.",
+  "@clipCommentVerifyAccount": {
+    "description": "At the bottom of the comments sheet when Twitch requires a verified email or phone number."
+  },
+  "clipCommentNotAllowed": "You can’t comment on this clip.",
+  "@clipCommentNotAllowed": {
+    "description": "At the bottom of the comments sheet when Twitch refuses comments for another reason."
+  },
+  "clipStoryPrevious": "Previous clip",
+  "@clipStoryPrevious": {
+    "description": "For screen readers, the left side of a recap or portrait clip: goes back one clip."
+  },
+  "clipStoryNext": "Next clip",
+  "@clipStoryNext": {
+    "description": "For screen readers, the right side of a recap or portrait clip: skips to the next clip."
+  },
   "myClipsTitle": "My clips",
   "@myClipsTitle": {
     "description": "The screen listing the viewer's own clips: those of their channel and those they made."

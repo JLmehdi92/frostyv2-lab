@@ -5,14 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_account_gql_service.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/clips/clip_download.dart';
+import 'package:onset/screens/clips/clip_story_screen.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
 import 'package:onset/screens/clips/stores/clip_player_store.dart';
+import 'package:onset/screens/clips/widgets/clip_comments_sheet.dart';
 import 'package:onset/screens/clips/widgets/clip_info_panel.dart';
 import 'package:onset/screens/clips/widgets/more_clips_sliver.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -32,7 +35,9 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/pip_callbacks.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:onset/widgets/share_sheet.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
@@ -97,6 +102,8 @@ class _ClipScreenState extends State<ClipScreen> {
 
   Clip? _clip;
 
+  ClipExtras? _extras;
+
   /// The metadata could not be loaded (null while loading or loaded).
   VodPlaybackProblem? _loadProblem;
 
@@ -135,6 +142,7 @@ class _ClipScreenState extends State<ClipScreen> {
       ..claim(this);
     if (_settings.keepScreenAwake) WakelockPlus.enable();
     _player = _buildPlayer();
+    unawaited(_loadExtras());
     final clip = _clip;
     if (clip == null) {
       unawaited(_loadMetadata());
@@ -165,6 +173,59 @@ class _ClipScreenState extends State<ClipScreen> {
       debugPrint('ClipScreen metadata failed: $e');
       if (mounted) setState(() => _detailsFailed = true);
     }
+  }
+
+  Future<void> _loadExtras() async {
+    try {
+      final extras = await _service.getClipExtras(widget.slug);
+      if (mounted && extras != null) setState(() => _extras = extras);
+    } catch (e) {
+      debugPrint('ClipScreen extras failed: $e');
+    }
+  }
+
+  void _openPortrait(Clip clip) => unawaited(
+    ClipStoryScreen.open(
+      context,
+      clips: [clip],
+      title: clip.broadcasterDisplayName.isNotEmpty
+          ? clip.broadcasterDisplayName
+          : clip.broadcasterLogin,
+      portrait: true,
+      routeName: 'PortraitClip',
+    ),
+  );
+
+  void _openComments() {
+    final token = context.authStore.twitchWebToken ?? '';
+    final account = context.read<TwitchAccountGqlService?>();
+    final slug = widget.slug;
+    unawaited(
+      showOnsetSheet<void>(
+        context: context,
+        builder: (_) => ClipCommentsSheet(
+          load: (cursor) =>
+              _service.getClipComments(slug, cursor: cursor, authToken: token),
+          actions: account == null || token.isEmpty
+              ? null
+              : ClipCommentActions(
+                  eligibility: () =>
+                      account.commentEligibility(slug: slug, authToken: token),
+                  post: (body) => account.postComment(
+                    slug: slug,
+                    body: body,
+                    authToken: token,
+                  ),
+                  setLiked: (id, liked) => account.setCommentLiked(
+                    slug: slug,
+                    commentId: id,
+                    liked: liked,
+                    authToken: token,
+                  ),
+                ),
+        ),
+      ),
+    );
   }
 
   void _retryDetails() {
@@ -483,6 +544,11 @@ class _ClipScreenState extends State<ClipScreen> {
       onDownload: () => unawaited(
         downloadClip(context, service: _service, slug: widget.slug),
       ),
+      autoClip: _extras?.autoClip ?? false,
+      onWatchPortrait: _extras?.hasPortrait ?? false
+          ? () => _openPortrait(clip)
+          : null,
+      onComments: _openComments,
     );
   }
 
