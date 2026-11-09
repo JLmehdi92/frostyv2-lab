@@ -3696,6 +3696,51 @@
   "@profilePopularClips": {
     "description": "A channel's Home tab: the title above its most viewed clips."
   },
+  "recapsTitle": "Stream recaps",
+  "@recapsTitle": {
+    "description": "The title of the channel profile's row of recaps: short reels of a past stream's clips, put together by Twitch."
+  },
+  "recapLabel": "Recap",
+  "@recapLabel": {
+    "description": "A chip on a recap's picture, telling it apart from a clip or a video."
+  },
+  "recapUntitled": "Untitled recap",
+  "@recapUntitled": {
+    "description": "In place of the title of a recap that has none."
+  },
+  "recapClipCount": "{count, plural, one{{count} clip} other{{count} clips}}",
+  "@recapClipCount": {
+    "description": "How many clips a recap plays, on its picture.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "5"
+      }
+    }
+  },
+  "recapOpen": "Watch the recap {title}, {details}",
+  "@recapOpen": {
+    "description": "For screen readers, a recap's tile: opens the recap player. {details} is its clip count and age (5 clips · 2 hours ago).",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Warzone night"
+      },
+      "details": {
+        "type": "String",
+        "example": "5 clips · 2 hours ago"
+      }
+    }
+  },
+  "recapReport": "Report",
+  "@recapReport": {
+    "description": "The recap player's action that opens Twitch's report form for the recap's channel."
+  },
+  "recapUnavailable": "This recap is no longer available.",
+  "@recapUnavailable": {
+    "description": "The recap player when Twitch removed the recap (or the channel unpublished it) since the row was loaded."
+  },
   "profileThumbnail": "Thumbnail",
   "@profileThumbnail": {
     "description": "What a screen reader says for a video's or a clip's picture on a channel's Home tab."

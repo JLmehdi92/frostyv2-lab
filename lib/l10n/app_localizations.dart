@@ -4517,6 +4517,48 @@ abstract class AppLocalizations {
   /// **'Popular clips'**
   String get profilePopularClips;
 
+  /// The title of the channel profile's row of recaps: short reels of a past stream's clips, put together by Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream recaps'**
+  String get recapsTitle;
+
+  /// A chip on a recap's picture, telling it apart from a clip or a video.
+  ///
+  /// In en, this message translates to:
+  /// **'Recap'**
+  String get recapLabel;
+
+  /// In place of the title of a recap that has none.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled recap'**
+  String get recapUntitled;
+
+  /// How many clips a recap plays, on its picture.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} clip} other{{count} clips}}'**
+  String recapClipCount({required int count});
+
+  /// For screen readers, a recap's tile: opens the recap player. {details} is its clip count and age (5 clips · 2 hours ago).
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the recap {title}, {details}'**
+  String recapOpen({required String title, required String details});
+
+  /// The recap player's action that opens Twitch's report form for the recap's channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get recapReport;
+
+  /// The recap player when Twitch removed the recap (or the channel unpublished it) since the row was loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'This recap is no longer available.'**
+  String get recapUnavailable;
+
   /// What a screen reader says for a video's or a clip's picture on a channel's Home tab.
   ///
   /// In en, this message translates to:

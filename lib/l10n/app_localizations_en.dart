@@ -2909,6 +2909,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePopularClips => 'Popular clips';
 
   @override
+  String get recapsTitle => 'Stream recaps';
+
+  @override
+  String get recapLabel => 'Recap';
+
+  @override
+  String get recapUntitled => 'Untitled recap';
+
+  @override
+  String recapClipCount({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString clips',
+      one: '$countString clip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recapOpen({required String title, required String details}) {
+    return 'Watch the recap $title, $details';
+  }
+
+  @override
+  String get recapReport => 'Report';
+
+  @override
+  String get recapUnavailable => 'This recap is no longer available.';
+
+  @override
   String get profileThumbnail => 'Thumbnail';
 
   @override

@@ -8,12 +8,14 @@ import 'package:onset/apis/twitch_channel_profile_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/models/clip.dart';
+import 'package:onset/models/recap.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_extras.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_live_card.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_schedule_tab.dart';
 import 'package:onset/screens/clips/clip_screen.dart';
+import 'package:onset/screens/clips/recap_screen.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/stores/channel_videos_store.dart';
@@ -62,7 +64,10 @@ class ProfileHomeContent extends StatefulWidget {
     this.showStream = false,
     this.large = false,
     this.status,
+    this.recaps,
   });
+
+  final Widget? recaps;
 
   final String login;
   final String channelName;
@@ -222,6 +227,7 @@ class _ProfileHomeContentState extends State<ProfileHomeContent>
               child: scheduleCard(segment, index),
             ),
         ],
+        ?widget.recaps,
         LayoutBuilder(
           builder: (context, constraints) {
             final columns = profileGridColumns(
@@ -640,6 +646,50 @@ class ProfileClipTile extends StatelessWidget {
               ExcludeSemantics(
                 child: _TileText(title: title, details: details, large: large),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ProfileRecapTile extends StatelessWidget {
+  const ProfileRecapTile({super.key, required this.recap, this.large = false});
+
+  final Recap recap;
+  final bool large;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final title = recap.title.isEmpty ? l.recapUntitled : recap.title;
+    final count = l.recapClipCount(count: recap.clips.length);
+    final posted = recap.postedAt;
+    final details = posted == null ? count : formatTimeAgo(posted, l);
+    return Semantics(
+      button: true,
+      label: l.recapOpen(title: title, details: '$count · $details'),
+      excludeSemantics: true,
+      child: PressScale(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => unawaited(RecapScreen.open(context, recap: recap)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: large ? 8 : 6,
+            children: [
+              _TilePicture(
+                imageUrl: recap.thumbnailUrl,
+                fallback: SheetGlyphKind.videos,
+                length: formatVodTime(recap.duration),
+                large: large,
+                chips: [
+                  _TileChip(text: l.recapLabel, large: large),
+                  _TileChip(text: count, large: large),
+                ],
+              ),
+              _TileText(title: title, details: details, large: large),
             ],
           ),
         ),

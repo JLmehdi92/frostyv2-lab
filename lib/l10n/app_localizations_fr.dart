@@ -2956,6 +2956,41 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profilePopularClips => 'Clips populaires';
 
   @override
+  String get recapsTitle => 'Récaps de live';
+
+  @override
+  String get recapLabel => 'Récap';
+
+  @override
+  String get recapUntitled => 'Récap sans titre';
+
+  @override
+  String recapClipCount({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString clips',
+      one: '$countString clip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recapOpen({required String title, required String details}) {
+    return 'Regarder le récap $title, $details';
+  }
+
+  @override
+  String get recapReport => 'Signaler';
+
+  @override
+  String get recapUnavailable => 'Ce récap n’est plus disponible.';
+
+  @override
   String get profileThumbnail => 'Miniature';
 
   @override
