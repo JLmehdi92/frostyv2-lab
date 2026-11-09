@@ -363,9 +363,7 @@ void main() {
 
       expect(find.text('Collect bonus'), findsNothing);
       expect(
-        find.textContaining(
-          'Twitch’s anti-bot check blocks collecting the bonus',
-        ),
+        find.textContaining('Twitch’s anti-bot check refused the bonus'),
         findsOneWidget,
       );
     });

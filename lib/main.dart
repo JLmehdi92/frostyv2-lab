@@ -13,6 +13,7 @@ import 'package:onset/apis/bttv_api.dart';
 import 'package:onset/apis/dio_client.dart';
 import 'package:onset/apis/ffz_api.dart';
 import 'package:onset/apis/giphy_service.dart';
+import 'package:onset/apis/integrity_retry_interceptor.dart';
 import 'package:onset/apis/seventv_api.dart';
 import 'package:onset/apis/twitch_account_gql_service.dart';
 import 'package:onset/apis/twitch_api.dart';
@@ -57,6 +58,8 @@ import 'package:onset/services/font_licenses.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/go_live/go_live_poller.dart';
 import 'package:onset/services/go_live/go_live_worker.dart';
+import 'package:onset/services/integrity/integrity_token_provider.dart';
+import 'package:onset/services/integrity/webview_integrity_minter.dart';
 import 'package:onset/services/launch_info.dart';
 import 'package:onset/services/locale_bridge.dart';
 import 'package:onset/services/notification_settings_link.dart';
@@ -242,6 +245,16 @@ void main() async {
   // Add the unauthorized interceptor to catch 401 errors
   dioClient.interceptors.add(UnauthorizedInterceptor(authStore));
 
+  anonymousGqlDio.interceptors.add(
+    IntegrityRetryInterceptor(
+      dio: anonymousGqlDio,
+      tokens: IntegrityTokenProvider(
+        mint: const WebViewIntegrityMinter().call,
+        webSession: () => authStore.twitchWebToken,
+      ),
+    ),
+  );
+
   // VODs restricted to subscribers play for subscribers, like live 2K, and
   // watch positions are kept on the viewer's Twitch account.
   twitchVodService
@@ -410,9 +423,7 @@ void main() async {
         ),
         Provider<TwitchCommunityService>.value(value: twitchCommunityService),
         Provider<GiphyService>.value(value: giphyService),
-        Provider<TwitchAccountGqlService>.value(
-          value: twitchAccountGqlService,
-        ),
+        Provider<TwitchAccountGqlService>.value(value: twitchAccountGqlService),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<TwitchEventSubClient>.value(value: eventSubClient),

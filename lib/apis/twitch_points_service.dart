@@ -11,11 +11,6 @@ import 'package:onset/models/community_points.dart';
 ///
 /// Reads use no credential; writes use the viewer's own token, doing what any
 /// official client would do on their behalf.
-///
-/// **One boundary is deliberate.** Twitch guards some point-spending mutations
-/// with an integrity attestation — measured, not assumed: `claimCommunityPoints`
-/// answers `failed integrity check` without one. That is an anti-abuse control,
-/// so this client surfaces the refusal instead of trying to satisfy it.
 class TwitchPointsService extends BaseApiClient {
   /// The public web client-id twitch.tv itself uses. Not a secret, and already
   /// used elsewhere in the app for the playback token.

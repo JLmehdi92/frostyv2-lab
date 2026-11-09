@@ -6,10 +6,6 @@ import 'package:onset/models/followed_category.dart';
 /// The categories the viewer follows, from Twitch's private GQL with the
 /// viewer's twitch.tv web token (Helix has no such list).
 ///
-/// Read only. Following or unfollowing a category stays on twitch.tv, where
-/// the viewer taps Twitch's own button: the follow mutations are guarded by
-/// Client-Integrity, which this app does not try to satisfy.
-///
 /// Every failure (an integrity refusal, a changed schema, a token Twitch no
 /// longer accepts, the network) answers null, once, and the caller hides
 /// the section: nothing here retries.

@@ -33,12 +33,6 @@ import 'package:url_launcher/url_launcher.dart';
 /// The channel points panel: balance, what the channel offers, and any
 /// prediction running.
 ///
-/// Spending is done with the viewer's own credential, which is what any
-/// official client does on their behalf. Twitch guards some of these mutations
-/// with an integrity attestation — measured, not assumed: `claimCommunityPoints`
-/// answers "failed integrity check" without one. Nothing here tries to satisfy
-/// that check; a refusal is reported as a refusal.
-///
 /// Built for a landscape tablet, where this opens over a chat column narrow
 /// enough that the message box is already collapsing: the panel is height-capped
 /// and scrolls, and every label that can grow is ellipsised rather than allowed
@@ -1020,10 +1014,6 @@ class _ClaimButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Observer(
     builder: (context) {
-      // Measured on 2026-07-31 with a real token: Twitch answers
-      // `failed integrity check`. Once it has said no, the button stops
-      // inviting a retry — eight taps in twelve seconds were all refused, and
-      // a control that keeps offering an impossible action is a lie.
       final blocked = store.isIntegrityBlocked(claimAction);
       final colors = SheetColors.of(context);
 

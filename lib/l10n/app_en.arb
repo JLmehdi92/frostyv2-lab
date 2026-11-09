@@ -4257,7 +4257,7 @@
       }
     }
   },
-  "followError": "{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} integrityRefused{Twitch’s anti-bot check refused this. ONSET opens twitch.tv so you can do it there.} signedOut{Log in again to follow from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "followError": "{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} integrityRefused{Twitch’s anti-bot check refused this, even with ONSET’s verification. ONSET opens twitch.tv so you can do it there.} signedOut{Log in again to follow from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
   "@followError": {
     "description": "Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name (Twitch’s error codes).",
     "placeholders": {
@@ -8990,7 +8990,7 @@
   "@gifSend": {
     "description": "The button that sends the GIF to the chat."
   },
-  "gifSendResult": "{status, select, cooldown{{seconds, plural, =1{You can send another GIF in 1 second.} other{You can send another GIF in {seconds} seconds.}}} refused{Twitch declined this GIF.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t get past it. Try on twitch.tv instead.} signedOut{Log in again to send GIFs from ONSET.} other{Couldn’t send the GIF. Try again.}}",
+  "gifSendResult": "{status, select, cooldown{{seconds, plural, =1{You can send another GIF in 1 second.} other{You can send another GIF in {seconds} seconds.}}} refused{Twitch declined this GIF.} integrityRefused{Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.} signedOut{Log in again to send GIFs from ONSET.} other{Couldn’t send the GIF. Try again.}}",
   "@gifSendResult": {
     "description": "Snackbar when a GIF couldn’t be sent: a cooldown with the seconds to wait, or why it failed.",
     "placeholders": {
@@ -9434,7 +9434,7 @@
   "@streakHelpBody": {
     "description": "The explanation shown when the viewer opens “Where’s my streak?”."
   },
-  "pointsBonusBlocked": "Twitch’s anti-bot check blocks collecting the bonus here. Collect it on twitch.tv and your balance updates.",
+  "pointsBonusBlocked": "Twitch’s anti-bot check refused the bonus, even with ONSET’s verification. Reopen the channel to try again.",
   "@pointsBonusBlocked": {
     "description": "Error message. The channel points sheet when Twitch refuses the bonus to the app."
   },
@@ -9580,7 +9580,7 @@
   "@pointsRedeem": {
     "description": "The button that redeems a reward."
   },
-  "pointsResult": "{status, select, success{Done.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.} notAuthenticated{Twitch rejected the login. Log in again to spend points.} network{Couldn’t reach Twitch. Try again.} other{Twitch refused: {reason}}}",
+  "pointsResult": "{status, select, success{Done.} integrityRefused{Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.} notAuthenticated{Twitch rejected the login. Log in again to spend points.} network{Couldn’t reach Twitch. Try again.} other{Twitch refused: {reason}}}",
   "@pointsResult": {
     "description": "Snackbar after spending channel points (a reward, a bet, the bonus). status is PointsActionStatus.name; reason is Twitch's own code for an unknown refusal (never translated), or pointsNoReason.",
     "placeholders": {
@@ -11787,7 +11787,7 @@
       }
     }
   },
-  "viewerActionResult": "{status, select, done{Done.} refused{Twitch declined this.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.} signedOut{Log in again to do this from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "viewerActionResult": "{status, select, done{Done.} refused{Twitch declined this.} integrityRefused{Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.} signedOut{Log in again to do this from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
   "@viewerActionResult": {
     "description": "Snack bar after a viewer action sent to Twitch from ONSET (a poll vote, leaving or joining a raid, sharing a watch streak, acknowledging a warning).",
     "placeholders": {
@@ -12015,7 +12015,7 @@
   "@dropsLinkAccount": {
     "description": "Button in the Drops card that opens the publisher’s page to link a game account, needed before claiming."
   },
-  "dropClaimResult": "{status, select, claimed{Reward claimed.} alreadyClaimed{You already claimed this reward.} needsAccountLink{Link your game account first, then claim again.} expired{This Drop has expired.} limitReached{You’ve reached this reward’s limit.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so claim it on twitch.tv.} signedOut{Log in again to claim from ONSET.} refused{Twitch declined this claim.} other{Couldn’t reach Twitch. Try again.}}",
+  "dropClaimResult": "{status, select, claimed{Reward claimed.} alreadyClaimed{You already claimed this reward.} needsAccountLink{Link your game account first, then claim again.} expired{This Drop has expired.} limitReached{You’ve reached this reward’s limit.} integrityRefused{Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.} signedOut{Log in again to claim from ONSET.} refused{Twitch declined this claim.} other{Couldn’t reach Twitch. Try again.}}",
   "@dropClaimResult": {
     "description": "Snack bar after claiming a Drop reward from the Drops card.",
     "placeholders": {
@@ -12149,7 +12149,7 @@
   "@communityGoalLogIn": {
     "description": "Line in the community goals sheet for a logged-out viewer."
   },
-  "goalContributionResult": "{status, select, contributed{Thank you! Your points went to the goal.} notEnoughPoints{You don’t have enough points for this.} maxPerStream{You’ve given the most allowed for this stream. Try again next stream.} notOpen{This goal isn’t taking points right now.} refused{Twitch declined this contribution.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so contribute on twitch.tv.} signedOut{Log in again to contribute from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "goalContributionResult": "{status, select, contributed{Thank you! Your points went to the goal.} notEnoughPoints{You don’t have enough points for this.} maxPerStream{You’ve given the most allowed for this stream. Try again next stream.} notOpen{This goal isn’t taking points right now.} refused{Twitch declined this contribution.} integrityRefused{Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.} signedOut{Log in again to contribute from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
   "@goalContributionResult": {
     "description": "Snack bar after giving channel points to a community goal.",
     "placeholders": {
@@ -12395,7 +12395,7 @@
   "@momentClaim": {
     "description": "Button that claims a community moment."
   },
-  "momentClaimResult": "{status, select, claimed{Moment claimed. It can take a few minutes to show on your moments badge.} alreadyClaimed{You already claimed this moment.} expired{This moment can’t be claimed anymore.} invalid{Twitch doesn’t know this moment.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so claim it on twitch.tv.} signedOut{Log in again to claim from ONSET.} other{Couldn’t claim this moment. Try again.}}",
+  "momentClaimResult": "{status, select, claimed{Moment claimed. It can take a few minutes to show on your moments badge.} alreadyClaimed{You already claimed this moment.} expired{This moment can’t be claimed anymore.} invalid{Twitch doesn’t know this moment.} integrityRefused{Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.} signedOut{Log in again to claim from ONSET.} other{Couldn’t claim this moment. Try again.}}",
   "@momentClaimResult": {
     "description": "Snackbar after claiming a community moment. status is MomentClaimResult.name.",
     "placeholders": {

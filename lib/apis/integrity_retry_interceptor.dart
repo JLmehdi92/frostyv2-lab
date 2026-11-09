@@ -1,0 +1,89 @@
+import 'package:dio/dio.dart';
+import 'package:onset/services/integrity/integrity_token_provider.dart';
+
+class IntegrityRetryInterceptor extends Interceptor {
+  IntegrityRetryInterceptor({required this.dio, required this.tokens});
+
+  final Dio dio;
+  final IntegrityTokenProvider tokens;
+
+  static const retriedKey = 'onsetIntegrityRetried';
+
+  static const backgroundOperations = {'UpdateUserViewedVideo'};
+
+  static final _mutation = RegExp(r'^\s*mutation\b');
+
+  @override
+  Future<void> onResponse(
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) async {
+    final request = response.requestOptions;
+    final webToken = _userMutationWebToken(request);
+    if (webToken == null || !isIntegrityRefusal(response.data)) {
+      handler.next(response);
+      return;
+    }
+    final token = await tokens.tokenFor(webToken);
+    if (token == null) {
+      handler.next(response);
+      return;
+    }
+    try {
+      final retried = await dio.fetch<dynamic>(
+        request.copyWith(
+          headers: {
+            ...request.headers,
+            'Client-Integrity': token.value,
+            'X-Device-Id': token.deviceId,
+          },
+          extra: {...request.extra, retriedKey: true},
+        ),
+      );
+      if (isIntegrityRefusal(retried.data)) tokens.invalidate();
+      handler.resolve(retried);
+    } on DioException catch (e) {
+      handler.reject(e);
+    }
+  }
+
+  static bool isIntegrityRefusal(Object? body) {
+    if (body is! Map) return false;
+    final errors = body['errors'];
+    if (errors is! List) return false;
+    return errors.any(
+      (error) =>
+          error is Map &&
+          '${error['message']}'.toLowerCase().contains('integrity'),
+    );
+  }
+
+  static String? _userMutationWebToken(RequestOptions request) {
+    if (request.extra[retriedKey] == true) return null;
+    if (request.method.toUpperCase() != 'POST') return null;
+    if (request.uri.host != 'gql.twitch.tv' || request.uri.path != '/gql') {
+      return null;
+    }
+    final body = request.data;
+    if (body is! Map) return null;
+    final query = body['query'];
+    if (query is! String || !_mutation.hasMatch(query)) return null;
+    if (backgroundOperations.contains(body['operationName'])) return null;
+    final authorization = _header(request, 'authorization');
+    if (authorization == null || !authorization.startsWith('OAuth ')) {
+      return null;
+    }
+    final webToken = authorization.substring('OAuth '.length).trim();
+    return webToken.isEmpty ? null : webToken;
+  }
+
+  static String? _header(RequestOptions request, String name) {
+    for (final entry in request.headers.entries) {
+      if (entry.key.toLowerCase() == name) {
+        final value = entry.value;
+        return value is String ? value : null;
+      }
+    }
+    return null;
+  }
+}

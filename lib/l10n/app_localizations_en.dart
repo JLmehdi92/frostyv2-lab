@@ -3340,7 +3340,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'forbidden': 'Twitch doesn’t allow this follow.',
       'refused': 'Twitch declined this follow.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this. ONSET opens twitch.tv so you can do it there.',
+          'Twitch’s anti-bot check refused this, even with ONSET’s verification. ONSET opens twitch.tv so you can do it there.',
       'signedOut': 'Log in again to follow from ONSET.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
@@ -7128,7 +7128,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'cooldown': '$_temp0',
       'refused': 'Twitch declined this GIF.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this. ONSET can’t get past it. Try on twitch.tv instead.',
+          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
       'signedOut': 'Log in again to send GIFs from ONSET.',
       'other': 'Couldn’t send the GIF. Try again.',
     });
@@ -7448,7 +7448,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pointsBonusBlocked =>
-      'Twitch’s anti-bot check blocks collecting the bonus here. Collect it on twitch.tv and your balance updates.';
+      'Twitch’s anti-bot check refused the bonus, even with ONSET’s verification. Reopen the channel to try again.';
 
   @override
   String get pointsCollectBonus => 'Collect bonus';
@@ -7542,7 +7542,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(status, {
       'success': 'Done.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.',
+          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
       'notAuthenticated':
           'Twitch rejected the login. Log in again to spend points.',
       'network': 'Couldn’t reach Twitch. Try again.',
@@ -9249,7 +9249,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'done': 'Done.',
       'refused': 'Twitch declined this.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.',
+          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
       'signedOut': 'Log in again to do this from ONSET.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
@@ -9444,7 +9444,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'expired': 'This Drop has expired.',
       'limitReached': 'You’ve reached this reward’s limit.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so claim it on twitch.tv.',
+          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
       'signedOut': 'Log in again to claim from ONSET.',
       'refused': 'Twitch declined this claim.',
       'other': 'Couldn’t reach Twitch. Try again.',
@@ -9542,7 +9542,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'notOpen': 'This goal isn’t taking points right now.',
       'refused': 'Twitch declined this contribution.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so contribute on twitch.tv.',
+          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
       'signedOut': 'Log in again to contribute from ONSET.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
@@ -9749,7 +9749,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'expired': 'This moment can’t be claimed anymore.',
       'invalid': 'Twitch doesn’t know this moment.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so claim it on twitch.tv.',
+          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
       'signedOut': 'Log in again to claim from ONSET.',
       'other': 'Couldn’t claim this moment. Try again.',
     });
