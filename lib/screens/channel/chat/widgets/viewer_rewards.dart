@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/models/legendary_collection.dart';
 import 'package:onset/models/unlockable_emote.dart';
 import 'package:onset/models/weekly_rewards.dart';
 import 'package:onset/theme.dart';
@@ -437,6 +438,128 @@ class _EmoteChoice extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class HypeChestsCard extends StatelessWidget {
+  const HypeChestsCard({
+    super.key,
+    required this.collection,
+    required this.onSeeCollection,
+  });
+
+  final LegendaryCollection collection;
+  final VoidCallback onSeeCollection;
+
+  static const seeKey = ValueKey('hype-chests-see');
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
+    final l = context.l10n;
+    return RewardCardFrame(
+      glyph: SheetGlyphKind.gift,
+      title: l.hypeChestsTitle,
+      children: [
+        if (collection.campaignName.isNotEmpty)
+          Text(
+            collection.campaignName,
+            style: rewardText(colors.text, 13, FontWeight.w600),
+          ),
+        Text(
+          l.hypeChestsCollected(
+            owned: collection.ownedCount,
+            total: collection.emotes.length,
+          ),
+          style: rewardText(colors.body, 13, FontWeight.w400),
+        ),
+        if (collection.unopenedChests > 0) ...[
+          Text(
+            l.hypeChestsUnopened(count: collection.unopenedChests),
+            style: rewardText(colors.text, 13, FontWeight.w600),
+          ),
+          Text(
+            l.hypeChestsOpenElsewhere,
+            style: rewardText(colors.secondary, 12, FontWeight.w400),
+          ),
+        ],
+        RewardPillButton(
+          buttonKey: seeKey,
+          label: l.hypeChestsSeeCollection,
+          onPressed: onSeeCollection,
+        ),
+      ],
+    );
+  }
+}
+
+class HypeChestsSheet extends StatelessWidget {
+  const HypeChestsSheet({super.key, required this.collection});
+
+  final LegendaryCollection collection;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
+    final l = context.l10n;
+    final panel = SheetPresentation.isPanel(context);
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: panel
+            ? double.infinity
+            : MediaQuery.sizeOf(context).height * 0.85,
+      ),
+      child: ListView(
+        shrinkWrap: !panel,
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        children: [
+          Text(
+            collection.campaignName.isEmpty
+                ? l.hypeChestsTitle
+                : collection.campaignName,
+            style: SheetText.title.copyWith(color: colors.text),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l.hypeChestsCollected(
+              owned: collection.ownedCount,
+              total: collection.emotes.length,
+            ),
+            style: SheetText.body.copyWith(color: colors.secondary),
+          ),
+          for (final (tier, emotes) in collection.byTier) ...[
+            SheetSectionLabel(
+              l.hypeChestsTier(tier: tier),
+              padding: const EdgeInsets.only(top: 16, bottom: 8),
+            ),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final emote in emotes)
+                  Semantics(
+                    label: emote.isOwned
+                        ? l.hypeChestsOwned(name: emote.token)
+                        : l.hypeChestsMissing(name: emote.token),
+                    child: ExcludeSemantics(
+                      child: Opacity(
+                        opacity: emote.isOwned ? 1 : 0.35,
+                        child: SizedBox.square(
+                          dimension: 40,
+                          child: Image.network(
+                            emote.imageUrl,
+                            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }

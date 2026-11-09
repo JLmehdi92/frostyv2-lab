@@ -5,6 +5,7 @@ import 'package:onset/constants.dart';
 import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
+import 'package:onset/models/legendary_collection.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/shoutout_profile.dart';
 import 'package:onset/models/unlockable_emote.dart';
@@ -247,6 +248,24 @@ class TwitchCommunityService extends BaseApiClient {
       await _ask('OnsetUnlockableEmotes', _unlockableEmotesQuery, {
         'channelID': channelId,
       }),
+    );
+  }
+
+  static const _legendaryCollectionQuery =
+      'query LegendaryEmoteCollection(\$channelID: ID) { '
+      'legendaryEmoteSeason(channelID: \$channelID) { id campaign { id name '
+      'imageURL } emotePool { tier isOwned emote { id token } } userProgress '
+      '{ chestInventory { chestType unopenedCount } } } }';
+
+  Future<LegendaryCollection?> getLegendaryCollection({
+    required String channelId,
+    String? authToken,
+  }) async {
+    if (!_numericId.hasMatch(channelId)) return null;
+    return LegendaryCollection.fromBody(
+      await _ask('LegendaryEmoteCollection', _legendaryCollectionQuery, {
+        'channelID': channelId,
+      }, authToken: authToken),
     );
   }
 

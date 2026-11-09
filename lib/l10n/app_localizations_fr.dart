@@ -9202,4 +9202,59 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get emoteUnlockDone =>
       'Emote débloquée. Elle se trouve dans votre menu d’emotes.';
+
+  @override
+  String get hypeChestsTitle => 'Coffres d’emotes';
+
+  @override
+  String hypeChestsCollected({required int owned, required int total}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      owned,
+      locale: localeName,
+      other: '$owned emotes obtenues sur $total',
+      one: '$owned emote obtenue sur $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hypeChestsUnopened({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vous avez $count coffres non ouverts.',
+      one: 'Vous avez $count coffre non ouvert.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hypeChestsOpenElsewhere =>
+      'ONSET ne peut pas encore ouvrir les coffres. Ouvrez-les sur Twitch pour découvrir vos emotes.';
+
+  @override
+  String get hypeChestsSeeCollection => 'Voir la collection';
+
+  @override
+  String hypeChestsTier({required String tier}) {
+    String _temp0 = intl.Intl.selectLogic(tier, {
+      'LEGENDARY': 'Légendaire',
+      'EPIC': 'Épique',
+      'RARE': 'Rare',
+      'UNCOMMON': 'Peu commune',
+      'COMMON': 'Commune',
+      'other': 'Autre',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String hypeChestsOwned({required String name}) {
+    return '$name, obtenue';
+  }
+
+  @override
+  String hypeChestsMissing({required String name}) {
+    return '$name, pas encore obtenue';
+  }
 }

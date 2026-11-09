@@ -1955,5 +1955,13 @@
   "emoteUnlockConfirm": "{count, plural, one{Débloquer pour {points} point} other{Débloquer pour {points} points}}",
   "emoteUnlockEmpty": "Cette chaîne n’a aucune emote à débloquer.",
   "emoteUnlockFailed": "Impossible de charger les emotes de cette chaîne.",
-  "emoteUnlockDone": "Emote débloquée. Elle se trouve dans votre menu d’emotes."
+  "emoteUnlockDone": "Emote débloquée. Elle se trouve dans votre menu d’emotes.",
+  "hypeChestsTitle": "Coffres d’emotes",
+  "hypeChestsCollected": "{owned, plural, one{{owned} emote obtenue sur {total}} other{{owned} emotes obtenues sur {total}}}",
+  "hypeChestsUnopened": "{count, plural, one{Vous avez {count} coffre non ouvert.} other{Vous avez {count} coffres non ouverts.}}",
+  "hypeChestsOpenElsewhere": "ONSET ne peut pas encore ouvrir les coffres. Ouvrez-les sur Twitch pour découvrir vos emotes.",
+  "hypeChestsSeeCollection": "Voir la collection",
+  "hypeChestsTier": "{tier, select, LEGENDARY{Légendaire} EPIC{Épique} RARE{Rare} UNCOMMON{Peu commune} COMMON{Commune} other{Autre}}",
+  "hypeChestsOwned": "{name}, obtenue",
+  "hypeChestsMissing": "{name}, pas encore obtenue"
 }

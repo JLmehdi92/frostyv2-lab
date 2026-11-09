@@ -12004,6 +12004,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Emote unlocked. It’s in your emote menu.'**
   String get emoteUnlockDone;
+
+  /// Title of the card showing the channel's emote chest collection (Twitch's Hype Chests).
+  ///
+  /// In en, this message translates to:
+  /// **'Emote chests'**
+  String get hypeChestsTitle;
+
+  /// How many emotes of the chest collection the viewer owns.
+  ///
+  /// In en, this message translates to:
+  /// **'{owned, plural, one{{owned} of {total} emotes collected} other{{owned} of {total} emotes collected}}'**
+  String hypeChestsCollected({required int owned, required int total});
+
+  /// How many chests the viewer has not opened yet.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{You have 1 unopened chest.} other{You have {count} unopened chests.}}'**
+  String hypeChestsUnopened({required int count});
+
+  /// Why the card has no Open button.
+  ///
+  /// In en, this message translates to:
+  /// **'ONSET can’t open chests yet. Open them on Twitch to reveal your emotes.'**
+  String get hypeChestsOpenElsewhere;
+
+  /// Button that opens the full emote collection.
+  ///
+  /// In en, this message translates to:
+  /// **'See the collection'**
+  String get hypeChestsSeeCollection;
+
+  /// A rarity tier of the chest emote collection, as a section label. tier is Twitch's tier code.
+  ///
+  /// In en, this message translates to:
+  /// **'{tier, select, LEGENDARY{Legendary} EPIC{Epic} RARE{Rare} UNCOMMON{Uncommon} COMMON{Common} other{Other}}'**
+  String hypeChestsTier({required String tier});
+
+  /// Screen-reader label of an owned collection emote. name is the emote's code.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, collected'**
+  String hypeChestsOwned({required String name});
+
+  /// Screen-reader label of a collection emote the viewer doesn't own. name is the emote's code.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, not collected yet'**
+  String hypeChestsMissing({required String name});
 }
 
 class _AppLocalizationsDelegate

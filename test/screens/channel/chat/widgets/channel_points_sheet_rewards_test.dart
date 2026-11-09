@@ -6,6 +6,7 @@ import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/models/drop_campaign.dart';
+import 'package:onset/models/legendary_collection.dart';
 import 'package:onset/models/unlockable_emote.dart';
 import 'package:onset/models/weekly_rewards.dart';
 import 'package:onset/screens/channel/chat/widgets/channel_points_sheet.dart';
@@ -14,6 +15,7 @@ import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/services/hermes_client.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
+import '../../../../fixtures/legendary_payloads.dart';
 import '../../../../fixtures/weekly_rewards_payloads.dart';
 
 class MockPointsService extends Mock implements TwitchPointsService {}
@@ -85,6 +87,14 @@ void main() {
       ),
     ).thenAnswer((_) async => const <DropCampaign>[]);
     when(
+      () => community.getLegendaryCollection(
+        channelId: any(named: 'channelId'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer(
+      (_) async => LegendaryCollection.fromBody(legendarySeasonResponse()),
+    );
+    when(
       () => community.getUnlockableEmotes(channelId: any(named: 'channelId')),
     ).thenAnswer(
       (_) async => UnlockableEmote.listFrom(unlockableEmotesResponse),
@@ -111,6 +121,7 @@ void main() {
   Future<void> pump(WidgetTester tester) async {
     await store.refreshPoints();
     await store.refreshWeeklyRewards();
+    await store.refreshLegendaryCollection();
     tester.view
       ..physicalSize = const Size(800, 2000)
       ..devicePixelRatio = 1;
@@ -223,5 +234,26 @@ void main() {
         authToken: 'tok',
       ),
     ).called(1);
+  });
+
+  testWidgets('the hype chests card counts and opens the collection', (
+    tester,
+  ) async {
+    await pump(tester);
+
+    expect(find.text('Emote chests'), findsOneWidget);
+    expect(find.text('2 of 3 emotes collected'), findsOneWidget);
+    expect(find.text('You have 3 unopened chests.'), findsOneWidget);
+
+    await tester.ensureVisible(find.byKey(HypeChestsCard.seeKey));
+    await tester.tap(find.byKey(HypeChestsCard.seeKey));
+    await tester.pumpAndSettle();
+
+    expect(find.text('LEGENDARY'), findsOneWidget);
+    expect(find.text('RARE'), findsOneWidget);
+    expect(
+      find.bySemanticsLabel('chestTwo, not collected yet'),
+      findsOneWidget,
+    );
   });
 }

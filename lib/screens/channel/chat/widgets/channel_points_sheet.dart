@@ -500,6 +500,25 @@ class _PanelState extends State<_Panel> {
                       null => const SizedBox.shrink(),
                     },
                   ),
+                if (events != null)
+                  Observer(
+                    builder: (_) => switch (events.legendaryCollection) {
+                      final collection? => Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        child: HypeChestsCard(
+                          collection: collection,
+                          onSeeCollection: () => showOnsetSheet<void>(
+                            context: context,
+                            panel: true,
+                            constraints: const BoxConstraints(maxWidth: 560),
+                            builder: (_) =>
+                                HypeChestsSheet(collection: collection),
+                          ),
+                        ),
+                      ),
+                      null => const SizedBox.shrink(),
+                    },
+                  ),
                 if (widget.watchStreak case final streak?)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),

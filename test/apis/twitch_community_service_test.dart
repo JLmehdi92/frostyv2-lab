@@ -9,6 +9,7 @@ import 'package:onset/models/channel_leaderboards.dart';
 import '../fixtures/community_goal_payloads.dart';
 import '../fixtures/community_gql_payloads.dart';
 import '../fixtures/drops_gql_payloads.dart';
+import '../fixtures/legendary_payloads.dart';
 import '../fixtures/weekly_rewards_payloads.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
@@ -306,6 +307,29 @@ void main() {
 
       expect(emotes!.map((e) => e.id), ['emotesv2_aaa', '301']);
       expect(requests.single.headers.containsKey('Authorization'), isFalse);
+    });
+  });
+
+  group('hype chests', () {
+    test('the collection is read with the token when there is one', () async {
+      reply(legendarySeasonResponse());
+
+      final collection = await service.getLegendaryCollection(
+        channelId: '1000',
+        authToken: 'tok',
+      );
+
+      expect(collection!.unopenedChests, 3);
+      final data = requests.single.data as Map;
+      expect(data['operationName'], 'LegendaryEmoteCollection');
+      expect(data['variables'], {'channelID': '1000'});
+      expect(requests.single.headers['Authorization'], 'OAuth tok');
+    });
+
+    test('no season or a failure is nothing', () async {
+      reply(noLegendarySeasonResponse);
+      expect(await service.getLegendaryCollection(channelId: '1000'), isNull);
+      expect(await service.getLegendaryCollection(channelId: 'x'), isNull);
     });
   });
 }

@@ -145,6 +145,30 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     });
   }
 
+  late final _$_legendaryCollectionAtom = Atom(
+    name: 'ChannelEventsStoreBase._legendaryCollection',
+    context: context,
+  );
+
+  LegendaryCollection? get legendaryCollection {
+    _$_legendaryCollectionAtom.reportRead();
+    return super._legendaryCollection;
+  }
+
+  @override
+  LegendaryCollection? get _legendaryCollection => legendaryCollection;
+
+  @override
+  set _legendaryCollection(LegendaryCollection? value) {
+    _$_legendaryCollectionAtom.reportWrite(
+      value,
+      super._legendaryCollection,
+      () {
+        super._legendaryCollection = value;
+      },
+    );
+  }
+
   late final _$_momentAtom = Atom(
     name: 'ChannelEventsStoreBase._moment',
     context: context,

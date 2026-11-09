@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/models/legendary_collection.dart';
 import 'package:onset/models/unlockable_emote.dart';
 import 'package:onset/models/weekly_rewards.dart';
 import 'package:onset/screens/channel/chat/widgets/prediction_dialogs.dart';
 import 'package:onset/screens/channel/chat/widgets/viewer_rewards.dart';
 
+import '../fixtures/legendary_payloads.dart';
 import '../fixtures/weekly_rewards_payloads.dart';
 import '../helpers/l10n.dart';
 
@@ -116,6 +118,38 @@ void main() {
           );
         });
       }
+
+      testWidgets('the hype chests, $at', (tester) async {
+        final collection = LegendaryCollection.fromBody(
+          legendarySeasonResponse(),
+        )!;
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: HypeChestsCard(
+                    collection: collection,
+                    onSeeCollection: () {},
+                  ),
+                ),
+                Expanded(child: HypeChestsSheet(collection: collection)),
+              ],
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pump();
+        expect(find.text(french.hypeChestsSeeCollection), findsOneWidget);
+        await expectFrenchThroughout(
+          tester,
+          'hype chests, $at',
+          content: const ['Winter Chests'],
+        );
+      });
 
       testWidgets('the moderator step, $at', (tester) async {
         await pumpLocalized(

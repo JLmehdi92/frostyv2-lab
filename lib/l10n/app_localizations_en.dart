@@ -9077,4 +9077,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emoteUnlockDone => 'Emote unlocked. It’s in your emote menu.';
+
+  @override
+  String get hypeChestsTitle => 'Emote chests';
+
+  @override
+  String hypeChestsCollected({required int owned, required int total}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      owned,
+      locale: localeName,
+      other: '$owned of $total emotes collected',
+      one: '$owned of $total emotes collected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hypeChestsUnopened({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You have $count unopened chests.',
+      one: 'You have 1 unopened chest.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hypeChestsOpenElsewhere =>
+      'ONSET can’t open chests yet. Open them on Twitch to reveal your emotes.';
+
+  @override
+  String get hypeChestsSeeCollection => 'See the collection';
+
+  @override
+  String hypeChestsTier({required String tier}) {
+    String _temp0 = intl.Intl.selectLogic(tier, {
+      'LEGENDARY': 'Legendary',
+      'EPIC': 'Epic',
+      'RARE': 'Rare',
+      'UNCOMMON': 'Uncommon',
+      'COMMON': 'Common',
+      'other': 'Other',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String hypeChestsOwned({required String name}) {
+    return '$name, collected';
+  }
+
+  @override
+  String hypeChestsMissing({required String name}) {
+    return '$name, not collected yet';
+  }
 }

@@ -15,6 +15,7 @@ import 'package:onset/models/community_points.dart';
 import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/hermes.dart';
+import 'package:onset/models/legendary_collection.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/stream_push.dart';
 import 'package:onset/models/unlockable_emote.dart';
@@ -262,11 +263,32 @@ abstract class ChannelEventsStoreBase with Store {
     if (service == null) return;
     final token = await _tokenProvider?.call();
     if (token == null || token.isEmpty) return;
-    final rewards = await service.getWeeklyRewards(
-      channelId: channelId,
-      authToken: token,
-    );
-    runInAction(() => _weeklyRewards = rewards);
+    try {
+      final rewards = await service.getWeeklyRewards(
+        channelId: channelId,
+        authToken: token,
+      );
+      runInAction(() => _weeklyRewards = rewards);
+    } catch (e) {
+      debugPrint('Weekly rewards unreadable (${e.runtimeType})');
+    }
+  }
+
+  @readonly
+  LegendaryCollection? _legendaryCollection;
+
+  Future<void> refreshLegendaryCollection() async {
+    final service = _communityService;
+    if (service == null) return;
+    try {
+      final collection = await service.getLegendaryCollection(
+        channelId: channelId,
+        authToken: await _tokenProvider?.call(),
+      );
+      runInAction(() => _legendaryCollection = collection);
+    } catch (e) {
+      debugPrint('Hype chests unreadable (${e.runtimeType})');
+    }
   }
 
   @readonly
@@ -509,6 +531,7 @@ abstract class ChannelEventsStoreBase with Store {
     unawaited(refreshWatchStreak());
     unawaited(refreshDrops());
     unawaited(refreshWeeklyRewards());
+    unawaited(refreshLegendaryCollection());
     unawaited(_readPaidPromotion());
 
     _startPointsPolling();

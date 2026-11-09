@@ -11618,5 +11618,71 @@
   "emoteUnlockDone": "Emote unlocked. It’s in your emote menu.",
   "@emoteUnlockDone": {
     "description": "Snackbar after unlocking a chosen emote with channel points."
+  },
+  "hypeChestsTitle": "Emote chests",
+  "@hypeChestsTitle": {
+    "description": "Title of the card showing the channel's emote chest collection (Twitch's Hype Chests)."
+  },
+  "hypeChestsCollected": "{owned, plural, one{{owned} of {total} emotes collected} other{{owned} of {total} emotes collected}}",
+  "@hypeChestsCollected": {
+    "description": "How many emotes of the chest collection the viewer owns.",
+    "placeholders": {
+      "owned": {
+        "type": "int",
+        "example": "3"
+      },
+      "total": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "hypeChestsUnopened": "{count, plural, one{You have 1 unopened chest.} other{You have {count} unopened chests.}}",
+  "@hypeChestsUnopened": {
+    "description": "How many chests the viewer has not opened yet.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "hypeChestsOpenElsewhere": "ONSET can’t open chests yet. Open them on Twitch to reveal your emotes.",
+  "@hypeChestsOpenElsewhere": {
+    "description": "Why the card has no Open button."
+  },
+  "hypeChestsSeeCollection": "See the collection",
+  "@hypeChestsSeeCollection": {
+    "description": "Button that opens the full emote collection."
+  },
+  "hypeChestsTier": "{tier, select, LEGENDARY{Legendary} EPIC{Epic} RARE{Rare} UNCOMMON{Uncommon} COMMON{Common} other{Other}}",
+  "@hypeChestsTier": {
+    "description": "A rarity tier of the chest emote collection, as a section label. tier is Twitch's tier code.",
+    "placeholders": {
+      "tier": {
+        "type": "String",
+        "example": "RARE"
+      }
+    }
+  },
+  "hypeChestsOwned": "{name}, collected",
+  "@hypeChestsOwned": {
+    "description": "Screen-reader label of an owned collection emote. name is the emote's code.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "chanHi"
+      }
+    }
+  },
+  "hypeChestsMissing": "{name}, not collected yet",
+  "@hypeChestsMissing": {
+    "description": "Screen-reader label of a collection emote the viewer doesn't own. name is the emote's code.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "chanHi"
+      }
+    }
   }
 }
