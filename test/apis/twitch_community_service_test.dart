@@ -12,6 +12,7 @@ import '../fixtures/community_gql_payloads.dart';
 import '../fixtures/drops_gql_payloads.dart';
 import '../fixtures/legendary_payloads.dart';
 import '../fixtures/live_together_payloads.dart';
+import '../fixtures/unban_request_payloads.dart';
 import '../fixtures/weekly_rewards_payloads.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
@@ -410,6 +411,22 @@ void main() {
         isNull,
       );
       expect(requests, isEmpty);
+    });
+  });
+
+  group('getUnbanRequest', () {
+    test('asks with the viewer token', () async {
+      reply(unbanResponse(status: 'PENDING'));
+
+      final state = await service.getUnbanRequest(
+        channelId: '1000',
+        authToken: 'tok',
+      );
+
+      expect(state?.status, 'PENDING');
+      expect(sent()['operationName'], 'LastUnbanRequest');
+      expect(sent()['variables'], {'channelID': '1000'});
+      expect(requests.single.headers['Authorization'], 'OAuth tok');
     });
   });
 }

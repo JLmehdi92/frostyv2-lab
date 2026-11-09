@@ -7,6 +7,7 @@ import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/models/chat_identity.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
+import 'package:onset/models/unban_request.dart';
 
 import 'package:onset/models/weekly_rewards.dart';
 
@@ -622,6 +623,51 @@ void main() {
       expect(
         await service.setSubFlairHidden(hidden: true, authToken: ''),
         ViewerActionOutcome.signedOut,
+      );
+      expect(requests, isEmpty);
+    });
+  });
+
+  group('createUnbanRequest', () {
+    test('sends the channel and the trimmed message', () async {
+      reply({
+        'data': {
+          'createUnbanRequest': {
+            'unbanRequest': {'id': 'r1'},
+            'error': null,
+          },
+        },
+      });
+
+      final outcome = await service.createUnbanRequest(
+        channelId: '1000',
+        message: '  Sorry about that.  ',
+        authToken: 'tok',
+      );
+
+      expect(outcome.result, UnbanRequestResult.sent);
+      expect(sent()['operationName'], 'CreateUnbanRequest');
+      expect(sent()['variables'], {
+        'input': {'channelID': '1000', 'requesterMessage': 'Sorry about that.'},
+      });
+    });
+
+    test('an empty message or no token never asks', () async {
+      expect(
+        (await service.createUnbanRequest(
+          channelId: '1000',
+          message: '   ',
+          authToken: 'tok',
+        )).result,
+        UnbanRequestResult.failed,
+      );
+      expect(
+        (await service.createUnbanRequest(
+          channelId: '1000',
+          message: 'Hi',
+          authToken: '',
+        )).result,
+        UnbanRequestResult.signedOut,
       );
       expect(requests, isEmpty);
     });

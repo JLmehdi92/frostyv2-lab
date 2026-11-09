@@ -11,6 +11,7 @@ import 'package:onset/models/legendary_collection.dart';
 import 'package:onset/models/live_together.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/shoutout_profile.dart';
+import 'package:onset/models/unban_request.dart';
 import 'package:onset/models/unlockable_emote.dart';
 import 'package:onset/models/weekly_rewards.dart';
 
@@ -352,6 +353,24 @@ class TwitchCommunityService extends BaseApiClient {
     if (authToken.isEmpty || !_numericId.hasMatch(channelId)) return null;
     return ChatIdentity.fromBody(
       await _ask('ChatIdentityQuery', _chatIdentityQuery, {
+        'channelID': channelId,
+      }, authToken: authToken),
+    );
+  }
+
+  static const _lastUnbanRequestQuery =
+      'query LastUnbanRequest(\$channelID: ID!) { channel(id: \$channelID) { '
+      'id self { id canRequestUnban lastUnbanRequest { id status createdAt '
+      'resolverMessage } } unbanRequestsSettings { cooldownMinutes isEnabled '
+      '} } }';
+
+  Future<UnbanRequestState?> getUnbanRequest({
+    required String channelId,
+    required String authToken,
+  }) async {
+    if (authToken.isEmpty || !_numericId.hasMatch(channelId)) return null;
+    return UnbanRequestState.fromBody(
+      await _ask('LastUnbanRequest', _lastUnbanRequestQuery, {
         'channelID': channelId,
       }, authToken: authToken),
     );

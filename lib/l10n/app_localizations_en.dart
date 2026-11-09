@@ -9238,7 +9238,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatBadgeTitle => 'Chat badge';
+  String get chatBadgeTitle => 'Your chat badge';
 
   @override
   String get chatBadgeChannel => 'In this channel';
@@ -9302,4 +9302,60 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chatBadgeFlairBody =>
       'It applies on every channel. You can change it back anytime.';
+
+  @override
+  String get unbanRequestTitle => 'Request an unban';
+
+  @override
+  String get unbanRequestHint => 'Why should you come back to chat?';
+
+  @override
+  String get unbanRequestOnce =>
+      'You can only appeal a ban once, so make it count.';
+
+  @override
+  String get unbanRequestSend => 'Send request';
+
+  @override
+  String get unbanRequestSent => 'Your unban request will be reviewed.';
+
+  @override
+  String unbanRequestStatus({required String status, required String date}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'PENDING':
+          'You asked to be unbanned on $date. The moderators haven’t answered yet.',
+      'DENIED': 'The unban request you made on $date was denied.',
+      'APPROVED': 'Your unban request from $date was approved.',
+      'other': 'You asked to be unbanned on $date.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get unbanRequestNote => 'Note from the channel moderators:';
+
+  @override
+  String unbanRequestUnavailable({required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'disabled': 'This channel doesn’t take unban requests.',
+      'wait': 'You can’t send an unban request right now.',
+      'other': 'Couldn’t load your unban request.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String unbanRequestFailed({required String code}) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'ALREADY_CREATED': 'You’ve already sent an unban request.',
+      'TOO_SOON_SINCE_BAN': 'It’s too soon after your ban. Try again later.',
+      'UNBAN_REQUESTS_DISABLED': 'This channel doesn’t take unban requests.',
+      'NOT_BANNED': 'You’re not banned from this channel.',
+      'FAILED_MODERATION':
+          'Twitch refused this message. Reword it and try again.',
+      'signedOut': 'Log in again to send it from ONSET.',
+      'other': 'Couldn’t send your unban request. Try again.',
+    });
+    return '$_temp0';
+  }
 }

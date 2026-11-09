@@ -70,7 +70,9 @@ class ChatRestriction {
 
   bool get acknowledgeable => kind == ChatRestrictionKind.warned;
 
-  double get barHeight => helpUrl == null && !acknowledgeable
+  bool get appealable => kind == ChatRestrictionKind.banned;
+
+  double get barHeight => helpUrl == null && !acknowledgeable && !appealable
       ? kRestrictionBarHeight
       : kRestrictionBarTapHeight;
 

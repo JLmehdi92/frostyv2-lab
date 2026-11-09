@@ -16,11 +16,14 @@ class ChatRestrictionBar extends StatefulWidget {
     required this.restriction,
     this.now = DateTime.now,
     this.onAcknowledge,
+    this.onAppeal,
   });
 
   final ChatRestriction? restriction;
 
   final VoidCallback? onAcknowledge;
+
+  final VoidCallback? onAppeal;
 
   static const lineKey = ValueKey('chat-restriction-line');
   final DateTime Function() now;
@@ -92,13 +95,15 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
     final onAcknowledge = restriction.acknowledgeable
         ? widget.onAcknowledge
         : null;
+    final onAppeal = restriction.appealable ? widget.onAppeal : null;
     final VoidCallback? onTap = helpUrl != null
         ? () => LinkRouter.open(helpUrl, launchExternal: false)
-        : onAcknowledge;
+        : onAcknowledge ?? onAppeal;
     final bar = Semantics(
       liveRegion: until == null,
       container: true,
       button: onTap != null,
+      hint: onAppeal != null ? context.l10n.unbanRequestTitle : null,
       // A fixed height: the chat list pads for it.
       child: Container(
         height: restriction.barHeight,
@@ -127,7 +132,7 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
               ),
               if (helpUrl != null)
                 SheetGlyph(SheetGlyphKind.external, size: 14, color: color)
-              else if (onAcknowledge != null)
+              else if (onAcknowledge != null || onAppeal != null)
                 SheetGlyph(SheetGlyphKind.chevronRight, size: 14, color: color),
             ],
           ),

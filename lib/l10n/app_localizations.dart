@@ -12134,7 +12134,7 @@ abstract class AppLocalizations {
   /// Chat menu row and sheet title: choose the badge shown next to your name.
   ///
   /// In en, this message translates to:
-  /// **'Chat badge'**
+  /// **'Your chat badge'**
   String get chatBadgeTitle;
 
   /// Section: the badge shown in this channel only.
@@ -12220,6 +12220,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'It applies on every channel. You can change it back anytime.'**
   String get chatBadgeFlairBody;
+
+  /// Sheet title, and what a screen reader says on the banned bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Request an unban'**
+  String get unbanRequestTitle;
+
+  /// Placeholder of the unban request text field.
+  ///
+  /// In en, this message translates to:
+  /// **'Why should you come back to chat?'**
+  String get unbanRequestHint;
+
+  /// Under the unban request field.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only appeal a ban once, so make it count.'**
+  String get unbanRequestOnce;
+
+  /// Button sending the unban request.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get unbanRequestSend;
+
+  /// Snackbar once the unban request is sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your unban request will be reviewed.'**
+  String get unbanRequestSent;
+
+  /// The viewer's last unban request and its outcome.
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, PENDING{You asked to be unbanned on {date}. The moderators haven’t answered yet.} DENIED{The unban request you made on {date} was denied.} APPROVED{Your unban request from {date} was approved.} other{You asked to be unbanned on {date}.}}'**
+  String unbanRequestStatus({required String status, required String date});
+
+  /// Heading above the moderators' note on an unban request.
+  ///
+  /// In en, this message translates to:
+  /// **'Note from the channel moderators:'**
+  String get unbanRequestNote;
+
+  /// Why no unban request can be sent.
+  ///
+  /// In en, this message translates to:
+  /// **'{reason, select, disabled{This channel doesn’t take unban requests.} wait{You can’t send an unban request right now.} other{Couldn’t load your unban request.}}'**
+  String unbanRequestUnavailable({required String reason});
+
+  /// Why an unban request was refused.
+  ///
+  /// In en, this message translates to:
+  /// **'{code, select, ALREADY_CREATED{You’ve already sent an unban request.} TOO_SOON_SINCE_BAN{It’s too soon after your ban. Try again later.} UNBAN_REQUESTS_DISABLED{This channel doesn’t take unban requests.} NOT_BANNED{You’re not banned from this channel.} FAILED_MODERATION{Twitch refused this message. Reword it and try again.} signedOut{Log in again to send it from ONSET.} other{Couldn’t send your unban request. Try again.}}'**
+  String unbanRequestFailed({required String code});
 }
 
 class _AppLocalizationsDelegate

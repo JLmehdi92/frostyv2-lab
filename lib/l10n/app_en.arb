@@ -11801,7 +11801,7 @@
       }
     }
   },
-  "chatBadgeTitle": "Chat badge",
+  "chatBadgeTitle": "Your chat badge",
   "@chatBadgeTitle": {
     "description": "Chat menu row and sheet title: choose the badge shown next to your name."
   },
@@ -11882,5 +11882,63 @@
   "chatBadgeFlairBody": "It applies on every channel. You can change it back anytime.",
   "@chatBadgeFlairBody": {
     "description": "Confirmation body for the flair setting."
+  },
+  "unbanRequestTitle": "Request an unban",
+  "@unbanRequestTitle": {
+    "description": "Sheet title, and what a screen reader says on the banned bar."
+  },
+  "unbanRequestHint": "Why should you come back to chat?",
+  "@unbanRequestHint": {
+    "description": "Placeholder of the unban request text field."
+  },
+  "unbanRequestOnce": "You can only appeal a ban once, so make it count.",
+  "@unbanRequestOnce": {
+    "description": "Under the unban request field."
+  },
+  "unbanRequestSend": "Send request",
+  "@unbanRequestSend": {
+    "description": "Button sending the unban request."
+  },
+  "unbanRequestSent": "Your unban request will be reviewed.",
+  "@unbanRequestSent": {
+    "description": "Snackbar once the unban request is sent."
+  },
+  "unbanRequestStatus": "{status, select, PENDING{You asked to be unbanned on {date}. The moderators haven’t answered yet.} DENIED{The unban request you made on {date} was denied.} APPROVED{Your unban request from {date} was approved.} other{You asked to be unbanned on {date}.}}",
+  "@unbanRequestStatus": {
+    "description": "The viewer's last unban request and its outcome.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "DENIED"
+      },
+      "date": {
+        "type": "String",
+        "example": "Nov 9, 2026"
+      }
+    }
+  },
+  "unbanRequestNote": "Note from the channel moderators:",
+  "@unbanRequestNote": {
+    "description": "Heading above the moderators' note on an unban request."
+  },
+  "unbanRequestUnavailable": "{reason, select, disabled{This channel doesn’t take unban requests.} wait{You can’t send an unban request right now.} other{Couldn’t load your unban request.}}",
+  "@unbanRequestUnavailable": {
+    "description": "Why no unban request can be sent.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "disabled"
+      }
+    }
+  },
+  "unbanRequestFailed": "{code, select, ALREADY_CREATED{You’ve already sent an unban request.} TOO_SOON_SINCE_BAN{It’s too soon after your ban. Try again later.} UNBAN_REQUESTS_DISABLED{This channel doesn’t take unban requests.} NOT_BANNED{You’re not banned from this channel.} FAILED_MODERATION{Twitch refused this message. Reword it and try again.} signedOut{Log in again to send it from ONSET.} other{Couldn’t send your unban request. Try again.}}",
+  "@unbanRequestFailed": {
+    "description": "Why an unban request was refused.",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "ALREADY_CREATED"
+      }
+    }
   }
 }

@@ -9364,7 +9364,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get chatBadgeTitle => 'Badge du chat';
+  String get chatBadgeTitle => 'Votre badge du chat';
 
   @override
   String get chatBadgeChannel => 'Sur cette chaîne';
@@ -9430,4 +9430,65 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get chatBadgeFlairBody =>
       'Cela s’applique sur toutes les chaînes. Vous pourrez revenir en arrière à tout moment.';
+
+  @override
+  String get unbanRequestTitle => 'Demander un débannissement';
+
+  @override
+  String get unbanRequestHint => 'Pourquoi revenir dans le chat ?';
+
+  @override
+  String get unbanRequestOnce =>
+      'Vous ne pouvez faire appel d’un bannissement qu’une seule fois, choisissez bien vos mots.';
+
+  @override
+  String get unbanRequestSend => 'Envoyer la demande';
+
+  @override
+  String get unbanRequestSent =>
+      'Votre demande de débannissement sera examinée.';
+
+  @override
+  String unbanRequestStatus({required String status, required String date}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'PENDING':
+          'Vous avez demandé un débannissement le $date. Les modérateurs n’ont pas encore répondu.',
+      'DENIED': 'La demande de débannissement faite le $date a été refusée.',
+      'APPROVED': 'La demande de débannissement faite le $date a été acceptée.',
+      'other': 'Vous avez demandé un débannissement le $date.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get unbanRequestNote => 'Note des modérateurs de la chaîne :';
+
+  @override
+  String unbanRequestUnavailable({required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'disabled': 'Cette chaîne n’accepte pas les demandes de débannissement.',
+      'wait':
+          'Vous ne pouvez pas envoyer de demande de débannissement pour le moment.',
+      'other': 'Impossible de charger votre demande de débannissement.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String unbanRequestFailed({required String code}) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'ALREADY_CREATED': 'Vous avez déjà envoyé une demande de débannissement.',
+      'TOO_SOON_SINCE_BAN':
+          'Votre bannissement est trop récent. Réessayez plus tard.',
+      'UNBAN_REQUESTS_DISABLED':
+          'Cette chaîne n’accepte pas les demandes de débannissement.',
+      'NOT_BANNED': 'Aucun bannissement en cours sur cette chaîne.',
+      'FAILED_MODERATION':
+          'Twitch a refusé ce message. Reformulez-le et réessayez.',
+      'signedOut': 'Reconnectez-vous pour l’envoyer depuis ONSET.',
+      'other':
+          'Impossible d’envoyer votre demande de débannissement. Réessayez.',
+    });
+    return '$_temp0';
+  }
 }

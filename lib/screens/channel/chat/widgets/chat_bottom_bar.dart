@@ -13,6 +13,7 @@ import 'package:onset/screens/channel/chat/widgets/chat_character_counter.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
 import 'package:onset/screens/channel/chat/widgets/emote_text_span_builder.dart';
+import 'package:onset/screens/channel/chat/widgets/unban_request_sheet.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -145,6 +146,7 @@ class ChatBottomBar extends StatelessWidget {
                     ),
                     null => null,
                   },
+                  onAppeal: () => showUnbanRequest(context, chatStore),
                 ),
               ),
             if (chatStore.replyingToMessage != null) ...[

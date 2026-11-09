@@ -52,8 +52,46 @@ void main() {
     expect(find.text('Permanently banned'), findsOneWidget);
     expect(
       tester.getSize(find.byType(ChatRestrictionBar)).height,
+      kRestrictionBarTapHeight,
+    );
+    expect(
+      tester.getSize(find.byKey(ChatRestrictionBar.lineKey)).height,
       kRestrictionBarHeight,
     );
+  });
+
+  testWidgets('a ban bar opens the unban request on a tap', (tester) async {
+    var appeals = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ChatRestrictionBar(
+            restriction: const ChatRestriction(ChatRestrictionKind.banned),
+            now: () => now,
+            onAppeal: () => appeals++,
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(ChatRestrictionBar));
+    expect(appeals, 1);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ChatRestrictionBar(
+            restriction: ChatRestriction(
+              ChatRestrictionKind.timedOut,
+              until: now.add(const Duration(minutes: 1)),
+            ),
+            now: () => now,
+            onAppeal: () => appeals++,
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(ChatRestrictionBar));
+    expect(appeals, 1);
   });
 
   test('USERSTATE knows a VIP from its badges', () {

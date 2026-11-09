@@ -7,6 +7,7 @@ import 'package:onset/constants.dart';
 import 'package:onset/models/chat_identity.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
+import 'package:onset/models/unban_request.dart';
 import 'package:onset/models/weekly_rewards.dart';
 
 enum ViewerActionOutcome { done, refused, integrityRefused, signedOut, failed }
@@ -251,6 +252,52 @@ class TwitchViewerActionsService extends BaseApiClient {
     authToken: authToken,
     input: {'isBadgeModifierHidden': hidden},
   );
+
+  static const _createUnbanRequestDocument =
+      'mutation CreateUnbanRequest(\$input: CreateUnbanRequestInput!) { '
+      'createUnbanRequest(input: \$input) { unbanRequest { id } error { code } '
+      '} }';
+
+  static const maxUnbanMessageLength = 500;
+
+  Future<UnbanRequestOutcome> createUnbanRequest({
+    required String channelId,
+    required String message,
+    required String authToken,
+  }) async {
+    final text = message.trim();
+    if (authToken.isEmpty) {
+      return const UnbanRequestOutcome(UnbanRequestResult.signedOut);
+    }
+    if (!_numericId.hasMatch(channelId) ||
+        text.isEmpty ||
+        text.length > maxUnbanMessageLength) {
+      return const UnbanRequestOutcome(UnbanRequestResult.failed);
+    }
+    try {
+      return UnbanRequestOutcome.fromBody(
+        await post<dynamic>(
+          _gqlUrl,
+          headers: {
+            'Client-ID': kTwitchWebClientId,
+            'Authorization': 'OAuth $authToken',
+          },
+          data: {
+            'operationName': 'CreateUnbanRequest',
+            'query': _createUnbanRequestDocument,
+            'variables': {
+              'input': {'channelID': channelId, 'requesterMessage': text},
+            },
+          },
+        ),
+      );
+    } on UnauthorizedException {
+      return const UnbanRequestOutcome(UnbanRequestResult.signedOut);
+    } catch (e) {
+      if (kDebugMode) debugPrint('CreateUnbanRequest failed: $e');
+      return const UnbanRequestOutcome(UnbanRequestResult.failed);
+    }
+  }
 
   Future<ViewerActionOutcome> _raid(
     String operation,

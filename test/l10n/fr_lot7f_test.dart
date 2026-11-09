@@ -3,11 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/models/chat_identity.dart';
 import 'package:onset/models/live_together.dart';
+import 'package:onset/models/unban_request.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_badge_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/live_together.dart';
+import 'package:onset/screens/channel/chat/widgets/unban_request_sheet.dart';
 
 import '../fixtures/chat_identity_payloads.dart';
 import '../fixtures/live_together_payloads.dart';
+import '../fixtures/unban_request_payloads.dart';
 import '../helpers/l10n.dart';
 
 void main() {
@@ -90,6 +93,34 @@ void main() {
           content: const ['5 Gift Subs'],
         );
       });
+      for (final status in [null, 'DENIED']) {
+        testWidgets('the unban request, $status, $at', (tester) async {
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: UnbanRequestSheet(
+                load: () async => UnbanRequestState.fromBody(
+                  unbanResponse(
+                    canRequest: status == null,
+                    status: status,
+                    note: status == null ? null : 'Pas maintenant.',
+                  ),
+                ),
+                send: (_) async =>
+                    const UnbanRequestOutcome(UnbanRequestResult.sent),
+              ),
+            ),
+            size: size,
+            textScale: scale,
+          );
+          await tester.pumpAndSettle();
+          await expectFrenchThroughout(
+            tester,
+            'unban request $status, $at',
+            content: const ['Pas maintenant.'],
+          );
+        });
+      }
     }
   }
 }
