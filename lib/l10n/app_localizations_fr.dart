@@ -8883,15 +8883,14 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$countString mentions J’aime',
-      one: '$countString mention J’aime',
+      other: '$countString cœurs',
+      one: '$countString cœur',
     );
     return '$_temp0';
   }
 
   @override
-  String get clipCommentLikeFailed =>
-      'Impossible de modifier votre mention J’aime.';
+  String get clipCommentLikeFailed => 'Impossible de modifier votre réaction.';
 
   @override
   String get clipCommentHint => 'Ajouter un commentaire…';
