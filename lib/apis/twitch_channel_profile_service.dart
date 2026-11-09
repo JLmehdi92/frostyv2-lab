@@ -44,6 +44,39 @@ class TwitchChannelProfileService extends BaseApiClient {
       'channel { id trailer { video { id title lengthSeconds '
       'previewThumbnailURL(width: 640, height: 360) } } } } }';
 
+  static const _restrictionQuery =
+      'query ChannelProfileRestriction(\$channelID: ID!) { user(id: '
+      '\$channelID) { id channelSafetyStatus } }';
+
+  static final _channelId = RegExp(r'^[0-9]{1,20}$');
+  static final _restrictedStatus = RegExp('RESTRICT|SUSPEND');
+
+  Future<bool> isRestricted(String channelId) async {
+    if (!_channelId.hasMatch(channelId)) return false;
+    try {
+      final Object? body = await post<dynamic>(
+        _gqlUrl,
+        headers: {'Client-ID': kTwitchWebClientId},
+        data: {
+          'operationName': 'ChannelProfileRestriction',
+          'query': _restrictionQuery,
+          'variables': {'channelID': channelId},
+        },
+      );
+      final data = body is Map ? body['data'] : null;
+      final user = data is Map ? data['user'] : null;
+      final statuses = user is Map ? user['channelSafetyStatus'] : null;
+      if (statuses is! List) return false;
+      return statuses.any(
+        (status) =>
+            status is String &&
+            _restrictedStatus.hasMatch(status.toUpperCase()),
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<ChannelTrailer?> getTrailer(String login) async {
     final (:data, :errors) = await _gql('ChannelTrailer', _trailerQuery, login);
     final channel = chMap(chMap(data['user'])?['channel']);

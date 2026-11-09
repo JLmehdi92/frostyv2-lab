@@ -7,6 +7,7 @@ import 'package:onset/constants.dart';
 import 'package:onset/models/chat_identity.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
+import 'package:onset/models/follow_result.dart';
 import 'package:onset/models/unban_request.dart';
 import 'package:onset/models/weekly_rewards.dart';
 
@@ -432,6 +433,171 @@ class TwitchViewerActionsService extends BaseApiClient {
       return MomentClaimResult.failed;
     }
   }
+
+  static const _followUserDocument =
+      'mutation FollowUserMutation(\$targetId: ID!, \$disableNotifications: '
+      'Boolean!) { followUser(input: { targetID: \$targetId '
+      'disableNotifications: \$disableNotifications } ) { follow { '
+      'disableNotifications } error { code } } }';
+
+  static const _unfollowUserDocument =
+      'mutation UnfollowUserMutation(\$targetId: ID!) { unfollowUser(input: '
+      '{ targetID: \$targetId } ) { follow { disableNotifications } } }';
+
+  static const _followGameDocument =
+      'mutation FollowGameMutation(\$gameID: ID!) { followGame(input: { '
+      'gameID: \$gameID } ) { game { __typename ...GameModelFragment } } }'
+      '  fragment TagModelFragment on Tag { id localizedName tagName '
+      'isAutomated isLanguageTag localizedDescription scope }  fragment '
+      'GameModelFragment on Game { id name originalReleaseDate viewersCount '
+      'followersCount displayName broadcastersCount boxArtURL(width: 285, '
+      'height: 380) gameTags: tags(limit: 5, tagType: CONTENT) { __typename '
+      '...TagModelFragment } coverURL(width: 1600, height: 240) }';
+
+  static const _unfollowGameDocument =
+      'mutation UnfollowGameMutation(\$gameID: ID!) { unfollowGame(input: { '
+      'gameID: \$gameID } ) { game { __typename ...GameModelFragment } } }'
+      '  fragment TagModelFragment on Tag { id localizedName tagName '
+      'isAutomated isLanguageTag localizedDescription scope }  fragment '
+      'GameModelFragment on Game { id name originalReleaseDate viewersCount '
+      'followersCount displayName broadcastersCount boxArtURL(width: 285, '
+      'height: 380) gameTags: tags(limit: 5, tagType: CONTENT) { __typename '
+      '...TagModelFragment } coverURL(width: 1600, height: 240) }';
+
+  static const _giftSettingsDocument =
+      'query UserGiftedSubSettingsQuery { currentUser { id '
+      'subscriptionSettings { giftsToFollowedChannelsOnly isGiftCountHidden '
+      '} } }';
+
+  static const _updateGiftSettingsDocument =
+      'mutation UserGiftedSubSettingsMutation(\$input: '
+      'UpdateUserSubscriptionSettingsInput!) { '
+      'updateUserSubscriptionSettings(input: \$input) { '
+      'subscriptionSettings { giftsToFollowedChannelsOnly isGiftCountHidden '
+      '} } }';
+
+  Future<FollowResult> followChannel({
+    required String channelId,
+    required String authToken,
+  }) => _follow(
+    operation: 'FollowUserMutation',
+    document: _followUserDocument,
+    field: 'followUser',
+    id: channelId,
+    authToken: authToken,
+    variables: {'targetId': channelId, 'disableNotifications': false},
+  );
+
+  Future<FollowResult> unfollowChannel({
+    required String channelId,
+    required String authToken,
+  }) => _follow(
+    operation: 'UnfollowUserMutation',
+    document: _unfollowUserDocument,
+    field: 'unfollowUser',
+    id: channelId,
+    authToken: authToken,
+    variables: {'targetId': channelId},
+  );
+
+  Future<FollowResult> followCategory({
+    required String categoryId,
+    required String authToken,
+  }) => _follow(
+    operation: 'FollowGameMutation',
+    document: _followGameDocument,
+    field: 'followGame',
+    id: categoryId,
+    authToken: authToken,
+    variables: {'gameID': categoryId},
+  );
+
+  Future<FollowResult> unfollowCategory({
+    required String categoryId,
+    required String authToken,
+  }) => _follow(
+    operation: 'UnfollowGameMutation',
+    document: _unfollowGameDocument,
+    field: 'unfollowGame',
+    id: categoryId,
+    authToken: authToken,
+    variables: {'gameID': categoryId},
+  );
+
+  Future<FollowResult> _follow({
+    required String operation,
+    required String document,
+    required String field,
+    required String id,
+    required String authToken,
+    required Map<String, Object?> variables,
+  }) async {
+    if (authToken.isEmpty) return FollowResult.signedOut;
+    if (!_numericId.hasMatch(id)) return FollowResult.failed;
+    try {
+      return FollowResult.fromBody(
+        await post<dynamic>(
+          _gqlUrl,
+          headers: _viewerHeaders(authToken),
+          data: {
+            'operationName': operation,
+            'query': document,
+            'variables': variables,
+          },
+        ),
+        field,
+      );
+    } on UnauthorizedException {
+      return FollowResult.signedOut;
+    } catch (e) {
+      if (kDebugMode) debugPrint('$operation failed: $e');
+      return FollowResult.failed;
+    }
+  }
+
+  Future<GiftSettings?> giftSettings({required String authToken}) async {
+    if (authToken.isEmpty) return null;
+    try {
+      final Object? body = await post<dynamic>(
+        _gqlUrl,
+        headers: _viewerHeaders(authToken),
+        data: {
+          'operationName': 'UserGiftedSubSettingsQuery',
+          'query': _giftSettingsDocument,
+          'variables': const <String, Object?>{},
+        },
+      );
+      final data = body is Map ? body['data'] : null;
+      final user = data is Map ? data['currentUser'] : null;
+      return GiftSettings.fromSettings(
+        user is Map ? user['subscriptionSettings'] : null,
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('UserGiftedSubSettingsQuery failed: $e');
+      return null;
+    }
+  }
+
+  Future<ViewerActionOutcome> updateGiftSettings({
+    required GiftSettings settings,
+    required String authToken,
+  }) => _send(
+    operation: 'UserGiftedSubSettingsMutation',
+    document: _updateGiftSettingsDocument,
+    field: 'updateUserSubscriptionSettings',
+    authToken: authToken,
+    input: {
+      'giftsToFollowedChannelsOnly': settings.followedChannelsOnly,
+      'isGiftCountHidden': settings.countHidden,
+    },
+    succeeded: (payload) =>
+        GiftSettings.fromSettings(payload['subscriptionSettings']) == settings,
+  );
+
+  static Map<String, String> _viewerHeaders(String authToken) => {
+    'Client-ID': kTwitchWebClientId,
+    'Authorization': 'OAuth $authToken',
+  };
 
   Future<ViewerActionOutcome> _failedAtOnce(String authToken) => Future.value(
     authToken.isEmpty
