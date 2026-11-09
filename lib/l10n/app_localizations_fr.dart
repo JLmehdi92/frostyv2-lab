@@ -9895,4 +9895,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get popOutClose => 'Fermer le lecteur flottant';
+
+  @override
+  String get coachMarkGotIt => 'J’ai compris';
+
+  @override
+  String get coachMarkCast =>
+      'Regardez sur votre téléviseur : diffusez sur un appareil Google Cast.';
+
+  @override
+  String get coachMarkPopOut =>
+      'Continuez à regarder dans une fenêtre flottante pendant que vous utilisez d’autres applications.';
 }

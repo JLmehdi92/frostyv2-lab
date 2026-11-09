@@ -6,6 +6,8 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/services/cast_bridge.dart';
 import 'package:onset/stores/cast_store.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/widgets/coach_mark.dart';
+import 'package:onset/widgets/new_feature_pill.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 typedef CastMediaSource = CastMedia? Function();
@@ -32,6 +34,14 @@ class CastButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = this.store ?? sharedCastStore;
     if (!store.supported) return const SizedBox.shrink();
+    return CoachMark(
+      feature: NewFeature.cast,
+      message: context.l10n.coachMarkCast,
+      child: _observedButton(store),
+    );
+  }
+
+  Widget _observedButton(CastStore store) {
     return Observer(
       builder: (context) {
         final l = context.l10n;

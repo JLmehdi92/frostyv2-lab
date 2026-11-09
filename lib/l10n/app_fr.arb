@@ -2084,5 +2084,8 @@
   "popOutRefused": "Sans l’autorisation, le live continue en Picture-in-picture.",
   "popOutNotReady": "Impossible d’afficher le lecteur flottant\u00a0: le live n’est pas encore prêt.",
   "popOutNotificationChannel": "Lecteur flottant",
-  "popOutClose": "Fermer le lecteur flottant"
+  "popOutClose": "Fermer le lecteur flottant",
+  "coachMarkGotIt": "J’ai compris",
+  "coachMarkCast": "Regardez sur votre téléviseur\u00a0: diffusez sur un appareil Google Cast.",
+  "coachMarkPopOut": "Continuez à regarder dans une fenêtre flottante pendant que vous utilisez d’autres applications."
 }

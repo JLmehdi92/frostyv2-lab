@@ -12433,5 +12433,17 @@
   "popOutClose": "Close the floating player",
   "@popOutClose": {
     "description": "Close button of the floating window and action of its notification."
+  },
+  "coachMarkGotIt": "Got it",
+  "@coachMarkGotIt": {
+    "description": "Button of a one-time tip that points at a new player button: hides it for good."
+  },
+  "coachMarkCast": "Watch on your TV: cast to a Google Cast device.",
+  "@coachMarkCast": {
+    "description": "One-time tip under the new Cast button of the player."
+  },
+  "coachMarkPopOut": "Keep watching in a floating window while you use other apps.",
+  "@coachMarkPopOut": {
+    "description": "One-time tip beside the new floating player button of the live player (Android)."
   }
 }

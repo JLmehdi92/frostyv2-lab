@@ -2,10 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/pop_out.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/cast_bridge.dart';
 import 'package:onset/stores/cast_store.dart';
 import 'package:onset/widgets/cast_button.dart';
+import 'package:onset/widgets/coach_mark.dart';
+import 'package:onset/widgets/new_feature_pill.dart';
 
 import '../helpers/fake_cast_bridge.dart';
 import '../helpers/l10n.dart';
@@ -17,6 +21,8 @@ const lot9aScreenNames = [
   'cast connected',
   'cast unavailable',
   'floating permission',
+  'coach mark cast',
+  'coach mark floating',
 ];
 
 const _media = CastMedia(url: 'https://a/b.m3u8', title: 'Live', live: true);
@@ -38,6 +44,36 @@ typedef Lot9aScreen = ({
 });
 
 Lot9aScreen lot9aScreen(String name) {
+  if (name.startsWith('coach mark')) {
+    final floating = name.endsWith('floating');
+    final settings = SettingsStore.fromJson({});
+    if (floating) settings.markFeatureSeen(NewFeature.cast.name);
+    return (
+      screen: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: Align(
+            alignment: floating ? Alignment.bottomRight : Alignment.topRight,
+            child: Builder(
+              builder: (context) => CoachMark(
+                feature: floating ? NewFeature.floatingPlayer : NewFeature.cast,
+                after: floating ? NewFeature.cast : null,
+                message: floating
+                    ? context.l10n.coachMarkPopOut
+                    : context.l10n.coachMarkCast,
+                settings: settings,
+                child: const SizedBox.square(dimension: 44),
+              ),
+            ),
+          ),
+        ),
+      ),
+      settle: (tester) async {
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump(const Duration(milliseconds: 400));
+      },
+    );
+  }
   if (name == 'floating permission') {
     return (
       screen: const Scaffold(body: SizedBox.expand()),

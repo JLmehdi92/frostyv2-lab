@@ -31,6 +31,7 @@ import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/widgets/cast_button.dart';
+import 'package:onset/widgets/coach_mark.dart';
 import 'package:onset/widgets/motion/rolling_number.dart';
 import 'package:onset/widgets/motion/signal_ping.dart';
 import 'package:onset/widgets/new_feature_pill.dart';
@@ -550,7 +551,16 @@ class VideoOverlay extends StatelessWidget {
                         if (!ivs.paused) ivs.handlePausePlay();
                       },
                     ),
-                  if (!Platform.isIOS || isIPad()) videoSettingsButton,
+                  if (!Platform.isIOS || isIPad())
+                    if (Platform.isAndroid && videoStore is IvsVideoStore)
+                      CoachMark(
+                        feature: NewFeature.floatingPlayer,
+                        after: NewFeature.cast,
+                        message: l.coachMarkPopOut,
+                        child: videoSettingsButton,
+                      )
+                    else
+                      videoSettingsButton,
                   // The latency pill is drawn by the channel screen over
                   // this spot, outside the controls that hide: the row
                   // keeps the room it needs.

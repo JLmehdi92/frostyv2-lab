@@ -12782,6 +12782,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close the floating player'**
   String get popOutClose;
+
+  /// Button of a one-time tip that points at a new player button: hides it for good.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get coachMarkGotIt;
+
+  /// One-time tip under the new Cast button of the player.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch on your TV: cast to a Google Cast device.'**
+  String get coachMarkCast;
+
+  /// One-time tip beside the new floating player button of the live player (Android).
+  ///
+  /// In en, this message translates to:
+  /// **'Keep watching in a floating window while you use other apps.'**
+  String get coachMarkPopOut;
 }
 
 class _AppLocalizationsDelegate

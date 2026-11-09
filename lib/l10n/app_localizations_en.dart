@@ -9752,4 +9752,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get popOutClose => 'Close the floating player';
+
+  @override
+  String get coachMarkGotIt => 'Got it';
+
+  @override
+  String get coachMarkCast => 'Watch on your TV: cast to a Google Cast device.';
+
+  @override
+  String get coachMarkPopOut =>
+      'Keep watching in a floating window while you use other apps.';
 }
