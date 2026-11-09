@@ -3315,12 +3315,107 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String channelFollowTooltip({required String name}) {
-    return 'Suivre $name sur Twitch';
+    return 'Suivre $name';
   }
 
   @override
   String channelFollowingTooltip({required String name}) {
-    return 'Vous suivez $name · ouvre twitch.tv';
+    return 'Vous suivez $name';
+  }
+
+  @override
+  String followDone({required String name}) {
+    return 'Vous suivez désormais $name.';
+  }
+
+  @override
+  String unfollowDone({required String name}) {
+    return 'Vous ne suivez plus $name.';
+  }
+
+  @override
+  String followError({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'tooManyFollows':
+          'Vous suivez trop de chaînes. Ne suivez plus l’une d’elles, puis réessayez.',
+      'unverifiedEmail':
+          'Vérifiez votre adresse e-mail sur Twitch pour suivre.',
+      'unverifiedPhone':
+          'Vérifiez votre numéro de téléphone sur Twitch pour suivre.',
+      'unverifiedPhoneAndEmail':
+          'Vérifiez votre adresse e-mail et votre numéro de téléphone sur Twitch pour suivre.',
+      'forbidden': 'Twitch ne vous permet pas de suivre ceci.',
+      'refused': 'Twitch a refusé ce suivi.',
+      'integrityRefused':
+          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ouvre twitch.tv pour que vous la fassiez là-bas.',
+      'signedOut': 'Reconnectez-vous pour suivre depuis ONSET.',
+      'other': 'Impossible de joindre Twitch. Réessayez.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String unfollowConfirmTitle({required String name}) {
+    return 'Ne plus suivre $name ?';
+  }
+
+  @override
+  String get unfollowConfirmBody =>
+      'Cela modifie ce que suit votre compte Twitch.';
+
+  @override
+  String get unfollowAction => 'Ne plus suivre';
+
+  @override
+  String followConfirmTitle({required String name}) {
+    return 'Suivre $name ?';
+  }
+
+  @override
+  String get followDeepLinkBody =>
+      'Un lien demande à ONSET de suivre cette chaîne avec votre compte Twitch.';
+
+  @override
+  String followSuggestionsTitle({required String name}) {
+    return 'Vous suivez $name';
+  }
+
+  @override
+  String get followSuggestionsSubtitle =>
+      'Aussi en direct dans la même catégorie';
+
+  @override
+  String get followAll => 'Tout suivre';
+
+  @override
+  String followAllConfirmTitle({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Suivre ces $count chaînes ?',
+      one: 'Suivre cette chaîne ?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get followAllConfirmBody =>
+      'Chacune est ajoutée aux chaînes suivies de votre compte Twitch.';
+
+  @override
+  String followAllDone({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vous suivez désormais $count chaînes de plus.',
+      one: 'Vous suivez désormais $count chaîne de plus.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String followCalloutLine({required String name}) {
+    return 'Le live vous plaît ? Suivez $name pour savoir quand la chaîne lance un live.';
   }
 
   @override

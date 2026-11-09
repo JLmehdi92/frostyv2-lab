@@ -1,0 +1,300 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/follow_result.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/utils/common_utils.dart';
+import 'package:onset/widgets/follow/follow_actions.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:provider/provider.dart';
+
+enum FollowTarget { channel, category }
+
+class FollowFlow {
+  const FollowFlow._();
+
+  static const confirmKey = ValueKey('follow-confirm');
+
+  static FollowActions? actionsOf(BuildContext context) {
+    final actions = context.read<FollowActions?>();
+    return actions != null && actions.canFollowInApp ? actions : null;
+  }
+
+  static Future<bool?> toggle(
+    BuildContext context, {
+    required FollowTarget target,
+    required String id,
+    required String name,
+    required bool following,
+    required Future<void> Function() openOnTwitch,
+  }) async {
+    final actions = actionsOf(context);
+    if (actions == null) {
+      await openOnTwitch();
+      return null;
+    }
+    if (following && !await _confirmUnfollow(context, name)) return null;
+    final result = await switch ((target, following)) {
+      (FollowTarget.channel, false) => actions.followChannel(id),
+      (FollowTarget.channel, true) => actions.unfollowChannel(id),
+      (FollowTarget.category, false) => actions.followCategory(id),
+      (FollowTarget.category, true) => actions.unfollowCategory(id),
+    };
+    if (!context.mounted) return null;
+    showResult(context, result, name: name, followed: !following);
+    if (result.opensTwitch) {
+      await openOnTwitch();
+      return null;
+    }
+    if (!result.succeeded) return null;
+    unawaited(HapticFeedback.lightImpact());
+    return !following;
+  }
+
+  static Future<bool> confirmFollow(BuildContext context, String name) =>
+      _confirm(
+        context,
+        title: context.l10n.followConfirmTitle(name: name),
+        message: context.l10n.followDeepLinkBody,
+        action: context.l10n.channelFollow,
+      );
+
+  static Future<bool> _confirmUnfollow(BuildContext context, String name) =>
+      _confirm(
+        context,
+        title: context.l10n.unfollowConfirmTitle(name: name),
+        message: context.l10n.unfollowConfirmBody,
+        action: context.l10n.unfollowAction,
+      );
+
+  static Future<bool> _confirm(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String action,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => OnsetDialog(
+        title: title,
+        message: message,
+        actions: [
+          SheetButton(
+            label: context.l10n.commonCancel,
+            tone: SheetButtonTone.text,
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          SheetButton(
+            key: confirmKey,
+            label: action,
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
+  static void showResult(
+    BuildContext context,
+    FollowResult result, {
+    required String name,
+    required bool followed,
+  }) {
+    final l = context.l10n;
+    final text = result.succeeded
+        ? followed
+              ? l.followDone(name: name)
+              : l.unfollowDone(name: name)
+        : l.followError(status: result.name);
+    ScaffoldMessenger.maybeOf(context)
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  static Future<void> suggestAfterFollowing(
+    BuildContext context, {
+    required String channelId,
+    required String name,
+  }) async {
+    final actions = actionsOf(context);
+    if (actions == null) return;
+    final suggestions = await actions.suggestionsAfterFollowing(channelId);
+    if (suggestions.isEmpty || !context.mounted) return;
+    await showOnsetSheet<void>(
+      context: context,
+      builder: (_) => FollowSuggestionsSheet(
+        name: name,
+        suggestions: suggestions,
+        actions: actions,
+      ),
+    );
+  }
+}
+
+class FollowSuggestionsSheet extends StatefulWidget {
+  const FollowSuggestionsSheet({
+    super.key,
+    required this.name,
+    required this.suggestions,
+    required this.actions,
+  });
+
+  static const followAllKey = ValueKey('follow-all');
+  static ValueKey<String> rowKey(String id) =>
+      ValueKey('follow-suggestion-$id');
+
+  final String name;
+  final List<StreamTwitch> suggestions;
+  final FollowActions actions;
+
+  @override
+  State<FollowSuggestionsSheet> createState() => _FollowSuggestionsSheetState();
+}
+
+class _FollowSuggestionsSheetState extends State<FollowSuggestionsSheet> {
+  final _followed = <String>{};
+  final _busy = <String>{};
+
+  List<StreamTwitch> get _remaining => [
+    for (final stream in widget.suggestions)
+      if (!_followed.contains(stream.userId)) stream,
+  ];
+
+  Future<FollowResult> _followOne(StreamTwitch stream) async {
+    setState(() => _busy.add(stream.userId));
+    final result = await widget.actions.followChannel(stream.userId);
+    if (mounted) {
+      setState(() {
+        _busy.remove(stream.userId);
+        if (result.succeeded) _followed.add(stream.userId);
+      });
+    }
+    return result;
+  }
+
+  Future<void> _follow(StreamTwitch stream) async {
+    final result = await _followOne(stream);
+    if (!mounted) return;
+    FollowFlow.showResult(
+      context,
+      result,
+      name: getReadableName(stream.userName, stream.userLogin),
+      followed: true,
+    );
+  }
+
+  Future<void> _followAll() async {
+    final remaining = _remaining;
+    if (remaining.isEmpty || _busy.isNotEmpty) return;
+    final l = context.l10n;
+    final confirmed = await FollowFlow._confirm(
+      context,
+      title: l.followAllConfirmTitle(count: remaining.length),
+      message: l.followAllConfirmBody,
+      action: l.followAll,
+    );
+    if (!confirmed || !mounted) return;
+    var done = 0;
+    FollowResult? failure;
+    for (final stream in remaining) {
+      final result = await _followOne(stream);
+      if (!mounted) return;
+      if (result.succeeded) {
+        done++;
+      } else {
+        failure = result;
+        break;
+      }
+    }
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            failure == null
+                ? l.followAllDone(count: done)
+                : l.followError(status: failure.name),
+          ),
+        ),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final colors = SheetColors.of(context);
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+      ),
+      child: ListView(
+        shrinkWrap: true,
+        primary: false,
+        padding: const EdgeInsets.only(bottom: 16),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 2),
+            child: Semantics(
+              header: true,
+              child: Text(
+                l.followSuggestionsTitle(name: widget.name),
+                style: SheetText.subtitle.copyWith(color: colors.text),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              l.followSuggestionsSubtitle,
+              style: SheetText.rowDetail.copyWith(color: colors.secondary),
+            ),
+          ),
+          for (final stream in widget.suggestions) _row(stream),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: SheetButton(
+              key: FollowSuggestionsSheet.followAllKey,
+              label: l.followAll,
+              large: true,
+              expand: true,
+              onPressed: _remaining.isEmpty || _busy.isNotEmpty
+                  ? null
+                  : _followAll,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(StreamTwitch stream) {
+    final l = context.l10n;
+    final name = getReadableName(stream.userName, stream.userLogin);
+    final followed = _followed.contains(stream.userId);
+    final busy = _busy.contains(stream.userId);
+    final detail = [
+      if (stream.gameName.isNotEmpty) stream.gameName,
+      l.streamViewers(count: stream.viewerCount),
+    ].join(' · ');
+    return SheetRow(
+      key: FollowSuggestionsSheet.rowKey(stream.userId),
+      label: name,
+      detail: detail,
+      leading: InitialAvatar(name: name),
+      trailing: busy
+          ? const SizedBox.square(
+              dimension: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : SheetButton(
+              label: followed ? l.channelFollowing : l.channelFollow,
+              tone: followed ? SheetButtonTone.text : SheetButtonTone.primary,
+              onPressed: followed ? null : () => unawaited(_follow(stream)),
+            ),
+    );
+  }
+}

@@ -75,6 +75,7 @@ import 'package:onset/utils/link_router.dart';
 import 'package:onset/utils/twitch_links.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:onset/widgets/external_link_dialog.dart';
+import 'package:onset/widgets/follow/follow_actions.dart';
 import 'package:onset/widgets/global_mini_player.dart';
 import 'package:onset/widgets/launch/launch_intro.dart';
 import 'package:onset/widgets/launch/onset_mark.dart';
@@ -381,6 +382,16 @@ void main() async {
         ),
         Provider<TwitchViewerActionsService>.value(
           value: twitchViewerActionsService,
+        ),
+        Provider<FollowActions>.value(
+          value: FollowActions(
+            service: twitchViewerActionsService,
+            api: twitchApiService,
+            categories: twitchFollowedCategoriesService,
+            webToken: () => authStore.twitchWebToken,
+            viewerId: () =>
+                authStore.isLoggedIn ? authStore.user.details?.id : null,
+          ),
         ),
         Provider<TwitchCommunityService>.value(value: twitchCommunityService),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),

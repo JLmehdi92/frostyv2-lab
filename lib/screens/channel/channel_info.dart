@@ -16,6 +16,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/twitch_links.dart';
+import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
@@ -501,9 +502,6 @@ class _RingedPicture extends StatelessWidget {
   }
 }
 
-/// "Follow" (signal) or "Following" (raised): the channel on twitch.tv,
-/// since the app has no follow of its own; the state is read again when
-/// the viewer comes back.
 class FollowButton extends StatelessWidget {
   const FollowButton({
     super.key,
@@ -520,13 +518,33 @@ class FollowButton extends StatelessWidget {
   final double height;
   final double fontSize;
 
-  Future<void> _open(BuildContext context) async {
+  Future<void> _openOnTwitch(BuildContext context) async {
     await TwitchWebPage.open(
       context,
       title: name,
       url: Uri.https('www.twitch.tv', '/${login.toLowerCase()}'),
     );
     info.refresh();
+  }
+
+  Future<void> _toggle(BuildContext context) async {
+    final now = await FollowFlow.toggle(
+      context,
+      target: FollowTarget.channel,
+      id: info.channelId,
+      name: name,
+      following: info.following.value ?? false,
+      openOnTwitch: () => _openOnTwitch(context),
+    );
+    if (now == null) return;
+    info.following.value = now;
+    if (now && context.mounted) {
+      await FollowFlow.suggestAfterFollowing(
+        context,
+        channelId: info.channelId,
+        name: name,
+      );
+    }
   }
 
   /// A login twitch.tv takes (the check of [twitchSubscribeUrl]): anything
@@ -553,7 +571,7 @@ class FollowButton extends StatelessWidget {
           child: PressScale(
             child: follows
                 ? OutlinedButton(
-                    onPressed: () => _open(context),
+                    onPressed: () => _toggle(context),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: colors.text,
                       backgroundColor: colors.raised,
@@ -571,7 +589,7 @@ class FollowButton extends StatelessWidget {
                     child: OneLineLabel(context.l10n.channelFollowing),
                   )
                 : FilledButton(
-                    onPressed: () => _open(context),
+                    onPressed: () => _toggle(context),
                     style: FilledButton.styleFrom(
                       foregroundColor: OnsetTokens.backgroundDark,
                       backgroundColor: context.onsetColors.live,

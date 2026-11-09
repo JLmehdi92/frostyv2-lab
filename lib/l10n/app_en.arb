@@ -4146,13 +4146,13 @@
   },
   "channelFollow": "Follow",
   "@channelFollow": {
-    "description": "Button that follows the channel on twitch.tv (channel profile header, the video's info bar on a tablet)."
+    "description": "Button that follows the channel (from ONSET, else on twitch.tv) in the channel profile header and the video's info bar, and that follows a category."
   },
   "channelFollowing": "Following",
   "@channelFollowing": {
-    "description": "The same button once the viewer follows the channel; it opens the channel on twitch.tv. « Suivie » agrees with « chaîne »."
+    "description": "The same button once the viewer follows the channel or the category; a tap offers to unfollow. « Suivie » agrees with « chaîne » and « catégorie »."
   },
-  "channelFollowTooltip": "Follow {name} on Twitch",
+  "channelFollowTooltip": "Follow {name}",
   "@channelFollowTooltip": {
     "description": "Tooltip of the Follow button. name is the channel's display name.",
     "placeholders": {
@@ -4162,9 +4162,123 @@
       }
     }
   },
-  "channelFollowingTooltip": "Following {name} · opens twitch.tv",
+  "channelFollowingTooltip": "You follow {name}",
   "@channelFollowingTooltip": {
-    "description": "Tooltip of the Following button: the viewer follows the channel; it opens twitch.tv. name is the channel's display name.",
+    "description": "Tooltip of the Following button: the viewer follows the channel. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "followDone": "You now follow {name}.",
+  "@followDone": {
+    "description": "Snack bar after following a channel or a category from ONSET. name is its display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "unfollowDone": "You no longer follow {name}.",
+  "@unfollowDone": {
+    "description": "Snack bar after unfollowing a channel or a category from ONSET.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "followError": "{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t let you follow this.} refused{Twitch declined this follow.} integrityRefused{Twitch’s anti-bot check refused this. ONSET opens twitch.tv so you can do it there.} signedOut{Log in again to follow from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "@followError": {
+    "description": "Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name (Twitch’s error codes).",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "tooManyFollows"
+      }
+    }
+  },
+  "unfollowConfirmTitle": "Unfollow {name}?",
+  "@unfollowConfirmTitle": {
+    "description": "Dialog title before unfollowing a channel or a category.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "unfollowConfirmBody": "This changes what your Twitch account follows.",
+  "@unfollowConfirmBody": {
+    "description": "Dialog text before unfollowing: the change is made on the Twitch account."
+  },
+  "unfollowAction": "Unfollow",
+  "@unfollowAction": {
+    "description": "Confirm button of the unfollow dialog."
+  },
+  "followConfirmTitle": "Follow {name}?",
+  "@followConfirmTitle": {
+    "description": "Dialog title when a link with followChannel=true opens a channel.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "followDeepLinkBody": "A link asked ONSET to follow this channel with your Twitch account.",
+  "@followDeepLinkBody": {
+    "description": "Dialog text when a link with followChannel=true opens a channel."
+  },
+  "followSuggestionsTitle": "You follow {name}",
+  "@followSuggestionsTitle": {
+    "description": "Title of the sheet of suggested channels shown after following a channel.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "followSuggestionsSubtitle": "Also live in the same category",
+  "@followSuggestionsSubtitle": {
+    "description": "Under the suggestions sheet title: the suggested channels are live in the followed channel’s category."
+  },
+  "followAll": "Follow all",
+  "@followAll": {
+    "description": "Button that follows every suggested channel (after a confirmation)."
+  },
+  "followAllConfirmTitle": "{count, plural, one{Follow this channel?} other{Follow these {count} channels?}}",
+  "@followAllConfirmTitle": {
+    "description": "Dialog title before following every suggested channel.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "followAllConfirmBody": "Each one is added to what your Twitch account follows.",
+  "@followAllConfirmBody": {
+    "description": "Dialog text before following every suggested channel."
+  },
+  "followAllDone": "{count, plural, one{You now follow {count} more channel.} other{You now follow {count} more channels.}}",
+  "@followAllDone": {
+    "description": "Snack bar after following the suggested channels.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "followCalloutLine": "Enjoying the stream? Follow {name} to know when the channel goes live.",
+  "@followCalloutLine": {
+    "description": "Chat line ONSET adds after a while of watching a channel the viewer doesn’t follow; its action button is “Follow”.",
     "placeholders": {
       "name": {
         "type": "String",

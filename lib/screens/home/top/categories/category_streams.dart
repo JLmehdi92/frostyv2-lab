@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -23,6 +25,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/image_size.dart';
 import 'package:onset/utils/twitch_links.dart';
+import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/onset_chip.dart';
@@ -245,6 +248,35 @@ class _CategoryViewState extends State<CategoryView> {
     await TwitchWebPage.open(context, title: name, url: url);
   }
 
+  bool? _followsCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_readFollow());
+  }
+
+  Future<void> _readFollow() async {
+    final actions = FollowFlow.actionsOf(context);
+    if (actions == null) return;
+    final follows = await actions.followsCategory(widget.categoryId);
+    if (mounted) setState(() => _followsCategory = follows);
+  }
+
+  Future<void> _follow(String name) async {
+    final following = _followsCategory;
+    if (following == null) return _followOnTwitch(name);
+    final now = await FollowFlow.toggle(
+      context,
+      target: FollowTarget.category,
+      id: widget.categoryId,
+      name: name,
+      following: following,
+      openOnTwitch: () => _followOnTwitch(name),
+    );
+    if (now != null && mounted) setState(() => _followsCategory = now);
+  }
+
   /// The header that leads every section's list (it scrolls with it).
   Widget _header({required bool large}) {
     return SliverToBoxAdapter(
@@ -258,7 +290,8 @@ class _CategoryViewState extends State<CategoryView> {
         sort: _sort,
         onSort: (sort) => setState(() => _sort = sort),
         authStore: context.read<AuthStore>(),
-        onFollow: _followOnTwitch,
+        onFollow: _follow,
+        following: _followsCategory,
       ),
     );
   }
@@ -350,6 +383,7 @@ class _CategoryHeader extends StatelessWidget {
     required this.onSort,
     required this.authStore,
     required this.onFollow,
+    required this.following,
   });
 
   final ListStore store;
@@ -367,6 +401,7 @@ class _CategoryHeader extends StatelessWidget {
   /// twitch.tv's own button, behind a login); it is followed live.
   final AuthStore authStore;
   final ValueChanged<String> onFollow;
+  final bool? following;
 
   @override
   Widget build(BuildContext context) {
@@ -413,6 +448,7 @@ class _CategoryHeader extends StatelessWidget {
                             category: category,
                             large: large,
                             onFollow: loggedIn ? onFollow : null,
+                            following: following,
                           ),
                   ),
                   if (large)
@@ -523,11 +559,13 @@ class _Title extends StatelessWidget {
     required this.category,
     required this.large,
     required this.onFollow,
+    required this.following,
   });
 
   final CategoryTwitch category;
   final bool large;
   final ValueChanged<String>? onFollow;
+  final bool? following;
 
   @override
   Widget build(BuildContext context) {
@@ -575,6 +613,7 @@ class _Title extends StatelessWidget {
         ? null
         : _FollowButton(
             large: large,
+            following: following,
             onPressed: () => onFollow!(category.name),
           );
     // The heading is the eyebrow and the name; the button is its own node.
@@ -611,22 +650,33 @@ class _Title extends StatelessWidget {
 /// "Follow on Twitch ↗": twitch.tv's own button, opened in-app (the follow
 /// mutation is integrity-gated).
 class _FollowButton extends StatelessWidget {
-  const _FollowButton({required this.large, required this.onPressed});
+  const _FollowButton({
+    required this.large,
+    required this.following,
+    required this.onPressed,
+  });
 
   final bool large;
+  final bool? following;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
+    final l = context.l10n;
+    final label = switch (following) {
+      null => l.categoryFollowOnTwitch,
+      true => l.channelFollowing,
+      false => l.channelFollow,
+    };
     return Semantics(
       container: true,
       button: true,
-      label: context.l10n.categoryFollowOnTwitch,
+      label: label,
       onTap: onPressed,
       excludeSemantics: true,
       child: Tooltip(
-        message: context.l10n.categoryFollowOnTwitch,
+        message: label,
         excludeFromSemantics: true,
         child: PressScale(
           child: Material(
@@ -648,13 +698,17 @@ class _FollowButton extends StatelessWidget {
                   spacing: 8,
                   children: [
                     Icon(
-                      Icons.favorite_border_rounded,
+                      following == true
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
                       size: 16,
-                      color: colors.text,
+                      color: following == true
+                          ? context.onsetColors.live
+                          : colors.text,
                     ),
                     Flexible(
                       child: Text(
-                        context.l10n.categoryFollowOnTwitch,
+                        label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -664,11 +718,12 @@ class _FollowButton extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Icon(
-                      Icons.north_east_rounded,
-                      size: 12,
-                      color: colors.tertiary,
-                    ),
+                    if (following == null)
+                      Icon(
+                        Icons.north_east_rounded,
+                        size: 12,
+                        color: colors.tertiary,
+                      ),
                   ],
                 ),
               ),

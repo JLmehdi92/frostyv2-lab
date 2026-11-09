@@ -3265,12 +3265,104 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String channelFollowTooltip({required String name}) {
-    return 'Follow $name on Twitch';
+    return 'Follow $name';
   }
 
   @override
   String channelFollowingTooltip({required String name}) {
-    return 'Following $name · opens twitch.tv';
+    return 'You follow $name';
+  }
+
+  @override
+  String followDone({required String name}) {
+    return 'You now follow $name.';
+  }
+
+  @override
+  String unfollowDone({required String name}) {
+    return 'You no longer follow $name.';
+  }
+
+  @override
+  String followError({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'tooManyFollows':
+          'You follow too many channels. Unfollow one, then try again.',
+      'unverifiedEmail': 'Verify your email address on Twitch to follow.',
+      'unverifiedPhone': 'Verify your phone number on Twitch to follow.',
+      'unverifiedPhoneAndEmail':
+          'Verify your email address and phone number on Twitch to follow.',
+      'forbidden': 'Twitch doesn’t let you follow this.',
+      'refused': 'Twitch declined this follow.',
+      'integrityRefused':
+          'Twitch’s anti-bot check refused this. ONSET opens twitch.tv so you can do it there.',
+      'signedOut': 'Log in again to follow from ONSET.',
+      'other': 'Couldn’t reach Twitch. Try again.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String unfollowConfirmTitle({required String name}) {
+    return 'Unfollow $name?';
+  }
+
+  @override
+  String get unfollowConfirmBody =>
+      'This changes what your Twitch account follows.';
+
+  @override
+  String get unfollowAction => 'Unfollow';
+
+  @override
+  String followConfirmTitle({required String name}) {
+    return 'Follow $name?';
+  }
+
+  @override
+  String get followDeepLinkBody =>
+      'A link asked ONSET to follow this channel with your Twitch account.';
+
+  @override
+  String followSuggestionsTitle({required String name}) {
+    return 'You follow $name';
+  }
+
+  @override
+  String get followSuggestionsSubtitle => 'Also live in the same category';
+
+  @override
+  String get followAll => 'Follow all';
+
+  @override
+  String followAllConfirmTitle({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Follow these $count channels?',
+      one: 'Follow this channel?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get followAllConfirmBody =>
+      'Each one is added to what your Twitch account follows.';
+
+  @override
+  String followAllDone({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You now follow $count more channels.',
+      one: 'You now follow $count more channel.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String followCalloutLine({required String name}) {
+    return 'Enjoying the stream? Follow $name to know when the channel goes live.';
   }
 
   @override

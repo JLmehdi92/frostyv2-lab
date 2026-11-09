@@ -5087,13 +5087,13 @@ abstract class AppLocalizations {
   /// **'show controls'**
   String get playerShowControls;
 
-  /// Button that follows the channel on twitch.tv (channel profile header, the video's info bar on a tablet).
+  /// Button that follows the channel (from ONSET, else on twitch.tv) in the channel profile header and the video's info bar, and that follows a category.
   ///
   /// In en, this message translates to:
   /// **'Follow'**
   String get channelFollow;
 
-  /// The same button once the viewer follows the channel; it opens the channel on twitch.tv. « Suivie » agrees with « chaîne ».
+  /// The same button once the viewer follows the channel or the category; a tap offers to unfollow. « Suivie » agrees with « chaîne » and « catégorie ».
   ///
   /// In en, this message translates to:
   /// **'Following'**
@@ -5102,14 +5102,104 @@ abstract class AppLocalizations {
   /// Tooltip of the Follow button. name is the channel's display name.
   ///
   /// In en, this message translates to:
-  /// **'Follow {name} on Twitch'**
+  /// **'Follow {name}'**
   String channelFollowTooltip({required String name});
 
-  /// Tooltip of the Following button: the viewer follows the channel; it opens twitch.tv. name is the channel's display name.
+  /// Tooltip of the Following button: the viewer follows the channel. name is the channel's display name.
   ///
   /// In en, this message translates to:
-  /// **'Following {name} · opens twitch.tv'**
+  /// **'You follow {name}'**
   String channelFollowingTooltip({required String name});
+
+  /// Snack bar after following a channel or a category from ONSET. name is its display name.
+  ///
+  /// In en, this message translates to:
+  /// **'You now follow {name}.'**
+  String followDone({required String name});
+
+  /// Snack bar after unfollowing a channel or a category from ONSET.
+  ///
+  /// In en, this message translates to:
+  /// **'You no longer follow {name}.'**
+  String unfollowDone({required String name});
+
+  /// Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name (Twitch’s error codes).
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t let you follow this.} refused{Twitch declined this follow.} integrityRefused{Twitch’s anti-bot check refused this. ONSET opens twitch.tv so you can do it there.} signedOut{Log in again to follow from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  String followError({required String status});
+
+  /// Dialog title before unfollowing a channel or a category.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfollow {name}?'**
+  String unfollowConfirmTitle({required String name});
+
+  /// Dialog text before unfollowing: the change is made on the Twitch account.
+  ///
+  /// In en, this message translates to:
+  /// **'This changes what your Twitch account follows.'**
+  String get unfollowConfirmBody;
+
+  /// Confirm button of the unfollow dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfollow'**
+  String get unfollowAction;
+
+  /// Dialog title when a link with followChannel=true opens a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow {name}?'**
+  String followConfirmTitle({required String name});
+
+  /// Dialog text when a link with followChannel=true opens a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'A link asked ONSET to follow this channel with your Twitch account.'**
+  String get followDeepLinkBody;
+
+  /// Title of the sheet of suggested channels shown after following a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'You follow {name}'**
+  String followSuggestionsTitle({required String name});
+
+  /// Under the suggestions sheet title: the suggested channels are live in the followed channel’s category.
+  ///
+  /// In en, this message translates to:
+  /// **'Also live in the same category'**
+  String get followSuggestionsSubtitle;
+
+  /// Button that follows every suggested channel (after a confirmation).
+  ///
+  /// In en, this message translates to:
+  /// **'Follow all'**
+  String get followAll;
+
+  /// Dialog title before following every suggested channel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Follow this channel?} other{Follow these {count} channels?}}'**
+  String followAllConfirmTitle({required int count});
+
+  /// Dialog text before following every suggested channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Each one is added to what your Twitch account follows.'**
+  String get followAllConfirmBody;
+
+  /// Snack bar after following the suggested channels.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{You now follow {count} more channel.} other{You now follow {count} more channels.}}'**
+  String followAllDone({required int count});
+
+  /// Chat line ONSET adds after a while of watching a channel the viewer doesn’t follow; its action button is “Follow”.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoying the stream? Follow {name} to know when the channel goes live.'**
+  String followCalloutLine({required String name});
 
   /// Button that opens the channel's subscription page on twitch.tv (channel profile header, the video's info bar on a tablet), and the title of that page.
   ///
