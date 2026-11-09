@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/models/follow_result.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/activity/activity_screen.dart';
 import 'package:onset/screens/activity/stores/activity_store.dart';
 import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
+import 'package:onset/screens/settings/account/gift_settings.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:onset/widgets/follow/follow_actions.dart';
 import 'package:onset/widgets/follow/follow_flow.dart';
@@ -113,6 +115,37 @@ void main() {
           content: const ['Streamer'],
         );
       });
+
+      for (final available in [true, false]) {
+        testWidgets('the gifted sub settings, $available, $at', (tester) async {
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: ListView(
+                children: [
+                  GiftSettingsGroup(
+                    load: () async => available
+                        ? const GiftSettings(
+                            followedChannelsOnly: true,
+                            countHidden: false,
+                          )
+                        : null,
+                    save: (_) async => ViewerActionOutcome.done,
+                  ),
+                ],
+              ),
+            ),
+            size: size,
+            textScale: scale,
+          );
+          await tester.pumpAndSettle();
+          await expectFrenchThroughout(tester, 'gift settings, $at');
+          if (!available) return;
+          await tester.tap(find.byKey(GiftSettingsGroup.hideCountKey));
+          await tester.pumpAndSettle();
+          await expectFrenchThroughout(tester, 'gift settings confirm, $at');
+        });
+      }
 
       testWidgets('the follow link confirmation, $at', (tester) async {
         await pumpLocalized(

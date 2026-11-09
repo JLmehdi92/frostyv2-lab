@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/onboarding/login_webview.dart';
 import 'package:onset/screens/settings/account/blocked_users.dart';
+import 'package:onset/screens/settings/account/gift_settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
@@ -14,6 +16,7 @@ import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
+import 'package:provider/provider.dart';
 
 /// Account settings only twitch.tv can change: password, email, phone,
 /// two-factor and verification; linked accounts. Named in
@@ -129,6 +132,16 @@ class AccountSettings extends StatelessWidget {
                 ),
               ],
             ),
+            if (context.read<TwitchViewerActionsService?>() case final service?)
+              GiftSettingsGroup(
+                load: () => service.giftSettings(
+                  authToken: authStore.twitchWebToken ?? '',
+                ),
+                save: (settings) => service.updateGiftSettings(
+                  settings: settings,
+                  authToken: authStore.twitchWebToken ?? '',
+                ),
+              ),
             SettingsGroup(
               title: l.settingsOnTwitch,
               children: [

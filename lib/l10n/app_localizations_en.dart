@@ -3366,6 +3366,38 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get giftSettingsTitle => 'Gifted subs';
+
+  @override
+  String get giftFollowedOnly =>
+      'Block gifted subs in channels you don’t follow';
+
+  @override
+  String get giftFollowedOnlyDetail =>
+      'Nobody can gift you a sub in a channel you don’t follow.';
+
+  @override
+  String get giftHideCount => 'Hide your gift count';
+
+  @override
+  String get giftHideCountDetail =>
+      'Others won’t see how many subs you’ve gifted.';
+
+  @override
+  String get giftSettingsConfirmTitle => 'Change this Twitch setting?';
+
+  @override
+  String get giftSettingsConfirmBody =>
+      'It changes on your Twitch account, not only in ONSET.';
+
+  @override
+  String get giftSettingsChange => 'Change';
+
+  @override
+  String get giftSettingsUnavailable =>
+      'Couldn’t load your gifted sub settings. Log in again, or try again later.';
+
+  @override
   String get channelSubscribe => 'Subscribe';
 
   @override

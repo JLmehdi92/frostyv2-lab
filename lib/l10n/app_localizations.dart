@@ -5201,6 +5201,60 @@ abstract class AppLocalizations {
   /// **'Enjoying the stream? Follow {name} to know when the channel goes live.'**
   String followCalloutLine({required String name});
 
+  /// Settings › Account: the group of the Twitch account’s gifted sub settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifted subs'**
+  String get giftSettingsTitle;
+
+  /// Switch of the Twitch account setting that refuses gifted subs in channels the viewer doesn’t follow.
+  ///
+  /// In en, this message translates to:
+  /// **'Block gifted subs in channels you don’t follow'**
+  String get giftFollowedOnly;
+
+  /// Under the “block gifted subs” switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody can gift you a sub in a channel you don’t follow.'**
+  String get giftFollowedOnlyDetail;
+
+  /// Switch of the Twitch account setting that hides how many subs the viewer gifted.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide your gift count'**
+  String get giftHideCount;
+
+  /// Under the “hide your gift count” switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Others won’t see how many subs you’ve gifted.'**
+  String get giftHideCountDetail;
+
+  /// Dialog title before changing a gifted sub setting of the Twitch account.
+  ///
+  /// In en, this message translates to:
+  /// **'Change this Twitch setting?'**
+  String get giftSettingsConfirmTitle;
+
+  /// Dialog text before changing a gifted sub setting: the change is made on the Twitch account.
+  ///
+  /// In en, this message translates to:
+  /// **'It changes on your Twitch account, not only in ONSET.'**
+  String get giftSettingsConfirmBody;
+
+  /// Confirm button of the gifted sub setting dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get giftSettingsChange;
+
+  /// Shown in the gifted subs group when Twitch doesn’t give the settings (no web session, an API change).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your gifted sub settings. Log in again, or try again later.'**
+  String get giftSettingsUnavailable;
+
   /// Button that opens the channel's subscription page on twitch.tv (channel profile header, the video's info bar on a tablet), and the title of that page.
   ///
   /// In en, this message translates to:

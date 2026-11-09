@@ -4286,6 +4286,42 @@
       }
     }
   },
+  "giftSettingsTitle": "Gifted subs",
+  "@giftSettingsTitle": {
+    "description": "Settings › Account: the group of the Twitch account’s gifted sub settings."
+  },
+  "giftFollowedOnly": "Block gifted subs in channels you don’t follow",
+  "@giftFollowedOnly": {
+    "description": "Switch of the Twitch account setting that refuses gifted subs in channels the viewer doesn’t follow."
+  },
+  "giftFollowedOnlyDetail": "Nobody can gift you a sub in a channel you don’t follow.",
+  "@giftFollowedOnlyDetail": {
+    "description": "Under the “block gifted subs” switch."
+  },
+  "giftHideCount": "Hide your gift count",
+  "@giftHideCount": {
+    "description": "Switch of the Twitch account setting that hides how many subs the viewer gifted."
+  },
+  "giftHideCountDetail": "Others won’t see how many subs you’ve gifted.",
+  "@giftHideCountDetail": {
+    "description": "Under the “hide your gift count” switch."
+  },
+  "giftSettingsConfirmTitle": "Change this Twitch setting?",
+  "@giftSettingsConfirmTitle": {
+    "description": "Dialog title before changing a gifted sub setting of the Twitch account."
+  },
+  "giftSettingsConfirmBody": "It changes on your Twitch account, not only in ONSET.",
+  "@giftSettingsConfirmBody": {
+    "description": "Dialog text before changing a gifted sub setting: the change is made on the Twitch account."
+  },
+  "giftSettingsChange": "Change",
+  "@giftSettingsChange": {
+    "description": "Confirm button of the gifted sub setting dialog."
+  },
+  "giftSettingsUnavailable": "Couldn’t load your gifted sub settings. Log in again, or try again later.",
+  "@giftSettingsUnavailable": {
+    "description": "Shown in the gifted subs group when Twitch doesn’t give the settings (no web session, an API change)."
+  },
   "channelSubscribe": "Subscribe",
   "@channelSubscribe": {
     "description": "Button that opens the channel's subscription page on twitch.tv (channel profile header, the video's info bar on a tablet), and the title of that page."

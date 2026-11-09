@@ -3419,6 +3419,38 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get giftSettingsTitle => 'Abonnements offerts';
+
+  @override
+  String get giftFollowedOnly =>
+      'Bloquer les abonnements offerts sur les chaînes que vous ne suivez pas';
+
+  @override
+  String get giftFollowedOnlyDetail =>
+      'Personne ne peut vous offrir d’abonnement sur une chaîne que vous ne suivez pas.';
+
+  @override
+  String get giftHideCount => 'Masquer votre nombre de cadeaux';
+
+  @override
+  String get giftHideCountDetail =>
+      'Les autres ne verront pas combien d’abonnements vous avez offerts.';
+
+  @override
+  String get giftSettingsConfirmTitle => 'Modifier ce réglage Twitch ?';
+
+  @override
+  String get giftSettingsConfirmBody =>
+      'Il change sur votre compte Twitch, pas seulement dans ONSET.';
+
+  @override
+  String get giftSettingsChange => 'Modifier';
+
+  @override
+  String get giftSettingsUnavailable =>
+      'Impossible de charger vos réglages d’abonnements offerts. Reconnectez-vous ou réessayez plus tard.';
+
+  @override
   String get channelSubscribe => 'S’abonner';
 
   @override
