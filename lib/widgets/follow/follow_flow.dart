@@ -280,21 +280,47 @@ class _FollowSuggestionsSheetState extends State<FollowSuggestionsSheet> {
       if (stream.gameName.isNotEmpty) stream.gameName,
       l.streamViewers(count: stream.viewerCount),
     ].join(' · ');
-    return SheetRow(
+    final colors = SheetColors.of(context);
+    return Padding(
       key: FollowSuggestionsSheet.rowKey(stream.userId),
-      label: name,
-      detail: detail,
-      leading: InitialAvatar(name: name),
-      trailing: busy
-          ? const SizedBox.square(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        spacing: 14,
+        children: [
+          InitialAvatar(name: name),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 2,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SheetText.row.copyWith(color: colors.text),
+                ),
+                Text(
+                  detail,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: SheetText.rowDetail.copyWith(color: colors.secondary),
+                ),
+              ],
+            ),
+          ),
+          if (busy)
+            const SizedBox.square(
               dimension: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : SheetButton(
+          else
+            SheetButton(
               label: followed ? l.channelFollowing : l.channelFollow,
               tone: followed ? SheetButtonTone.text : SheetButtonTone.primary,
               onPressed: followed ? null : () => unawaited(_follow(stream)),
             ),
+        ],
+      ),
     );
   }
 }
