@@ -824,6 +824,18 @@ abstract class AppLocalizations {
   /// **'Opens the channel on twitch.tv'**
   String get userActionsFollowDetail;
 
+  /// Channel long-press menu: follows the channel in the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow {name}'**
+  String userActionsFollow({required String name});
+
+  /// Channel long-press menu: unfollows the channel in the app, after a confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfollow {name}'**
+  String userActionsUnfollow({required String name});
+
   /// Channel long-press menu: copies the channel's link.
   ///
   /// In en, this message translates to:

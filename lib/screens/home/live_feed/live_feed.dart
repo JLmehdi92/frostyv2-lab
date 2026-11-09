@@ -33,6 +33,7 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/utils/share_link.dart';
 import 'package:onset/widgets/alert_message.dart';
+import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/launch/launch_intro.dart';
 import 'package:onset/widgets/motion/haptics.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
@@ -1284,25 +1285,75 @@ class _WatchButton extends StatelessWidget {
   }
 }
 
-/// "Follow": the channel on twitch.tv (the app has no follow of its own,
-/// like the actions menu's "Follow on Twitch").
-class _FollowButton extends StatelessWidget {
-  const _FollowButton({required this.stream, this.height = 32});
+class LiveFeedFollowButton extends StatefulWidget {
+  const LiveFeedFollowButton({
+    super.key,
+    required this.stream,
+    this.height = 32,
+  });
 
   final StreamTwitch stream;
   final double height;
 
   @override
+  State<LiveFeedFollowButton> createState() => _LiveFeedFollowButtonState();
+}
+
+class _LiveFeedFollowButtonState extends State<LiveFeedFollowButton> {
+  bool? _following;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadState());
+  }
+
+  Future<void> _loadState() async {
+    final actions = FollowFlow.actionsOf(context);
+    if (actions == null || widget.stream.userId.isEmpty) return;
+    final following = await actions.followsChannel(widget.stream.userId);
+    if (mounted) setState(() => _following = following);
+  }
+
+  String get _name =>
+      getReadableName(widget.stream.userName, widget.stream.userLogin);
+
+  Future<void> _openOnTwitch() => TwitchWebPage.open(
+    context,
+    title: _name,
+    url: Uri.https('www.twitch.tv', '/${widget.stream.userLogin}'),
+  );
+
+  Future<void> _onPressed() async {
+    final following = _following;
+    if (following == null) {
+      await _openOnTwitch();
+      return;
+    }
+    final now = await FollowFlow.toggle(
+      context,
+      target: FollowTarget.channel,
+      id: widget.stream.userId,
+      name: _name,
+      following: following,
+      openOnTwitch: _openOnTwitch,
+    );
+    if (now != null && mounted) setState(() => _following = now);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final name = getReadableName(stream.userName, stream.userLogin);
+    final height = widget.height;
+    final following = _following ?? false;
+    final l = context.l10n;
     return Tooltip(
-      message: context.l10n.liveFeedFollowOnTwitch(name: name),
+      message: switch (_following) {
+        null => l.liveFeedFollowOnTwitch(name: _name),
+        true => l.channelFollowingTooltip(name: _name),
+        false => l.channelFollowTooltip(name: _name),
+      },
       child: OutlinedButton(
-        onPressed: () => TwitchWebPage.open(
-          context,
-          title: name,
-          url: Uri.https('www.twitch.tv', '/${stream.userLogin}'),
-        ),
+        onPressed: _onPressed,
         style: OutlinedButton.styleFrom(
           foregroundColor: OverImage.text,
           backgroundColor: height > 40 ? const Color(0x4D000000) : null,
@@ -1319,7 +1370,7 @@ class _FollowButton extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        child: Text(context.l10n.liveFeedFollow),
+        child: Text(following ? l.channelFollowing : l.liveFeedFollow),
       ),
     );
   }
@@ -1573,7 +1624,7 @@ class _PhonePage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (loggedIn) _FollowButton(stream: stream),
+                    if (loggedIn) LiveFeedFollowButton(stream: stream),
                   ],
                 ),
                 if (title.isNotEmpty)
@@ -1881,7 +1932,8 @@ class _TabletPage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   spacing: 10,
                   children: [
-                    if (loggedIn) _FollowButton(stream: stream, height: 48),
+                    if (loggedIn)
+                      LiveFeedFollowButton(stream: stream, height: 48),
                     _WatchButton(
                       onPressed: onOpen,
                       onDown: onPreload,

@@ -120,6 +120,8 @@
   "userActionsBlock": "Bloquer {name}",
   "userActionsFollowOnTwitch": "Suivre {name} sur Twitch",
   "userActionsFollowDetail": "Ouvre la chaîne sur twitch.tv",
+  "userActionsFollow": "Suivre {name}",
+  "userActionsUnfollow": "Ne plus suivre {name}",
   "userActionsCopyLink": "Copier le lien",
   "userActionsLinkCopied": "Lien copié",
   "userActionsShare": "Partager {name}",

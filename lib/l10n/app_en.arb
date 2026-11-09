@@ -616,6 +616,26 @@
   "@userActionsFollowDetail": {
     "description": "Channel long-press menu: the second line under \"Follow … on Twitch\"."
   },
+  "userActionsFollow": "Follow {name}",
+  "@userActionsFollow": {
+    "description": "Channel long-press menu: follows the channel in the app.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "userActionsUnfollow": "Unfollow {name}",
+  "@userActionsUnfollow": {
+    "description": "Channel long-press menu: unfollows the channel in the app, after a confirmation.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
   "userActionsCopyLink": "Copy link",
   "@userActionsCopyLink": {
     "description": "Channel long-press menu: copies the channel's link."

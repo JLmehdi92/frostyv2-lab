@@ -48,6 +48,17 @@ class FollowActions {
     return followed.any((category) => category.id == categoryId);
   }
 
+  Future<bool?> followsChannel(String channelId) async {
+    final viewer = _viewerId();
+    if (viewer == null || !canFollowInApp) return null;
+    try {
+      return await _api.isFollowing(userId: viewer, broadcasterId: channelId);
+    } catch (e) {
+      debugPrint('Channel follow state unavailable: $e');
+      return null;
+    }
+  }
+
   Future<({String id, bool following})?> channelFollowState(
     String login,
   ) async {

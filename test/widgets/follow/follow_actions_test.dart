@@ -49,6 +49,19 @@ void main() {
     expect(actions.canFollowInApp, isFalse);
   });
 
+  test('a channel follow state comes from helix and fails to null', () async {
+    when(
+      () => api.isFollowing(userId: '77', broadcasterId: '5'),
+    ).thenAnswer((_) async => true);
+    expect(await actions.followsChannel('5'), isTrue);
+    when(
+      () => api.isFollowing(userId: '77', broadcasterId: '6'),
+    ).thenThrow(Exception('down'));
+    expect(await actions.followsChannel('6'), isNull);
+    token = '';
+    expect(await actions.followsChannel('5'), isNull);
+  });
+
   test('a category is followed when Twitch lists it', () async {
     when(() => categories.getFollowedCategories(authToken: 'tok')).thenAnswer(
       (_) async => const [

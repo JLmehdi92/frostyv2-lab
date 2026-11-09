@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:onset/apis/twitch_api.dart';
@@ -9,6 +11,7 @@ import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/go_live_setting.dart';
 import 'package:onset/screens/vod/channel_videos.dart';
 import 'package:onset/utils/share_link.dart';
+import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
@@ -126,19 +129,10 @@ class UserActionsModal extends StatelessWidget {
           },
         ),
         if (authStore.isLoggedIn)
-          SheetRow(
-            glyph: SheetGlyphKind.heart,
-            label: l.userActionsFollowOnTwitch(name: name),
-            detail: l.userActionsFollowDetail,
-            end: SheetRowEnd.external,
-            onTap: () {
-              Navigator.pop(context);
-              TwitchWebPage.open(
-                context,
-                title: name,
-                url: Uri.https('www.twitch.tv', '/$userLogin'),
-              );
-            },
+          UserActionsFollowRow(
+            name: name,
+            userLogin: userLogin,
+            userId: userId,
           ),
         SheetRow(
           glyph: SheetGlyphKind.link,
@@ -172,6 +166,83 @@ class UserActionsModal extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class UserActionsFollowRow extends StatefulWidget {
+  const UserActionsFollowRow({
+    super.key,
+    required this.name,
+    required this.userLogin,
+    required this.userId,
+  });
+
+  final String name;
+  final String userLogin;
+  final String userId;
+
+  @override
+  State<UserActionsFollowRow> createState() => _UserActionsFollowRowState();
+}
+
+class _UserActionsFollowRowState extends State<UserActionsFollowRow> {
+  bool? _following;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadState());
+  }
+
+  Future<void> _loadState() async {
+    final actions = FollowFlow.actionsOf(context);
+    if (actions == null || widget.userId.isEmpty) return;
+    final following = await actions.followsChannel(widget.userId);
+    if (mounted) setState(() => _following = following);
+  }
+
+  Future<void> _openOnTwitch() => TwitchWebPage.open(
+    context,
+    title: widget.name,
+    url: Uri.https('www.twitch.tv', '/${widget.userLogin}'),
+  );
+
+  Future<void> _toggle(bool following) async {
+    final navigator = Navigator.of(context);
+    final now = await FollowFlow.toggle(
+      context,
+      target: FollowTarget.channel,
+      id: widget.userId,
+      name: widget.name,
+      following: following,
+      openOnTwitch: _openOnTwitch,
+    );
+    if (now != null && mounted) navigator.pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final following = _following;
+    if (following == null) {
+      return SheetRow(
+        glyph: SheetGlyphKind.heart,
+        label: l.userActionsFollowOnTwitch(name: widget.name),
+        detail: l.userActionsFollowDetail,
+        end: SheetRowEnd.external,
+        onTap: () {
+          Navigator.pop(context);
+          unawaited(_openOnTwitch());
+        },
+      );
+    }
+    return SheetRow(
+      glyph: SheetGlyphKind.heart,
+      label: following
+          ? l.userActionsUnfollow(name: widget.name)
+          : l.userActionsFollow(name: widget.name),
+      onTap: () => _toggle(following),
     );
   }
 }

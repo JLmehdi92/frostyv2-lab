@@ -18,7 +18,12 @@ class FollowFlow {
   static const confirmKey = ValueKey('follow-confirm');
 
   static FollowActions? actionsOf(BuildContext context) {
-    final actions = context.read<FollowActions?>();
+    final FollowActions? actions;
+    try {
+      actions = context.read<FollowActions?>();
+    } on ProviderNotFoundException {
+      return null;
+    }
     return actions != null && actions.canFollowInApp ? actions : null;
   }
 

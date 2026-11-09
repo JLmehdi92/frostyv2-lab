@@ -462,6 +462,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get userActionsFollowDetail => 'Ouvre la chaîne sur twitch.tv';
 
   @override
+  String userActionsFollow({required String name}) {
+    return 'Suivre $name';
+  }
+
+  @override
+  String userActionsUnfollow({required String name}) {
+    return 'Ne plus suivre $name';
+  }
+
+  @override
   String get userActionsCopyLink => 'Copier le lien';
 
   @override
