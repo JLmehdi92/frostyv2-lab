@@ -121,6 +121,33 @@ void main() {
     await after.close(tester);
   });
 
+  testWidgets('the mythic card names the chosen emote, else shows the pool', (
+    tester,
+  ) async {
+    final pooled = harnessFor(
+      liveTrain(level: 2).copyWith(
+        variant: HtVariant.mythic,
+        mythic: HtMythic(pool: [emote('poolA'), emote('poolB')]),
+      ),
+    );
+    await pumpSheet(tester, pooled.store);
+    expect(find.byKey(const ValueKey('ht-mythic-chosen')), findsNothing);
+    await pooled.close(tester);
+
+    final chosen = harnessFor(
+      liveTrain(level: 2).copyWith(
+        variant: HtVariant.mythic,
+        mythic: HtMythic(
+          selectedEmote: emote('poolB'),
+          pool: [emote('poolA'), emote('poolB')],
+        ),
+      ),
+    );
+    await pumpSheet(tester, chosen.store);
+    expect(find.text('Chosen emote: poolB'), findsOneWidget);
+    await chosen.close(tester);
+  });
+
   testWidgets('community copy before and after the threshold', (tester) async {
     final community = HtCommunity.parse(const {
       'rewardLevelThreshold': 5,

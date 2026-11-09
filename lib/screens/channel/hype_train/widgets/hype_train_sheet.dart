@@ -363,7 +363,31 @@ class _VariantCard extends StatelessWidget {
                 ),
                 onLearnMore: onLearnMore,
               ),
-              if (mythic != null && mythic.pool.isNotEmpty) ...[
+              if (mythic?.selectedEmote case final chosen?) ...[
+                const SizedBox(height: HtDims.margin),
+                Row(
+                  key: const ValueKey('ht-mythic-chosen'),
+                  spacing: 8,
+                  children: [
+                    if (chosen.emoteUrl case final url?)
+                      OnsetCachedNetworkImage(
+                        imageUrl: url.toString(),
+                        width: HtDims.reward,
+                        height: HtDims.reward,
+                      ),
+                    Expanded(
+                      child: Text(
+                        context.l10n.htMythicChosen(
+                          name: chosen.token ?? chosen.id,
+                        ),
+                        style: HtType.bodySemibold.copyWith(
+                          color: neutrals.textAlt2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ] else if (mythic != null && mythic.pool.isNotEmpty) ...[
                 const SizedBox(height: HtDims.margin),
                 _RewardRow(rewards: mythic.pool, locked: true),
               ],

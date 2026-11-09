@@ -12112,6 +12112,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not live on their own channel'**
   String get liveTogetherNotLive;
+
+  /// The Mythic Hype Train emote Twitch picked from the pool.
+  ///
+  /// In en, this message translates to:
+  /// **'Chosen emote: {name}'**
+  String htMythicChosen({required String name});
+
+  /// In an emote's details: the effect (modifier) applied to a subscriber emote.
+  ///
+  /// In en, this message translates to:
+  /// **'{code, select, BW{Effect: black and white} HF{Effect: flipped} SG{Effect: sunglasses} SQ{Effect: squished} TK{Effect: thinking} other{Effect: modified}}'**
+  String emoteModifierLine({required String code});
+
+  /// In a Bits emote's details: the Bits badge tier that unlocks it.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Unlocked by cheering {count} Bit in this channel} other{Unlocked by cheering {count} Bits in this channel}}'**
+  String emoteBitsThreshold({required int count});
 }
 
 class _AppLocalizationsDelegate

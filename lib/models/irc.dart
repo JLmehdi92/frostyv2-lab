@@ -7,12 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/chat_gif.dart';
 import 'package:onset/models/cheermote.dart';
+import 'package:onset/models/emote_traits.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/user.dart';
@@ -33,6 +35,7 @@ import 'package:onset/widgets/onset_photo_view_dialog.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
+import 'package:provider/provider.dart';
 
 // Constants for IRC message rendering
 const String _ircActionPrefix = '\x01';
@@ -1411,6 +1414,11 @@ class IRCMessage {
                 Text(context.l10n.emoteLimitedTime, style: detail),
               if (emote.unlockHint(context.l10n) case final hint?)
                 Text(hint, style: detail),
+              if (emoteModifierOf(emote.url) case final code?)
+                Text(context.l10n.emoteModifierLine(code: code), style: detail),
+              if (emote.type == EmoteType.twitchBits)
+                if (twitchEmoteIdOf(emote.url) case final id?)
+                  EmoteBitsThresholdLine(emoteId: id, style: detail),
             ],
           );
         },
@@ -1959,4 +1967,44 @@ class _FilteredWords {
 
   /// In step with [IRCMessage.gifParts] (null for a GIF).
   final List<_ShownWords?> gifParts;
+}
+
+class EmoteBitsThresholdLine extends StatefulWidget {
+  const EmoteBitsThresholdLine({
+    super.key,
+    required this.emoteId,
+    required this.style,
+  });
+
+  final String emoteId;
+  final TextStyle style;
+
+  @override
+  State<EmoteBitsThresholdLine> createState() => _EmoteBitsThresholdLineState();
+}
+
+class _EmoteBitsThresholdLineState extends State<EmoteBitsThresholdLine> {
+  int? _threshold;
+
+  @override
+  void initState() {
+    super.initState();
+    final service = context.read<TwitchCommunityService?>();
+    if (service == null) return;
+    unawaited(
+      service.getEmoteBitsThreshold(emoteId: widget.emoteId).then((value) {
+        if (mounted && value != null) setState(() => _threshold = value);
+      }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final threshold = _threshold;
+    if (threshold == null) return const SizedBox.shrink();
+    return Text(
+      context.l10n.emoteBitsThreshold(count: threshold),
+      style: widget.style,
+    );
+  }
 }

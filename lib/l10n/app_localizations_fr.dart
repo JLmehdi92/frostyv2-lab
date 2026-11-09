@@ -9329,4 +9329,37 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get liveTogetherNotLive => 'Pas en direct sur sa chaîne';
+
+  @override
+  String htMythicChosen({required String name}) {
+    return 'Emote choisie : $name';
+  }
+
+  @override
+  String emoteModifierLine({required String code}) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'BW': 'Effet : noir et blanc',
+      'HF': 'Effet : miroir',
+      'SG': 'Effet : lunettes de soleil',
+      'SQ': 'Effet : écrasé',
+      'TK': 'Effet : pensif',
+      'other': 'Effet : modifié',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String emoteBitsThreshold({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se débloque après $countString Bits envoyés sur cette chaîne',
+      one: 'Se débloque après $countString Bit envoyé sur cette chaîne',
+    );
+    return '$_temp0';
+  }
 }

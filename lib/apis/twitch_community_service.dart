@@ -5,6 +5,7 @@ import 'package:onset/constants.dart';
 import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
+import 'package:onset/models/emote_traits.dart';
 import 'package:onset/models/legendary_collection.dart';
 import 'package:onset/models/live_together.dart';
 import 'package:onset/models/resub_notification.dart';
@@ -300,6 +301,27 @@ class TwitchCommunityService extends BaseApiClient {
       await _ask('GuestStarSessionViewerQuery', _guestStarQuery, {
         'channelID': channelId,
       }),
+    );
+  }
+
+  static const _emoteCardQuery =
+      'query EmoteCard(\$emoteId: ID!, \$includeIsParticipatingDJ: Boolean = '
+      'false ) { emote(id: \$emoteId) { id type setID token assetType '
+      'subscriptionSummaries { id tier emotes { id token assetType } } owner { '
+      '__typename ...ChannelModelWithoutStreamModelFragment stream { type } } '
+      'bitsBadgeTierSummary { threshold self { isUnlocked '
+      'numberOfBitsUntilUnlock } } } user { hasPrime } }  fragment '
+      'ChannelModelWithoutStreamModelFragment on User { channelId: id '
+      'followers { totalCount } description login displayName '
+      'profileImageURL(width: 300) bannerImageURL roles { isPartner '
+      'isAffiliate isMonetized isParticipatingDJ @include(if: '
+      '\$includeIsParticipatingDJ) } lastBroadcast { startedAt } '
+      'broadcastSettings { isMature title } }';
+
+  Future<int?> getEmoteBitsThreshold({required String emoteId}) async {
+    if (!RegExp(r'^[A-Za-z0-9_]{1,64}$').hasMatch(emoteId)) return null;
+    return bitsThresholdFrom(
+      await _ask('EmoteCard', _emoteCardQuery, {'emoteId': emoteId}),
     );
   }
 

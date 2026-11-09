@@ -365,4 +365,27 @@ void main() {
       expect(requests, hasLength(1));
     });
   });
+
+  group('getEmoteBitsThreshold', () {
+    test('asks the emote card for the tier, anonymously', () async {
+      reply({
+        'data': {
+          'emote': {
+            'id': '1',
+            'bitsBadgeTierSummary': {'threshold': 5000, 'self': null},
+          },
+          'user': null,
+        },
+      });
+
+      expect(await service.getEmoteBitsThreshold(emoteId: '1'), 5000);
+      expect(sent()['operationName'], 'EmoteCard');
+      expect(sent()['variables'], {'emoteId': '1'});
+    });
+
+    test('refuses an odd id without asking', () async {
+      expect(await service.getEmoteBitsThreshold(emoteId: '../x'), isNull);
+      expect(requests, isEmpty);
+    });
+  });
 }

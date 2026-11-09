@@ -11769,5 +11769,36 @@
   "liveTogetherNotLive": "Not live on their own channel",
   "@liveTogetherNotLive": {
     "description": "A guest who appears on the stream without streaming on their own channel."
+  },
+  "htMythicChosen": "Chosen emote: {name}",
+  "@htMythicChosen": {
+    "description": "The Mythic Hype Train emote Twitch picked from the pool.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "kaicFire"
+      }
+    }
+  },
+  "emoteModifierLine": "{code, select, BW{Effect: black and white} HF{Effect: flipped} SG{Effect: sunglasses} SQ{Effect: squished} TK{Effect: thinking} other{Effect: modified}}",
+  "@emoteModifierLine": {
+    "description": "In an emote's details: the effect (modifier) applied to a subscriber emote.",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "BW"
+      }
+    }
+  },
+  "emoteBitsThreshold": "{count, plural, one{Unlocked by cheering {count} Bit in this channel} other{Unlocked by cheering {count} Bits in this channel}}",
+  "@emoteBitsThreshold": {
+    "description": "In a Bits emote's details: the Bits badge tier that unlocks it.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "1000"
+      }
+    }
   }
 }

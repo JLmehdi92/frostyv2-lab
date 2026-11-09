@@ -1973,5 +1973,8 @@
   "liveTogetherNamesMore": "{names} et {count, plural, one{{count} autre chaîne} other{{count} autres chaînes}}",
   "liveTogetherTotal": "{count, plural, one{{count} spectateur au total} other{{count} spectateurs au total}}",
   "liveTogetherHost": "Hôte",
-  "liveTogetherNotLive": "Pas en direct sur sa chaîne"
+  "liveTogetherNotLive": "Pas en direct sur sa chaîne",
+  "htMythicChosen": "Emote choisie\u00a0: {name}",
+  "emoteModifierLine": "{code, select, BW{Effet\u00a0: noir et blanc} HF{Effet\u00a0: miroir} SG{Effet\u00a0: lunettes de soleil} SQ{Effet\u00a0: écrasé} TK{Effet\u00a0: pensif} other{Effet\u00a0: modifié}}",
+  "emoteBitsThreshold": "{count, plural, one{Se débloque après {count}\u00a0Bit envoyé sur cette chaîne} other{Se débloque après {count}\u00a0Bits envoyés sur cette chaîne}}"
 }

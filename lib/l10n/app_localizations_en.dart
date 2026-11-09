@@ -9203,4 +9203,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get liveTogetherNotLive => 'Not live on their own channel';
+
+  @override
+  String htMythicChosen({required String name}) {
+    return 'Chosen emote: $name';
+  }
+
+  @override
+  String emoteModifierLine({required String code}) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'BW': 'Effect: black and white',
+      'HF': 'Effect: flipped',
+      'SG': 'Effect: sunglasses',
+      'SQ': 'Effect: squished',
+      'TK': 'Effect: thinking',
+      'other': 'Effect: modified',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String emoteBitsThreshold({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Unlocked by cheering $countString Bits in this channel',
+      one: 'Unlocked by cheering $countString Bit in this channel',
+    );
+    return '$_temp0';
+  }
 }
