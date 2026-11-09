@@ -9,6 +9,7 @@ import 'package:onset/models/channel_leaderboards.dart';
 import '../fixtures/community_goal_payloads.dart';
 import '../fixtures/community_gql_payloads.dart';
 import '../fixtures/drops_gql_payloads.dart';
+import '../fixtures/weekly_rewards_payloads.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
 
@@ -259,6 +260,52 @@ void main() {
       expect(requests, isEmpty);
       reply({'error': 'boom'}, status: 500);
       expect(await service.getCommunityGoals(channelId: '42'), isNull);
+    });
+  });
+
+  group('weekly rewards and unlockable emotes', () {
+    test('weekly rewards are read with the viewer token', () async {
+      reply(weeklyRewardsResponse());
+
+      final rewards = await service.getWeeklyRewards(
+        channelId: '1000',
+        authToken: 'tok',
+      );
+
+      expect(rewards!.daysShown, 2);
+      final data = requests.single.data as Map;
+      expect(data['operationName'], 'WeeklyVisitRewardsQuery');
+      expect(data['query'], contains('weeklyVisitRewards'));
+      expect(requests.single.headers['Authorization'], 'OAuth tok');
+    });
+
+    test('no token or a bad channel asks nothing', () async {
+      expect(
+        await service.getWeeklyRewards(channelId: '1000', authToken: ''),
+        isNull,
+      );
+      expect(
+        await service.getWeeklyRewards(channelId: 'x', authToken: 'tok'),
+        isNull,
+      );
+      expect(requests, isEmpty);
+    });
+
+    test('a failed read hides the card', () async {
+      reply(null, status: 500);
+      expect(
+        await service.getWeeklyRewards(channelId: '1000', authToken: 'tok'),
+        isNull,
+      );
+    });
+
+    test('unlockable emotes are the tier 1 ones, read anonymously', () async {
+      reply(unlockableEmotesResponse);
+
+      final emotes = await service.getUnlockableEmotes(channelId: '1000');
+
+      expect(emotes!.map((e) => e.id), ['emotesv2_aaa', '301']);
+      expect(requests.single.headers.containsKey('Authorization'), isFalse);
     });
   });
 }

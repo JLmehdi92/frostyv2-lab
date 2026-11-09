@@ -450,4 +450,64 @@ void main() {
       expect(context.predictions.single.creatorId, '42');
     });
   });
+
+  group('chosen emote rewards', () {
+    for (final modified in [false, true]) {
+      test(
+        'unlocking, modified $modified, sends the official mutation',
+        () async {
+          reply({
+            'data': {
+              modified
+                  ? 'unlockChosenModifiedSubscriberEmote'
+                  : 'unlockChosenSubscriberEmote': {
+                'balance': 100,
+                'error': null,
+              },
+            },
+          });
+
+          final error = await service.unlockChosenEmote(
+            channelId: '42',
+            cost: 5000,
+            emoteId: modified ? 'e1_BW' : 'e1',
+            modified: modified,
+            authToken: 'tok',
+          );
+
+          expect(error, isNull);
+          final sent = requests.single.data as Map;
+          expect(
+            sent['operationName'],
+            modified ? 'UnlockModifiedEmote' : 'UnlockChosenSubscriberEmote',
+          );
+          final input = (sent['variables'] as Map)['input'] as Map;
+          expect(input['channelID'], '42');
+          expect(input['cost'], 5000);
+          expect(input['emoteID'], modified ? 'e1_BW' : 'e1');
+          expect(input['transactionID'], isNotEmpty);
+        },
+      );
+    }
+
+    test('a refusal passes its code through', () async {
+      reply({
+        'data': {
+          'unlockChosenSubscriberEmote': {
+            'error': {'code': 'NOT_ENOUGH_POINTS'},
+          },
+        },
+      });
+      expect(
+        await service.unlockChosenEmote(
+          channelId: '42',
+          cost: 5000,
+          emoteId: 'e1',
+          modified: false,
+          authToken: 'tok',
+        ),
+        'NOT_ENOUGH_POINTS',
+      );
+    });
+  });
 }

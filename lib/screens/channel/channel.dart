@@ -21,6 +21,7 @@ import 'package:onset/models/stream.dart';
 import 'package:onset/models/stream_push.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/models/watch_streak.dart';
+import 'package:onset/models/weekly_rewards.dart';
 import 'package:onset/screens/channel/celebrations/celebration_overlay.dart';
 import 'package:onset/screens/channel/celebrations/subtle_celebrations.dart';
 import 'package:onset/screens/channel/channel_info.dart';
@@ -760,6 +761,11 @@ class _VideoChatState extends State<VideoChat>
         communityDropsLine(campaign, widget.userName, L10n.current),
       ),
     );
+    _communityMoments = _eventsStore.communityMoments.listen(
+      (_) => _primaryChatStore?.addLocalNotice(
+        L10n.current.momentChatLine(channel: widget.userName),
+      ),
+    );
     _infoStore.start();
     _watchStreamEnd();
     final auth = context.authStore;
@@ -1222,6 +1228,7 @@ class _VideoChatState extends State<VideoChat>
   StreamSubscription<WatchStreakChange>? _streakChanges;
 
   StreamSubscription<DropCampaign>? _communityDrops;
+  StreamSubscription<CommunityMoment>? _communityMoments;
 
   void _showWatchStreakChange(WatchStreakChange change) {
     if (!mounted) return;
@@ -2115,6 +2122,7 @@ class _VideoChatState extends State<VideoChat>
     unawaited(_goalsReached?.cancel());
     unawaited(_streakChanges?.cancel());
     unawaited(_communityDrops?.cancel());
+    unawaited(_communityMoments?.cancel());
     _eventsStore.dispose();
     _viewerReaction?.call();
     _infoStore.dispose();

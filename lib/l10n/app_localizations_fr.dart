@@ -9078,4 +9078,128 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get predictionPointsFallback => 'points de chaîne';
+
+  @override
+  String get weeklyRewardsTitle => 'Récompenses hebdomadaires';
+
+  @override
+  String weeklyRewardsLevel({required int level}) {
+    return 'Niveau $level';
+  }
+
+  @override
+  String weeklyRewardsDays({required int required, required int visited}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      visited,
+      locale: localeName,
+      other: '$visited jours sur $required cette semaine',
+      one: '$visited jour sur $required cette semaine',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String weeklyRewardsStatus({required String status, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Regardez encore $count jours cette semaine pour obtenir la prochaine récompense.',
+      one:
+          'Regardez encore $count jour cette semaine pour obtenir la prochaine récompense.',
+    );
+    String _temp1 = intl.Intl.selectLogic(status, {
+      'earned':
+          'Vous avez obtenu la récompense de la semaine. Revenez la semaine prochaine pour en gagner d’autres.',
+      'complete':
+          'Votre badge est au niveau maximal et vous avez obtenu toutes les récompenses.',
+      'other': '$_temp0',
+    });
+    return '$_temp1';
+  }
+
+  @override
+  String weeklyRewardsTier({
+    required int count,
+    required int level,
+    required String points,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Niveau $level · $points points',
+      one: 'Niveau $level · $points point',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String weeklyRewardsEnds({required String date}) {
+    return 'Les récompenses montent de niveau chaque semaine. L’événement se termine le $date.';
+  }
+
+  @override
+  String get momentCardTitle => 'Un moment communautaire vient d’avoir lieu';
+
+  @override
+  String get momentCardBody =>
+      'Récupérez-le pour l’ajouter à votre badge des moments.';
+
+  @override
+  String get momentClaim => 'Récupérer';
+
+  @override
+  String momentClaimResult({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'claimed':
+          'Moment récupéré. Il peut falloir quelques minutes pour qu’il apparaisse sur votre badge des moments.',
+      'alreadyClaimed': 'Vous avez déjà récupéré ce moment.',
+      'expired': 'Ce moment ne peut plus être récupéré.',
+      'invalid': 'Twitch ne connaît pas ce moment.',
+      'integrityRefused':
+          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer, récupérez-le sur twitch.tv.',
+      'signedOut': 'Reconnectez-vous pour récupérer depuis ONSET.',
+      'other': 'Impossible de récupérer ce moment. Réessayez.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String momentChatLine({required String channel}) {
+    return 'Un moment communautaire vient d’avoir lieu sur la chaîne $channel. Récupérez-le depuis le panneau des points de chaîne.';
+  }
+
+  @override
+  String emoteUnlockTitle({required String kind}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'modified': 'Modifier une emote',
+      'other': 'Choisir une emote à débloquer',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get emoteUnlockModifier => 'Choisissez un effet';
+
+  @override
+  String emoteUnlockConfirm({required int count, required String points}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Débloquer pour $points points',
+      one: 'Débloquer pour $points point',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emoteUnlockEmpty => 'Cette chaîne n’a aucune emote à débloquer.';
+
+  @override
+  String get emoteUnlockFailed =>
+      'Impossible de charger les emotes de cette chaîne.';
+
+  @override
+  String get emoteUnlockDone =>
+      'Emote débloquée. Elle se trouve dans votre menu d’emotes.';
 }

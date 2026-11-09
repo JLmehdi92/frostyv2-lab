@@ -1938,5 +1938,22 @@
   "predictionModeratorAccept": "Participer quand même",
   "predictionSpectatorDone": "Vous avez prédit « {outcome} » avec 0 {pointsName}.",
   "predictionRefused": "{kind, select, mustAcceptTerms{Acceptez d’abord les conditions des prédictions.} regionLocked{Dans votre région, impossible de miser des points sur les prédictions.} categoryLocked{Dans votre région, impossible de miser des points sur les prédictions pour ce contenu.} manager{Un streamer ne peut pas prédire sur sa propre chaîne.} spectatorDuplicate{Vous avez déjà fait une prédiction.} spectatorIneligible{Impossible de prédire à 0 point ici.} notEnoughPoints{Vous n’avez pas assez de points.} notActive{Cette prédiction est fermée.} maxPoints{C’est plus que ce que cette prédiction autorise.} multipleOutcomes{Vous avez déjà choisi un autre résultat.} other{Twitch a refusé : {reason}}}",
-  "predictionPointsFallback": "points de chaîne"
+  "predictionPointsFallback": "points de chaîne",
+  "weeklyRewardsTitle": "Récompenses hebdomadaires",
+  "weeklyRewardsLevel": "Niveau {level}",
+  "weeklyRewardsDays": "{visited, plural, one{{visited} jour sur {required} cette semaine} other{{visited} jours sur {required} cette semaine}}",
+  "weeklyRewardsStatus": "{status, select, earned{Vous avez obtenu la récompense de la semaine. Revenez la semaine prochaine pour en gagner d’autres.} complete{Votre badge est au niveau maximal et vous avez obtenu toutes les récompenses.} other{{count, plural, one{Regardez encore {count} jour cette semaine pour obtenir la prochaine récompense.} other{Regardez encore {count} jours cette semaine pour obtenir la prochaine récompense.}}}}",
+  "weeklyRewardsTier": "{count, plural, one{Niveau {level} · {points} point} other{Niveau {level} · {points} points}}",
+  "weeklyRewardsEnds": "Les récompenses montent de niveau chaque semaine. L’événement se termine le {date}.",
+  "momentCardTitle": "Un moment communautaire vient d’avoir lieu",
+  "momentCardBody": "Récupérez-le pour l’ajouter à votre badge des moments.",
+  "momentClaim": "Récupérer",
+  "momentClaimResult": "{status, select, claimed{Moment récupéré. Il peut falloir quelques minutes pour qu’il apparaisse sur votre badge des moments.} alreadyClaimed{Vous avez déjà récupéré ce moment.} expired{Ce moment ne peut plus être récupéré.} invalid{Twitch ne connaît pas ce moment.} integrityRefused{Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer, récupérez-le sur twitch.tv.} signedOut{Reconnectez-vous pour récupérer depuis ONSET.} other{Impossible de récupérer ce moment. Réessayez.}}",
+  "momentChatLine": "Un moment communautaire vient d’avoir lieu sur la chaîne {channel}. Récupérez-le depuis le panneau des points de chaîne.",
+  "emoteUnlockTitle": "{kind, select, modified{Modifier une emote} other{Choisir une emote à débloquer}}",
+  "emoteUnlockModifier": "Choisissez un effet",
+  "emoteUnlockConfirm": "{count, plural, one{Débloquer pour {points} point} other{Débloquer pour {points} points}}",
+  "emoteUnlockEmpty": "Cette chaîne n’a aucune emote à débloquer.",
+  "emoteUnlockFailed": "Impossible de charger les emotes de cette chaîne.",
+  "emoteUnlockDone": "Emote débloquée. Elle se trouve dans votre menu d’emotes."
 }

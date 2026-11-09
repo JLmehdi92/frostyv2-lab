@@ -125,6 +125,66 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     });
   }
 
+  late final _$_weeklyRewardsAtom = Atom(
+    name: 'ChannelEventsStoreBase._weeklyRewards',
+    context: context,
+  );
+
+  WeeklyRewards? get weeklyRewards {
+    _$_weeklyRewardsAtom.reportRead();
+    return super._weeklyRewards;
+  }
+
+  @override
+  WeeklyRewards? get _weeklyRewards => weeklyRewards;
+
+  @override
+  set _weeklyRewards(WeeklyRewards? value) {
+    _$_weeklyRewardsAtom.reportWrite(value, super._weeklyRewards, () {
+      super._weeklyRewards = value;
+    });
+  }
+
+  late final _$_momentAtom = Atom(
+    name: 'ChannelEventsStoreBase._moment',
+    context: context,
+  );
+
+  CommunityMoment? get moment {
+    _$_momentAtom.reportRead();
+    return super._moment;
+  }
+
+  @override
+  CommunityMoment? get _moment => moment;
+
+  @override
+  set _moment(CommunityMoment? value) {
+    _$_momentAtom.reportWrite(value, super._moment, () {
+      super._moment = value;
+    });
+  }
+
+  late final _$_claimingMomentAtom = Atom(
+    name: 'ChannelEventsStoreBase._claimingMoment',
+    context: context,
+  );
+
+  bool get claimingMoment {
+    _$_claimingMomentAtom.reportRead();
+    return super._claimingMoment;
+  }
+
+  @override
+  bool get _claimingMoment => claimingMoment;
+
+  @override
+  set _claimingMoment(bool value) {
+    _$_claimingMomentAtom.reportWrite(value, super._claimingMoment, () {
+      super._claimingMoment = value;
+    });
+  }
+
   late final _$_pointsAtom = Atom(
     name: 'ChannelEventsStoreBase._points',
     context: context,
@@ -347,6 +407,31 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
   @override
   Future<DropClaimResult?> claimDrop(TimedDrop drop) {
     return _$claimDropAsyncAction.run(() => super.claimDrop(drop));
+  }
+
+  late final _$claimMomentAsyncAction = AsyncAction(
+    'ChannelEventsStoreBase.claimMoment',
+    context: context,
+  );
+
+  @override
+  Future<MomentClaimResult?> claimMoment() {
+    return _$claimMomentAsyncAction.run(() => super.claimMoment());
+  }
+
+  late final _$unlockChosenEmoteAsyncAction = AsyncAction(
+    'ChannelEventsStoreBase.unlockChosenEmote',
+    context: context,
+  );
+
+  @override
+  Future<PointsActionResult> unlockChosenEmote(
+    PointsReward reward,
+    String emoteId,
+  ) {
+    return _$unlockChosenEmoteAsyncAction.run(
+      () => super.unlockChosenEmote(reward, emoteId),
+    );
   }
 
   late final _$shareResubAsyncAction = AsyncAction(

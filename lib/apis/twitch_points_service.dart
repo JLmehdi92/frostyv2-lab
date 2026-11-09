@@ -239,6 +239,45 @@ query OnsetCommunityPoints(\$login: String!) {
     authToken: authToken,
   );
 
+  static const _unlockChosenEmoteDocument =
+      'mutation UnlockChosenSubscriberEmote(\$input: '
+      'UnlockChosenSubscriberEmoteInput!) { unlockChosenSubscriberEmote('
+      'input: \$input) { balance error { code } } }';
+
+  static const _unlockModifiedEmoteDocument =
+      'mutation UnlockModifiedEmote(\$input: '
+      'UnlockChosenModifiedSubscriberEmoteInput!) { '
+      'unlockChosenModifiedSubscriberEmote(input: \$input) { balance error { '
+      'code } } }';
+
+  Future<String?> unlockChosenEmote({
+    required String channelId,
+    required int cost,
+    required String emoteId,
+    required bool modified,
+    required String authToken,
+  }) => _mutate(
+    operation: modified
+        ? 'unlockChosenModifiedSubscriberEmote'
+        : 'unlockChosenSubscriberEmote',
+    inputType: modified
+        ? 'UnlockChosenModifiedSubscriberEmoteInput!'
+        : 'UnlockChosenSubscriberEmoteInput!',
+    document: modified
+        ? _unlockModifiedEmoteDocument
+        : _unlockChosenEmoteDocument,
+    operationName: modified
+        ? 'UnlockModifiedEmote'
+        : 'UnlockChosenSubscriberEmote',
+    input: {
+      'channelID': channelId,
+      'cost': cost,
+      'emoteID': emoteId,
+      'transactionID': _transactionId(),
+    },
+    authToken: authToken,
+  );
+
   /// Runs a mutation and reduces the outcome to an error code or null.
   Future<String?> _mutate({
     required String operation,

@@ -8958,4 +8958,123 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get predictionPointsFallback => 'channel points';
+
+  @override
+  String get weeklyRewardsTitle => 'Weekly rewards';
+
+  @override
+  String weeklyRewardsLevel({required int level}) {
+    return 'Level $level';
+  }
+
+  @override
+  String weeklyRewardsDays({required int required, required int visited}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      visited,
+      locale: localeName,
+      other: '$visited of $required days this week',
+      one: '$visited of $required days this week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String weeklyRewardsStatus({required String status, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Watch on $count more days this week to earn the next reward.',
+      one: 'Watch on 1 more day this week to earn the next reward.',
+    );
+    String _temp1 = intl.Intl.selectLogic(status, {
+      'earned':
+          'You’ve earned this week’s reward. Come back next week for more.',
+      'complete':
+          'Your badge is fully upgraded, and you’ve collected every reward.',
+      'other': '$_temp0',
+    });
+    return '$_temp1';
+  }
+
+  @override
+  String weeklyRewardsTier({
+    required int count,
+    required int level,
+    required String points,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Level $level · $points points',
+      one: 'Level $level · $points point',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String weeklyRewardsEnds({required String date}) {
+    return 'Rewards level up every week. The event ends on $date.';
+  }
+
+  @override
+  String get momentCardTitle => 'A community moment just happened';
+
+  @override
+  String get momentCardBody => 'Claim it to add it to your moments badge.';
+
+  @override
+  String get momentClaim => 'Claim';
+
+  @override
+  String momentClaimResult({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'claimed':
+          'Moment claimed. It can take a few minutes to show on your moments badge.',
+      'alreadyClaimed': 'You already claimed this moment.',
+      'expired': 'This moment can’t be claimed anymore.',
+      'invalid': 'Twitch doesn’t know this moment.',
+      'integrityRefused':
+          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so claim it on twitch.tv.',
+      'signedOut': 'Log in again to claim from ONSET.',
+      'other': 'Couldn’t claim this moment. Try again.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String momentChatLine({required String channel}) {
+    return 'A community moment just happened in $channel’s chat. Claim it from the channel points panel.';
+  }
+
+  @override
+  String emoteUnlockTitle({required String kind}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'modified': 'Modify an emote',
+      'other': 'Choose an emote to unlock',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get emoteUnlockModifier => 'Pick an effect';
+
+  @override
+  String emoteUnlockConfirm({required int count, required String points}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Unlock for $points points',
+      one: 'Unlock for $points point',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emoteUnlockEmpty => 'This channel has no emotes to unlock.';
+
+  @override
+  String get emoteUnlockFailed => 'Couldn’t load this channel’s emotes.';
+
+  @override
+  String get emoteUnlockDone => 'Emote unlocked. It’s in your emote menu.';
 }

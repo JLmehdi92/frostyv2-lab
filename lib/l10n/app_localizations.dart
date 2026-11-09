@@ -11898,6 +11898,112 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'channel points'**
   String get predictionPointsFallback;
+
+  /// Title of the weekly rewards card in the channel points panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly rewards'**
+  String get weeklyRewardsTitle;
+
+  /// The viewer's weekly rewards level, on a chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level}'**
+  String weeklyRewardsLevel({required int level});
+
+  /// Weekly rewards progress: days the viewer watched this week out of the days needed.
+  ///
+  /// In en, this message translates to:
+  /// **'{visited, plural, one{{visited} of {required} days this week} other{{visited} of {required} days this week}}'**
+  String weeklyRewardsDays({required int required, required int visited});
+
+  /// Where the viewer stands in the weekly rewards. status is earned (this week's reward is in), complete (every level reached) or progress; count is the days still needed this week.
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, earned{You’ve earned this week’s reward. Come back next week for more.} complete{Your badge is fully upgraded, and you’ve collected every reward.} other{{count, plural, one{Watch on 1 more day this week to earn the next reward.} other{Watch on {count} more days this week to earn the next reward.}}}}'**
+  String weeklyRewardsStatus({required String status, required int count});
+
+  /// One weekly reward level: its number and the channel points it gives. points is the amount, already formatted; count is the same number, for the plural.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Level {level} · {points} point} other{Level {level} · {points} points}}'**
+  String weeklyRewardsTier({
+    required int count,
+    required int level,
+    required String points,
+  });
+
+  /// Footer of the weekly rewards card. date is the event's end date, already formatted.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards level up every week. The event ends on {date}.'**
+  String weeklyRewardsEnds({required String date});
+
+  /// Title of the card offering to claim a community moment.
+  ///
+  /// In en, this message translates to:
+  /// **'A community moment just happened'**
+  String get momentCardTitle;
+
+  /// Body of the card offering to claim a community moment.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim it to add it to your moments badge.'**
+  String get momentCardBody;
+
+  /// Button that claims a community moment.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim'**
+  String get momentClaim;
+
+  /// Snackbar after claiming a community moment. status is MomentClaimResult.name.
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, claimed{Moment claimed. It can take a few minutes to show on your moments badge.} alreadyClaimed{You already claimed this moment.} expired{This moment can’t be claimed anymore.} invalid{Twitch doesn’t know this moment.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so claim it on twitch.tv.} signedOut{Log in again to claim from ONSET.} other{Couldn’t claim this moment. Try again.}}'**
+  String momentClaimResult({required String status});
+
+  /// Local chat line when a community moment can be claimed. channel is the channel's name.
+  ///
+  /// In en, this message translates to:
+  /// **'A community moment just happened in {channel}’s chat. Claim it from the channel points panel.'**
+  String momentChatLine({required String channel});
+
+  /// Title of the emote picker for a channel points reward. kind is modified (pick an emote, then an effect) or chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, modified{Modify an emote} other{Choose an emote to unlock}}'**
+  String emoteUnlockTitle({required String kind});
+
+  /// Section label above the modified versions of the chosen emote.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an effect'**
+  String get emoteUnlockModifier;
+
+  /// Button that spends the points on the chosen emote. points is the cost, already formatted; count is the same number, for the plural.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Unlock for {points} point} other{Unlock for {points} points}}'**
+  String emoteUnlockConfirm({required int count, required String points});
+
+  /// The emote picker when the channel has no tier 1 emotes.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel has no emotes to unlock.'**
+  String get emoteUnlockEmpty;
+
+  /// The emote picker when Twitch did not answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load this channel’s emotes.'**
+  String get emoteUnlockFailed;
+
+  /// Snackbar after unlocking a chosen emote with channel points.
+  ///
+  /// In en, this message translates to:
+  /// **'Emote unlocked. It’s in your emote menu.'**
+  String get emoteUnlockDone;
 }
 
 class _AppLocalizationsDelegate

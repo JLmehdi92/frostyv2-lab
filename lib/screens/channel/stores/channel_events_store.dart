@@ -17,7 +17,9 @@ import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/hermes.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/stream_push.dart';
+import 'package:onset/models/unlockable_emote.dart';
 import 'package:onset/models/watch_streak.dart';
+import 'package:onset/models/weekly_rewards.dart';
 import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
 import 'package:onset/services/hermes_client.dart';
 
@@ -252,6 +254,86 @@ abstract class ChannelEventsStoreBase with Store {
     }
   }
 
+  @readonly
+  WeeklyRewards? _weeklyRewards;
+
+  Future<void> refreshWeeklyRewards() async {
+    final service = _communityService;
+    if (service == null) return;
+    final token = await _tokenProvider?.call();
+    if (token == null || token.isEmpty) return;
+    final rewards = await service.getWeeklyRewards(
+      channelId: channelId,
+      authToken: token,
+    );
+    runInAction(() => _weeklyRewards = rewards);
+  }
+
+  @readonly
+  CommunityMoment? _moment;
+
+  @readonly
+  var _claimingMoment = false;
+
+  final _communityMoments = StreamController<CommunityMoment>.broadcast();
+
+  Stream<CommunityMoment> get communityMoments => _communityMoments.stream;
+
+  bool get canClaimMoments => _viewerActionsService != null;
+
+  void _applyMoment(HermesEvent event) {
+    final moment = CommunityMoment.fromEvent(event.data);
+    if (moment == null || moment.id == _moment?.id) return;
+    runInAction(() => _moment = moment);
+    if (!_communityMoments.isClosed) _communityMoments.add(moment);
+  }
+
+  @action
+  Future<MomentClaimResult?> claimMoment() async {
+    final service = _viewerActionsService;
+    final moment = _moment;
+    if (service == null || moment == null || _claimingMoment) return null;
+    _claimingMoment = true;
+    try {
+      final token = await _tokenProvider?.call();
+      if (token == null || token.isEmpty) return MomentClaimResult.signedOut;
+      final result = await service.claimMoment(
+        momentId: moment.id,
+        authToken: token,
+      );
+      if (result.isClaimed || result == MomentClaimResult.expired) {
+        runInAction(() => _moment = null);
+      }
+      return result;
+    } finally {
+      runInAction(() => _claimingMoment = false);
+    }
+  }
+
+  bool get canUnlockEmotes => _communityService != null;
+
+  Future<List<UnlockableEmote>?> loadUnlockableEmotes() async =>
+      _communityService?.getUnlockableEmotes(channelId: channelId);
+
+  @action
+  Future<PointsActionResult> unlockChosenEmote(
+    PointsReward reward,
+    String emoteId,
+  ) async {
+    final result = await _runPointsAction(
+      (token) => _pointsService.unlockChosenEmote(
+        channelId: channelId,
+        cost: reward.cost,
+        emoteId: emoteId,
+        modified: reward.automaticType == 'CHOSEN_MODIFIED_SUB_EMOTE_UNLOCK',
+        authToken: token,
+      ),
+      what: redeemAction,
+    );
+    if (result.isSuccess) _sayEntitlementsChanged();
+    return result;
+  }
+
   Future<ChannelLeaderboards?> loadLeaderboards() async {
     final service = _communityService;
     if (service == null) return null;
@@ -426,6 +508,7 @@ abstract class ChannelEventsStoreBase with Store {
     unawaited(refreshPoints());
     unawaited(refreshWatchStreak());
     unawaited(refreshDrops());
+    unawaited(refreshWeeklyRewards());
     unawaited(_readPaidPromotion());
 
     _startPointsPolling();
@@ -767,6 +850,9 @@ abstract class ChannelEventsStoreBase with Store {
     }
   }
 
+  @visibleForTesting
+  void applyEventForTest(HermesEvent event) => _routeEvent(event);
+
   void _routeEvent(HermesEvent event) {
     // Topics are suffixed with the id they concern, so a stale subscription
     // from a previous channel can never drive this one. The viewer's own
@@ -790,6 +876,8 @@ abstract class ChannelEventsStoreBase with Store {
       _applyContentLabels(event);
     } else if (HermesTopics.sendsFlatPayloads(event.topic)) {
       _applyStreamPush(event);
+    } else if (event.topic.startsWith('community-moments-channel')) {
+      _applyMoment(event);
     } else if (event.topic.startsWith('creator-goals-events')) {
       _applyGoal(event);
     } else if (event.topic.startsWith('community-points') ||
@@ -939,6 +1027,7 @@ abstract class ChannelEventsStoreBase with Store {
     unawaited(_shoutouts.close());
     unawaited(_watchStreakChanges.close());
     unawaited(_communityDrops.close());
+    unawaited(_communityMoments.close());
     unawaited(_streamPushes.close());
     unawaited(_goalsReached.close());
     _pointsRefreshTimer?.cancel();

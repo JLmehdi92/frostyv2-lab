@@ -11476,5 +11476,147 @@
   "predictionPointsFallback": "channel points",
   "@predictionPointsFallback": {
     "description": "The points' name inside a prediction sentence when the channel didn't name them."
+  },
+  "weeklyRewardsTitle": "Weekly rewards",
+  "@weeklyRewardsTitle": {
+    "description": "Title of the weekly rewards card in the channel points panel."
+  },
+  "weeklyRewardsLevel": "Level {level}",
+  "@weeklyRewardsLevel": {
+    "description": "The viewer's weekly rewards level, on a chip.",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "weeklyRewardsDays": "{visited, plural, one{{visited} of {required} days this week} other{{visited} of {required} days this week}}",
+  "@weeklyRewardsDays": {
+    "description": "Weekly rewards progress: days the viewer watched this week out of the days needed.",
+    "placeholders": {
+      "required": {
+        "type": "int",
+        "example": "3"
+      },
+      "visited": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "weeklyRewardsStatus": "{status, select, earned{You’ve earned this week’s reward. Come back next week for more.} complete{Your badge is fully upgraded, and you’ve collected every reward.} other{{count, plural, one{Watch on 1 more day this week to earn the next reward.} other{Watch on {count} more days this week to earn the next reward.}}}}",
+  "@weeklyRewardsStatus": {
+    "description": "Where the viewer stands in the weekly rewards. status is earned (this week's reward is in), complete (every level reached) or progress; count is the days still needed this week.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "progress"
+      },
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "weeklyRewardsTier": "{count, plural, one{Level {level} · {points} point} other{Level {level} · {points} points}}",
+  "@weeklyRewardsTier": {
+    "description": "One weekly reward level: its number and the channel points it gives. points is the amount, already formatted; count is the same number, for the plural.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "250"
+      },
+      "level": {
+        "type": "int",
+        "example": "1"
+      },
+      "points": {
+        "type": "String",
+        "example": "250"
+      }
+    }
+  },
+  "weeklyRewardsEnds": "Rewards level up every week. The event ends on {date}.",
+  "@weeklyRewardsEnds": {
+    "description": "Footer of the weekly rewards card. date is the event's end date, already formatted.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Dec 1, 2026"
+      }
+    }
+  },
+  "momentCardTitle": "A community moment just happened",
+  "@momentCardTitle": {
+    "description": "Title of the card offering to claim a community moment."
+  },
+  "momentCardBody": "Claim it to add it to your moments badge.",
+  "@momentCardBody": {
+    "description": "Body of the card offering to claim a community moment."
+  },
+  "momentClaim": "Claim",
+  "@momentClaim": {
+    "description": "Button that claims a community moment."
+  },
+  "momentClaimResult": "{status, select, claimed{Moment claimed. It can take a few minutes to show on your moments badge.} alreadyClaimed{You already claimed this moment.} expired{This moment can’t be claimed anymore.} invalid{Twitch doesn’t know this moment.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so claim it on twitch.tv.} signedOut{Log in again to claim from ONSET.} other{Couldn’t claim this moment. Try again.}}",
+  "@momentClaimResult": {
+    "description": "Snackbar after claiming a community moment. status is MomentClaimResult.name.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "claimed"
+      }
+    }
+  },
+  "momentChatLine": "A community moment just happened in {channel}’s chat. Claim it from the channel points panel.",
+  "@momentChatLine": {
+    "description": "Local chat line when a community moment can be claimed. channel is the channel's name.",
+    "placeholders": {
+      "channel": {
+        "type": "String",
+        "example": "Streamer"
+      }
+    }
+  },
+  "emoteUnlockTitle": "{kind, select, modified{Modify an emote} other{Choose an emote to unlock}}",
+  "@emoteUnlockTitle": {
+    "description": "Title of the emote picker for a channel points reward. kind is modified (pick an emote, then an effect) or chosen.",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "chosen"
+      }
+    }
+  },
+  "emoteUnlockModifier": "Pick an effect",
+  "@emoteUnlockModifier": {
+    "description": "Section label above the modified versions of the chosen emote."
+  },
+  "emoteUnlockConfirm": "{count, plural, one{Unlock for {points} point} other{Unlock for {points} points}}",
+  "@emoteUnlockConfirm": {
+    "description": "Button that spends the points on the chosen emote. points is the cost, already formatted; count is the same number, for the plural.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5000"
+      },
+      "points": {
+        "type": "String",
+        "example": "5 000"
+      }
+    }
+  },
+  "emoteUnlockEmpty": "This channel has no emotes to unlock.",
+  "@emoteUnlockEmpty": {
+    "description": "The emote picker when the channel has no tier 1 emotes."
+  },
+  "emoteUnlockFailed": "Couldn’t load this channel’s emotes.",
+  "@emoteUnlockFailed": {
+    "description": "The emote picker when Twitch did not answer."
+  },
+  "emoteUnlockDone": "Emote unlocked. It’s in your emote menu.",
+  "@emoteUnlockDone": {
+    "description": "Snackbar after unlocking a chosen emote with channel points."
   }
 }

@@ -7,6 +7,8 @@ import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/shoutout_profile.dart';
+import 'package:onset/models/unlockable_emote.dart';
+import 'package:onset/models/weekly_rewards.dart';
 
 class TwitchCommunityService extends BaseApiClient {
   TwitchCommunityService(Dio dio) : super(dio, '');
@@ -209,6 +211,43 @@ class TwitchCommunityService extends BaseApiClient {
       for (final goal in goals)
         goal.withContributedThisStream(mine[goal.id] ?? 0),
     ];
+  }
+
+  static const _weeklyRewardsQuery =
+      'query WeeklyVisitRewardsQuery(\$channelID: ID!) { channel(id: '
+      '\$channelID) { id self { id weeklyVisitRewards { daysVisitedThisWeek '
+      'accumulatedWeeks hasEarnedWeeklyRewardThisWeek hasVisitedToday '
+      'currentReward { tier channelPoints badge { id image4x: imageURL(size: '
+      'QUADRUPLE) } } eventConfig { id daysRequiredPerWeek endDate '
+      'weekResetDates rewardTiers { tier channelPoints badge { id image4x: '
+      'imageURL(size: QUADRUPLE) } } } } } } }';
+
+  Future<WeeklyRewards?> getWeeklyRewards({
+    required String channelId,
+    required String authToken,
+  }) async {
+    if (authToken.isEmpty || !_numericId.hasMatch(channelId)) return null;
+    return WeeklyRewards.fromBody(
+      await _ask('WeeklyVisitRewardsQuery', _weeklyRewardsQuery, {
+        'channelID': channelId,
+      }, authToken: authToken),
+    );
+  }
+
+  static const _unlockableEmotesQuery =
+      'query OnsetUnlockableEmotes(\$channelID: ID!) { user(id: '
+      '\$channelID) { id subscriptionProducts { id tier emotes { id token } '
+      '} } }';
+
+  Future<List<UnlockableEmote>?> getUnlockableEmotes({
+    required String channelId,
+  }) async {
+    if (!_numericId.hasMatch(channelId)) return null;
+    return UnlockableEmote.listFrom(
+      await _ask('OnsetUnlockableEmotes', _unlockableEmotesQuery, {
+        'channelID': channelId,
+      }),
+    );
   }
 
   Future<Object?> _ask(

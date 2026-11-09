@@ -227,6 +227,9 @@ class HermesTopics {
 
   static String shoutout(String channelId) => 'shoutout.$channelId';
 
+  static String communityMoments(String channelId) =>
+      'community-moments-channel-v1.$channelId';
+
   static String contentClassificationLabels(String channelId) =>
       'content-classification-labels-v1.$channelId';
 
@@ -269,6 +272,7 @@ class HermesTopics {
     videoPlayback(channelId),
     broadcastSettings(channelId),
     channelSubGifts(channelId),
+    communityMoments(channelId),
   ];
 
   /// The viewer's own topics, which carry what happens to *them* rather than to

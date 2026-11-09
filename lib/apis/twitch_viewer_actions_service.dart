@@ -6,6 +6,7 @@ import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
+import 'package:onset/models/weekly_rewards.dart';
 
 enum ViewerActionOutcome { done, refused, integrityRefused, signedOut, failed }
 
@@ -262,6 +263,39 @@ class TwitchViewerActionsService extends BaseApiClient {
     } catch (e) {
       if (kDebugMode) debugPrint('ClaimDropRewardsMutation failed: $e');
       return DropClaimResult.failed;
+    }
+  }
+
+  static const _claimMomentDocument =
+      'mutation ClaimMomentMutation(\$momentID: ID!) { claimCommunityMoment('
+      'input: { momentID: \$momentID } ) { moment { id } error } }';
+
+  Future<MomentClaimResult> claimMoment({
+    required String momentId,
+    required String authToken,
+  }) async {
+    if (authToken.isEmpty) return MomentClaimResult.signedOut;
+    if (!_opaqueId.hasMatch(momentId)) return MomentClaimResult.invalid;
+    try {
+      return MomentClaimResult.fromBody(
+        await post<dynamic>(
+          _gqlUrl,
+          headers: {
+            'Client-ID': kTwitchWebClientId,
+            'Authorization': 'OAuth $authToken',
+          },
+          data: {
+            'operationName': 'ClaimMomentMutation',
+            'query': _claimMomentDocument,
+            'variables': {'momentID': momentId},
+          },
+        ),
+      );
+    } on UnauthorizedException {
+      return MomentClaimResult.signedOut;
+    } catch (e) {
+      if (kDebugMode) debugPrint('ClaimMomentMutation failed: $e');
+      return MomentClaimResult.failed;
     }
   }
 

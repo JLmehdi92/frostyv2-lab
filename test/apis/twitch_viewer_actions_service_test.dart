@@ -7,6 +7,8 @@ import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 
+import 'package:onset/models/weekly_rewards.dart';
+
 import '../fixtures/community_goal_payloads.dart';
 import '../fixtures/drops_gql_payloads.dart';
 
@@ -473,6 +475,49 @@ void main() {
         GoalContributionResult.failed,
       );
       expect(requests, isEmpty);
+    });
+  });
+
+  group('community moments', () {
+    test('a claim sends the official mutation with the moment', () async {
+      reply({
+        'data': {
+          'claimCommunityMoment': {
+            'moment': {'id': 'm-1'},
+            'error': null,
+          },
+        },
+      });
+
+      final result = await service.claimMoment(
+        momentId: 'm-1',
+        authToken: 'tok',
+      );
+
+      expect(result, MomentClaimResult.claimed);
+      expect(sent()['operationName'], 'ClaimMomentMutation');
+      expect(sent()['variables'], {'momentID': 'm-1'});
+      expect(sent()['query'], contains('claimCommunityMoment('));
+    });
+
+    test('signed out or a bad id sends nothing', () async {
+      expect(
+        await service.claimMoment(momentId: 'm', authToken: ''),
+        MomentClaimResult.signedOut,
+      );
+      expect(
+        await service.claimMoment(momentId: 'bad id', authToken: 'tok'),
+        MomentClaimResult.invalid,
+      );
+      expect(requests, isEmpty);
+    });
+
+    test('a transport failure is a failure', () async {
+      reply(null, status: 500);
+      expect(
+        await service.claimMoment(momentId: 'm', authToken: 'tok'),
+        MomentClaimResult.failed,
+      );
     });
   });
 }

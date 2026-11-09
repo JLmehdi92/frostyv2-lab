@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/models/unlockable_emote.dart';
+import 'package:onset/models/weekly_rewards.dart';
 import 'package:onset/screens/channel/chat/widgets/prediction_dialogs.dart';
+import 'package:onset/screens/channel/chat/widgets/viewer_rewards.dart';
 
+import '../fixtures/weekly_rewards_payloads.dart';
 import '../helpers/l10n.dart';
 
 void main() {
@@ -37,6 +41,78 @@ void main() {
             tester,
             'prediction terms $stake, $at',
             content: const ['Victoire'],
+          );
+        });
+      }
+
+      for (final earned in [false, true]) {
+        testWidgets('the weekly rewards, earned $earned, $at', (tester) async {
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  spacing: 12,
+                  children: [
+                    WeeklyRewardsCard(
+                      rewards: WeeklyRewards.fromBody(
+                        weeklyRewardsResponse(earned: earned),
+                      )!,
+                    ),
+                    CommunityMomentCard(onClaim: () {}),
+                  ],
+                ),
+              ),
+            ),
+            size: size,
+            textScale: scale,
+          );
+          await tester.pump();
+          expect(find.text(french.weeklyRewardsTitle), findsOneWidget);
+          expect(find.text(french.momentCardTitle), findsOneWidget);
+          await expectFrenchThroughout(tester, 'weekly $earned, $at');
+        });
+      }
+
+      for (final type in [
+        'CHOSEN_SUB_EMOTE_UNLOCK',
+        'CHOSEN_MODIFIED_SUB_EMOTE_UNLOCK',
+      ]) {
+        testWidgets('the emote picker, $type, $at', (tester) async {
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: EmoteUnlockSheet(
+                reward: PointsReward(
+                  id: 'r',
+                  title: 'r',
+                  cost: 5000,
+                  automaticType: type,
+                ),
+                load: () async =>
+                    UnlockableEmote.listFrom(unlockableEmotesResponse),
+                onUnlock: (_) {},
+              ),
+            ),
+            size: size,
+            textScale: scale,
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(EmoteUnlockSheet.emoteKey('301')));
+          await tester.pump();
+          await expectFrenchThroughout(
+            tester,
+            'emote picker $type, $at',
+            content: const [
+              'chanGg_BW',
+              'chanGg_HF',
+              'chanGg_SG',
+              'chanGg_SQ',
+              'chanGg_TK',
+              'chanGg',
+              'chanHi',
+            ],
           );
         });
       }

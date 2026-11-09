@@ -18,6 +18,7 @@ import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/points_intro.dart';
 import 'package:onset/screens/channel/chat/widgets/prediction_dialogs.dart';
 import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
+import 'package:onset/screens/channel/chat/widgets/viewer_rewards.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
@@ -142,6 +143,18 @@ class _PanelState extends State<_Panel> {
       ..showSnackBar(
         SnackBar(content: Text(l.dropClaimResult(status: result.name))),
       );
+  }
+
+  Future<void> _claimMoment(ChannelEventsStore events) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l = context.l10n;
+    final result = await events.claimMoment();
+    if (result == null || messenger == null || !messenger.mounted) return;
+    _say(
+      messenger,
+      l.momentClaimResult(status: result.name),
+      success: result.isClaimed,
+    );
   }
 
   Future<void> _shareResub(ChannelEventsStore events) async {
@@ -462,6 +475,30 @@ class _PanelState extends State<_Panel> {
                               ),
                             ),
                           ),
+                  ),
+                if (events != null)
+                  Observer(
+                    builder: (_) =>
+                        events.moment == null || !events.canClaimMoments
+                        ? const SizedBox.shrink()
+                        : Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            child: CommunityMomentCard(
+                              onClaim: events.claimingMoment
+                                  ? null
+                                  : () => _claimMoment(events),
+                            ),
+                          ),
+                  ),
+                if (events != null)
+                  Observer(
+                    builder: (_) => switch (events.weeklyRewards) {
+                      final rewards? => Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        child: WeeklyRewardsCard(rewards: rewards),
+                      ),
+                      null => const SizedBox.shrink(),
+                    },
                   ),
                 if (widget.watchStreak case final streak?)
                   Padding(
@@ -1481,11 +1518,11 @@ class RewardRow extends StatelessWidget {
     final events = store;
     // Out of reach means no tap target: offering one that can only fail is
     // worse than offering none.
-    if (events == null ||
-        !reward.affordableWith(balance) ||
-        !reward.isRedeemable) {
-      return null;
+    if (events == null || !reward.affordableWith(balance)) return null;
+    if (needsEmoteChoice(reward) && events.canUnlockEmotes) {
+      return () => _chooseAndUnlock(context, events);
     }
+    if (!reward.isRedeemable) return null;
     return () => _confirmAndRedeem(context, events);
   }
 
@@ -1592,6 +1629,31 @@ class RewardRow extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _chooseAndUnlock(
+    BuildContext context,
+    ChannelEventsStore events,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final emoteId = await showOnsetSheet<String>(
+      context: context,
+      panel: true,
+      constraints: const BoxConstraints(maxWidth: 560),
+      builder: (sheetContext) => EmoteUnlockSheet(
+        reward: reward,
+        load: events.loadUnlockableEmotes,
+        onUnlock: (id) => Navigator.of(sheetContext).pop(id),
+      ),
+    );
+    if (emoteId == null) return;
+    final result = await events.unlockChosenEmote(reward, emoteId);
+    if (!messenger.mounted) return;
+    if (result.isSuccess) {
+      _say(messenger, messenger.context.l10n.emoteUnlockDone, success: true);
+    } else {
+      _report(messenger, result);
+    }
   }
 
   Future<void> _confirmAndRedeem(
