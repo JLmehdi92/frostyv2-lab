@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/screens/channel/video/pop_out.dart';
 import 'package:onset/services/cast_bridge.dart';
 import 'package:onset/stores/cast_store.dart';
 import 'package:onset/widgets/cast_button.dart';
@@ -13,6 +16,7 @@ const lot9aScreenNames = [
   'cast devices',
   'cast connected',
   'cast unavailable',
+  'floating permission',
 ];
 
 const _media = CastMedia(url: 'https://a/b.m3u8', title: 'Live', live: true);
@@ -34,6 +38,18 @@ typedef Lot9aScreen = ({
 });
 
 Lot9aScreen lot9aScreen(String name) {
+  if (name == 'floating permission') {
+    return (
+      screen: const Scaffold(body: SizedBox.expand()),
+      settle: (tester) async {
+        unawaited(
+          explainOverlayPermission(tester.element(find.byType(Scaffold))),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+      },
+    );
+  }
   final bridge = FakeCastBridge();
   final store = CastStore(bridge: bridge);
   if (name == 'cast unavailable') bridge.available = false;

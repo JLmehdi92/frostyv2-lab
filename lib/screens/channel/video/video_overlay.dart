@@ -17,6 +17,7 @@ import 'package:onset/screens/channel/video/latency_stats.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
+import 'package:onset/screens/channel/video/pop_out.dart';
 import 'package:onset/screens/channel/video/quality_selection.dart';
 import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
@@ -32,6 +33,7 @@ import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/widgets/cast_button.dart';
 import 'package:onset/widgets/motion/rolling_number.dart';
 import 'package:onset/widgets/motion/signal_ping.dart';
+import 'package:onset/widgets/new_feature_pill.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/share_sheet.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
@@ -638,6 +640,7 @@ class VideoOverlay extends StatelessWidget {
   /// Quality, volume, captions and the measurement (a sheet, in the frame
   /// of the channel sheets).
   void _openSettings(BuildContext context) {
+    final screenContext = context;
     videoStore.updateStreamQualities();
     showOnsetSheet<void>(
       context: context,
@@ -765,7 +768,7 @@ class VideoOverlay extends StatelessWidget {
                       ),
                     ],
                     if (Platform.isAndroid)
-                      ..._playbackRows(context, videoStore),
+                      ..._playbackRows(context, videoStore, screenContext),
                     SheetRow(
                       glyph: SheetGlyphKind.share,
                       label: context.l10n.livePlayerShareChannel,
@@ -782,14 +785,31 @@ class VideoOverlay extends StatelessWidget {
   }
 }
 
-List<Widget> _playbackRows(BuildContext context, PlayerController videoStore) {
+List<Widget> _playbackRows(
+  BuildContext context,
+  PlayerController videoStore,
+  BuildContext screenContext,
+) {
   final l = context.l10n;
   final settings = videoStore.settingsStore;
+  final floatingIsNew = settings.isNewFeature(NewFeature.floatingPlayer.name);
   return [
     SheetSectionLabel(
       l.livePlayerPlayback,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
     ),
+    if (videoStore case final IvsVideoStore ivs)
+      SheetRow(
+        key: const ValueKey('pop-out'),
+        leading: const Icon(Icons.open_in_new_rounded, size: 22),
+        label: l.popOutButton,
+        trailing: floatingIsNew ? const NewFeaturePill() : null,
+        onTap: () {
+          settings.markFeatureSeen(NewFeature.floatingPlayer.name);
+          Navigator.pop(context);
+          unawaited(popOutLive(screenContext, ivs));
+        },
+      ),
     SheetRow(
       label: l.settingsAutoPip,
       trailing: OnsetSwitch(

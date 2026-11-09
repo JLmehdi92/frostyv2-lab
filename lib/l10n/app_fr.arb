@@ -2075,5 +2075,14 @@
   "castNotReady": "Impossible de caster\u00a0: la vidéo n’est pas encore prête.",
   "castStop": "Arrêter la diffusion",
   "castThisVideo": "Caster cette vidéo",
-  "castConnecting": "Connexion…"
+  "castConnecting": "Connexion…",
+  "popOutButton": "Afficher par-dessus les autres applications",
+  "popOutPermissionTitle": "Afficher le live par-dessus les autres applications\u202f?",
+  "popOutPermissionMessage": "Le lecteur flottant garde le live dans une petite fenêtre que vous pouvez déplacer pendant que vous utilisez d’autres applications. Android a besoin pour cela de l’autorisation «\u00a0Afficher par-dessus d’autres applications\u00a0»\u00a0: sur l’écran suivant, activez-la pour ONSET, puis revenez.",
+  "popOutPermissionNotNow": "Plus tard",
+  "popOutPermissionContinue": "Continuer",
+  "popOutRefused": "Sans l’autorisation, le live continue en Picture-in-picture.",
+  "popOutNotReady": "Impossible d’afficher le lecteur flottant\u00a0: le live n’est pas encore prêt.",
+  "popOutNotificationChannel": "Lecteur flottant",
+  "popOutClose": "Fermer le lecteur flottant"
 }

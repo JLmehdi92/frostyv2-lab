@@ -9722,4 +9722,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get castConnecting => 'Connecting…';
+
+  @override
+  String get popOutButton => 'Float over other apps';
+
+  @override
+  String get popOutPermissionTitle => 'Float the stream over other apps?';
+
+  @override
+  String get popOutPermissionMessage =>
+      'The floating player keeps the stream in a small window you can move while you use other apps. Android needs the “Display over other apps” permission for it: on the next screen, turn it on for ONSET, then come back.';
+
+  @override
+  String get popOutPermissionNotNow => 'Not now';
+
+  @override
+  String get popOutPermissionContinue => 'Continue';
+
+  @override
+  String get popOutRefused =>
+      'Without the permission, the stream continues in picture-in-picture.';
+
+  @override
+  String get popOutNotReady =>
+      'Couldn’t float the player: the stream isn’t ready yet.';
+
+  @override
+  String get popOutNotificationChannel => 'Floating player';
+
+  @override
+  String get popOutClose => 'Close the floating player';
 }

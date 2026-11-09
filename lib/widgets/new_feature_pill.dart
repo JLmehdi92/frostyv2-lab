@@ -10,6 +10,7 @@ enum NewFeature {
   hideViewerCount,
   notInterested,
   landscapeAlerts,
+  floatingPlayer,
 }
 
 class NewFeaturePill extends StatelessWidget {

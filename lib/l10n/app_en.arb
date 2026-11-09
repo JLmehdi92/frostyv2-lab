@@ -12397,5 +12397,41 @@
   "castConnecting": "Connecting…",
   "@castConnecting": {
     "description": "Cast sheet: screen-reader label of the spinner beside the device being connected."
+  },
+  "popOutButton": "Float over other apps",
+  "@popOutButton": {
+    "description": "Tooltip of the live player button that moves the stream into a floating window over other apps (Android)."
+  },
+  "popOutPermissionTitle": "Float the stream over other apps?",
+  "@popOutPermissionTitle": {
+    "description": "Title of the dialog shown before ONSET asks Android for the “Display over other apps” permission."
+  },
+  "popOutPermissionMessage": "The floating player keeps the stream in a small window you can move while you use other apps. Android needs the “Display over other apps” permission for it: on the next screen, turn it on for ONSET, then come back.",
+  "@popOutPermissionMessage": {
+    "description": "Body of the dialog shown before opening the system screen of the “Display over other apps” permission."
+  },
+  "popOutPermissionNotNow": "Not now",
+  "@popOutPermissionNotNow": {
+    "description": "Dialog button: does not ask for the “Display over other apps” permission."
+  },
+  "popOutPermissionContinue": "Continue",
+  "@popOutPermissionContinue": {
+    "description": "Dialog button: opens the system screen of the “Display over other apps” permission."
+  },
+  "popOutRefused": "Without the permission, the stream continues in picture-in-picture.",
+  "@popOutRefused": {
+    "description": "Snackbar after the viewer came back without granting the “Display over other apps” permission: the app falls back to picture-in-picture."
+  },
+  "popOutNotReady": "Couldn’t float the player: the stream isn’t ready yet.",
+  "@popOutNotReady": {
+    "description": "Snackbar: the floating player was asked for before the stream had an address."
+  },
+  "popOutNotificationChannel": "Floating player",
+  "@popOutNotificationChannel": {
+    "description": "Android notification channel of the floating player, in the system notification settings."
+  },
+  "popOutClose": "Close the floating player",
+  "@popOutClose": {
+    "description": "Close button of the floating window and action of its notification."
   }
 }

@@ -617,6 +617,18 @@ abstract class IvsVideoStoreBase
 
   var _autoPipArmed = false;
 
+  void prepareFloatingPlayer() {
+    _autoPipArmed = false;
+    pip.setAutoPipMode(autoEnter: false);
+    if (!_paused) handlePausePlay();
+  }
+
+  void floatingPlayerClosed({required bool returned}) {
+    if (_disposed) return;
+    unawaited(_applyAutoPip());
+    if (returned && _paused) handlePausePlay();
+  }
+
   @visibleForTesting
   void debugMarkAutoPipArmed() => _autoPipArmed = true;
 

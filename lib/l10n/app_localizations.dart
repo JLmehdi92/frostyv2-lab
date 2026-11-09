@@ -12728,6 +12728,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connecting…'**
   String get castConnecting;
+
+  /// Tooltip of the live player button that moves the stream into a floating window over other apps (Android).
+  ///
+  /// In en, this message translates to:
+  /// **'Float over other apps'**
+  String get popOutButton;
+
+  /// Title of the dialog shown before ONSET asks Android for the “Display over other apps” permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Float the stream over other apps?'**
+  String get popOutPermissionTitle;
+
+  /// Body of the dialog shown before opening the system screen of the “Display over other apps” permission.
+  ///
+  /// In en, this message translates to:
+  /// **'The floating player keeps the stream in a small window you can move while you use other apps. Android needs the “Display over other apps” permission for it: on the next screen, turn it on for ONSET, then come back.'**
+  String get popOutPermissionMessage;
+
+  /// Dialog button: does not ask for the “Display over other apps” permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get popOutPermissionNotNow;
+
+  /// Dialog button: opens the system screen of the “Display over other apps” permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get popOutPermissionContinue;
+
+  /// Snackbar after the viewer came back without granting the “Display over other apps” permission: the app falls back to picture-in-picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Without the permission, the stream continues in picture-in-picture.'**
+  String get popOutRefused;
+
+  /// Snackbar: the floating player was asked for before the stream had an address.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t float the player: the stream isn’t ready yet.'**
+  String get popOutNotReady;
+
+  /// Android notification channel of the floating player, in the system notification settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating player'**
+  String get popOutNotificationChannel;
+
+  /// Close button of the floating window and action of its notification.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the floating player'**
+  String get popOutClose;
 }
 
 class _AppLocalizationsDelegate

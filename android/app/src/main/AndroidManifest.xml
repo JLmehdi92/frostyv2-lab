@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!-- In-app updates: installs a downloaded ONSET build through PackageInstaller. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <!-- Schedule reminders: put back after a reboot (flutter_local_notifications). -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Merged in by the Firebase Analytics library: ONSET never reads the
@@ -93,6 +94,10 @@
             android:value="app.onset.CastOptionsProvider" />
         <service
             android:name=".BackgroundAudioService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+        <service
+            android:name=".FloatingPlayerService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
         <!-- In-app updates: the install session's status, sent by the system only. -->

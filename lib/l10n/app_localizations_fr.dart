@@ -9864,4 +9864,35 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get castConnecting => 'Connexion…';
+
+  @override
+  String get popOutButton => 'Afficher par-dessus les autres applications';
+
+  @override
+  String get popOutPermissionTitle =>
+      'Afficher le live par-dessus les autres applications ?';
+
+  @override
+  String get popOutPermissionMessage =>
+      'Le lecteur flottant garde le live dans une petite fenêtre que vous pouvez déplacer pendant que vous utilisez d’autres applications. Android a besoin pour cela de l’autorisation « Afficher par-dessus d’autres applications » : sur l’écran suivant, activez-la pour ONSET, puis revenez.';
+
+  @override
+  String get popOutPermissionNotNow => 'Plus tard';
+
+  @override
+  String get popOutPermissionContinue => 'Continuer';
+
+  @override
+  String get popOutRefused =>
+      'Sans l’autorisation, le live continue en Picture-in-picture.';
+
+  @override
+  String get popOutNotReady =>
+      'Impossible d’afficher le lecteur flottant : le live n’est pas encore prêt.';
+
+  @override
+  String get popOutNotificationChannel => 'Lecteur flottant';
+
+  @override
+  String get popOutClose => 'Fermer le lecteur flottant';
 }
