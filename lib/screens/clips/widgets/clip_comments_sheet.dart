@@ -114,7 +114,9 @@ class _ClipCommentsSheetState extends State<ClipCommentsSheet> {
       _liking.remove(comment.id);
       if (outcome == AccountEditOutcome.done) {
         final index = _comments.indexWhere((c) => c.id == comment.id);
-        if (index >= 0) _comments[index] = comment.withLike(liked: liked);
+        if (index >= 0) {
+          _comments[index] = _comments[index].withLike(liked: liked);
+        }
       }
     });
     if (outcome != AccountEditOutcome.done) {

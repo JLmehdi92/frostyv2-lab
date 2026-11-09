@@ -10668,7 +10668,7 @@ abstract class AppLocalizations {
   /// A snack bar: why Twitch refused a profile change ({code} is Twitch's error code, never shown).
   ///
   /// In en, this message translates to:
-  /// **'{code, select, DISPLAY_NAME_CHANGE_AGAIN{You can’t change your display name again yet.} DISPLAY_NAME_NOT_AVAILABLE{This display name is unavailable.} DISPLAY_NAME_ONLY_CAP{Your display name can only change the capitalization of your username.} DISPLAY_NAME_TOO_LONG{This display name is too long.} DISPLAY_NAME_TOO_SHORT{This display name is too short.} INVALID_CHARS_IN_DISPLAY_NAME{This display name has characters Twitch doesn’t allow.} DESCRIPTION_FAILED_MODERATION{This bio didn’t pass moderation.} DESCRIPTION_TOO_LONG{This bio is too long.} LOGIN_CHANGE_COOLDOWN{You can’t change your username again yet.} LOGIN_CHANGE_EMAIL_VERIFIED{Verify your email on twitch.tv to change your username.} LOGIN_CONTAINS_INVALID_CHARACTERS{This username has characters Twitch doesn’t allow.} LOGIN_TOO_LONG{This username is too long.} LOGIN_TOO_SHORT{This username is too short.} LOGIN_UNAVAILABLE{This username is unavailable.} FAILED_TITLE_MODERATION{This title didn’t pass moderation.} INVALID_URL{Twitch doesn’t accept this link.} TITLE_TOO_LONG{This title is too long.} TOO_MANY{You already have the most social links Twitch allows.} NOT_FOUND{This social link no longer exists.} REAUTH_NEEDED{Log in again on twitch.tv to make this change.} REQUESTS_THROTTLED{Too many changes. Try again later.} TOO_MANY_REQUESTS{Too many changes. Try again later.} other{Twitch refused this change.}}'**
+  /// **'{code, select, DISPLAY_NAME_CHANGE_AGAIN{You can’t change your display name again yet.} DISPLAY_NAME_NOT_AVAILABLE{This display name is unavailable.} DISPLAY_NAME_ONLY_CAP{Your display name can only differ from your username in capitalization.} DISPLAY_NAME_TOO_LONG{This display name is too long.} DISPLAY_NAME_TOO_SHORT{This display name is too short.} INVALID_CHARS_IN_DISPLAY_NAME{This display name has characters Twitch doesn’t allow.} DESCRIPTION_FAILED_MODERATION{This bio didn’t pass moderation.} DESCRIPTION_TOO_LONG{This bio is too long.} LOGIN_CHANGE_COOLDOWN{You can’t change your username again yet.} LOGIN_CHANGE_EMAIL_VERIFIED{Verify your email on twitch.tv to change your username.} LOGIN_CONTAINS_INVALID_CHARACTERS{This username has characters Twitch doesn’t allow.} LOGIN_TOO_LONG{This username is too long.} LOGIN_TOO_SHORT{This username is too short.} LOGIN_UNAVAILABLE{This username is unavailable.} FAILED_TITLE_MODERATION{This title didn’t pass moderation.} INVALID_URL{Twitch doesn’t accept this link.} TITLE_TOO_LONG{This title is too long.} TOO_MANY{You already have the most social links Twitch allows.} NOT_FOUND{This social link no longer exists.} REAUTH_NEEDED{Log in again on twitch.tv to make this change.} REQUESTS_THROTTLED{Too many changes. Try again later.} TOO_MANY_REQUESTS{Too many changes. Try again later.} other{Twitch refused this change.}}'**
   String editProfileRefused({required String code});
 
   /// The group of the edit profile page with the display name, the username and the bio.
@@ -10698,7 +10698,7 @@ abstract class AppLocalizations {
   /// The display name dialog: Twitch's rules for the display name. {login} is the viewer's username.
   ///
   /// In en, this message translates to:
-  /// **'Your display name can change the capitalization of {login}. Some names in non-Latin characters can’t be changed again for 60 days.'**
+  /// **'Your display name can differ from {login} in capitalization. Some names in non-Latin characters can’t be changed again for 60 days.'**
   String editProfileDisplayNameHelp({required String login});
 
   /// A snack bar once Twitch saved the new display name.
@@ -10860,7 +10860,7 @@ abstract class AppLocalizations {
   /// The body of the confirmation before deleting a social link.
   ///
   /// In en, this message translates to:
-  /// **'It no longer shows on your channel.'**
+  /// **'It will no longer show on your channel.'**
   String get editProfileLinkDeleteBody;
 
   /// A snack bar once Twitch deleted a social link.

@@ -8200,7 +8200,7 @@ class AppLocalizationsFr extends AppLocalizations {
           'Vous ne pouvez pas encore changer à nouveau votre nom affiché.',
       'DISPLAY_NAME_NOT_AVAILABLE': 'Ce nom affiché n’est pas disponible.',
       'DISPLAY_NAME_ONLY_CAP':
-          'Votre nom affiché peut seulement changer les majuscules et minuscules de votre nom d’utilisateur.',
+          'Votre nom affiché ne peut différer de votre nom d’utilisateur que par les majuscules et minuscules.',
       'DISPLAY_NAME_TOO_LONG': 'Ce nom affiché est trop long.',
       'DISPLAY_NAME_TOO_SHORT': 'Ce nom affiché est trop court.',
       'INVALID_CHARS_IN_DISPLAY_NAME':
@@ -8245,7 +8245,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String editProfileDisplayNameHelp({required String login}) {
-    return 'Votre nom affiché peut changer les majuscules et minuscules de $login. Certains noms en caractères non latins ne peuvent plus être changés pendant 60 jours.';
+    return 'Votre nom affiché peut différer de $login par les majuscules et minuscules. Certains noms en caractères non latins ne peuvent plus être changés pendant 60 jours.';
   }
 
   @override
@@ -8316,7 +8316,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get editProfileBioSaved => 'Bio modifiée';
 
   @override
-  String get editProfileLinks => 'Liens sociaux';
+  String get editProfileLinks => 'Liens vers les réseaux sociaux';
 
   @override
   String get editProfileLinkAdd => 'Ajouter un lien social';
@@ -8883,14 +8883,15 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$countString cœurs',
-      one: '$countString cœur',
+      other: '$countString mentions « J’aime »',
+      one: '$countString mention « J’aime »',
     );
     return '$_temp0';
   }
 
   @override
-  String get clipCommentLikeFailed => 'Impossible de modifier votre réaction.';
+  String get clipCommentLikeFailed =>
+      'Impossible de modifier votre mention « J’aime ».';
 
   @override
   String get clipCommentHint => 'Ajouter un commentaire…';

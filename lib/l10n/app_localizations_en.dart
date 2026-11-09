@@ -8095,7 +8095,7 @@ class AppLocalizationsEn extends AppLocalizations {
           'You can’t change your display name again yet.',
       'DISPLAY_NAME_NOT_AVAILABLE': 'This display name is unavailable.',
       'DISPLAY_NAME_ONLY_CAP':
-          'Your display name can only change the capitalization of your username.',
+          'Your display name can only differ from your username in capitalization.',
       'DISPLAY_NAME_TOO_LONG': 'This display name is too long.',
       'DISPLAY_NAME_TOO_SHORT': 'This display name is too short.',
       'INVALID_CHARS_IN_DISPLAY_NAME':
@@ -8137,7 +8137,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String editProfileDisplayNameHelp({required String login}) {
-    return 'Your display name can change the capitalization of $login. Some names in non-Latin characters can’t be changed again for 60 days.';
+    return 'Your display name can differ from $login in capitalization. Some names in non-Latin characters can’t be changed again for 60 days.';
   }
 
   @override
@@ -8232,7 +8232,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get editProfileLinkDeleteBody => 'It no longer shows on your channel.';
+  String get editProfileLinkDeleteBody =>
+      'It will no longer show on your channel.';
 
   @override
   String get editProfileLinkDeleted => 'Social link deleted';

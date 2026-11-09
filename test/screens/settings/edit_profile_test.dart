@@ -148,6 +148,10 @@ void main() {
     );
     await tester.tap(find.byKey(EditProfile.displayNameKey));
     await tester.pumpAndSettle();
+    expect(
+      find.textContaining('can differ from caster in capitalization'),
+      findsOneWidget,
+    );
     await tester.enterText(fieldOf(EditProfile.fieldKey), 'CASTER');
     await tester.pump();
     expect(calls.log, isEmpty);
@@ -292,6 +296,10 @@ void main() {
     await tester.tap(find.byKey(EditProfile.deleteKey));
     await tester.pumpAndSettle();
     expect(find.text('Delete YouTube?'), findsOneWidget);
+    expect(
+      find.text('It will no longer show on your channel.'),
+      findsOneWidget,
+    );
     await tester.tap(find.text('Delete').last);
     await tester.pumpAndSettle();
     expect(calls.log.last, 'delete a');
