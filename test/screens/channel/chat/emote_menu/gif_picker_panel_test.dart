@@ -35,9 +35,7 @@ void main() {
         config: any(named: 'config'),
         query: any(named: 'query'),
       ),
-    ).thenAnswer(
-      (_) async => [GiphyGif.fromJson(giphyGif('a1', title: 'Wave'))!],
-    );
+    ).thenAnswer((_) async => [GiphyGif.fromJson(giphyGif('a1'))!]);
   });
 
   Future<void> pump(WidgetTester tester, {GifPickerConfig? config}) async {

@@ -6992,14 +6992,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gifPoweredBy => 'Powered by GIPHY';
 
   @override
-  String get gifTileLabel => 'GIF';
-
-  @override
   String get gifSendTitle => 'Send this GIF?';
 
   @override
   String get gifSendDisclosure =>
-      'Everyone in this chat will see it. You’re responsible for the GIFs you send, so follow Twitch’s Community Guidelines.';
+      'Everyone in this chat will see it. You’re responsible for the GIFs you send, so follow Twitch’s community guidelines.';
 
   @override
   String get gifSend => 'Send';

@@ -7089,9 +7089,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gifPoweredBy => 'Fourni par GIPHY';
 
   @override
-  String get gifTileLabel => 'GIF';
-
-  @override
   String get gifSendTitle => 'Envoyer ce GIF ?';
 
   @override

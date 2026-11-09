@@ -91,8 +91,6 @@ class EmoteMenu extends StatelessWidget {
   }
 
   Widget? _gifPicker(BuildContext context) {
-    final token = chatStore.auth.twitchWebToken ?? '';
-    if (!chatStore.auth.isLoggedIn || token.isEmpty) return null;
     final TwitchViewerActionsService? service;
     final GiphyService? giphy;
     try {
@@ -102,6 +100,8 @@ class EmoteMenu extends StatelessWidget {
       return null;
     }
     if (service == null || giphy == null) return null;
+    final token = chatStore.auth.twitchWebToken ?? '';
+    if (!chatStore.auth.isLoggedIn || token.isEmpty) return null;
     final actions = service;
     return GifPickerPanel(
       channelLogin: chatStore.channelName,

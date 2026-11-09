@@ -203,7 +203,7 @@ class _GifPickerPanelState extends State<GifPickerPanel> {
                 final gif = gifs[index];
                 return Semantics(
                   button: true,
-                  label: gif.title.isEmpty ? l.gifTileLabel : gif.title,
+                  label: gif.title.isEmpty ? l.gifTab : gif.title,
                   child: InkWell(
                     key: GifPickerPanel.tileKey(gif.id),
                     borderRadius: BorderRadius.circular(

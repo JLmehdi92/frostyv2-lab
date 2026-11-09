@@ -8845,15 +8845,11 @@
   "@gifPoweredBy": {
     "description": "Emote menu › GIFs: the attribution under the GIFs."
   },
-  "gifTileLabel": "GIF",
-  "@gifTileLabel": {
-    "description": "Screen-reader label of a GIF without a title in the GIF picker."
-  },
   "gifSendTitle": "Send this GIF?",
   "@gifSendTitle": {
     "description": "The title of the dialog confirming that a GIF is sent to the chat."
   },
-  "gifSendDisclosure": "Everyone in this chat will see it. You’re responsible for the GIFs you send, so follow Twitch’s Community Guidelines.",
+  "gifSendDisclosure": "Everyone in this chat will see it. You’re responsible for the GIFs you send, so follow Twitch’s community guidelines.",
   "@gifSendDisclosure": {
     "description": "The body of the dialog confirming that a GIF is sent to the chat."
   },

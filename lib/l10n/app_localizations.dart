@@ -9372,12 +9372,6 @@ abstract class AppLocalizations {
   /// **'Powered by GIPHY'**
   String get gifPoweredBy;
 
-  /// Screen-reader label of a GIF without a title in the GIF picker.
-  ///
-  /// In en, this message translates to:
-  /// **'GIF'**
-  String get gifTileLabel;
-
   /// The title of the dialog confirming that a GIF is sent to the chat.
   ///
   /// In en, this message translates to:
@@ -9387,7 +9381,7 @@ abstract class AppLocalizations {
   /// The body of the dialog confirming that a GIF is sent to the chat.
   ///
   /// In en, this message translates to:
-  /// **'Everyone in this chat will see it. You’re responsible for the GIFs you send, so follow Twitch’s Community Guidelines.'**
+  /// **'Everyone in this chat will see it. You’re responsible for the GIFs you send, so follow Twitch’s community guidelines.'**
   String get gifSendDisclosure;
 
   /// The button that sends the GIF to the chat.
