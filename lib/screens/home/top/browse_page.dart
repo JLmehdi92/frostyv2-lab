@@ -16,6 +16,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/recommendations/recommended_channels.dart';
 import 'package:provider/provider.dart';
 
 /// The shell's Browse section:
@@ -241,6 +242,7 @@ class _LiveChannels extends StatelessWidget {
           )
         else
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        const SliverToBoxAdapter(child: RecommendationsShelf()),
       ],
     );
   }

@@ -30,6 +30,7 @@ import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/widgets/motion/rolling_number.dart';
 import 'package:onset/widgets/motion/signal_ping.dart';
 import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/recommendations/recommended_channels.dart';
 import 'package:onset/widgets/share_sheet.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
@@ -412,6 +413,21 @@ class VideoOverlay extends StatelessWidget {
                       )
                     else
                       const Spacer(),
+                    if (name != null &&
+                        login.isNotEmpty &&
+                        Recommendations.of(context) != null)
+                      _PlayerButton(
+                        key: const ValueKey('similar-channels'),
+                        tooltip: l.recommendationsSimilarTooltip,
+                        glyph: PlayerGlyphKind.eye,
+                        onPressed: () => unawaited(
+                          showSimilarChannels(
+                            context,
+                            login: login,
+                            name: name,
+                          ),
+                        ),
+                      ),
                     videosButton,
                     if (fullScreen && landscape) chatOverlayButton,
                   ],
@@ -806,6 +822,7 @@ List<Widget> _playbackRows(BuildContext context, PlayerController videoStore) {
 /// A 44 dp control over the video: a glyph with its soft shadow.
 class _PlayerButton extends StatelessWidget {
   const _PlayerButton({
+    super.key,
     required this.tooltip,
     required this.glyph,
     required this.onPressed,
