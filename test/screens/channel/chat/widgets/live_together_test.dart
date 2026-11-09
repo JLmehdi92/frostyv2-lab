@@ -63,6 +63,20 @@ void main() {
     expect(find.byType(LiveTogetherSheet), findsNothing);
   });
 
+  testWidgets('each co-streamer has a Subscribe button', (tester) async {
+    await pump(tester, LiveTogether.fromGuestStar(guestStarResponse()));
+    await tester.tap(find.byKey(LiveTogetherStrip.rowKey));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(LiveTogetherSheet.subscribeKey('guestone')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(LiveTogetherSheet.subscribeKey('guesttwo')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('shows nothing when the streamer is alone', (tester) async {
     await pump(tester, null);
     expect(find.byKey(LiveTogetherStrip.rowKey), findsNothing);

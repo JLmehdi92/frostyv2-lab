@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/live_together.dart';
+import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
@@ -91,6 +92,9 @@ class LiveTogetherSheet extends StatelessWidget {
   static ValueKey<String> memberKey(String login) =>
       ValueKey('live-together-$login');
 
+  static ValueKey<String> subscribeKey(String login) =>
+      ValueKey('live-together-subscribe-$login');
+
   final LiveTogether roster;
   final String channelId;
   final ValueChanged<LiveTogetherMember> onOpen;
@@ -132,6 +136,13 @@ class LiveTogetherSheet extends StatelessWidget {
             leading: _Avatar(url: member.imageUrl),
             label: getReadableName(member.displayName, member.login),
             detail: _detail(member, l),
+            trailing: SubscribeButton(
+              key: subscribeKey(member.login),
+              login: member.login,
+              name: getReadableName(member.displayName, member.login),
+              height: 32,
+              fontSize: 12,
+            ),
             end: member.isLive ? SheetRowEnd.chevron : SheetRowEnd.none,
             onTap: member.isLive
                 ? () {
