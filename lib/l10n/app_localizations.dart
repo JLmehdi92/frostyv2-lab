@@ -7204,10 +7204,10 @@ abstract class AppLocalizations {
   /// **'Log in to whisper.'**
   String get chatLogInToWhisper;
 
-  /// A line in chat once /w sent the whisper. name is the recipient's display name.
+  /// A line in chat once /w sent the whisper, saying the conversation now lives in Whispers. name is the recipient's display name.
   ///
   /// In en, this message translates to:
-  /// **'Whisper sent to {name}.'**
+  /// **'Whisper sent to {name}. The conversation is in your whispers.'**
   String chatWhisperSent({required String name});
 
   /// The same, while Twitch refuses the app's whisper connection until the viewer logs in again.
@@ -12454,6 +12454,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can only appeal once. The channel moderators will read your message.'**
   String get unbanConfirmBody;
+
+  /// Settings › Account: the group with the Twitch whisper privacy switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Whisper privacy'**
+  String get whisperPrivacyTitle;
+
+  /// Switch title: Twitch account setting that stops strangers from starting a whisper.
+  ///
+  /// In en, this message translates to:
+  /// **'Block whispers from strangers'**
+  String get whisperBlockStrangers;
+
+  /// Switch subtitle explaining the stranger block.
+  ///
+  /// In en, this message translates to:
+  /// **'Strangers can’t start a conversation with you. Someone you whisper can reply for 48 hours.'**
+  String get whisperBlockStrangersDetail;
+
+  /// Shown instead of the switch when Twitch did not return the whisper settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your whisper settings. Log in again, or try again later.'**
+  String get whisperPrivacyUnavailable;
+
+  /// Note when Twitch reports the account is banned from whispering.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch has restricted whispers on your account.'**
+  String get whisperPrivacyBanned;
+
+  /// Note when whispers are disabled by a parent through Twitch Family Center.
+  ///
+  /// In en, this message translates to:
+  /// **'A parent turned off whispers through Twitch’s parental tools.'**
+  String get whisperPrivacyParent;
+
+  /// Conversation actions row: removes the 48-hour reply allowance Twitch gave this person. name is a display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop {name}’s replies'**
+  String whisperStopReplies({required String name});
+
+  /// Confirmation title before removing the reply allowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop {name}’s replies?'**
+  String whisperStopRepliesTitle({required String name});
+
+  /// Confirmation body before removing the reply allowance.
+  ///
+  /// In en, this message translates to:
+  /// **'While you block whispers from strangers, {name} can’t reply to you again until you whisper them.'**
+  String whisperStopRepliesBody({required String name});
+
+  /// Confirmation button that removes the reply allowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop replies'**
+  String get whisperStopRepliesConfirm;
 }
 
 class _AppLocalizationsDelegate

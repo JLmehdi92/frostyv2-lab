@@ -76,11 +76,11 @@ enum RecommendationSection {
 }
 
 enum NotInterestedReason {
-  notInterested('NOT_INTERESTED'),
-  offensive('OFFENSIVE'),
-  other('OTHER');
+  notInterested,
+  offensive,
+  other;
 
-  const NotInterestedReason(this.apiValue);
-
-  final String apiValue;
+  String get apiValue => name
+      .replaceAllMapped(RegExp('[A-Z]'), (m) => '_${m[0]}')
+      .toUpperCase();
 }

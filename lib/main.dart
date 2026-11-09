@@ -342,6 +342,14 @@ void main() async {
     credentials: () => authStore.token,
     mutedUserIds: settingsStore.mutedWhisperUserIds.toSet(),
     archivedUserIds: settingsStore.archivedWhisperUserIds.toSet(),
+    historyThreads: (me) => twitchSocialService.whisperThreads(
+      me: me,
+      authToken: authStore.twitchWebToken ?? '',
+    ),
+    historyMessages: (threadId) => twitchSocialService.whisperMessages(
+      threadId: threadId,
+      authToken: authStore.twitchWebToken ?? '',
+    ),
     onPreferencesChanged: (muted, archived) => runInAction(() {
       settingsStore
         ..mutedWhisperUserIds = muted.toList()

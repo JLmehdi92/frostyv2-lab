@@ -2,8 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_social_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/whispers/whispers_screen.dart';
 import 'package:onset/stores/whisper_store.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
@@ -46,6 +49,21 @@ Future<void> showWhisperThreadActions(
               Navigator.pop(sheetContext);
             },
           ),
+          if (whisperAllowanceRemover(context, store, thread)
+              case final remove?)
+            SheetRow(
+              key: const ValueKey('whisper-action-stop-replies'),
+              label: l.whisperStopReplies(name: thread.displayName),
+              glyph: SheetGlyphKind.block,
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                await stopWhisperReplies(
+                  context,
+                  name: thread.displayName,
+                  remove: remove,
+                );
+              },
+            ),
           SheetRow(
             key: const ValueKey('whisper-action-hide'),
             label: l.whisperHide,
@@ -66,6 +84,57 @@ Future<void> showWhisperThreadActions(
       );
     },
   );
+}
+
+Future<ViewerActionOutcome> Function()? whisperAllowanceRemover(
+  BuildContext context,
+  WhisperStore store,
+  WhisperThread thread,
+) {
+  final threadId = store.remoteThreadId(thread.userId);
+  final social = context.read<TwitchSocialService?>();
+  final token = context.read<AuthStore?>()?.twitchWebToken;
+  if (threadId == null || social == null || token == null || token.isEmpty) {
+    return null;
+  }
+  return () =>
+      social.removeWhisperAllowance(threadId: threadId, authToken: token);
+}
+
+Future<void> stopWhisperReplies(
+  BuildContext context, {
+  required String name,
+  required Future<ViewerActionOutcome> Function() remove,
+}) async {
+  final l = context.l10n;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => OnsetDialog(
+      title: l.whisperStopRepliesTitle(name: name),
+      message: l.whisperStopRepliesBody(name: name),
+      actions: [
+        SheetButton(
+          label: l.commonCancel,
+          tone: SheetButtonTone.text,
+          onPressed: () => Navigator.pop(dialogContext, false),
+        ),
+        SheetButton(
+          key: const ValueKey('whisper-stop-replies-confirm'),
+          label: l.whisperStopRepliesConfirm,
+          tone: SheetButtonTone.danger,
+          onPressed: () => Navigator.pop(dialogContext, true),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true) return;
+  final outcome = await remove();
+  messenger
+    ?..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(content: Text(l.viewerActionResult(status: outcome.name))),
+    );
 }
 
 Future<bool> confirmHideWhisperThread(

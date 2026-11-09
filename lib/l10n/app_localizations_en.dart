@@ -5085,7 +5085,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatWhisperSent({required String name}) {
-    return 'Whisper sent to $name.';
+    return 'Whisper sent to $name. The conversation is in your whispers.';
   }
 
   @override
@@ -9518,4 +9518,44 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get unbanConfirmBody =>
       'You can only appeal once. The channel moderators will read your message.';
+
+  @override
+  String get whisperPrivacyTitle => 'Whisper privacy';
+
+  @override
+  String get whisperBlockStrangers => 'Block whispers from strangers';
+
+  @override
+  String get whisperBlockStrangersDetail =>
+      'Strangers can’t start a conversation with you. Someone you whisper can reply for 48 hours.';
+
+  @override
+  String get whisperPrivacyUnavailable =>
+      'Couldn’t load your whisper settings. Log in again, or try again later.';
+
+  @override
+  String get whisperPrivacyBanned =>
+      'Twitch has restricted whispers on your account.';
+
+  @override
+  String get whisperPrivacyParent =>
+      'A parent turned off whispers through Twitch’s parental tools.';
+
+  @override
+  String whisperStopReplies({required String name}) {
+    return 'Stop $name’s replies';
+  }
+
+  @override
+  String whisperStopRepliesTitle({required String name}) {
+    return 'Stop $name’s replies?';
+  }
+
+  @override
+  String whisperStopRepliesBody({required String name}) {
+    return 'While you block whispers from strangers, $name can’t reply to you again until you whisper them.';
+  }
+
+  @override
+  String get whisperStopRepliesConfirm => 'Stop replies';
 }

@@ -6641,9 +6641,9 @@
   "@chatLogInToWhisper": {
     "description": "A line in chat: /w needs the viewer logged in."
   },
-  "chatWhisperSent": "Whisper sent to {name}.",
+  "chatWhisperSent": "Whisper sent to {name}. The conversation is in your whispers.",
   "@chatWhisperSent": {
-    "description": "A line in chat once /w sent the whisper. name is the recipient's display name.",
+    "description": "A line in chat once /w sent the whisper, saying the conversation now lives in Whispers. name is the recipient's display name.",
     "placeholders": {
       "name": {
         "type": "String",
@@ -12133,5 +12133,63 @@
   "unbanConfirmBody": "You can only appeal once. The channel moderators will read your message.",
   "@unbanConfirmBody": {
     "description": "Body of the unban request confirmation."
+  },
+  "whisperPrivacyTitle": "Whisper privacy",
+  "@whisperPrivacyTitle": {
+    "description": "Settings › Account: the group with the Twitch whisper privacy switch."
+  },
+  "whisperBlockStrangers": "Block whispers from strangers",
+  "@whisperBlockStrangers": {
+    "description": "Switch title: Twitch account setting that stops strangers from starting a whisper."
+  },
+  "whisperBlockStrangersDetail": "Strangers can’t start a conversation with you. Someone you whisper can reply for 48 hours.",
+  "@whisperBlockStrangersDetail": {
+    "description": "Switch subtitle explaining the stranger block."
+  },
+  "whisperPrivacyUnavailable": "Couldn’t load your whisper settings. Log in again, or try again later.",
+  "@whisperPrivacyUnavailable": {
+    "description": "Shown instead of the switch when Twitch did not return the whisper settings."
+  },
+  "whisperPrivacyBanned": "Twitch has restricted whispers on your account.",
+  "@whisperPrivacyBanned": {
+    "description": "Note when Twitch reports the account is banned from whispering."
+  },
+  "whisperPrivacyParent": "A parent turned off whispers through Twitch’s parental tools.",
+  "@whisperPrivacyParent": {
+    "description": "Note when whispers are disabled by a parent through Twitch Family Center."
+  },
+  "whisperStopReplies": "Stop {name}’s replies",
+  "@whisperStopReplies": {
+    "description": "Conversation actions row: removes the 48-hour reply allowance Twitch gave this person. name is a display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Friend"
+      }
+    }
+  },
+  "whisperStopRepliesTitle": "Stop {name}’s replies?",
+  "@whisperStopRepliesTitle": {
+    "description": "Confirmation title before removing the reply allowance.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Friend"
+      }
+    }
+  },
+  "whisperStopRepliesBody": "While you block whispers from strangers, {name} can’t reply to you again until you whisper them.",
+  "@whisperStopRepliesBody": {
+    "description": "Confirmation body before removing the reply allowance.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Friend"
+      }
+    }
+  },
+  "whisperStopRepliesConfirm": "Stop replies",
+  "@whisperStopRepliesConfirm": {
+    "description": "Confirmation button that removes the reply allowance."
   }
 }

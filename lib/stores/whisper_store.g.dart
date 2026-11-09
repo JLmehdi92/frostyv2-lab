@@ -63,6 +63,18 @@ mixin _$WhisperThread on WhisperThreadBase, Store {
   }
 
   @override
+  bool _merge(Whisper whisper) {
+    final _$actionInfo = _$WhisperThreadBaseActionController.startAction(
+      name: 'WhisperThreadBase._merge',
+    );
+    try {
+      return super._merge(whisper);
+    } finally {
+      _$WhisperThreadBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 unread: ${unread},
@@ -102,6 +114,26 @@ mixin _$WhisperStore on WhisperStoreBase, Store {
     () => super.unreadCount,
     name: 'WhisperStoreBase.unreadCount',
   )).value;
+
+  late final _$_historyAvailableAtom = Atom(
+    name: 'WhisperStoreBase._historyAvailable',
+    context: context,
+  );
+
+  bool? get historyAvailable {
+    _$_historyAvailableAtom.reportRead();
+    return super._historyAvailable;
+  }
+
+  @override
+  bool? get _historyAvailable => historyAvailable;
+
+  @override
+  set _historyAvailable(bool? value) {
+    _$_historyAvailableAtom.reportWrite(value, super._historyAvailable, () {
+      super._historyAvailable = value;
+    });
+  }
 
   late final _$_meAtom = Atom(name: 'WhisperStoreBase._me', context: context);
 

@@ -5151,7 +5151,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatWhisperSent({required String name}) {
-    return 'Chuchotement envoyé à $name.';
+    return 'Chuchotement envoyé à $name. La conversation se trouve dans vos chuchotements.';
   }
 
   @override
@@ -9654,4 +9654,44 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get unbanConfirmBody =>
       'Vous ne pouvez faire appel qu’une seule fois. Les modérateurs de la chaîne liront votre message.';
+
+  @override
+  String get whisperPrivacyTitle => 'Confidentialité des chuchotements';
+
+  @override
+  String get whisperBlockStrangers => 'Bloquer les chuchotements d’inconnus';
+
+  @override
+  String get whisperBlockStrangersDetail =>
+      'Les inconnus ne peuvent pas commencer de conversation avec vous. Une personne à qui vous chuchotez peut vous répondre pendant 48 heures.';
+
+  @override
+  String get whisperPrivacyUnavailable =>
+      'Impossible de charger vos réglages de chuchotements. Reconnectez-vous ou réessayez plus tard.';
+
+  @override
+  String get whisperPrivacyBanned =>
+      'Twitch a restreint les chuchotements sur votre compte.';
+
+  @override
+  String get whisperPrivacyParent =>
+      'Un parent a désactivé les chuchotements avec les outils de contrôle parental de Twitch.';
+
+  @override
+  String whisperStopReplies({required String name}) {
+    return 'Empêcher $name de répondre';
+  }
+
+  @override
+  String whisperStopRepliesTitle({required String name}) {
+    return 'Empêcher $name de répondre ?';
+  }
+
+  @override
+  String whisperStopRepliesBody({required String name}) {
+    return 'Tant que vous bloquez les chuchotements d’inconnus, $name ne pourra plus vous répondre, sauf si vous lui chuchotez à nouveau.';
+  }
+
+  @override
+  String get whisperStopRepliesConfirm => 'Empêcher les réponses';
 }
