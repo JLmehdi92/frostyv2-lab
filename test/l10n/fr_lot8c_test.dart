@@ -14,8 +14,8 @@ import 'package:onset/widgets/recommendations/recommended_channels.dart';
 import 'package:provider/provider.dart';
 
 import '../fixtures/social_payloads.dart';
-import 'helpers_lot8c.dart';
 import '../helpers/l10n.dart';
+import 'helpers_lot8c.dart';
 
 void main() {
   for (final (sizeName, size) in frenchScreenSizes) {
