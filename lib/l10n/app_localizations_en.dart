@@ -9153,4 +9153,54 @@ class AppLocalizationsEn extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String liveTogetherTitle({required String kind}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'guestStar': 'Guests on stream',
+      'other': 'Streaming together',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String liveTogetherLine({required String kind, required String names}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'guestStar': 'Live with $names',
+      'other': 'Streaming together with $names',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String liveTogetherNamesMore({required String names, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count others',
+      one: '$count other',
+    );
+    return '$names and $_temp0';
+  }
+
+  @override
+  String liveTogetherTotal({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString viewers in total',
+      one: '$countString viewer in total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get liveTogetherHost => 'Host';
+
+  @override
+  String get liveTogetherNotLive => 'Not live on their own channel';
 }

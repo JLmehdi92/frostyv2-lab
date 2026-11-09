@@ -9279,4 +9279,54 @@ class AppLocalizationsFr extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String liveTogetherTitle({required String kind}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'guestStar': 'Invités en direct',
+      'other': 'Live commun',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String liveTogetherLine({required String kind, required String names}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'guestStar': 'En direct avec $names',
+      'other': 'Live commun avec $names',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String liveTogetherNamesMore({required String names, required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count autres chaînes',
+      one: '$count autre chaîne',
+    );
+    return '$names et $_temp0';
+  }
+
+  @override
+  String liveTogetherTotal({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString spectateurs au total',
+      one: '$countString spectateur au total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get liveTogetherHost => 'Hôte';
+
+  @override
+  String get liveTogetherNotLive => 'Pas en direct sur sa chaîne';
 }

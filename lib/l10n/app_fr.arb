@@ -1967,5 +1967,11 @@
   "pinataTitle": "Train piñata",
   "pinataBody": "Chaque contribution fissure un peu plus la piñata. Quand elle se brise, elle fait pleuvoir des récompenses sur les participants.",
   "pinataStage": "Niveau de dégâts {stage}",
-  "pinataEligible": "{eligible, select, yes{Vous recevrez une part des récompenses quand elle se brisera.} other{Contribuez pour recevoir une part des récompenses quand elle se brisera.}}"
+  "pinataEligible": "{eligible, select, yes{Vous recevrez une part des récompenses quand elle se brisera.} other{Contribuez pour recevoir une part des récompenses quand elle se brisera.}}",
+  "liveTogetherTitle": "{kind, select, guestStar{Invités en direct} other{Live commun}}",
+  "liveTogetherLine": "{kind, select, guestStar{En direct avec {names}} other{Live commun avec {names}}}",
+  "liveTogetherNamesMore": "{names} et {count, plural, one{{count} autre chaîne} other{{count} autres chaînes}}",
+  "liveTogetherTotal": "{count, plural, one{{count} spectateur au total} other{{count} spectateurs au total}}",
+  "liveTogetherHost": "Hôte",
+  "liveTogetherNotLive": "Pas en direct sur sa chaîne"
 }

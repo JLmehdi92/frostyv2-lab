@@ -11712,5 +11712,62 @@
         "example": "yes"
       }
     }
+  },
+  "liveTogetherTitle": "{kind, select, guestStar{Guests on stream} other{Streaming together}}",
+  "@liveTogetherTitle": {
+    "description": "Section label in the chat menu: the streamer has guests (Guest Star) or streams together with other channels.",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "guestStar"
+      }
+    }
+  },
+  "liveTogetherLine": "{kind, select, guestStar{Live with {names}} other{Streaming together with {names}}}",
+  "@liveTogetherLine": {
+    "description": "The line naming who the streamer is live with.",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "costream"
+      },
+      "names": {
+        "type": "String",
+        "example": "HostChannel, ThirdOne"
+      }
+    }
+  },
+  "liveTogetherNamesMore": "{names} and {count, plural, one{{count} other} other{{count} others}}",
+  "@liveTogetherNamesMore": {
+    "description": "Names shown, then how many more channels are part of it.",
+    "placeholders": {
+      "names": {
+        "type": "String",
+        "example": "HostChannel, ThirdOne"
+      },
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "liveTogetherTotal": "{count, plural, one{{count} viewer in total} other{{count} viewers in total}}",
+  "@liveTogetherTotal": {
+    "description": "Viewers across every channel streaming together.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "48210"
+      }
+    }
+  },
+  "liveTogetherHost": "Host",
+  "@liveTogetherHost": {
+    "description": "The channel that leads a shared stream or hosts the guests."
+  },
+  "liveTogetherNotLive": "Not live on their own channel",
+  "@liveTogetherNotLive": {
+    "description": "A guest who appears on the stream without streaming on their own channel."
   }
 }

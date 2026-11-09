@@ -10,6 +10,7 @@ import '../fixtures/community_goal_payloads.dart';
 import '../fixtures/community_gql_payloads.dart';
 import '../fixtures/drops_gql_payloads.dart';
 import '../fixtures/legendary_payloads.dart';
+import '../fixtures/live_together_payloads.dart';
 import '../fixtures/weekly_rewards_payloads.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
@@ -330,6 +331,38 @@ void main() {
       reply(noLegendarySeasonResponse);
       expect(await service.getLegendaryCollection(channelId: '1000'), isNull);
       expect(await service.getLegendaryCollection(channelId: 'x'), isNull);
+    });
+  });
+
+  group('live together', () {
+    test('asks for the co-streamers by login, anonymously', () async {
+      reply(costreamResponse());
+
+      final roster = await service.getCostreamers(channelLogin: 'ThisChannel');
+
+      expect(roster?.host?.login, 'hostchannel');
+      expect(sent()['operationName'], 'CostreamersRoster');
+      expect(sent()['variables'], {'login': 'thischannel'});
+      expect(requests.single.headers.containsKey('Authorization'), isFalse);
+    });
+
+    test('asks for the guest star call by channel id', () async {
+      reply(guestStarResponse());
+
+      final session = await service.getGuestStarSession(channelId: '1000');
+
+      expect(session?.members, hasLength(2));
+      expect(sent()['operationName'], 'GuestStarSessionViewerQuery');
+      expect(sent()['variables'], {'channelID': '1000'});
+    });
+
+    test('returns null on a failure or a bad id, without asking', () async {
+      reply(null, status: 500);
+
+      expect(await service.getGuestStarSession(channelId: '1000'), isNull);
+      expect(await service.getGuestStarSession(channelId: 'x'), isNull);
+      expect(await service.getCostreamers(channelLogin: 'a b'), isNull);
+      expect(requests, hasLength(1));
     });
   });
 }

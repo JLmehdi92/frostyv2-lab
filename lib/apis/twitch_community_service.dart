@@ -6,6 +6,7 @@ import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/legendary_collection.dart';
+import 'package:onset/models/live_together.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/shoutout_profile.dart';
 import 'package:onset/models/unlockable_emote.dart';
@@ -266,6 +267,39 @@ class TwitchCommunityService extends BaseApiClient {
       await _ask('LegendaryEmoteCollection', _legendaryCollectionQuery, {
         'channelID': channelId,
       }, authToken: authToken),
+    );
+  }
+
+  static const _costreamersQuery =
+      'query CostreamersRoster(\$login: String!) { user(login: \$login) { id '
+      'stream { id costreamDetails { role costreamersCount totalViewersCount '
+      'organizer { id login displayName profileImageURL(width: 70) stream { '
+      'id viewersCount } } topCostreamers { id login displayName '
+      'profileImageURL(width: 70) stream { id viewersCount } } } } } }';
+
+  static const _guestStarQuery =
+      'query GuestStarSessionViewerQuery(\$channelID: ID!) { channel(id: '
+      '\$channelID) { owner { __typename '
+      '...GuestStarUserWithFollowDetailsFragment } guestStarSessionCall { id '
+      'guests { user { __typename ...GuestStarUserWithFollowDetailsFragment } '
+      '} } } }  fragment GuestStarUserWithFollowDetailsFragment on User { id '
+      'login displayName profileImageURL(width: 70) primaryColorHex self { '
+      'canFollow follower { followedAt } } stream { id viewersCount } }';
+
+  Future<LiveTogether?> getCostreamers({required String channelLogin}) async {
+    final login = channelLogin.toLowerCase();
+    if (!_login.hasMatch(login)) return null;
+    return LiveTogether.fromCostream(
+      await _ask('CostreamersRoster', _costreamersQuery, {'login': login}),
+    );
+  }
+
+  Future<LiveTogether?> getGuestStarSession({required String channelId}) async {
+    if (!_numericId.hasMatch(channelId)) return null;
+    return LiveTogether.fromGuestStar(
+      await _ask('GuestStarSessionViewerQuery', _guestStarQuery, {
+        'channelID': channelId,
+      }),
     );
   }
 

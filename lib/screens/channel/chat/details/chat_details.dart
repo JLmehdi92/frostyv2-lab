@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/main.dart';
 import 'package:onset/models/chat_rules.dart';
 import 'package:onset/models/irc.dart';
+import 'package:onset/models/live_together.dart';
+import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/channel/chat/details/chat_mode_controls.dart';
 import 'package:onset/screens/channel/chat/details/chat_modes.dart';
 import 'package:onset/screens/channel/chat/details/chat_users_list.dart';
@@ -15,6 +18,7 @@ import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dar
 import 'package:onset/screens/channel/chat/mod_tools/widgets/mod_tools_sheet.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
+import 'package:onset/screens/channel/chat/widgets/live_together.dart';
 import 'package:onset/screens/channel/chat/widgets/shared_chat_banner.dart';
 import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -27,6 +31,7 @@ import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
+import 'package:provider/provider.dart';
 
 /// Opens the chat's details ("⋯" beside the points, or a tablet's chat
 /// header).
@@ -186,6 +191,40 @@ class _ChatDetailsState extends State<ChatDetails> {
   late final _scrollController = ScrollController();
 
   var _view = ChatDetailsView.menu;
+
+  LiveTogether? _liveTogether;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_readLiveTogether());
+  }
+
+  Future<void> _readLiveTogether() async {
+    final service = context.read<TwitchCommunityService?>();
+    if (service == null) return;
+    final store = widget.chatStore;
+    final roster = await loadLiveTogether(
+      guestStar: () => service.getGuestStarSession(channelId: store.channelId),
+      costream: () => service.getCostreamers(channelLogin: store.channelName),
+    );
+    if (mounted && roster != null) setState(() => _liveTogether = roster);
+  }
+
+  void _openLiveTogether(LiveTogetherMember member) {
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    navigator.pushReplacement(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: VideoChat.routeName),
+        builder: (context) => VideoChat(
+          userId: member.id,
+          userName: member.displayName,
+          userLogin: member.login,
+        ),
+      ),
+    );
+  }
 
   bool _isRefreshingAssets = false;
   bool _showRefreshSuccess = false;
@@ -386,6 +425,11 @@ class _ChatDetailsState extends State<ChatDetails> {
         // Read in the observer: the menu follows a login while it is open.
         final loggedIn = store.auth.isLoggedIn;
         final children = [
+          LiveTogetherStrip(
+            roster: _liveTogether,
+            channelId: store.channelId,
+            onOpen: _openLiveTogether,
+          ),
           if (store.sharedChatPartners case final partners
               when partners.isNotEmpty)
             SharedChatStrip(channels: partners),

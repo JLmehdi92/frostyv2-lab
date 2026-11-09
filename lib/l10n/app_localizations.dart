@@ -12076,6 +12076,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{eligible, select, yes{You’ll share the rewards when it breaks.} other{Contribute to share the rewards when it breaks.}}'**
   String pinataEligible({required String eligible});
+
+  /// Section label in the chat menu: the streamer has guests (Guest Star) or streams together with other channels.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, guestStar{Guests on stream} other{Streaming together}}'**
+  String liveTogetherTitle({required String kind});
+
+  /// The line naming who the streamer is live with.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, guestStar{Live with {names}} other{Streaming together with {names}}}'**
+  String liveTogetherLine({required String kind, required String names});
+
+  /// Names shown, then how many more channels are part of it.
+  ///
+  /// In en, this message translates to:
+  /// **'{names} and {count, plural, one{{count} other} other{{count} others}}'**
+  String liveTogetherNamesMore({required String names, required int count});
+
+  /// Viewers across every channel streaming together.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} viewer in total} other{{count} viewers in total}}'**
+  String liveTogetherTotal({required int count});
+
+  /// The channel that leads a shared stream or hosts the guests.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get liveTogetherHost;
+
+  /// A guest who appears on the stream without streaming on their own channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Not live on their own channel'**
+  String get liveTogetherNotLive;
 }
 
 class _AppLocalizationsDelegate
