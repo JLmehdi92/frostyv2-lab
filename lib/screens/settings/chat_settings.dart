@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/chat_account_sync.dart';
 import 'package:onset/screens/settings/widgets/chat_bubbles_setting.dart';
 import 'package:onset/screens/settings/widgets/chat_filters_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
@@ -20,6 +22,7 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/new_feature_pill.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
+import 'package:provider/provider.dart';
 
 /// Settings › Chat: sizing with its preview, how
 /// messages look, the delay, layout, alerts, autocomplete, landscape,
@@ -35,6 +38,17 @@ class ChatSettings extends StatefulWidget {
 
 class _ChatSettingsState extends State<ChatSettings> {
   final _recentLink = TapGestureRecognizer();
+
+  static TwitchViewerActionsService? _accountSyncService(
+    BuildContext context,
+  ) {
+    try {
+      final service = context.read<TwitchViewerActionsService?>();
+      return service != null && context.authStore.isLoggedIn ? service : null;
+    } on ProviderNotFoundException {
+      return null;
+    }
+  }
 
   @override
   void dispose() {
@@ -191,6 +205,18 @@ class _ChatSettingsState extends State<ChatSettings> {
                 ),
               ],
             ),
+            if (_accountSyncService(context) case final service?)
+              ChatAccountSyncGroup(
+                settingsStore: settingsStore,
+                load: () => service.chatUiSettings(
+                  authToken: context.authStore.twitchWebToken ?? '',
+                ),
+                save: (setting, enabled) => service.updateChatUiSetting(
+                  setting: setting,
+                  enabled: enabled,
+                  authToken: context.authStore.twitchWebToken ?? '',
+                ),
+              ),
             SettingsGroup(
               title: l.settingsDelayAndLatency,
               children: [

@@ -3429,6 +3429,65 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get chatSyncTitle => 'Compte Twitch';
+
+  @override
+  String get chatSyncInSync =>
+      'Les emotes animées, les GIF et les couleurs lisibles correspondent à votre compte Twitch.';
+
+  @override
+  String chatSyncDiffers({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count réglages du chat diffèrent de votre compte Twitch.',
+      one: '$count réglage du chat diffère de votre compte Twitch.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatSyncUseAccount => 'Utiliser mes réglages Twitch';
+
+  @override
+  String get chatSyncUseAccountDetail =>
+      'Reprend les emotes animées, les GIF et les couleurs lisibles de votre compte.';
+
+  @override
+  String get chatSyncSave => 'Enregistrer sur mon compte Twitch';
+
+  @override
+  String get chatSyncSaveDetail =>
+      'Twitch utilisera alors ces réglages du chat sur vos autres appareils.';
+
+  @override
+  String get chatSyncSaveConfirmTitle => 'Modifier votre compte Twitch ?';
+
+  @override
+  String chatSyncSaveConfirmBody({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count réglages du chat changent sur votre compte Twitch, pas seulement dans ONSET.',
+      one:
+          '$count réglage du chat change sur votre compte Twitch, pas seulement dans ONSET.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatSyncSaveAction => 'Enregistrer';
+
+  @override
+  String get chatSyncApplied =>
+      'Vos réglages du chat Twitch sont maintenant appliqués.';
+
+  @override
+  String get chatSyncUnavailable =>
+      'Impossible de charger les réglages du chat de votre compte Twitch. Reconnectez-vous ou réessayez plus tard.';
+
+  @override
   String get giftSettingsTitle => 'Abonnements offerts';
 
   @override

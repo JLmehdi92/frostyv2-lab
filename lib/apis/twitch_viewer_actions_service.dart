@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/chat_identity.dart';
+import 'package:onset/models/chat_ui_settings.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/follow_result.dart';
@@ -592,6 +593,47 @@ class TwitchViewerActionsService extends BaseApiClient {
     },
     succeeded: (payload) =>
         GiftSettings.fromSettings(payload['subscriptionSettings']) == settings,
+  );
+
+  static const _chatUiSettingsDocument =
+      'query ChatUISettingsQuery { currentUser { id chatUISettings { '
+      'isReadableChatColorsEnabled isEmoteAnimationsEnabled isGifsEnabled '
+      'isGifAnimationsEnabled } } }';
+
+  Future<ChatUiSettings?> chatUiSettings({required String authToken}) async {
+    if (authToken.isEmpty) return null;
+    try {
+      final Object? body = await post<dynamic>(
+        _gqlUrl,
+        headers: _viewerHeaders(authToken),
+        data: {
+          'operationName': 'ChatUISettingsQuery',
+          'query': _chatUiSettingsDocument,
+          'variables': const <String, Object?>{},
+        },
+      );
+      final data = body is Map ? body['data'] : null;
+      final user = data is Map ? data['currentUser'] : null;
+      return ChatUiSettings.fromSettings(
+        user is Map ? user['chatUISettings'] : null,
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('ChatUISettingsQuery failed: $e');
+      return null;
+    }
+  }
+
+  Future<ViewerActionOutcome> updateChatUiSetting({
+    required ChatUiSetting setting,
+    required bool enabled,
+    required String authToken,
+  }) => _send(
+    operation: setting.operation,
+    document: setting.document,
+    field: setting.mutation,
+    authToken: authToken,
+    input: {setting.field: enabled},
+    succeeded: (payload) => payload[setting.field] == enabled,
   );
 
   static Map<String, String> _viewerHeaders(String authToken) => {

@@ -5213,6 +5213,78 @@ abstract class AppLocalizations {
   /// **'Enjoying the stream? Follow {name} to know when the channel goes live.'**
   String followCalloutLine({required String name});
 
+  /// Settings › Chat: the group that compares these chat settings with the ones saved on the viewer’s Twitch account.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch account'**
+  String get chatSyncTitle;
+
+  /// Settings › Chat › Twitch account: the local chat settings are the same as on the account.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated emotes, GIFs, and readable colors match your Twitch account.'**
+  String get chatSyncInSync;
+
+  /// Settings › Chat › Twitch account: how many of the synced chat settings differ from the account.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 chat setting differs from your Twitch account.} other{{count} chat settings differ from your Twitch account.}}'**
+  String chatSyncDiffers({required int count});
+
+  /// Settings › Chat › Twitch account: copies the account’s chat settings into the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my Twitch settings'**
+  String get chatSyncUseAccount;
+
+  /// Settings › Chat › Twitch account: the line under “Use my Twitch settings”.
+  ///
+  /// In en, this message translates to:
+  /// **'Takes animated emotes, GIFs, and readable colors from your account.'**
+  String get chatSyncUseAccountDetail;
+
+  /// Settings › Chat › Twitch account: writes the app’s chat settings to the account, after a confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to my Twitch account'**
+  String get chatSyncSave;
+
+  /// Settings › Chat › Twitch account: the line under “Save to my Twitch account”.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch then uses these chat settings on your other devices.'**
+  String get chatSyncSaveDetail;
+
+  /// The title of the dialog confirming that chat settings are written to the Twitch account.
+  ///
+  /// In en, this message translates to:
+  /// **'Change your Twitch account?'**
+  String get chatSyncSaveConfirmTitle;
+
+  /// The body of the dialog confirming that chat settings are written to the Twitch account.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 chat setting changes on your Twitch account, not only in ONSET.} other{{count} chat settings change on your Twitch account, not only in ONSET.}}'**
+  String chatSyncSaveConfirmBody({required int count});
+
+  /// The button that writes the chat settings to the Twitch account.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get chatSyncSaveAction;
+
+  /// Snackbar after the account’s chat settings were copied into the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Twitch chat settings are now in use.'**
+  String get chatSyncApplied;
+
+  /// Settings › Chat › Twitch account: the account’s chat settings couldn’t be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load the chat settings of your Twitch account. Log in again, or try again later.'**
+  String get chatSyncUnavailable;
+
   /// Settings › Account: the group of the Twitch account’s gifted sub settings.
   ///
   /// In en, this message translates to:

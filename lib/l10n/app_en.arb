@@ -4306,6 +4306,66 @@
       }
     }
   },
+  "chatSyncTitle": "Twitch account",
+  "@chatSyncTitle": {
+    "description": "Settings › Chat: the group that compares these chat settings with the ones saved on the viewer’s Twitch account."
+  },
+  "chatSyncInSync": "Animated emotes, GIFs, and readable colors match your Twitch account.",
+  "@chatSyncInSync": {
+    "description": "Settings › Chat › Twitch account: the local chat settings are the same as on the account."
+  },
+  "chatSyncDiffers": "{count, plural, =1{1 chat setting differs from your Twitch account.} other{{count} chat settings differ from your Twitch account.}}",
+  "@chatSyncDiffers": {
+    "description": "Settings › Chat › Twitch account: how many of the synced chat settings differ from the account.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "chatSyncUseAccount": "Use my Twitch settings",
+  "@chatSyncUseAccount": {
+    "description": "Settings › Chat › Twitch account: copies the account’s chat settings into the app."
+  },
+  "chatSyncUseAccountDetail": "Takes animated emotes, GIFs, and readable colors from your account.",
+  "@chatSyncUseAccountDetail": {
+    "description": "Settings › Chat › Twitch account: the line under “Use my Twitch settings”."
+  },
+  "chatSyncSave": "Save to my Twitch account",
+  "@chatSyncSave": {
+    "description": "Settings › Chat › Twitch account: writes the app’s chat settings to the account, after a confirmation."
+  },
+  "chatSyncSaveDetail": "Twitch then uses these chat settings on your other devices.",
+  "@chatSyncSaveDetail": {
+    "description": "Settings › Chat › Twitch account: the line under “Save to my Twitch account”."
+  },
+  "chatSyncSaveConfirmTitle": "Change your Twitch account?",
+  "@chatSyncSaveConfirmTitle": {
+    "description": "The title of the dialog confirming that chat settings are written to the Twitch account."
+  },
+  "chatSyncSaveConfirmBody": "{count, plural, =1{1 chat setting changes on your Twitch account, not only in ONSET.} other{{count} chat settings change on your Twitch account, not only in ONSET.}}",
+  "@chatSyncSaveConfirmBody": {
+    "description": "The body of the dialog confirming that chat settings are written to the Twitch account.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "chatSyncSaveAction": "Save",
+  "@chatSyncSaveAction": {
+    "description": "The button that writes the chat settings to the Twitch account."
+  },
+  "chatSyncApplied": "Your Twitch chat settings are now in use.",
+  "@chatSyncApplied": {
+    "description": "Snackbar after the account’s chat settings were copied into the app."
+  },
+  "chatSyncUnavailable": "Couldn’t load the chat settings of your Twitch account. Log in again, or try again later.",
+  "@chatSyncUnavailable": {
+    "description": "Settings › Chat › Twitch account: the account’s chat settings couldn’t be read."
+  },
   "giftSettingsTitle": "Gifted subs",
   "@giftSettingsTitle": {
     "description": "Settings › Account: the group of the Twitch account’s gifted sub settings."
