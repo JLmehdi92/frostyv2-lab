@@ -49,6 +49,26 @@ mixin _$CreateClipStore on CreateClipStoreBase, Store {
     });
   }
 
+  late final _$_refusalAtom = Atom(
+    name: 'CreateClipStoreBase._refusal',
+    context: context,
+  );
+
+  ClipEligibilityRefusal? get refusal {
+    _$_refusalAtom.reportRead();
+    return super._refusal;
+  }
+
+  @override
+  ClipEligibilityRefusal? get _refusal => refusal;
+
+  @override
+  set _refusal(ClipEligibilityRefusal? value) {
+    _$_refusalAtom.reportWrite(value, super._refusal, () {
+      super._refusal = value;
+    });
+  }
+
   late final _$_creationAtom = Atom(
     name: 'CreateClipStoreBase._creation',
     context: context,

@@ -26,7 +26,7 @@ class TwitchChannelProfileService extends BaseApiClient {
       'query ChannelProfile(\$login: String!) { user(login: \$login) { id '
       'login displayName description createdAt profileImageURL(width: 300) '
       'bannerImageURL offlineImageURL primaryColorHex '
-      'roles { isPartner isAffiliate } followers { totalCount } '
+      'roles { isPartner isAffiliate isParticipatingDJ } followers { totalCount } '
       'channel { id socialMedias { name title url } } '
       'panels { id type ... on DefaultPanel { title imageURL linkURL '
       'description altText } } '

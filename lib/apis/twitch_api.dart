@@ -21,6 +21,43 @@ import 'package:onset/models/stream.dart';
 import 'package:onset/models/team.dart';
 import 'package:onset/models/user.dart';
 
+enum ClipIneligibility {
+  notSubscribed,
+  notFollowing,
+  followingTooShort,
+  categoryNotClippable,
+  djCategory,
+  participatingDj,
+}
+
+class ClipEligibilityRefusal {
+  const ClipEligibilityRefusal(this.reason, {this.requiredFollowMinutes});
+
+  final ClipIneligibility reason;
+  final int? requiredFollowMinutes;
+
+  static ClipEligibilityRefusal? fromGql(Object? data) {
+    final canCreate = data is Map ? data['canCreateClip'] : null;
+    if (canCreate is! Map || canCreate['isAllowed'] != false) return null;
+    final reason = switch (canCreate['errorCode']) {
+      'CAN_CREATE_CLIP_NOT_SUBSCRIBED' => ClipIneligibility.notSubscribed,
+      'USER_NOT_FOLLOWING' => ClipIneligibility.notFollowing,
+      'FOLLOWING_LENGTH_REQUIREMENT_NOT_MET' =>
+        ClipIneligibility.followingTooShort,
+      'CATEGORY_NOT_CLIPPABLE' => ClipIneligibility.categoryNotClippable,
+      'DJ_CATEGORY_NOT_CLIPPABLE' => ClipIneligibility.djCategory,
+      'PARTICIPATING_DJ' => ClipIneligibility.participatingDj,
+      _ => null,
+    };
+    if (reason == null) return null;
+    final minutes = canCreate['requiredFollowingLengthMinutes'];
+    return ClipEligibilityRefusal(
+      reason,
+      requiredFollowMinutes: minutes is int && minutes > 0 ? minutes : null,
+    );
+  }
+}
+
 /// Why Twitch would not clip a stream (Helix `POST /clips` answers).
 enum ClipCreateFailure {
   /// The token lacks `clips:edit` (a login from before clips), or is gone.

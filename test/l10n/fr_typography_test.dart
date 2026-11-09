@@ -170,6 +170,7 @@ const _properNouns = {
   'Amazon',
   'Google',
   'Cast',
+  'DJs',
   'Inter',
   'English',
   'Français',

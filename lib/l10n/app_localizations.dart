@@ -6208,6 +6208,24 @@ abstract class AppLocalizations {
   /// **'This channel doesn’t allow clips of this category.'**
   String get clipCreateFailedNotClippable;
 
+  /// Why Twitch won't let the viewer clip this channel, checked before the clip is requested.
+  ///
+  /// In en, this message translates to:
+  /// **'{reason, select, notSubscribed{Subscribe to this channel to create a clip.} notFollowing{Follow this channel to create a clip.} djCategory{In the DJs category, only channels in the Twitch DJ program can be clipped.} participatingDj{DJ channels can’t be clipped.} other{You can’t clip this channel.}}'**
+  String clipCreateIneligible({required String reason});
+
+  /// The channel only lets followers of a given age clip; duration is like “10 minutes”.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow this channel for {duration} to create a clip.'**
+  String clipCreateFollowLength({required String duration});
+
+  /// A fact on a channel's About tab when the channel takes part in the Twitch DJ program.
+  ///
+  /// In en, this message translates to:
+  /// **'Official Twitch DJ'**
+  String get profileDjBadge;
+
   /// Error message. Create clip sheet, failed: too many clips made in a short time.
   ///
   /// In en, this message translates to:

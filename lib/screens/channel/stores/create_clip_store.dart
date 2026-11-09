@@ -41,6 +41,7 @@ abstract class CreateClipStoreBase with Store {
     required this.twitchApi,
     required this.broadcasterId,
     required this.isLoggedIn,
+    this.checkEligibility,
     @visibleForTesting this.pollInterval = const Duration(seconds: 5),
     @visibleForTesting this.renderTimeout = const Duration(seconds: 60),
   });
@@ -51,6 +52,7 @@ abstract class CreateClipStoreBase with Store {
   final TwitchApi twitchApi;
   final String broadcasterId;
   final bool Function() isLoggedIn;
+  final Future<ClipEligibilityRefusal?> Function()? checkEligibility;
   final Duration pollInterval;
   final Duration renderTimeout;
 
@@ -63,6 +65,9 @@ abstract class CreateClipStoreBase with Store {
   /// Why the clip could not be made (when [status] is failed).
   @readonly
   ClipCreateFailure? _failure;
+
+  @readonly
+  ClipEligibilityRefusal? _refusal;
 
   @readonly
   ClipCreation? _creation;
@@ -80,6 +85,7 @@ abstract class CreateClipStoreBase with Store {
   Future<void> start() async {
     if (_disposed || _busy) return;
     _failure = null;
+    _refusal = null;
     _creation = null;
     _thumbnailUrl = null;
     if (!isLoggedIn()) {
@@ -99,6 +105,15 @@ abstract class CreateClipStoreBase with Store {
       debugPrint('Clip scope check failed: ${e.runtimeType}');
     }
     if (_disposed) return;
+    final refusal = await _eligibilityRefusal();
+    if (_disposed) return;
+    if (refusal != null) {
+      runInAction(() {
+        _refusal = refusal;
+        _status = CreateClipStatus.failed;
+      });
+      return;
+    }
     runInAction(() => _status = CreateClipStatus.creating);
     try {
       final creation = await twitchApi.createClip(broadcasterId: broadcasterId);
@@ -125,6 +140,15 @@ abstract class CreateClipStoreBase with Store {
         _failure = ClipCreateFailure.unknown;
         _status = CreateClipStatus.failed;
       });
+    }
+  }
+
+  Future<ClipEligibilityRefusal?> _eligibilityRefusal() async {
+    try {
+      return await checkEligibility?.call();
+    } catch (e) {
+      debugPrint('Clip eligibility check failed: ${e.runtimeType}');
+      return null;
     }
   }
 

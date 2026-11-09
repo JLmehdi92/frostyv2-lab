@@ -60,6 +60,7 @@ class ProfileAboutContent extends StatelessWidget {
       if (joined != null) l.profileJoined(date: joined),
       if (profile.role == BroadcasterRole.partner) l.profilePartner,
       if (profile.role == BroadcasterRole.affiliate) l.profileAffiliate,
+      if (profile.isParticipatingDj) l.profileDjBadge,
     ];
     final noBio = description == null || description.isEmpty;
 

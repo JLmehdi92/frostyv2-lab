@@ -4081,6 +4081,28 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette chaîne n’autorise pas les clips dans cette catégorie.';
 
   @override
+  String clipCreateIneligible({required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'notSubscribed': 'Abonnez-vous à cette chaîne pour créer un clip.',
+      'notFollowing': 'Suivez cette chaîne pour créer un clip.',
+      'djCategory':
+          'Dans la catégorie DJs, seules les chaînes du programme DJ de Twitch peuvent faire l’objet d’un clip.',
+      'participatingDj':
+          'Les chaînes DJ ne peuvent pas faire l’objet d’un clip.',
+      'other': 'Vous ne pouvez pas créer de clip de cette chaîne.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String clipCreateFollowLength({required String duration}) {
+    return 'Vous devez suivre cette chaîne depuis $duration pour créer un clip.';
+  }
+
+  @override
+  String get profileDjBadge => 'DJ officiel de Twitch';
+
+  @override
   String get clipCreateFailedRateLimited =>
       'Trop de clips en même temps. Réessayez dans un instant.';
 

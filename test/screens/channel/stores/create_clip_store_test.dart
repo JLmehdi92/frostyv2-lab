@@ -220,4 +220,39 @@ void main() {
       expect(polls, 0);
     });
   });
+
+  test('a refusal from the eligibility check stops before Helix', () {
+    fakeAsync((async) {
+      final store = CreateClipStore(
+        twitchApi: api,
+        broadcasterId: '42',
+        isLoggedIn: () => loggedIn,
+        checkEligibility: () async =>
+            const ClipEligibilityRefusal(ClipIneligibility.participatingDj),
+      );
+      store.start();
+      async.flushMicrotasks();
+      expect(store.status, CreateClipStatus.failed);
+      expect(store.refusal?.reason, ClipIneligibility.participatingDj);
+      verifyNever(() => api.createClip(broadcasterId: '42'));
+      store.dispose();
+    });
+  });
+
+  test('a failed eligibility check falls back to Helix', () {
+    fakeAsync((async) {
+      when(() => api.getCreatedClip(any())).thenAnswer((_) async => null);
+      final store = CreateClipStore(
+        twitchApi: api,
+        broadcasterId: '42',
+        isLoggedIn: () => loggedIn,
+        checkEligibility: () async => throw StateError('down'),
+      );
+      store.start();
+      async.flushMicrotasks();
+      expect(store.status, CreateClipStatus.rendering);
+      expect(store.refusal, isNull);
+      store.dispose();
+    });
+  });
 }

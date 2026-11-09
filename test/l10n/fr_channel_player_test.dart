@@ -545,6 +545,8 @@ void main() {
                   true,
                   () => ClipCreateException(failure),
                 ),
+            for (final reason in ClipIneligibility.values)
+              'refused, ${reason.name}': (true, null),
           };
           for (final MapEntry(key: name, value: (loggedIn, error))
               in cases.entries) {
@@ -573,6 +575,13 @@ void main() {
               broadcasterId: '42',
               isLoggedIn: () => loggedIn,
               pollInterval: const Duration(milliseconds: 100),
+              checkEligibility: () async => switch (name.split(', ')) {
+                ['refused', final reason] => ClipEligibilityRefusal(
+                  ClipIneligibility.values.byName(reason),
+                  requiredFollowMinutes: 4320,
+                ),
+                _ => null,
+              },
             );
             await pumpSheet(tester, store, size, scale);
             unawaited(store.start());

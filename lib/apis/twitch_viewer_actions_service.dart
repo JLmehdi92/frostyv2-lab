@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart' show ClipEligibilityRefusal;
 import 'package:onset/constants.dart';
 import 'package:onset/models/chat_identity.dart';
 import 'package:onset/models/chat_ui_settings.dart';
@@ -237,6 +238,33 @@ class TwitchViewerActionsService extends BaseApiClient {
       input: {'id': pinId, 'reason': 'UNPIN'},
       succeeded: (payload) => payload['unpinnedChatMessage'] is Map,
     );
+  }
+
+  static const _canCreateClipDocument =
+      'query CanCreateClipForChannelQuery(\$broadcasterId: ID!) { '
+      'canCreateClip(broadcasterID: \$broadcasterId) { isAllowed errorCode '
+      'requiredFollowingLengthMinutes } }';
+
+  Future<ClipEligibilityRefusal?> clipRefusal({
+    required String broadcasterId,
+    required String authToken,
+  }) async {
+    if (authToken.isEmpty || !_numericId.hasMatch(broadcasterId)) return null;
+    try {
+      final Object? body = await post<dynamic>(
+        _gqlUrl,
+        headers: _viewerHeaders(authToken),
+        data: {
+          'operationName': 'CanCreateClipForChannelQuery',
+          'query': _canCreateClipDocument,
+          'variables': {'broadcasterId': broadcasterId},
+        },
+      );
+      return ClipEligibilityRefusal.fromGql(body is Map ? body['data'] : null);
+    } catch (e) {
+      if (kDebugMode) debugPrint('CanCreateClipForChannelQuery failed: $e');
+      return null;
+    }
   }
 
   Future<ViewerActionOutcome> acknowledgeWarning({

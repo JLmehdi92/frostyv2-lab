@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/screens/channel/chat/moderation_notice.dart';
 import 'package:onset/screens/channel/stores/create_clip_store.dart';
 import 'package:onset/screens/onboarding/login_webview.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -24,6 +26,24 @@ import 'package:provider/provider.dart';
 
 /// What to tell the viewer when Twitch would not make the clip, in [l]'s
 /// language.
+String clipRefusalMessage(ClipEligibilityRefusal refusal, AppLocalizations l) =>
+    switch (refusal) {
+      ClipEligibilityRefusal(reason: ClipIneligibility.categoryNotClippable) =>
+        l.clipCreateFailedNotClippable,
+      ClipEligibilityRefusal(
+        reason: ClipIneligibility.followingTooShort,
+        requiredFollowMinutes: final minutes?,
+      ) =>
+        l.clipCreateFollowLength(
+          duration: followAgeLength(Duration(minutes: minutes), l),
+        ),
+      ClipEligibilityRefusal(:final reason) => l.clipCreateIneligible(
+        reason: reason == ClipIneligibility.followingTooShort
+            ? ClipIneligibility.notFollowing.name
+            : reason.name,
+      ),
+    };
+
 String clipFailureMessage(ClipCreateFailure failure, AppLocalizations l) =>
     switch (failure) {
       ClipCreateFailure.missingScope => l.clipCreateFailedMissingScope,
@@ -88,10 +108,17 @@ class CreateClipSheet extends StatelessWidget {
     String? gameName,
   }) async {
     final authStore = context.read<AuthStore>();
+    final viewerActions = context.read<TwitchViewerActionsService?>();
     final store = CreateClipStore(
       twitchApi: context.read<TwitchApi>(),
       broadcasterId: broadcasterId,
       isLoggedIn: () => authStore.isLoggedIn,
+      checkEligibility: viewerActions == null
+          ? null
+          : () => viewerActions.clipRefusal(
+              broadcasterId: broadcasterId,
+              authToken: authStore.twitchWebToken ?? '',
+            ),
     );
     unawaited(store.start());
     final navigator = Navigator.of(context);
@@ -201,10 +228,13 @@ class CreateClipSheet extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 300),
                 child: Text(
-                  clipFailureMessage(
-                    store.failure ?? ClipCreateFailure.unknown,
-                    context.l10n,
-                  ),
+                  switch (store.refusal) {
+                    final refusal? => clipRefusalMessage(refusal, context.l10n),
+                    null => clipFailureMessage(
+                      store.failure ?? ClipCreateFailure.unknown,
+                      context.l10n,
+                    ),
+                  },
                   textAlign: TextAlign.center,
                   style: SheetText.body.copyWith(
                     fontSize: 14.5,

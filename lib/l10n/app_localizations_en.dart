@@ -4022,6 +4022,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'This channel doesn’t allow clips of this category.';
 
   @override
+  String clipCreateIneligible({required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'notSubscribed': 'Subscribe to this channel to create a clip.',
+      'notFollowing': 'Follow this channel to create a clip.',
+      'djCategory':
+          'In the DJs category, only channels in the Twitch DJ program can be clipped.',
+      'participatingDj': 'DJ channels can’t be clipped.',
+      'other': 'You can’t clip this channel.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String clipCreateFollowLength({required String duration}) {
+    return 'Follow this channel for $duration to create a clip.';
+  }
+
+  @override
+  String get profileDjBadge => 'Official Twitch DJ';
+
+  @override
   String get clipCreateFailedRateLimited =>
       'Too many clips at once. Try again in a moment.';
 
