@@ -8191,6 +8191,194 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsPageNotInterested => 'Chaînes masquées';
 
   @override
+  String get editProfileTitle => 'Modifier le profil';
+
+  @override
+  String editProfileRefused({required String code}) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'DISPLAY_NAME_CHANGE_AGAIN':
+          'Vous ne pouvez pas encore changer à nouveau votre nom affiché.',
+      'DISPLAY_NAME_NOT_AVAILABLE': 'Ce nom affiché n’est pas disponible.',
+      'DISPLAY_NAME_ONLY_CAP':
+          'Votre nom affiché peut seulement changer les majuscules et minuscules de votre nom d’utilisateur.',
+      'DISPLAY_NAME_TOO_LONG': 'Ce nom affiché est trop long.',
+      'DISPLAY_NAME_TOO_SHORT': 'Ce nom affiché est trop court.',
+      'INVALID_CHARS_IN_DISPLAY_NAME':
+          'Ce nom affiché contient des caractères refusés par Twitch.',
+      'DESCRIPTION_FAILED_MODERATION': 'Cette bio n’a pas passé la modération.',
+      'DESCRIPTION_TOO_LONG': 'Cette bio est trop longue.',
+      'LOGIN_CHANGE_COOLDOWN':
+          'Vous ne pouvez pas encore changer à nouveau votre nom d’utilisateur.',
+      'LOGIN_CHANGE_EMAIL_VERIFIED':
+          'Vérifiez votre adresse e-mail sur twitch.tv pour changer de nom d’utilisateur.',
+      'LOGIN_CONTAINS_INVALID_CHARACTERS':
+          'Ce nom d’utilisateur contient des caractères refusés par Twitch.',
+      'LOGIN_TOO_LONG': 'Ce nom d’utilisateur est trop long.',
+      'LOGIN_TOO_SHORT': 'Ce nom d’utilisateur est trop court.',
+      'LOGIN_UNAVAILABLE': 'Ce nom d’utilisateur n’est pas disponible.',
+      'FAILED_TITLE_MODERATION': 'Ce titre n’a pas passé la modération.',
+      'INVALID_URL': 'Twitch n’accepte pas ce lien.',
+      'TITLE_TOO_LONG': 'Ce titre est trop long.',
+      'TOO_MANY':
+          'Vous avez déjà le maximum de liens sociaux autorisé par Twitch.',
+      'NOT_FOUND': 'Ce lien social n’existe plus.',
+      'REAUTH_NEEDED':
+          'Reconnectez-vous sur twitch.tv pour faire cette modification.',
+      'REQUESTS_THROTTLED': 'Trop de modifications. Réessayez plus tard.',
+      'TOO_MANY_REQUESTS': 'Trop de modifications. Réessayez plus tard.',
+      'other': 'Twitch a refusé cette modification.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get editProfileAbout => 'Profil';
+
+  @override
+  String get editProfileImages => 'Photo de profil et bannière';
+
+  @override
+  String get editProfileImagesHelp => 'Modifiez-les sur twitch.tv.';
+
+  @override
+  String get editProfileDisplayName => 'Nom affiché';
+
+  @override
+  String editProfileDisplayNameHelp({required String login}) {
+    return 'Votre nom affiché peut changer les majuscules et minuscules de $login. Certains noms en caractères non latins ne peuvent plus être changés pendant 60 jours.';
+  }
+
+  @override
+  String get editProfileDisplayNameSaved => 'Nom affiché modifié';
+
+  @override
+  String get editProfileUsername => 'Nom d’utilisateur';
+
+  @override
+  String get editProfileUsernameHelp =>
+      'Votre nom d’utilisateur est l’adresse de votre chaîne. Vous pouvez le changer une fois tous les 60 jours.';
+
+  @override
+  String get editProfileUsernameRules =>
+      'Utilisez de 3 à 25 lettres, chiffres ou tirets bas, sans commencer par un tiret bas.';
+
+  @override
+  String get editProfileUsernameCheck => 'Vérifier la disponibilité';
+
+  @override
+  String get editProfileUsernameAvailable =>
+      'Ce nom d’utilisateur est disponible.';
+
+  @override
+  String get editProfileUsernameTaken =>
+      'Ce nom d’utilisateur n’est pas disponible.';
+
+  @override
+  String get editProfileUsernameUnknown =>
+      'Impossible de vérifier ce nom d’utilisateur. Twitch le vérifiera lors du changement.';
+
+  @override
+  String get editProfileContinue => 'Continuer';
+
+  @override
+  String editProfileUsernameConfirmTitle({required String login}) {
+    return 'Changer votre nom d’utilisateur en $login ?';
+  }
+
+  @override
+  String get editProfileUsernameConfirmBody =>
+      'L’adresse de votre chaîne change aussitôt, et vous ne pourrez plus changer votre nom d’utilisateur pendant 60 jours.';
+
+  @override
+  String get editProfileUsernameChange => 'Changer de nom d’utilisateur';
+
+  @override
+  String editProfileUsernameSaved({required String login}) {
+    return 'Vous êtes maintenant $login.';
+  }
+
+  @override
+  String get editProfileUsernameNotYet =>
+      'Vous avez changé de nom d’utilisateur récemment. Vous ne pouvez pas encore le changer à nouveau.';
+
+  @override
+  String editProfileUsernameNotUntil({required String date}) {
+    return 'Vous avez changé de nom d’utilisateur récemment. Vous pourrez le changer à nouveau le $date.';
+  }
+
+  @override
+  String get editProfileBio => 'Bio';
+
+  @override
+  String get editProfileBioEmpty => 'Aucune bio pour l’instant';
+
+  @override
+  String get editProfileBioSaved => 'Bio modifiée';
+
+  @override
+  String get editProfileLinks => 'Liens sociaux';
+
+  @override
+  String get editProfileLinkAdd => 'Ajouter un lien social';
+
+  @override
+  String get editProfileLinkEdit => 'Modifier le lien social';
+
+  @override
+  String get editProfileLinkTitle => 'Titre';
+
+  @override
+  String get editProfileLinkUrl => 'Lien';
+
+  @override
+  String get editProfileLinkSaved => 'Liens sociaux modifiés';
+
+  @override
+  String get editProfileLinkDelete => 'Supprimer';
+
+  @override
+  String editProfileLinkDeleteTitle({required String title}) {
+    return 'Supprimer $title ?';
+  }
+
+  @override
+  String get editProfileLinkDeleteBody =>
+      'Il ne s’affichera plus sur votre chaîne.';
+
+  @override
+  String get editProfileLinkDeleted => 'Lien social supprimé';
+
+  @override
+  String get editProfileLinksFull =>
+      'Vous avez 5 liens sociaux, le maximum autorisé par Twitch.';
+
+  @override
+  String get editProfileLinksUnavailable =>
+      'Impossible de charger vos liens sociaux.';
+
+  @override
+  String get editProfileUnavailable =>
+      'Impossible de charger votre profil depuis Twitch. Vous pouvez toujours le modifier sur twitch.tv.';
+
+  @override
+  String get editProfileOnTwitch => 'Modifier sur twitch.tv';
+
+  @override
+  String get editProfileSave => 'Enregistrer';
+
+  @override
+  String get editProfileFailed =>
+      'Impossible d’enregistrer cette modification.';
+
+  @override
+  String get editProfileIntegrity =>
+      'Twitch a refusé cette modification depuis l’application. Faites-la plutôt sur twitch.tv.';
+
+  @override
+  String get editProfileSignedOut =>
+      'Reconnectez-vous pour modifier votre profil.';
+
+  @override
   String notInterestedCount({required int count}) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -4,6 +4,7 @@ import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/settings/account/blocked_users.dart';
+import 'package:onset/screens/settings/account/edit_profile.dart';
 import 'package:onset/screens/settings/chat_settings.dart';
 import 'package:onset/screens/settings/general_settings.dart';
 import 'package:onset/screens/settings/not_interested_channels.dart';
@@ -209,6 +210,7 @@ Widget buildSettingsPage(
   SettingsPageId.notInterested => NotInterestedChannels(
     settingsStore: settingsStore,
   ),
+  SettingsPageId.editProfile => EditProfileHost(authStore: authStore),
 };
 
 /// The account at the top of the phone's settings: who is logged in (opens

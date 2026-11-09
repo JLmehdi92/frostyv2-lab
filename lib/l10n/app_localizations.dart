@@ -10659,6 +10659,264 @@ abstract class AppLocalizations {
   /// **'Not interested'**
   String get settingsPageNotInterested;
 
+  /// Settings › Account: the row and page that change the viewer's Twitch profile (display name, username, bio, social links) from the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get editProfileTitle;
+
+  /// A snack bar: why Twitch refused a profile change ({code} is Twitch's error code, never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'{code, select, DISPLAY_NAME_CHANGE_AGAIN{You can’t change your display name again yet.} DISPLAY_NAME_NOT_AVAILABLE{This display name is unavailable.} DISPLAY_NAME_ONLY_CAP{Your display name can only change the capitalization of your username.} DISPLAY_NAME_TOO_LONG{This display name is too long.} DISPLAY_NAME_TOO_SHORT{This display name is too short.} INVALID_CHARS_IN_DISPLAY_NAME{This display name has characters Twitch doesn’t allow.} DESCRIPTION_FAILED_MODERATION{This bio didn’t pass moderation.} DESCRIPTION_TOO_LONG{This bio is too long.} LOGIN_CHANGE_COOLDOWN{You can’t change your username again yet.} LOGIN_CHANGE_EMAIL_VERIFIED{Verify your email on twitch.tv to change your username.} LOGIN_CONTAINS_INVALID_CHARACTERS{This username has characters Twitch doesn’t allow.} LOGIN_TOO_LONG{This username is too long.} LOGIN_TOO_SHORT{This username is too short.} LOGIN_UNAVAILABLE{This username is unavailable.} FAILED_TITLE_MODERATION{This title didn’t pass moderation.} INVALID_URL{Twitch doesn’t accept this link.} TITLE_TOO_LONG{This title is too long.} TOO_MANY{You already have the most social links Twitch allows.} NOT_FOUND{This social link no longer exists.} REAUTH_NEEDED{Log in again on twitch.tv to make this change.} REQUESTS_THROTTLED{Too many changes. Try again later.} TOO_MANY_REQUESTS{Too many changes. Try again later.} other{Twitch refused this change.}}'**
+  String editProfileRefused({required String code});
+
+  /// The group of the edit profile page with the display name, the username and the bio.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get editProfileAbout;
+
+  /// The edit profile page's row that opens Twitch's profile settings on twitch.tv, where the picture and the banner are changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile picture and banner'**
+  String get editProfileImages;
+
+  /// Under the profile picture and banner row.
+  ///
+  /// In en, this message translates to:
+  /// **'Change them on twitch.tv.'**
+  String get editProfileImagesHelp;
+
+  /// The edit profile row and dialog for the name shown in chat and on the channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get editProfileDisplayName;
+
+  /// The display name dialog: Twitch's rules for the display name. {login} is the viewer's username.
+  ///
+  /// In en, this message translates to:
+  /// **'Your display name can change the capitalization of {login}. Some names in non-Latin characters can’t be changed again for 60 days.'**
+  String editProfileDisplayNameHelp({required String login});
+
+  /// A snack bar once Twitch saved the new display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name updated'**
+  String get editProfileDisplayNameSaved;
+
+  /// The edit profile row and dialog for the viewer's Twitch username (their channel's address).
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get editProfileUsername;
+
+  /// The username dialog: what the username is and how often it can change.
+  ///
+  /// In en, this message translates to:
+  /// **'Your username is your channel’s address. You can change it once every 60 days.'**
+  String get editProfileUsernameHelp;
+
+  /// Under the username field when what is typed can't be a Twitch username.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 3 to 25 letters, numbers or underscores, not starting with an underscore.'**
+  String get editProfileUsernameRules;
+
+  /// The username dialog's button that asks Twitch whether the typed username is free.
+  ///
+  /// In en, this message translates to:
+  /// **'Check availability'**
+  String get editProfileUsernameCheck;
+
+  /// Under the username field once Twitch said the name is free.
+  ///
+  /// In en, this message translates to:
+  /// **'This username is available.'**
+  String get editProfileUsernameAvailable;
+
+  /// Under the username field once Twitch said the name is taken.
+  ///
+  /// In en, this message translates to:
+  /// **'This username is unavailable.'**
+  String get editProfileUsernameTaken;
+
+  /// Under the username field when Twitch did not answer (its anti-bot check often refuses the app); the change can still be tried.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t check this username. Twitch will check it when you change it.'**
+  String get editProfileUsernameUnknown;
+
+  /// The username dialog's button that goes on to the confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get editProfileContinue;
+
+  /// The confirmation before changing the username.
+  ///
+  /// In en, this message translates to:
+  /// **'Change your username to {login}?'**
+  String editProfileUsernameConfirmTitle({required String login});
+
+  /// The body of the confirmation before changing the username.
+  ///
+  /// In en, this message translates to:
+  /// **'Your channel’s address changes at once, and you can’t change your username again for 60 days.'**
+  String get editProfileUsernameConfirmBody;
+
+  /// The confirmation's button that changes the username.
+  ///
+  /// In en, this message translates to:
+  /// **'Change username'**
+  String get editProfileUsernameChange;
+
+  /// A snack bar once Twitch changed the username.
+  ///
+  /// In en, this message translates to:
+  /// **'You’re now {login}.'**
+  String editProfileUsernameSaved({required String login});
+
+  /// The username dialog when Twitch says the viewer may not rename yet and gives no date.
+  ///
+  /// In en, this message translates to:
+  /// **'You changed your username recently. You can’t change it again yet.'**
+  String get editProfileUsernameNotYet;
+
+  /// The username dialog when Twitch says the viewer may rename again on {date} (a full date).
+  ///
+  /// In en, this message translates to:
+  /// **'You changed your username recently. You can change it again on {date}.'**
+  String editProfileUsernameNotUntil({required String date});
+
+  /// The edit profile row and dialog for the channel's description.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get editProfileBio;
+
+  /// The bio row when the viewer has none.
+  ///
+  /// In en, this message translates to:
+  /// **'No bio yet'**
+  String get editProfileBioEmpty;
+
+  /// A snack bar once Twitch saved the new bio.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio updated'**
+  String get editProfileBioSaved;
+
+  /// The group of the edit profile page listing the links shown on the viewer's channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Social links'**
+  String get editProfileLinks;
+
+  /// The row (and dialog title) that adds a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a social link'**
+  String get editProfileLinkAdd;
+
+  /// The title of the dialog that edits or deletes a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the social link'**
+  String get editProfileLinkEdit;
+
+  /// The social link dialog's field for the text shown for the link.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get editProfileLinkTitle;
+
+  /// The social link dialog's field for the full address, starting with https://.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get editProfileLinkUrl;
+
+  /// A snack bar once Twitch saved a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'Social links updated'**
+  String get editProfileLinkSaved;
+
+  /// The social link dialog's button (and its confirmation's) that deletes the link.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get editProfileLinkDelete;
+
+  /// The confirmation before deleting a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {title}?'**
+  String editProfileLinkDeleteTitle({required String title});
+
+  /// The body of the confirmation before deleting a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'It no longer shows on your channel.'**
+  String get editProfileLinkDeleteBody;
+
+  /// A snack bar once Twitch deleted a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'Social link deleted'**
+  String get editProfileLinkDeleted;
+
+  /// In place of the add row when the viewer has the most links Twitch allows.
+  ///
+  /// In en, this message translates to:
+  /// **'You have 5 social links, the most Twitch allows.'**
+  String get editProfileLinksFull;
+
+  /// The edit profile page when Twitch did not send the social links.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your social links.'**
+  String get editProfileLinksUnavailable;
+
+  /// The edit profile page when the profile can't be read (no Twitch web session, or Twitch changed its API).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your profile from Twitch. You can still edit it on twitch.tv.'**
+  String get editProfileUnavailable;
+
+  /// The row that opens Twitch's profile settings on twitch.tv.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit on twitch.tv'**
+  String get editProfileOnTwitch;
+
+  /// Saves a profile change in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get editProfileSave;
+
+  /// A snack bar when a profile change failed for an unknown reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t save this change.'**
+  String get editProfileFailed;
+
+  /// A snack bar when Twitch's anti-bot check refused a profile change.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch refused this change from the app. Make it on twitch.tv instead.'**
+  String get editProfileIntegrity;
+
+  /// A snack bar when Twitch no longer accepts the viewer's session.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again to edit your profile.'**
+  String get editProfileSignedOut;
+
   /// Not interested page: the section label above the list. count is how many channels.
   ///
   /// In en, this message translates to:

@@ -8086,6 +8086,185 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPageNotInterested => 'Not interested';
 
   @override
+  String get editProfileTitle => 'Edit profile';
+
+  @override
+  String editProfileRefused({required String code}) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'DISPLAY_NAME_CHANGE_AGAIN':
+          'You can’t change your display name again yet.',
+      'DISPLAY_NAME_NOT_AVAILABLE': 'This display name is unavailable.',
+      'DISPLAY_NAME_ONLY_CAP':
+          'Your display name can only change the capitalization of your username.',
+      'DISPLAY_NAME_TOO_LONG': 'This display name is too long.',
+      'DISPLAY_NAME_TOO_SHORT': 'This display name is too short.',
+      'INVALID_CHARS_IN_DISPLAY_NAME':
+          'This display name has characters Twitch doesn’t allow.',
+      'DESCRIPTION_FAILED_MODERATION': 'This bio didn’t pass moderation.',
+      'DESCRIPTION_TOO_LONG': 'This bio is too long.',
+      'LOGIN_CHANGE_COOLDOWN': 'You can’t change your username again yet.',
+      'LOGIN_CHANGE_EMAIL_VERIFIED':
+          'Verify your email on twitch.tv to change your username.',
+      'LOGIN_CONTAINS_INVALID_CHARACTERS':
+          'This username has characters Twitch doesn’t allow.',
+      'LOGIN_TOO_LONG': 'This username is too long.',
+      'LOGIN_TOO_SHORT': 'This username is too short.',
+      'LOGIN_UNAVAILABLE': 'This username is unavailable.',
+      'FAILED_TITLE_MODERATION': 'This title didn’t pass moderation.',
+      'INVALID_URL': 'Twitch doesn’t accept this link.',
+      'TITLE_TOO_LONG': 'This title is too long.',
+      'TOO_MANY': 'You already have the most social links Twitch allows.',
+      'NOT_FOUND': 'This social link no longer exists.',
+      'REAUTH_NEEDED': 'Log in again on twitch.tv to make this change.',
+      'REQUESTS_THROTTLED': 'Too many changes. Try again later.',
+      'TOO_MANY_REQUESTS': 'Too many changes. Try again later.',
+      'other': 'Twitch refused this change.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get editProfileAbout => 'Profile';
+
+  @override
+  String get editProfileImages => 'Profile picture and banner';
+
+  @override
+  String get editProfileImagesHelp => 'Change them on twitch.tv.';
+
+  @override
+  String get editProfileDisplayName => 'Display name';
+
+  @override
+  String editProfileDisplayNameHelp({required String login}) {
+    return 'Your display name can change the capitalization of $login. Some names in non-Latin characters can’t be changed again for 60 days.';
+  }
+
+  @override
+  String get editProfileDisplayNameSaved => 'Display name updated';
+
+  @override
+  String get editProfileUsername => 'Username';
+
+  @override
+  String get editProfileUsernameHelp =>
+      'Your username is your channel’s address. You can change it once every 60 days.';
+
+  @override
+  String get editProfileUsernameRules =>
+      'Use 3 to 25 letters, numbers or underscores, not starting with an underscore.';
+
+  @override
+  String get editProfileUsernameCheck => 'Check availability';
+
+  @override
+  String get editProfileUsernameAvailable => 'This username is available.';
+
+  @override
+  String get editProfileUsernameTaken => 'This username is unavailable.';
+
+  @override
+  String get editProfileUsernameUnknown =>
+      'Couldn’t check this username. Twitch will check it when you change it.';
+
+  @override
+  String get editProfileContinue => 'Continue';
+
+  @override
+  String editProfileUsernameConfirmTitle({required String login}) {
+    return 'Change your username to $login?';
+  }
+
+  @override
+  String get editProfileUsernameConfirmBody =>
+      'Your channel’s address changes at once, and you can’t change your username again for 60 days.';
+
+  @override
+  String get editProfileUsernameChange => 'Change username';
+
+  @override
+  String editProfileUsernameSaved({required String login}) {
+    return 'You’re now $login.';
+  }
+
+  @override
+  String get editProfileUsernameNotYet =>
+      'You changed your username recently. You can’t change it again yet.';
+
+  @override
+  String editProfileUsernameNotUntil({required String date}) {
+    return 'You changed your username recently. You can change it again on $date.';
+  }
+
+  @override
+  String get editProfileBio => 'Bio';
+
+  @override
+  String get editProfileBioEmpty => 'No bio yet';
+
+  @override
+  String get editProfileBioSaved => 'Bio updated';
+
+  @override
+  String get editProfileLinks => 'Social links';
+
+  @override
+  String get editProfileLinkAdd => 'Add a social link';
+
+  @override
+  String get editProfileLinkEdit => 'Edit the social link';
+
+  @override
+  String get editProfileLinkTitle => 'Title';
+
+  @override
+  String get editProfileLinkUrl => 'Link';
+
+  @override
+  String get editProfileLinkSaved => 'Social links updated';
+
+  @override
+  String get editProfileLinkDelete => 'Delete';
+
+  @override
+  String editProfileLinkDeleteTitle({required String title}) {
+    return 'Delete $title?';
+  }
+
+  @override
+  String get editProfileLinkDeleteBody => 'It no longer shows on your channel.';
+
+  @override
+  String get editProfileLinkDeleted => 'Social link deleted';
+
+  @override
+  String get editProfileLinksFull =>
+      'You have 5 social links, the most Twitch allows.';
+
+  @override
+  String get editProfileLinksUnavailable => 'Couldn’t load your social links.';
+
+  @override
+  String get editProfileUnavailable =>
+      'Couldn’t load your profile from Twitch. You can still edit it on twitch.tv.';
+
+  @override
+  String get editProfileOnTwitch => 'Edit on twitch.tv';
+
+  @override
+  String get editProfileSave => 'Save';
+
+  @override
+  String get editProfileFailed => 'Couldn’t save this change.';
+
+  @override
+  String get editProfileIntegrity =>
+      'Twitch refused this change from the app. Make it on twitch.tv instead.';
+
+  @override
+  String get editProfileSignedOut => 'Log in again to edit your profile.';
+
+  @override
   String notInterestedCount({required int count}) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
