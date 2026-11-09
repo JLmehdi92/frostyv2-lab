@@ -1019,7 +1019,10 @@ class SheetTextField extends StatelessWidget {
     this.hint,
     this.textStyle,
     this.fill,
+    this.maxLines = 1,
   });
+
+  final int maxLines;
 
   final TextEditingController controller;
 
@@ -1056,6 +1059,8 @@ class SheetTextField extends StatelessWidget {
         ...?inputFormatters,
       ],
       onChanged: onChanged,
+      maxLines: maxLines,
+      minLines: 1,
       cursorColor: accent,
       style:
           textStyle ?? SheetText.body.copyWith(color: colors.text, height: 1.2),

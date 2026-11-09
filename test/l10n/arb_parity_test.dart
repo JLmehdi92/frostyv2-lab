@@ -77,6 +77,8 @@ const _sameInBothLanguages = {
   'chatLinkClip': 'Twitch calls it a "clip" in French.',
   'pointsMax': '"Max" is the French short form too (bet everything).',
   'pointsField': '"Points" is spelled the same.',
+  'recapClipCount': '"clip" and "clips" are the French words too.',
+  'editProfileBio': '"Bio" is the French word too.',
 };
 
 void main() {

@@ -223,6 +223,7 @@ extension SettingsPageIdLabel on SettingsPageId {
     SettingsPageId.blocked => l.settingsPageBlocked,
     SettingsPageId.chatFilters => l.settingsPageChatFilters,
     SettingsPageId.notInterested => l.settingsPageNotInterested,
+    SettingsPageId.editProfile => l.editProfileTitle,
   };
 
   /// The line under its title on a tablet; none for a page inside a
@@ -237,6 +238,7 @@ extension SettingsPageIdLabel on SettingsPageId {
     SettingsPageId.blocked => l.settingsPageBlockedDescription,
     SettingsPageId.chatFilters => null,
     SettingsPageId.notInterested => null,
+    SettingsPageId.editProfile => null,
   };
 }
 

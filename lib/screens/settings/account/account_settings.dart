@@ -9,6 +9,7 @@ import 'package:onset/models/user.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/onboarding/login_webview.dart';
 import 'package:onset/screens/settings/account/blocked_users.dart';
+import 'package:onset/screens/settings/account/edit_profile.dart';
 import 'package:onset/screens/settings/account/gift_settings.dart';
 import 'package:onset/screens/settings/account/whisper_privacy_settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -124,6 +125,13 @@ class AccountSettings extends StatelessWidget {
                   title: l.settingsMyChannel,
                   end: SettingsRowEnd.chevron,
                   onTap: () => openMyChannel(context, authStore),
+                ),
+                SettingsRow(
+                  key: const ValueKey('settings-edit-profile'),
+                  glyph: SettingsGlyphKind.notes,
+                  title: l.editProfileTitle,
+                  end: SettingsRowEnd.chevron,
+                  onTap: () => openEditProfile(context, authStore),
                 ),
                 SettingsRow(
                   glyph: SettingsGlyphKind.ban,

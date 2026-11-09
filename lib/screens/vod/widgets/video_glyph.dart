@@ -42,6 +42,9 @@ enum VideoGlyphKind {
   expand,
   alert,
   download,
+  comment,
+  portrait,
+  heart,
 }
 
 /// The elements of each glyph: path data (`f:` when filled),
@@ -49,6 +52,13 @@ enum VideoGlyphKind {
 const Map<VideoGlyphKind, List<String>> _shapes = {
   VideoGlyphKind.back: ['M15 6l-6 6 6 6'],
   VideoGlyphKind.download: ['M12 4v11', 'M7 10l5 5 5-5', 'M5 19h14'],
+  VideoGlyphKind.comment: [
+    'M6 5h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4 3v-3H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z',
+  ],
+  VideoGlyphKind.portrait: ['r:7,3,10,18,2', 'M11 17h2'],
+  VideoGlyphKind.heart: [
+    'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  ],
   VideoGlyphKind.settings: [
     'M4 7h10M18 7h2M4 17h4M12 17h8',
     'c:16,7,2',

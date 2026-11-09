@@ -4529,6 +4529,48 @@ abstract class AppLocalizations {
   /// **'Popular clips'**
   String get profilePopularClips;
 
+  /// The title of the channel profile's row of recaps: short reels of a past stream's clips, put together by Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream recaps'**
+  String get recapsTitle;
+
+  /// A chip on a recap's picture, telling it apart from a clip or a video.
+  ///
+  /// In en, this message translates to:
+  /// **'Recap'**
+  String get recapLabel;
+
+  /// In place of the title of a recap that has none.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled recap'**
+  String get recapUntitled;
+
+  /// How many clips a recap plays, on its picture.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} clip} other{{count} clips}}'**
+  String recapClipCount({required int count});
+
+  /// For screen readers, a recap's tile: opens the recap player. {details} is its clip count and age (5 clips · 2 hours ago).
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the recap {title}, {details}'**
+  String recapOpen({required String title, required String details});
+
+  /// The recap player's action that opens Twitch's report form for the recap's channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get recapReport;
+
+  /// The recap player when Twitch removed the recap (or the channel unpublished it) since the row was loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'This recap is no longer available.'**
+  String get recapUnavailable;
+
   /// What a screen reader says for a video's or a clip's picture on a channel's Home tab.
   ///
   /// In en, this message translates to:
@@ -10825,6 +10867,264 @@ abstract class AppLocalizations {
   /// **'Not interested'**
   String get settingsPageNotInterested;
 
+  /// Settings › Account: the row and page that change the viewer's Twitch profile (display name, username, bio, social links) from the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get editProfileTitle;
+
+  /// A snack bar: why Twitch refused a profile change ({code} is Twitch's error code, never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'{code, select, DISPLAY_NAME_CHANGE_AGAIN{You can’t change your display name again yet.} DISPLAY_NAME_NOT_AVAILABLE{This display name is unavailable.} DISPLAY_NAME_ONLY_CAP{Your display name can only differ from your username in capitalization.} DISPLAY_NAME_TOO_LONG{This display name is too long.} DISPLAY_NAME_TOO_SHORT{This display name is too short.} INVALID_CHARS_IN_DISPLAY_NAME{This display name has characters Twitch doesn’t allow.} DESCRIPTION_FAILED_MODERATION{This bio didn’t pass moderation.} DESCRIPTION_TOO_LONG{This bio is too long.} LOGIN_CHANGE_COOLDOWN{You can’t change your username again yet.} LOGIN_CHANGE_EMAIL_VERIFIED{Verify your email on twitch.tv to change your username.} LOGIN_CONTAINS_INVALID_CHARACTERS{This username has characters Twitch doesn’t allow.} LOGIN_TOO_LONG{This username is too long.} LOGIN_TOO_SHORT{This username is too short.} LOGIN_UNAVAILABLE{This username is unavailable.} FAILED_TITLE_MODERATION{This title didn’t pass moderation.} INVALID_URL{Twitch doesn’t accept this link.} TITLE_TOO_LONG{This title is too long.} TOO_MANY{You already have the most social links Twitch allows.} NOT_FOUND{This social link no longer exists.} REAUTH_NEEDED{Log in again on twitch.tv to make this change.} REQUESTS_THROTTLED{Too many changes. Try again later.} TOO_MANY_REQUESTS{Too many changes. Try again later.} other{Twitch refused this change.}}'**
+  String editProfileRefused({required String code});
+
+  /// The group of the edit profile page with the display name, the username and the bio.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get editProfileAbout;
+
+  /// The edit profile page's row that opens Twitch's profile settings on twitch.tv, where the picture and the banner are changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile picture and banner'**
+  String get editProfileImages;
+
+  /// Under the profile picture and banner row.
+  ///
+  /// In en, this message translates to:
+  /// **'Change them on twitch.tv.'**
+  String get editProfileImagesHelp;
+
+  /// The edit profile row and dialog for the name shown in chat and on the channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get editProfileDisplayName;
+
+  /// The display name dialog: Twitch's rules for the display name. {login} is the viewer's username.
+  ///
+  /// In en, this message translates to:
+  /// **'Your display name can differ from {login} in capitalization. Some names in non-Latin characters can’t be changed again for 60 days.'**
+  String editProfileDisplayNameHelp({required String login});
+
+  /// A snack bar once Twitch saved the new display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name updated'**
+  String get editProfileDisplayNameSaved;
+
+  /// The edit profile row and dialog for the viewer's Twitch username (their channel's address).
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get editProfileUsername;
+
+  /// The username dialog: what the username is and how often it can change.
+  ///
+  /// In en, this message translates to:
+  /// **'Your username is your channel’s address. You can change it once every 60 days.'**
+  String get editProfileUsernameHelp;
+
+  /// Under the username field when what is typed can't be a Twitch username.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 3 to 25 letters, numbers or underscores, not starting with an underscore.'**
+  String get editProfileUsernameRules;
+
+  /// The username dialog's button that asks Twitch whether the typed username is free.
+  ///
+  /// In en, this message translates to:
+  /// **'Check availability'**
+  String get editProfileUsernameCheck;
+
+  /// Under the username field once Twitch said the name is free.
+  ///
+  /// In en, this message translates to:
+  /// **'This username is available.'**
+  String get editProfileUsernameAvailable;
+
+  /// Under the username field once Twitch said the name is taken.
+  ///
+  /// In en, this message translates to:
+  /// **'This username is unavailable.'**
+  String get editProfileUsernameTaken;
+
+  /// Under the username field when Twitch did not answer (its anti-bot check often refuses the app); the change can still be tried.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t check this username. Twitch will check it when you change it.'**
+  String get editProfileUsernameUnknown;
+
+  /// The username dialog's button that goes on to the confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get editProfileContinue;
+
+  /// The confirmation before changing the username.
+  ///
+  /// In en, this message translates to:
+  /// **'Change your username to {login}?'**
+  String editProfileUsernameConfirmTitle({required String login});
+
+  /// The body of the confirmation before changing the username.
+  ///
+  /// In en, this message translates to:
+  /// **'Your channel’s address changes at once, and you can’t change your username again for 60 days.'**
+  String get editProfileUsernameConfirmBody;
+
+  /// The confirmation's button that changes the username.
+  ///
+  /// In en, this message translates to:
+  /// **'Change username'**
+  String get editProfileUsernameChange;
+
+  /// A snack bar once Twitch changed the username.
+  ///
+  /// In en, this message translates to:
+  /// **'You’re now {login}.'**
+  String editProfileUsernameSaved({required String login});
+
+  /// The username dialog when Twitch says the viewer may not rename yet and gives no date.
+  ///
+  /// In en, this message translates to:
+  /// **'You changed your username recently. You can’t change it again yet.'**
+  String get editProfileUsernameNotYet;
+
+  /// The username dialog when Twitch says the viewer may rename again on {date} (a full date).
+  ///
+  /// In en, this message translates to:
+  /// **'You changed your username recently. You can change it again on {date}.'**
+  String editProfileUsernameNotUntil({required String date});
+
+  /// The edit profile row and dialog for the channel's description.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get editProfileBio;
+
+  /// The bio row when the viewer has none.
+  ///
+  /// In en, this message translates to:
+  /// **'No bio yet'**
+  String get editProfileBioEmpty;
+
+  /// A snack bar once Twitch saved the new bio.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio updated'**
+  String get editProfileBioSaved;
+
+  /// The group of the edit profile page listing the links shown on the viewer's channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Social links'**
+  String get editProfileLinks;
+
+  /// The row (and dialog title) that adds a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a social link'**
+  String get editProfileLinkAdd;
+
+  /// The title of the dialog that edits or deletes a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the social link'**
+  String get editProfileLinkEdit;
+
+  /// The social link dialog's field for the text shown for the link.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get editProfileLinkTitle;
+
+  /// The social link dialog's field for the full address, starting with https://.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get editProfileLinkUrl;
+
+  /// A snack bar once Twitch saved a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'Social links updated'**
+  String get editProfileLinkSaved;
+
+  /// The social link dialog's button (and its confirmation's) that deletes the link.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get editProfileLinkDelete;
+
+  /// The confirmation before deleting a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {title}?'**
+  String editProfileLinkDeleteTitle({required String title});
+
+  /// The body of the confirmation before deleting a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'It will no longer show on your channel.'**
+  String get editProfileLinkDeleteBody;
+
+  /// A snack bar once Twitch deleted a social link.
+  ///
+  /// In en, this message translates to:
+  /// **'Social link deleted'**
+  String get editProfileLinkDeleted;
+
+  /// In place of the add row when the viewer has the most links Twitch allows.
+  ///
+  /// In en, this message translates to:
+  /// **'You have 5 social links, the most Twitch allows.'**
+  String get editProfileLinksFull;
+
+  /// The edit profile page when Twitch did not send the social links.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your social links.'**
+  String get editProfileLinksUnavailable;
+
+  /// The edit profile page when the profile can't be read (no Twitch web session, or Twitch changed its API).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your profile from Twitch. You can still edit it on twitch.tv.'**
+  String get editProfileUnavailable;
+
+  /// The row that opens Twitch's profile settings on twitch.tv.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit on twitch.tv'**
+  String get editProfileOnTwitch;
+
+  /// Saves a profile change in its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get editProfileSave;
+
+  /// A snack bar when a profile change failed for an unknown reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t save this change.'**
+  String get editProfileFailed;
+
+  /// A snack bar when Twitch's anti-bot check refused a profile change.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch refused this change from the app. Make it on twitch.tv instead.'**
+  String get editProfileIntegrity;
+
+  /// A snack bar when Twitch no longer accepts the viewer's session.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again to edit your profile.'**
+  String get editProfileSignedOut;
+
   /// Not interested page: the section label above the list. count is how many channels.
   ///
   /// In en, this message translates to:
@@ -11538,6 +11838,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn’t download this clip.'**
   String get clipDownloadFailed;
+
+  /// A pill on a clip Twitch made automatically from the stream, not a person.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto clip'**
+  String get clipAutoLabel;
+
+  /// A clip's action: plays the vertical version Twitch made of the clip, full screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Portrait version'**
+  String get clipWatchPortrait;
+
+  /// A clip's action, and the title of the sheet listing the comments viewers posted on the clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments'**
+  String get clipComments;
+
+  /// The comments sheet when Twitch did not send the clip's comments.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load the comments.'**
+  String get clipCommentsFailed;
+
+  /// The comments sheet when nobody commented on the clip.
+  ///
+  /// In en, this message translates to:
+  /// **'No comments yet.'**
+  String get clipCommentsEmpty;
+
+  /// The button at the end of the comments that loads the next ones.
+  ///
+  /// In en, this message translates to:
+  /// **'More comments'**
+  String get clipCommentsMore;
+
+  /// Under a clip comment: how many replies it has.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} reply} other{{count} replies}}'**
+  String clipCommentReplies({required int count});
+
+  /// Under a clip comment the channel's owner liked.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked by the channel'**
+  String get clipCommentHearted;
+
+  /// In place of a clip comment other viewers voted down; a Show button reveals it.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden by the community'**
+  String get clipCommentCollapsed;
+
+  /// Reveals a clip comment the community hid.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get clipCommentShow;
+
+  /// For screen readers, the like button of a clip comment: how many likes it has; a tap likes or unlikes it.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} like} other{{count} likes}}'**
+  String clipCommentLikes({required int count});
+
+  /// A snack bar when liking or unliking a clip comment failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t update your like.'**
+  String get clipCommentLikeFailed;
+
+  /// The hint of the field that writes a comment on a clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a comment…'**
+  String get clipCommentHint;
+
+  /// Posts the comment written on a clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get clipCommentSend;
+
+  /// Under the comment field when posting failed for an unknown reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t post your comment.'**
+  String get clipCommentPostFailed;
+
+  /// Under the comment field when Twitch's anti-bot check refused the comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch refused this comment from the app. Post it on twitch.tv instead.'**
+  String get clipCommentIntegrity;
+
+  /// Under the comment field when Twitch no longer accepts the viewer's session.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again to post comments.'**
+  String get clipCommentSignedOut;
+
+  /// Under the comment field: why Twitch refused the comment ({code} is Twitch's error code, never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'{code, select, BODY_TOO_LONG{This comment is too long.} CONTAINS_LINK{Comments can’t contain links.} FAILED_MODERATION{This comment didn’t pass moderation.} RATE_LIMITED{You’re commenting too fast. Try again in a moment.} COMMENTS_DISABLED{Comments are turned off for this clip.} COMMENTS_RESTRICTED{Comments on this clip are restricted.} NOT_ELIGIBLE{You can’t comment on this clip.} other{Twitch refused this comment.}}'**
+  String clipCommentRefused({required String code});
+
+  /// At the bottom of the comments sheet for a viewer who is not logged in (or has no Twitch web session).
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to post comments.'**
+  String get clipCommentSignInToPost;
+
+  /// At the bottom of the comments sheet when Twitch did not say whether the viewer may comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t check whether you can comment on this clip.'**
+  String get clipCommentEligibilityUnknown;
+
+  /// At the bottom of the comments sheet when the channel turned comments off.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments are turned off for this clip.'**
+  String get clipCommentsDisabled;
+
+  /// At the bottom of the comments sheet when only followers may comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow this channel to comment on its clips.'**
+  String get clipCommentFollowFirst;
+
+  /// At the bottom of the comments sheet when the viewer has not followed the channel long enough to comment.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, one{You need to follow this channel for at least {minutes} minute to comment on its clips.} other{You need to follow this channel for at least {minutes} minutes to comment on its clips.}}'**
+  String clipCommentFollowLonger({required int minutes});
+
+  /// At the bottom of the comments sheet when only subscribers may comment.
+  ///
+  /// In en, this message translates to:
+  /// **'Only subscribers can comment on this clip.'**
+  String get clipCommentSubscribersOnly;
+
+  /// At the bottom of the comments sheet when Twitch requires a verified email or phone number.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email or phone number on twitch.tv to comment.'**
+  String get clipCommentVerifyAccount;
+
+  /// At the bottom of the comments sheet when Twitch refuses comments for another reason.
+  ///
+  /// In en, this message translates to:
+  /// **'You can’t comment on this clip.'**
+  String get clipCommentNotAllowed;
+
+  /// For screen readers, the left side of a recap or portrait clip: goes back one clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous clip'**
+  String get clipStoryPrevious;
+
+  /// For screen readers, the right side of a recap or portrait clip: skips to the next clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next clip'**
+  String get clipStoryNext;
 
   /// The screen listing the viewer's own clips: those of their channel and those they made.
   ///

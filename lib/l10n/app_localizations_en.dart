@@ -2919,6 +2919,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePopularClips => 'Popular clips';
 
   @override
+  String get recapsTitle => 'Stream recaps';
+
+  @override
+  String get recapLabel => 'Recap';
+
+  @override
+  String get recapUntitled => 'Untitled recap';
+
+  @override
+  String recapClipCount({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString clips',
+      one: '$countString clip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recapOpen({required String title, required String details}) {
+    return 'Watch the recap $title, $details';
+  }
+
+  @override
+  String get recapReport => 'Report';
+
+  @override
+  String get recapUnavailable => 'This recap is no longer available.';
+
+  @override
   String get profileThumbnail => 'Thumbnail';
 
   @override
@@ -8219,6 +8254,186 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPageNotInterested => 'Not interested';
 
   @override
+  String get editProfileTitle => 'Edit profile';
+
+  @override
+  String editProfileRefused({required String code}) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'DISPLAY_NAME_CHANGE_AGAIN':
+          'You can’t change your display name again yet.',
+      'DISPLAY_NAME_NOT_AVAILABLE': 'This display name is unavailable.',
+      'DISPLAY_NAME_ONLY_CAP':
+          'Your display name can only differ from your username in capitalization.',
+      'DISPLAY_NAME_TOO_LONG': 'This display name is too long.',
+      'DISPLAY_NAME_TOO_SHORT': 'This display name is too short.',
+      'INVALID_CHARS_IN_DISPLAY_NAME':
+          'This display name has characters Twitch doesn’t allow.',
+      'DESCRIPTION_FAILED_MODERATION': 'This bio didn’t pass moderation.',
+      'DESCRIPTION_TOO_LONG': 'This bio is too long.',
+      'LOGIN_CHANGE_COOLDOWN': 'You can’t change your username again yet.',
+      'LOGIN_CHANGE_EMAIL_VERIFIED':
+          'Verify your email on twitch.tv to change your username.',
+      'LOGIN_CONTAINS_INVALID_CHARACTERS':
+          'This username has characters Twitch doesn’t allow.',
+      'LOGIN_TOO_LONG': 'This username is too long.',
+      'LOGIN_TOO_SHORT': 'This username is too short.',
+      'LOGIN_UNAVAILABLE': 'This username is unavailable.',
+      'FAILED_TITLE_MODERATION': 'This title didn’t pass moderation.',
+      'INVALID_URL': 'Twitch doesn’t accept this link.',
+      'TITLE_TOO_LONG': 'This title is too long.',
+      'TOO_MANY': 'You already have the most social links Twitch allows.',
+      'NOT_FOUND': 'This social link no longer exists.',
+      'REAUTH_NEEDED': 'Log in again on twitch.tv to make this change.',
+      'REQUESTS_THROTTLED': 'Too many changes. Try again later.',
+      'TOO_MANY_REQUESTS': 'Too many changes. Try again later.',
+      'other': 'Twitch refused this change.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get editProfileAbout => 'Profile';
+
+  @override
+  String get editProfileImages => 'Profile picture and banner';
+
+  @override
+  String get editProfileImagesHelp => 'Change them on twitch.tv.';
+
+  @override
+  String get editProfileDisplayName => 'Display name';
+
+  @override
+  String editProfileDisplayNameHelp({required String login}) {
+    return 'Your display name can differ from $login in capitalization. Some names in non-Latin characters can’t be changed again for 60 days.';
+  }
+
+  @override
+  String get editProfileDisplayNameSaved => 'Display name updated';
+
+  @override
+  String get editProfileUsername => 'Username';
+
+  @override
+  String get editProfileUsernameHelp =>
+      'Your username is your channel’s address. You can change it once every 60 days.';
+
+  @override
+  String get editProfileUsernameRules =>
+      'Use 3 to 25 letters, numbers or underscores, not starting with an underscore.';
+
+  @override
+  String get editProfileUsernameCheck => 'Check availability';
+
+  @override
+  String get editProfileUsernameAvailable => 'This username is available.';
+
+  @override
+  String get editProfileUsernameTaken => 'This username is unavailable.';
+
+  @override
+  String get editProfileUsernameUnknown =>
+      'Couldn’t check this username. Twitch will check it when you change it.';
+
+  @override
+  String get editProfileContinue => 'Continue';
+
+  @override
+  String editProfileUsernameConfirmTitle({required String login}) {
+    return 'Change your username to $login?';
+  }
+
+  @override
+  String get editProfileUsernameConfirmBody =>
+      'Your channel’s address changes at once, and you can’t change your username again for 60 days.';
+
+  @override
+  String get editProfileUsernameChange => 'Change username';
+
+  @override
+  String editProfileUsernameSaved({required String login}) {
+    return 'You’re now $login.';
+  }
+
+  @override
+  String get editProfileUsernameNotYet =>
+      'You changed your username recently. You can’t change it again yet.';
+
+  @override
+  String editProfileUsernameNotUntil({required String date}) {
+    return 'You changed your username recently. You can change it again on $date.';
+  }
+
+  @override
+  String get editProfileBio => 'Bio';
+
+  @override
+  String get editProfileBioEmpty => 'No bio yet';
+
+  @override
+  String get editProfileBioSaved => 'Bio updated';
+
+  @override
+  String get editProfileLinks => 'Social links';
+
+  @override
+  String get editProfileLinkAdd => 'Add a social link';
+
+  @override
+  String get editProfileLinkEdit => 'Edit the social link';
+
+  @override
+  String get editProfileLinkTitle => 'Title';
+
+  @override
+  String get editProfileLinkUrl => 'Link';
+
+  @override
+  String get editProfileLinkSaved => 'Social links updated';
+
+  @override
+  String get editProfileLinkDelete => 'Delete';
+
+  @override
+  String editProfileLinkDeleteTitle({required String title}) {
+    return 'Delete $title?';
+  }
+
+  @override
+  String get editProfileLinkDeleteBody =>
+      'It will no longer show on your channel.';
+
+  @override
+  String get editProfileLinkDeleted => 'Social link deleted';
+
+  @override
+  String get editProfileLinksFull =>
+      'You have 5 social links, the most Twitch allows.';
+
+  @override
+  String get editProfileLinksUnavailable => 'Couldn’t load your social links.';
+
+  @override
+  String get editProfileUnavailable =>
+      'Couldn’t load your profile from Twitch. You can still edit it on twitch.tv.';
+
+  @override
+  String get editProfileOnTwitch => 'Edit on twitch.tv';
+
+  @override
+  String get editProfileSave => 'Save';
+
+  @override
+  String get editProfileFailed => 'Couldn’t save this change.';
+
+  @override
+  String get editProfileIntegrity =>
+      'Twitch refused this change from the app. Make it on twitch.tv instead.';
+
+  @override
+  String get editProfileSignedOut => 'Log in again to edit your profile.';
+
+  @override
   String notInterestedCount({required int count}) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8666,6 +8881,145 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clipDownloadFailed => 'Couldn’t download this clip.';
+
+  @override
+  String get clipAutoLabel => 'Auto clip';
+
+  @override
+  String get clipWatchPortrait => 'Portrait version';
+
+  @override
+  String get clipComments => 'Comments';
+
+  @override
+  String get clipCommentsFailed => 'Couldn’t load the comments.';
+
+  @override
+  String get clipCommentsEmpty => 'No comments yet.';
+
+  @override
+  String get clipCommentsMore => 'More comments';
+
+  @override
+  String clipCommentReplies({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString replies',
+      one: '$countString reply',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clipCommentHearted => 'Liked by the channel';
+
+  @override
+  String get clipCommentCollapsed => 'Hidden by the community';
+
+  @override
+  String get clipCommentShow => 'Show';
+
+  @override
+  String clipCommentLikes({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString likes',
+      one: '$countString like',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clipCommentLikeFailed => 'Couldn’t update your like.';
+
+  @override
+  String get clipCommentHint => 'Add a comment…';
+
+  @override
+  String get clipCommentSend => 'Post';
+
+  @override
+  String get clipCommentPostFailed => 'Couldn’t post your comment.';
+
+  @override
+  String get clipCommentIntegrity =>
+      'Twitch refused this comment from the app. Post it on twitch.tv instead.';
+
+  @override
+  String get clipCommentSignedOut => 'Log in again to post comments.';
+
+  @override
+  String clipCommentRefused({required String code}) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'BODY_TOO_LONG': 'This comment is too long.',
+      'CONTAINS_LINK': 'Comments can’t contain links.',
+      'FAILED_MODERATION': 'This comment didn’t pass moderation.',
+      'RATE_LIMITED': 'You’re commenting too fast. Try again in a moment.',
+      'COMMENTS_DISABLED': 'Comments are turned off for this clip.',
+      'COMMENTS_RESTRICTED': 'Comments on this clip are restricted.',
+      'NOT_ELIGIBLE': 'You can’t comment on this clip.',
+      'other': 'Twitch refused this comment.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get clipCommentSignInToPost => 'Log in to post comments.';
+
+  @override
+  String get clipCommentEligibilityUnknown =>
+      'Couldn’t check whether you can comment on this clip.';
+
+  @override
+  String get clipCommentsDisabled => 'Comments are turned off for this clip.';
+
+  @override
+  String get clipCommentFollowFirst =>
+      'Follow this channel to comment on its clips.';
+
+  @override
+  String clipCommentFollowLonger({required int minutes}) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'You need to follow this channel for at least $minutesString minutes to comment on its clips.',
+      one:
+          'You need to follow this channel for at least $minutesString minute to comment on its clips.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clipCommentSubscribersOnly =>
+      'Only subscribers can comment on this clip.';
+
+  @override
+  String get clipCommentVerifyAccount =>
+      'Verify your email or phone number on twitch.tv to comment.';
+
+  @override
+  String get clipCommentNotAllowed => 'You can’t comment on this clip.';
+
+  @override
+  String get clipStoryPrevious => 'Previous clip';
+
+  @override
+  String get clipStoryNext => 'Next clip';
 
   @override
   String get myClipsTitle => 'My clips';

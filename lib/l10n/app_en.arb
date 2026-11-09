@@ -3716,6 +3716,51 @@
   "@profilePopularClips": {
     "description": "A channel's Home tab: the title above its most viewed clips."
   },
+  "recapsTitle": "Stream recaps",
+  "@recapsTitle": {
+    "description": "The title of the channel profile's row of recaps: short reels of a past stream's clips, put together by Twitch."
+  },
+  "recapLabel": "Recap",
+  "@recapLabel": {
+    "description": "A chip on a recap's picture, telling it apart from a clip or a video."
+  },
+  "recapUntitled": "Untitled recap",
+  "@recapUntitled": {
+    "description": "In place of the title of a recap that has none."
+  },
+  "recapClipCount": "{count, plural, one{{count} clip} other{{count} clips}}",
+  "@recapClipCount": {
+    "description": "How many clips a recap plays, on its picture.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "5"
+      }
+    }
+  },
+  "recapOpen": "Watch the recap {title}, {details}",
+  "@recapOpen": {
+    "description": "For screen readers, a recap's tile: opens the recap player. {details} is its clip count and age (5 clips · 2 hours ago).",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Warzone night"
+      },
+      "details": {
+        "type": "String",
+        "example": "5 clips · 2 hours ago"
+      }
+    }
+  },
+  "recapReport": "Report",
+  "@recapReport": {
+    "description": "The recap player's action that opens Twitch's report form for the recap's channel."
+  },
+  "recapUnavailable": "This recap is no longer available.",
+  "@recapUnavailable": {
+    "description": "The recap player when Twitch removed the recap (or the channel unpublished it) since the row was loaded."
+  },
   "profileThumbnail": "Thumbnail",
   "@profileThumbnail": {
     "description": "What a screen reader says for a video's or a clip's picture on a channel's Home tab."
@@ -10510,6 +10555,214 @@
   "@settingsPageNotInterested": {
     "description": "Settings › General › Browse: the row (and page title) listing the channels hidden from Live with « Not interested »."
   },
+  "editProfileTitle": "Edit profile",
+  "@editProfileTitle": {
+    "description": "Settings › Account: the row and page that change the viewer's Twitch profile (display name, username, bio, social links) from the app."
+  },
+  "editProfileRefused": "{code, select, DISPLAY_NAME_CHANGE_AGAIN{You can’t change your display name again yet.} DISPLAY_NAME_NOT_AVAILABLE{This display name is unavailable.} DISPLAY_NAME_ONLY_CAP{Your display name can only differ from your username in capitalization.} DISPLAY_NAME_TOO_LONG{This display name is too long.} DISPLAY_NAME_TOO_SHORT{This display name is too short.} INVALID_CHARS_IN_DISPLAY_NAME{This display name has characters Twitch doesn’t allow.} DESCRIPTION_FAILED_MODERATION{This bio didn’t pass moderation.} DESCRIPTION_TOO_LONG{This bio is too long.} LOGIN_CHANGE_COOLDOWN{You can’t change your username again yet.} LOGIN_CHANGE_EMAIL_VERIFIED{Verify your email on twitch.tv to change your username.} LOGIN_CONTAINS_INVALID_CHARACTERS{This username has characters Twitch doesn’t allow.} LOGIN_TOO_LONG{This username is too long.} LOGIN_TOO_SHORT{This username is too short.} LOGIN_UNAVAILABLE{This username is unavailable.} FAILED_TITLE_MODERATION{This title didn’t pass moderation.} INVALID_URL{Twitch doesn’t accept this link.} TITLE_TOO_LONG{This title is too long.} TOO_MANY{You already have the most social links Twitch allows.} NOT_FOUND{This social link no longer exists.} REAUTH_NEEDED{Log in again on twitch.tv to make this change.} REQUESTS_THROTTLED{Too many changes. Try again later.} TOO_MANY_REQUESTS{Too many changes. Try again later.} other{Twitch refused this change.}}",
+  "@editProfileRefused": {
+    "description": "A snack bar: why Twitch refused a profile change ({code} is Twitch's error code, never shown).",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "LOGIN_UNAVAILABLE"
+      }
+    }
+  },
+  "editProfileAbout": "Profile",
+  "@editProfileAbout": {
+    "description": "The group of the edit profile page with the display name, the username and the bio."
+  },
+  "editProfileImages": "Profile picture and banner",
+  "@editProfileImages": {
+    "description": "The edit profile page's row that opens Twitch's profile settings on twitch.tv, where the picture and the banner are changed."
+  },
+  "editProfileImagesHelp": "Change them on twitch.tv.",
+  "@editProfileImagesHelp": {
+    "description": "Under the profile picture and banner row."
+  },
+  "editProfileDisplayName": "Display name",
+  "@editProfileDisplayName": {
+    "description": "The edit profile row and dialog for the name shown in chat and on the channel."
+  },
+  "editProfileDisplayNameHelp": "Your display name can differ from {login} in capitalization. Some names in non-Latin characters can’t be changed again for 60 days.",
+  "@editProfileDisplayNameHelp": {
+    "description": "The display name dialog: Twitch's rules for the display name. {login} is the viewer's username.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "caster"
+      }
+    }
+  },
+  "editProfileDisplayNameSaved": "Display name updated",
+  "@editProfileDisplayNameSaved": {
+    "description": "A snack bar once Twitch saved the new display name."
+  },
+  "editProfileUsername": "Username",
+  "@editProfileUsername": {
+    "description": "The edit profile row and dialog for the viewer's Twitch username (their channel's address)."
+  },
+  "editProfileUsernameHelp": "Your username is your channel’s address. You can change it once every 60 days.",
+  "@editProfileUsernameHelp": {
+    "description": "The username dialog: what the username is and how often it can change."
+  },
+  "editProfileUsernameRules": "Use 3 to 25 letters, numbers or underscores, not starting with an underscore.",
+  "@editProfileUsernameRules": {
+    "description": "Under the username field when what is typed can't be a Twitch username."
+  },
+  "editProfileUsernameCheck": "Check availability",
+  "@editProfileUsernameCheck": {
+    "description": "The username dialog's button that asks Twitch whether the typed username is free."
+  },
+  "editProfileUsernameAvailable": "This username is available.",
+  "@editProfileUsernameAvailable": {
+    "description": "Under the username field once Twitch said the name is free."
+  },
+  "editProfileUsernameTaken": "This username is unavailable.",
+  "@editProfileUsernameTaken": {
+    "description": "Under the username field once Twitch said the name is taken."
+  },
+  "editProfileUsernameUnknown": "Couldn’t check this username. Twitch will check it when you change it.",
+  "@editProfileUsernameUnknown": {
+    "description": "Under the username field when Twitch did not answer (its anti-bot check often refuses the app); the change can still be tried."
+  },
+  "editProfileContinue": "Continue",
+  "@editProfileContinue": {
+    "description": "The username dialog's button that goes on to the confirmation."
+  },
+  "editProfileUsernameConfirmTitle": "Change your username to {login}?",
+  "@editProfileUsernameConfirmTitle": {
+    "description": "The confirmation before changing the username.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "new_name"
+      }
+    }
+  },
+  "editProfileUsernameConfirmBody": "Your channel’s address changes at once, and you can’t change your username again for 60 days.",
+  "@editProfileUsernameConfirmBody": {
+    "description": "The body of the confirmation before changing the username."
+  },
+  "editProfileUsernameChange": "Change username",
+  "@editProfileUsernameChange": {
+    "description": "The confirmation's button that changes the username."
+  },
+  "editProfileUsernameSaved": "You’re now {login}.",
+  "@editProfileUsernameSaved": {
+    "description": "A snack bar once Twitch changed the username.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "new_name"
+      }
+    }
+  },
+  "editProfileUsernameNotYet": "You changed your username recently. You can’t change it again yet.",
+  "@editProfileUsernameNotYet": {
+    "description": "The username dialog when Twitch says the viewer may not rename yet and gives no date."
+  },
+  "editProfileUsernameNotUntil": "You changed your username recently. You can change it again on {date}.",
+  "@editProfileUsernameNotUntil": {
+    "description": "The username dialog when Twitch says the viewer may rename again on {date} (a full date).",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "January 8, 2027"
+      }
+    }
+  },
+  "editProfileBio": "Bio",
+  "@editProfileBio": {
+    "description": "The edit profile row and dialog for the channel's description."
+  },
+  "editProfileBioEmpty": "No bio yet",
+  "@editProfileBioEmpty": {
+    "description": "The bio row when the viewer has none."
+  },
+  "editProfileBioSaved": "Bio updated",
+  "@editProfileBioSaved": {
+    "description": "A snack bar once Twitch saved the new bio."
+  },
+  "editProfileLinks": "Social links",
+  "@editProfileLinks": {
+    "description": "The group of the edit profile page listing the links shown on the viewer's channel."
+  },
+  "editProfileLinkAdd": "Add a social link",
+  "@editProfileLinkAdd": {
+    "description": "The row (and dialog title) that adds a social link."
+  },
+  "editProfileLinkEdit": "Edit the social link",
+  "@editProfileLinkEdit": {
+    "description": "The title of the dialog that edits or deletes a social link."
+  },
+  "editProfileLinkTitle": "Title",
+  "@editProfileLinkTitle": {
+    "description": "The social link dialog's field for the text shown for the link."
+  },
+  "editProfileLinkUrl": "Link",
+  "@editProfileLinkUrl": {
+    "description": "The social link dialog's field for the full address, starting with https://."
+  },
+  "editProfileLinkSaved": "Social links updated",
+  "@editProfileLinkSaved": {
+    "description": "A snack bar once Twitch saved a social link."
+  },
+  "editProfileLinkDelete": "Delete",
+  "@editProfileLinkDelete": {
+    "description": "The social link dialog's button (and its confirmation's) that deletes the link."
+  },
+  "editProfileLinkDeleteTitle": "Delete {title}?",
+  "@editProfileLinkDeleteTitle": {
+    "description": "The confirmation before deleting a social link.",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "YouTube"
+      }
+    }
+  },
+  "editProfileLinkDeleteBody": "It will no longer show on your channel.",
+  "@editProfileLinkDeleteBody": {
+    "description": "The body of the confirmation before deleting a social link."
+  },
+  "editProfileLinkDeleted": "Social link deleted",
+  "@editProfileLinkDeleted": {
+    "description": "A snack bar once Twitch deleted a social link."
+  },
+  "editProfileLinksFull": "You have 5 social links, the most Twitch allows.",
+  "@editProfileLinksFull": {
+    "description": "In place of the add row when the viewer has the most links Twitch allows."
+  },
+  "editProfileLinksUnavailable": "Couldn’t load your social links.",
+  "@editProfileLinksUnavailable": {
+    "description": "The edit profile page when Twitch did not send the social links."
+  },
+  "editProfileUnavailable": "Couldn’t load your profile from Twitch. You can still edit it on twitch.tv.",
+  "@editProfileUnavailable": {
+    "description": "The edit profile page when the profile can't be read (no Twitch web session, or Twitch changed its API)."
+  },
+  "editProfileOnTwitch": "Edit on twitch.tv",
+  "@editProfileOnTwitch": {
+    "description": "The row that opens Twitch's profile settings on twitch.tv."
+  },
+  "editProfileSave": "Save",
+  "@editProfileSave": {
+    "description": "Saves a profile change in its dialog."
+  },
+  "editProfileFailed": "Couldn’t save this change.",
+  "@editProfileFailed": {
+    "description": "A snack bar when a profile change failed for an unknown reason."
+  },
+  "editProfileIntegrity": "Twitch refused this change from the app. Make it on twitch.tv instead.",
+  "@editProfileIntegrity": {
+    "description": "A snack bar when Twitch's anti-bot check refused a profile change."
+  },
+  "editProfileSignedOut": "Log in again to edit your profile.",
+  "@editProfileSignedOut": {
+    "description": "A snack bar when Twitch no longer accepts the viewer's session."
+  },
   "notInterestedCount": "{count, plural, one{{count} hidden channel} other{{count} hidden channels}}",
   "@notInterestedCount": {
     "description": "Not interested page: the section label above the list. count is how many channels.",
@@ -11114,6 +11367,145 @@
   "clipDownloadFailed": "Couldn’t download this clip.",
   "@clipDownloadFailed": {
     "description": "A snack bar when the clip's video could not be downloaded."
+  },
+  "clipAutoLabel": "Auto clip",
+  "@clipAutoLabel": {
+    "description": "A pill on a clip Twitch made automatically from the stream, not a person."
+  },
+  "clipWatchPortrait": "Portrait version",
+  "@clipWatchPortrait": {
+    "description": "A clip's action: plays the vertical version Twitch made of the clip, full screen."
+  },
+  "clipComments": "Comments",
+  "@clipComments": {
+    "description": "A clip's action, and the title of the sheet listing the comments viewers posted on the clip."
+  },
+  "clipCommentsFailed": "Couldn’t load the comments.",
+  "@clipCommentsFailed": {
+    "description": "The comments sheet when Twitch did not send the clip's comments."
+  },
+  "clipCommentsEmpty": "No comments yet.",
+  "@clipCommentsEmpty": {
+    "description": "The comments sheet when nobody commented on the clip."
+  },
+  "clipCommentsMore": "More comments",
+  "@clipCommentsMore": {
+    "description": "The button at the end of the comments that loads the next ones."
+  },
+  "clipCommentReplies": "{count, plural, one{{count} reply} other{{count} replies}}",
+  "@clipCommentReplies": {
+    "description": "Under a clip comment: how many replies it has.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "3"
+      }
+    }
+  },
+  "clipCommentHearted": "Liked by the channel",
+  "@clipCommentHearted": {
+    "description": "Under a clip comment the channel's owner liked."
+  },
+  "clipCommentCollapsed": "Hidden by the community",
+  "@clipCommentCollapsed": {
+    "description": "In place of a clip comment other viewers voted down; a Show button reveals it."
+  },
+  "clipCommentShow": "Show",
+  "@clipCommentShow": {
+    "description": "Reveals a clip comment the community hid."
+  },
+  "clipCommentLikes": "{count, plural, one{{count} like} other{{count} likes}}",
+  "@clipCommentLikes": {
+    "description": "For screen readers, the like button of a clip comment: how many likes it has; a tap likes or unlikes it.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "12"
+      }
+    }
+  },
+  "clipCommentLikeFailed": "Couldn’t update your like.",
+  "@clipCommentLikeFailed": {
+    "description": "A snack bar when liking or unliking a clip comment failed."
+  },
+  "clipCommentHint": "Add a comment…",
+  "@clipCommentHint": {
+    "description": "The hint of the field that writes a comment on a clip."
+  },
+  "clipCommentSend": "Post",
+  "@clipCommentSend": {
+    "description": "Posts the comment written on a clip."
+  },
+  "clipCommentPostFailed": "Couldn’t post your comment.",
+  "@clipCommentPostFailed": {
+    "description": "Under the comment field when posting failed for an unknown reason."
+  },
+  "clipCommentIntegrity": "Twitch refused this comment from the app. Post it on twitch.tv instead.",
+  "@clipCommentIntegrity": {
+    "description": "Under the comment field when Twitch's anti-bot check refused the comment."
+  },
+  "clipCommentSignedOut": "Log in again to post comments.",
+  "@clipCommentSignedOut": {
+    "description": "Under the comment field when Twitch no longer accepts the viewer's session."
+  },
+  "clipCommentRefused": "{code, select, BODY_TOO_LONG{This comment is too long.} CONTAINS_LINK{Comments can’t contain links.} FAILED_MODERATION{This comment didn’t pass moderation.} RATE_LIMITED{You’re commenting too fast. Try again in a moment.} COMMENTS_DISABLED{Comments are turned off for this clip.} COMMENTS_RESTRICTED{Comments on this clip are restricted.} NOT_ELIGIBLE{You can’t comment on this clip.} other{Twitch refused this comment.}}",
+  "@clipCommentRefused": {
+    "description": "Under the comment field: why Twitch refused the comment ({code} is Twitch's error code, never shown).",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "BODY_TOO_LONG"
+      }
+    }
+  },
+  "clipCommentSignInToPost": "Log in to post comments.",
+  "@clipCommentSignInToPost": {
+    "description": "At the bottom of the comments sheet for a viewer who is not logged in (or has no Twitch web session)."
+  },
+  "clipCommentEligibilityUnknown": "Couldn’t check whether you can comment on this clip.",
+  "@clipCommentEligibilityUnknown": {
+    "description": "At the bottom of the comments sheet when Twitch did not say whether the viewer may comment."
+  },
+  "clipCommentsDisabled": "Comments are turned off for this clip.",
+  "@clipCommentsDisabled": {
+    "description": "At the bottom of the comments sheet when the channel turned comments off."
+  },
+  "clipCommentFollowFirst": "Follow this channel to comment on its clips.",
+  "@clipCommentFollowFirst": {
+    "description": "At the bottom of the comments sheet when only followers may comment."
+  },
+  "clipCommentFollowLonger": "{minutes, plural, one{You need to follow this channel for at least {minutes} minute to comment on its clips.} other{You need to follow this channel for at least {minutes} minutes to comment on its clips.}}",
+  "@clipCommentFollowLonger": {
+    "description": "At the bottom of the comments sheet when the viewer has not followed the channel long enough to comment.",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "10"
+      }
+    }
+  },
+  "clipCommentSubscribersOnly": "Only subscribers can comment on this clip.",
+  "@clipCommentSubscribersOnly": {
+    "description": "At the bottom of the comments sheet when only subscribers may comment."
+  },
+  "clipCommentVerifyAccount": "Verify your email or phone number on twitch.tv to comment.",
+  "@clipCommentVerifyAccount": {
+    "description": "At the bottom of the comments sheet when Twitch requires a verified email or phone number."
+  },
+  "clipCommentNotAllowed": "You can’t comment on this clip.",
+  "@clipCommentNotAllowed": {
+    "description": "At the bottom of the comments sheet when Twitch refuses comments for another reason."
+  },
+  "clipStoryPrevious": "Previous clip",
+  "@clipStoryPrevious": {
+    "description": "For screen readers, the left side of a recap or portrait clip: goes back one clip."
+  },
+  "clipStoryNext": "Next clip",
+  "@clipStoryNext": {
+    "description": "For screen readers, the right side of a recap or portrait clip: skips to the next clip."
   },
   "myClipsTitle": "My clips",
   "@myClipsTitle": {

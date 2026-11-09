@@ -21,6 +21,7 @@ import 'package:onset/screens/channel_profile/widgets/profile_header.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_home_tab.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_live_card.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_recaps_shelf.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_schedule_tab.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_videos_tab.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
@@ -543,6 +544,14 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
             _showTab(ProfileTab.videos);
           },
           onViewAllClips: () => _showTab(ProfileTab.clips),
+          recaps: switch (_userId) {
+            final id? => ProfileRecapsShelf(
+              key: ValueKey('recaps-$id'),
+              load: () => context.twitchClipService.getChannelRecaps(id),
+              large: large,
+            ),
+            null => null,
+          },
           showStream: large,
           large: large,
           status: error != null && profile == null && !retrying

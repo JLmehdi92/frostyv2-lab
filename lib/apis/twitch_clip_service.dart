@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/models/clip.dart';
+import 'package:onset/models/clip_comment.dart';
+import 'package:onset/models/recap.dart';
 
 /// A GQL error answered for a clip request.
 class ClipApiException extends ApiException {
@@ -87,6 +89,102 @@ class TwitchClipService extends BaseApiClient {
       '"mediaplayer", playerType: "site"}) { signature value } '
       'videoQualities { quality frameRate sourceURL } '
       'assets { type videoQualities { quality frameRate sourceURL } } } }';
+
+  static const _clipExtrasQuery =
+      'query ClipExtras(\$slug: ID!) { clip(slug: \$slug) { id '
+      'isAutoCurated assets { type aspectRatio } } }';
+
+  static const _recapFields =
+      'id title state streamStartAt postedAt channel { id login displayName } '
+      'clips { position clip { $_clipFields } }';
+
+  static const _channelRecapsQuery =
+      'query ChannelRecaps(\$channelID: ID!, \$first: Int) { recaps(filter: '
+      '{channelIDs: [\$channelID]}, first: \$first) { edges { node { '
+      '$_recapFields } } } }';
+
+  static const _recapQuery =
+      'query RecapById(\$ids: [ID!]!) { recapsByIDs(ids: \$ids) { '
+      '$_recapFields } }';
+
+  static const _clipCommentsQuery =
+      'query ClipCommentsQuery(\$slug: ID!, \$first: Int = 20 , \$after: '
+      'Cursor) { clip(slug: \$slug) { comments(first: \$first, after: '
+      '\$after) { edges { cursor node { __typename ...ClipCommentFragment } } '
+      'pageInfo { hasNextPage endCursor } } } }  fragment UserBadgeFragment on '
+      'Badge { setID imageUrlNormal: imageURL(size: NORMAL) imageUrlDouble: '
+      'imageURL(size: DOUBLE) imageUrlQuadruple: imageURL(size: QUADRUPLE) '
+      'version title }  fragment ClipCommentFragment on ClipComment { id body '
+      'likeCount replyCount isHeartedByCreator isLikedByViewer '
+      'isDownvotedByViewer isCollapsedByCommunity createdAt editedAt author { '
+      'id login displayName profileImageURL(width: 70) } authorBadges { '
+      '__typename ...UserBadgeFragment } emotes { emoteID from to } '
+      'parentComment { id } }';
+
+  static const recapsShelfSize = 10;
+
+  Future<ClipExtras?> getClipExtras(String slug) async {
+    if (!isValidClipSlug(slug)) return null;
+    try {
+      final data = await _gql('ClipExtras', _clipExtrasQuery, {'slug': slug});
+      return ClipExtras.tryParse(data['clip']);
+    } catch (e) {
+      if (kDebugMode) debugPrint('ClipExtras failed: $e');
+      return null;
+    }
+  }
+
+  Future<List<Recap>> getChannelRecaps(String channelId) async {
+    if (!RegExp(r'^[0-9]{1,20}$').hasMatch(channelId)) return const [];
+    try {
+      final data = await _gql('ChannelRecaps', _channelRecapsQuery, {
+        'channelID': channelId,
+        'first': recapsShelfSize,
+      });
+      final recaps = data['recaps'];
+      final edges = recaps is Map && recaps['edges'] is List
+          ? recaps['edges'] as List
+          : const [];
+      return [
+        for (final edge in edges)
+          ?Recap.tryParse(edge is Map ? edge['node'] : null),
+      ];
+    } catch (e) {
+      if (kDebugMode) debugPrint('ChannelRecaps failed: $e');
+      return const [];
+    }
+  }
+
+  Future<Recap> getRecap(String id) async {
+    if (!Recap.isValidId(id)) throw const RecapUnavailableException();
+    final data = await _gql('RecapById', _recapQuery, {
+      'ids': [id],
+    });
+    final recaps = data['recapsByIDs'];
+    if (recaps is! List) throw const ClipApiException('Unreadable recap');
+    for (final node in recaps) {
+      if (node is Map && node['id'] == id) {
+        return Recap.tryParse(node) ??
+            (throw const RecapUnavailableException());
+      }
+    }
+    throw const RecapUnavailableException();
+  }
+
+  Future<ClipCommentPage> getClipComments(
+    String slug, {
+    String? cursor,
+    String? authToken,
+  }) async {
+    _checkSlug(slug);
+    final data = await _gql('ClipCommentsQuery', _clipCommentsQuery, {
+      'slug': slug,
+      'first': 20,
+      if (cursor != null && cursor.isNotEmpty) 'after': cursor,
+    }, authToken: authToken);
+    return ClipCommentPage.tryParse(data) ??
+        (throw const ClipApiException('Unreadable comments'));
+  }
 
   /// The channel's top 100 clips of [period], in [sort] order.
   Future<ClipPage> getChannelClips({
@@ -336,7 +434,10 @@ class TwitchClipService extends BaseApiClient {
     }
   }
 
-  Future<ClipPlayback> getClipPlayback(String slug) async {
+  Future<ClipPlayback> getClipPlayback(
+    String slug, {
+    bool portrait = false,
+  }) async {
     _checkSlug(slug);
     final data = await _gql('ClipPlayback', _playbackQuery, {'slug': slug});
     final clip = data['clip'];
@@ -353,7 +454,7 @@ class TwitchClipService extends BaseApiClient {
         reason is String && reason.isNotEmpty ? reason : null,
       );
     }
-    final renditions = renditionsFrom(JsonMap.from(clip));
+    final renditions = renditionsFrom(JsonMap.from(clip), portrait: portrait);
     if (renditions.isEmpty) {
       throw const ApiException('No playable rendition for this clip');
     }
@@ -370,13 +471,17 @@ class TwitchClipService extends BaseApiClient {
   /// `RECOMPOSED` one is a vertical remake), else `videoQualities`. Only
   /// https URLs on Twitch's clip CDNs are kept.
   @visibleForTesting
-  static List<ClipRendition> renditionsFrom(JsonMap clip) {
+  static List<ClipRendition> renditionsFrom(
+    JsonMap clip, {
+    bool portrait = false,
+  }) {
     List<Object?> sourceQualities = const [];
     final assets = clip['assets'];
+    final wanted = portrait ? 'RECOMPOSED' : 'SOURCE';
     if (assets is List) {
       for (final asset in assets) {
         if (asset is Map &&
-            asset['type'] == 'SOURCE' &&
+            asset['type'] == wanted &&
             asset['videoQualities'] is List) {
           sourceQualities = asset['videoQualities'] as List;
           break;
@@ -384,7 +489,7 @@ class TwitchClipService extends BaseApiClient {
       }
     }
     final fromSource = _renditions(sourceQualities);
-    if (fromSource.isNotEmpty) return fromSource;
+    if (fromSource.isNotEmpty || portrait) return fromSource;
     final qualities = clip['videoQualities'];
     return _renditions(qualities is List ? qualities : const []);
   }
@@ -474,11 +579,16 @@ class TwitchClipService extends BaseApiClient {
   Future<JsonMap> _gql(
     String operationName,
     String query,
-    JsonMap variables,
-  ) async {
+    JsonMap variables, {
+    String? authToken,
+  }) async {
     final body = await post<JsonMap>(
       _gqlUrl,
-      headers: {'Client-ID': _gqlClientId},
+      headers: {
+        'Client-ID': _gqlClientId,
+        if (authToken != null && authToken.isNotEmpty)
+          'Authorization': 'OAuth $authToken',
+      },
       data: {
         'operationName': operationName,
         'query': query,

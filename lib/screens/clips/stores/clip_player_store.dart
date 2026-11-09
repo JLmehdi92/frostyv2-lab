@@ -33,6 +33,7 @@ abstract class ClipPlayerStoreBase
     required this.slug,
     required this.clipService,
     required this.settingsStore,
+    this.portrait = false,
     Duration? knownLength,
     ClipMediaBackend? backend,
     bool focused = true,
@@ -77,6 +78,7 @@ abstract class ClipPlayerStoreBase
   }
 
   final String slug;
+  final bool portrait;
   final TwitchClipService clipService;
   final SettingsStore settingsStore;
 
@@ -187,7 +189,7 @@ abstract class ClipPlayerStoreBase
     runInAction(() => _looping = looping);
     final ClipPlayback playback;
     try {
-      playback = await clipService.getClipPlayback(slug);
+      playback = await clipService.getClipPlayback(slug, portrait: portrait);
     } on ClipForbiddenException catch (e) {
       _setProblem(
         e.reason?.toLowerCase().contains('geo') == true
@@ -347,7 +349,10 @@ abstract class ClipPlayerStoreBase
     final play = _focused && !paused;
     runInAction(() => _status = VodPlaybackStatus.loading);
     try {
-      final playback = await clipService.getClipPlayback(slug);
+      final playback = await clipService.getClipPlayback(
+        slug,
+        portrait: portrait,
+      );
       if (_disposed || _failedOnce) return;
       _playback = playback;
       _ignoreErrorsUntil = clock.now().add(const Duration(seconds: 2));

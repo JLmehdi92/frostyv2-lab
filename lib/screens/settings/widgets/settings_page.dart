@@ -29,7 +29,8 @@ enum SettingsPageId {
   account(SettingsGlyphKind.user),
   blocked(SettingsGlyphKind.ban),
   chatFilters(SettingsGlyphKind.filter),
-  notInterested(SettingsGlyphKind.list);
+  notInterested(SettingsGlyphKind.list),
+  editProfile(SettingsGlyphKind.user);
 
   const SettingsPageId(this.glyph);
 
@@ -42,10 +43,12 @@ enum SettingsPageId {
   final SettingsGlyphKind glyph;
 
   /// The pages listed on their own in the tablet's side column.
-  bool get isSection => this != chatFilters && this != notInterested;
+  bool get isSection =>
+      this != chatFilters && this != notInterested && this != editProfile;
 
   /// Logged in only.
-  bool get needsAccount => this == account || this == blocked;
+  bool get needsAccount =>
+      this == account || this == blocked || this == editProfile;
 }
 
 /// Opens a settings page in its pane on a tablet: the side column's page

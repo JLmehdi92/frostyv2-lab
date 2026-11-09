@@ -278,3 +278,27 @@ T? _as<T>(Object? value) => value is T ? value : null;
 /// [value] as a whole number, at least 0; null when not finite.
 int? _nonNegative(num? value) =>
     value == null || !value.isFinite ? null : math.max(0, value.toInt());
+
+class ClipExtras {
+  const ClipExtras({required this.autoClip, required this.hasPortrait});
+
+  static ClipExtras? tryParse(Object? clip) {
+    if (clip is! Map) return null;
+    final assets = clip['assets'] is List ? clip['assets'] as List : const [];
+    final hasPortrait = assets.any(
+      (asset) =>
+          asset is Map &&
+          asset['type'] == 'RECOMPOSED' &&
+          asset['aspectRatio'] is num &&
+          (asset['aspectRatio'] as num) > 0 &&
+          (asset['aspectRatio'] as num) < 1,
+    );
+    return ClipExtras(
+      autoClip: clip['isAutoCurated'] == true,
+      hasPortrait: hasPortrait,
+    );
+  }
+
+  final bool autoClip;
+  final bool hasPortrait;
+}

@@ -23,7 +23,14 @@ class ClipInfoPanel extends StatelessWidget {
     required this.onShare,
     this.onWatchFullVideo,
     this.onDownload,
+    this.autoClip = false,
+    this.onWatchPortrait,
+    this.onComments,
   });
+
+  final bool autoClip;
+  final VoidCallback? onWatchPortrait;
+  final VoidCallback? onComments;
 
   final VoidCallback? onDownload;
 
@@ -115,6 +122,11 @@ class ClipInfoPanel extends StatelessWidget {
                   VideoCategoryChip(name: gameName, gameId: gameId, height: 26),
                 if (clip.vodId != null)
                   ClipOriginPill(label: l.clipFromPastBroadcast),
+                if (autoClip)
+                  ClipOriginPill(
+                    key: const ValueKey('clip-auto'),
+                    label: l.clipAutoLabel,
+                  ),
               ],
             ),
             if (clip.broadcasterLogin.isNotEmpty)
@@ -204,6 +216,22 @@ class ClipInfoPanel extends StatelessWidget {
                   onTap: onCopyLink,
                 ),
                 _ShareDisc(onTap: onShare),
+                if (onComments != null)
+                  VideoActionPill(
+                    key: const ValueKey('clip-comments'),
+                    glyph: VideoGlyphKind.comment,
+                    label: l.clipComments,
+                    raised: true,
+                    onTap: onComments,
+                  ),
+                if (onWatchPortrait != null)
+                  VideoActionPill(
+                    key: const ValueKey('clip-portrait'),
+                    glyph: VideoGlyphKind.portrait,
+                    label: l.clipWatchPortrait,
+                    raised: true,
+                    onTap: onWatchPortrait,
+                  ),
                 if (onDownload != null)
                   VideoActionPill(
                     key: const ValueKey('clip-download'),
