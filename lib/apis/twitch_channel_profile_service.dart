@@ -49,7 +49,11 @@ class TwitchChannelProfileService extends BaseApiClient {
       '\$channelID) { id channelSafetyStatus } }';
 
   static final _channelId = RegExp(r'^[0-9]{1,20}$');
-  static final _restrictedStatus = RegExp('RESTRICT|SUSPEND');
+  static const _restrictedStatuses = {
+    'RESTRICTED',
+    'SUSPENDED',
+    'TEMPORARILY_RESTRICTED',
+  };
 
   Future<bool> isRestricted(String channelId) async {
     if (!_channelId.hasMatch(channelId)) return false;
@@ -70,7 +74,7 @@ class TwitchChannelProfileService extends BaseApiClient {
       return statuses.any(
         (status) =>
             status is String &&
-            _restrictedStatus.hasMatch(status.toUpperCase()),
+            _restrictedStatuses.contains(status.trim().toUpperCase()),
       );
     } catch (_) {
       return false;

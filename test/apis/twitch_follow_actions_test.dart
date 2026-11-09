@@ -221,6 +221,35 @@ void main() {
     test('an unknown status or a failure hides it', () async {
       reply(channelRestrictionResponse(['SOMETHING_ELSE']));
       expect(await profiles.isRestricted('1000'), isFalse);
+    });
+
+    for (final status in [
+      'UNRESTRICTED',
+      'NOT_SUSPENDED',
+      'NO_RESTRICTIONS',
+      'RESTRICTED_FROM_RECOMMENDATIONS',
+      'UNSUSPENDED',
+    ]) {
+      test('$status is not a restriction', () async {
+        reply(channelRestrictionResponse([status]));
+        expect(await profiles.isRestricted('1000'), isFalse);
+      });
+    }
+
+    for (final status in [
+      'SUSPENDED',
+      'TEMPORARILY_RESTRICTED',
+      'restricted',
+    ]) {
+      test('$status is a restriction', () async {
+        reply(channelRestrictionResponse([status]));
+        expect(await profiles.isRestricted('1000'), isTrue);
+      });
+    }
+
+    test('a server failure hides it too', () async {
+      reply(channelRestrictionResponse(['SOMETHING_ELSE']));
+      expect(await profiles.isRestricted('1000'), isFalse);
       adapter.reset();
       reply(null, status: 500);
       expect(await profiles.isRestricted('1000'), isFalse);
