@@ -9354,6 +9354,78 @@ abstract class AppLocalizations {
   /// **'No matching chatters'**
   String get chatChattersNoMatch;
 
+  /// Emote menu: the tab that searches and sends GIFs.
+  ///
+  /// In en, this message translates to:
+  /// **'GIFs'**
+  String get gifTab;
+
+  /// Emote menu › GIFs: the search field hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search GIPHY'**
+  String get gifSearchHint;
+
+  /// Emote menu › GIFs: the attribution under the GIFs.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered by GIPHY'**
+  String get gifPoweredBy;
+
+  /// Screen-reader label of a GIF without a title in the GIF picker.
+  ///
+  /// In en, this message translates to:
+  /// **'GIF'**
+  String get gifTileLabel;
+
+  /// The title of the dialog confirming that a GIF is sent to the chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Send this GIF?'**
+  String get gifSendTitle;
+
+  /// The body of the dialog confirming that a GIF is sent to the chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone in this chat will see it. You’re responsible for the GIFs you send, so follow Twitch’s Community Guidelines.'**
+  String get gifSendDisclosure;
+
+  /// The button that sends the GIF to the chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get gifSend;
+
+  /// Snackbar when a GIF couldn’t be sent: a cooldown with the seconds to wait, or why it failed.
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, cooldown{{seconds, plural, =1{You can send another GIF in 1 second.} other{You can send another GIF in {seconds} seconds.}}} refused{Twitch declined this GIF.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.} signedOut{Log in again to send GIFs from ONSET.} other{Couldn’t send the GIF. Try again.}}'**
+  String gifSendResult({required String status, required int seconds});
+
+  /// Emote menu › GIFs: the channel has GIFs off, or Twitch’s GIF settings couldn’t be read.
+  ///
+  /// In en, this message translates to:
+  /// **'GIFs aren’t available in this chat.'**
+  String get gifUnavailable;
+
+  /// Emote menu › GIFs: the channel has GIFs on, but the viewer may not send them.
+  ///
+  /// In en, this message translates to:
+  /// **'You can’t send GIFs in this chat yet. On this channel, GIFs are a subscriber benefit.'**
+  String get gifSubscribersOnly;
+
+  /// Emote menu › GIFs: GIPHY couldn’t be reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load GIFs. Try again in a moment.'**
+  String get gifLoadFailed;
+
+  /// Emote menu › GIFs: the search found nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No GIFs found. Try another search.'**
+  String get gifNoResults;
+
   /// The emote menu's first tab: the emotes the viewer used lately (« emotes » is feminine).
   ///
   /// In en, this message translates to:

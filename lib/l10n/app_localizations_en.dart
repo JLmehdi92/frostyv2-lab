@@ -6983,6 +6983,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatChattersNoMatch => 'No matching chatters';
 
   @override
+  String get gifTab => 'GIFs';
+
+  @override
+  String get gifSearchHint => 'Search GIPHY';
+
+  @override
+  String get gifPoweredBy => 'Powered by GIPHY';
+
+  @override
+  String get gifTileLabel => 'GIF';
+
+  @override
+  String get gifSendTitle => 'Send this GIF?';
+
+  @override
+  String get gifSendDisclosure =>
+      'Everyone in this chat will see it. You’re responsible for the GIFs you send, so follow Twitch’s Community Guidelines.';
+
+  @override
+  String get gifSend => 'Send';
+
+  @override
+  String gifSendResult({required String status, required int seconds}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other: 'You can send another GIF in $seconds seconds.',
+      one: 'You can send another GIF in 1 second.',
+    );
+    String _temp1 = intl.Intl.selectLogic(status, {
+      'cooldown': '$_temp0',
+      'refused': 'Twitch declined this GIF.',
+      'integrityRefused':
+          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.',
+      'signedOut': 'Log in again to send GIFs from ONSET.',
+      'other': 'Couldn’t send the GIF. Try again.',
+    });
+    return '$_temp1';
+  }
+
+  @override
+  String get gifUnavailable => 'GIFs aren’t available in this chat.';
+
+  @override
+  String get gifSubscribersOnly =>
+      'You can’t send GIFs in this chat yet. On this channel, GIFs are a subscriber benefit.';
+
+  @override
+  String get gifLoadFailed => 'Couldn’t load GIFs. Try again in a moment.';
+
+  @override
+  String get gifNoResults => 'No GIFs found. Try another search.';
+
+  @override
   String get emoteMenuRecent => 'Recent';
 
   @override

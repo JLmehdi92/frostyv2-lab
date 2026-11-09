@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/apis/giphy_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu_panel.dart';
+import 'package:onset/screens/channel/chat/emote_menu/gif_picker_panel.dart';
 import 'package:onset/screens/channel/chat/emote_menu/recent_emotes_panel.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:provider/provider.dart';
 
 /// The emote menu: Recent, Twitch, 7TV, BTTV and
 /// FFZ as underlined tabs, their sets as pills, the grid. Under the chat
@@ -31,6 +36,7 @@ class EmoteMenu extends StatelessWidget {
       builder: (context) {
         final colors = SheetColors.of(context);
         final hasRecent = chatStore.assetsStore.recentEmotes.isNotEmpty;
+        final gifs = _gifPicker(context);
         return EmoteTabsView(
           panel: panel,
           headers: [
@@ -39,6 +45,7 @@ class EmoteMenu extends StatelessWidget {
             if (settings.show7TVEmotes) '7TV',
             if (settings.showBTTVEmotes) 'BTTV',
             if (settings.showFFZEmotes) 'FFZ',
+            if (gifs != null) context.l10n.gifTab,
           ],
           tabActions: {
             if (hasRecent)
@@ -76,9 +83,44 @@ class EmoteMenu extends StatelessWidget {
             ].map(
               (emotes) => EmoteMenuPanel(chatStore: chatStore, emotes: emotes),
             ),
+            ?gifs,
           ],
         );
       },
+    );
+  }
+
+  Widget? _gifPicker(BuildContext context) {
+    final token = chatStore.auth.twitchWebToken ?? '';
+    if (!chatStore.auth.isLoggedIn || token.isEmpty) return null;
+    final TwitchViewerActionsService? service;
+    final GiphyService? giphy;
+    try {
+      service = context.read<TwitchViewerActionsService?>();
+      giphy = context.read<GiphyService?>();
+    } on ProviderNotFoundException {
+      return null;
+    }
+    if (service == null || giphy == null) return null;
+    final actions = service;
+    return GifPickerPanel(
+      channelLogin: chatStore.channelName,
+      channelName: getReadableName(
+        chatStore.displayName,
+        chatStore.channelName,
+      ),
+      giphy: giphy,
+      loadConfig: () => actions.gifPickerConfig(
+        channelId: chatStore.channelId,
+        authToken: chatStore.auth.twitchWebToken ?? '',
+      ),
+      send: (gif, searchTerm) => actions.sendGif(
+        channelId: chatStore.channelId,
+        gif: gif,
+        searchTerm: searchTerm,
+        authToken: chatStore.auth.twitchWebToken ?? '',
+      ),
+      onSent: () => chatStore.assetsStore.showEmoteMenu = false,
     );
   }
 }

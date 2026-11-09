@@ -9,6 +9,7 @@ import 'package:onset/models/chat_ui_settings.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/follow_result.dart';
+import 'package:onset/models/gif_picker.dart';
 import 'package:onset/models/unban_request.dart';
 import 'package:onset/models/weekly_rewards.dart';
 
@@ -635,6 +636,79 @@ class TwitchViewerActionsService extends BaseApiClient {
     input: {setting.field: enabled},
     succeeded: (payload) => payload[setting.field] == enabled,
   );
+
+  static const _gifPickerConfigDocument =
+      'query GetGifPickerConfig(\$channelID: ID!) { '
+      'gifPickerConfig(channelID: \$channelID) { isEnabled isAllowlisted '
+      'apiKey contentRating } }';
+
+  static const _sendGifDocument =
+      'mutation sendGifMessage(\$input: SendGifMessageInput!) { '
+      'sendGifMessage(input: \$input) { error secondsUntilCanSend message { '
+      'id } } }';
+
+  Future<GifPickerConfig?> gifPickerConfig({
+    required String channelId,
+    required String authToken,
+  }) async {
+    if (authToken.isEmpty || !_numericId.hasMatch(channelId)) return null;
+    try {
+      final Object? body = await post<dynamic>(
+        _gqlUrl,
+        headers: _viewerHeaders(authToken),
+        data: {
+          'operationName': 'GetGifPickerConfig',
+          'query': _gifPickerConfigDocument,
+          'variables': {'channelID': channelId},
+        },
+      );
+      final data = body is Map ? body['data'] : null;
+      return GifPickerConfig.fromConfig(
+        data is Map ? data['gifPickerConfig'] : null,
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('GetGifPickerConfig failed: $e');
+      return null;
+    }
+  }
+
+  Future<GifSendResult> sendGif({
+    required String channelId,
+    required GiphyGif gif,
+    required String searchTerm,
+    required String authToken,
+  }) async {
+    if (authToken.isEmpty) return const GifSendResult(GifSendStatus.signedOut);
+    if (!_numericId.hasMatch(channelId)) {
+      return const GifSendResult(GifSendStatus.failed);
+    }
+    final term = searchTerm.trim();
+    try {
+      return GifSendResult.fromBody(
+        await post<dynamic>(
+          _gqlUrl,
+          headers: _viewerHeaders(authToken),
+          data: {
+            'operationName': 'sendGifMessage',
+            'query': _sendGifDocument,
+            'variables': {
+              'input': {
+                'channelID': channelId,
+                'gifID': gif.id,
+                'gifURL': gif.url,
+                if (term.isNotEmpty) 'searchTerm': term,
+              },
+            },
+          },
+        ),
+      );
+    } on UnauthorizedException {
+      return const GifSendResult(GifSendStatus.signedOut);
+    } catch (e) {
+      if (kDebugMode) debugPrint('sendGifMessage failed: $e');
+      return const GifSendResult(GifSendStatus.failed);
+    }
+  }
 
   static Map<String, String> _viewerHeaders(String authToken) => {
     'Client-ID': kTwitchWebClientId,

@@ -7080,6 +7080,61 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chatChattersNoMatch => 'Aucun utilisateur correspondant';
 
   @override
+  String get gifTab => 'GIF';
+
+  @override
+  String get gifSearchHint => 'Rechercher sur GIPHY';
+
+  @override
+  String get gifPoweredBy => 'Fourni par GIPHY';
+
+  @override
+  String get gifTileLabel => 'GIF';
+
+  @override
+  String get gifSendTitle => 'Envoyer ce GIF ?';
+
+  @override
+  String get gifSendDisclosure =>
+      'Tout le chat le verra. Vous êtes responsable des GIF que vous envoyez : respectez les règles de la communauté Twitch.';
+
+  @override
+  String get gifSend => 'Envoyer';
+
+  @override
+  String gifSendResult({required String status, required int seconds}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other: 'Vous pourrez envoyer un autre GIF dans $seconds secondes.',
+      one: 'Vous pourrez envoyer un autre GIF dans $seconds seconde.',
+    );
+    String _temp1 = intl.Intl.selectLogic(status, {
+      'cooldown': '$_temp0',
+      'refused': 'Twitch a refusé ce GIF.',
+      'integrityRefused':
+          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer ; essayez sur twitch.tv.',
+      'signedOut': 'Reconnectez-vous pour envoyer des GIF depuis ONSET.',
+      'other': 'Impossible d’envoyer le GIF. Réessayez.',
+    });
+    return '$_temp1';
+  }
+
+  @override
+  String get gifUnavailable => 'Les GIF ne sont pas disponibles dans ce chat.';
+
+  @override
+  String get gifSubscribersOnly =>
+      'Vous ne pouvez pas encore envoyer de GIF dans ce chat. Sur cette chaîne, les GIF sont un avantage réservé aux abonnés.';
+
+  @override
+  String get gifLoadFailed =>
+      'Impossible de charger les GIF. Réessayez dans un instant.';
+
+  @override
+  String get gifNoResults => 'Aucun GIF trouvé. Essayez une autre recherche.';
+
+  @override
   String get emoteMenuRecent => 'Récentes';
 
   @override

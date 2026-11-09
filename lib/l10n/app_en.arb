@@ -8833,6 +8833,64 @@
   "@chatChattersNoMatch": {
     "description": "The chatters list when nobody matches the filter."
   },
+  "gifTab": "GIFs",
+  "@gifTab": {
+    "description": "Emote menu: the tab that searches and sends GIFs."
+  },
+  "gifSearchHint": "Search GIPHY",
+  "@gifSearchHint": {
+    "description": "Emote menu › GIFs: the search field hint."
+  },
+  "gifPoweredBy": "Powered by GIPHY",
+  "@gifPoweredBy": {
+    "description": "Emote menu › GIFs: the attribution under the GIFs."
+  },
+  "gifTileLabel": "GIF",
+  "@gifTileLabel": {
+    "description": "Screen-reader label of a GIF without a title in the GIF picker."
+  },
+  "gifSendTitle": "Send this GIF?",
+  "@gifSendTitle": {
+    "description": "The title of the dialog confirming that a GIF is sent to the chat."
+  },
+  "gifSendDisclosure": "Everyone in this chat will see it. You’re responsible for the GIFs you send, so follow Twitch’s Community Guidelines.",
+  "@gifSendDisclosure": {
+    "description": "The body of the dialog confirming that a GIF is sent to the chat."
+  },
+  "gifSend": "Send",
+  "@gifSend": {
+    "description": "The button that sends the GIF to the chat."
+  },
+  "gifSendResult": "{status, select, cooldown{{seconds, plural, =1{You can send another GIF in 1 second.} other{You can send another GIF in {seconds} seconds.}}} refused{Twitch declined this GIF.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.} signedOut{Log in again to send GIFs from ONSET.} other{Couldn’t send the GIF. Try again.}}",
+  "@gifSendResult": {
+    "description": "Snackbar when a GIF couldn’t be sent: a cooldown with the seconds to wait, or why it failed.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "cooldown"
+      },
+      "seconds": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "gifUnavailable": "GIFs aren’t available in this chat.",
+  "@gifUnavailable": {
+    "description": "Emote menu › GIFs: the channel has GIFs off, or Twitch’s GIF settings couldn’t be read."
+  },
+  "gifSubscribersOnly": "You can’t send GIFs in this chat yet. On this channel, GIFs are a subscriber benefit.",
+  "@gifSubscribersOnly": {
+    "description": "Emote menu › GIFs: the channel has GIFs on, but the viewer may not send them."
+  },
+  "gifLoadFailed": "Couldn’t load GIFs. Try again in a moment.",
+  "@gifLoadFailed": {
+    "description": "Emote menu › GIFs: GIPHY couldn’t be reached."
+  },
+  "gifNoResults": "No GIFs found. Try another search.",
+  "@gifNoResults": {
+    "description": "Emote menu › GIFs: the search found nothing."
+  },
   "emoteMenuRecent": "Recent",
   "@emoteMenuRecent": {
     "description": "The emote menu's first tab: the emotes the viewer used lately (« emotes » is feminine)."
