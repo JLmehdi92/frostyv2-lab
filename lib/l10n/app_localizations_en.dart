@@ -9236,4 +9236,70 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get chatBadgeTitle => 'Chat badge';
+
+  @override
+  String get chatBadgeChannel => 'In this channel';
+
+  @override
+  String get chatBadgeGlobal => 'On every channel';
+
+  @override
+  String get chatBadgeNone => 'No badge';
+
+  @override
+  String chatBadgeConfirm({required String none, required String badge}) {
+    String _temp0 = intl.Intl.selectLogic(none, {
+      'yes': 'Show no badge next to your name?',
+      'other': 'Show “$badge” next to your name?',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatBadgeConfirmBody({required String scope}) {
+    String _temp0 = intl.Intl.selectLogic(scope, {
+      'channel':
+          'Everyone in this channel will see it. You can change it back anytime.',
+      'other':
+          'Everyone will see it on channels where you haven’t picked a badge. You can change it back anytime.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get chatBadgeChange => 'Change';
+
+  @override
+  String get chatBadgeChanged => 'Badge changed.';
+
+  @override
+  String get chatBadgeFailed => 'Couldn’t change your badge. Try again.';
+
+  @override
+  String get chatBadgeLoadFailed => 'Couldn’t load your badges.';
+
+  @override
+  String get chatBadgeLogIn => 'Log in again to choose your badge from ONSET.';
+
+  @override
+  String get chatBadgeHideFlair => 'Hide sub badge flair';
+
+  @override
+  String get chatBadgeHideFlairDetail => 'Without the Tier 2 or Tier 3 look.';
+
+  @override
+  String chatBadgeFlairConfirm({required String hide}) {
+    String _temp0 = intl.Intl.selectLogic(hide, {
+      'yes': 'Hide your sub badge flair?',
+      'other': 'Show your sub badge flair?',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get chatBadgeFlairBody =>
+      'It applies on every channel. You can change it back anytime.';
 }

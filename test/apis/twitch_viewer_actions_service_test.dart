@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
+import 'package:onset/models/chat_identity.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 
@@ -518,6 +519,111 @@ void main() {
         await service.claimMoment(momentId: 'm', authToken: 'tok'),
         MomentClaimResult.failed,
       );
+    });
+  });
+
+  group('chat badge', () {
+    const badge = ChatBadgeChoice(
+      setId: 'sub-gifter',
+      version: '5',
+      title: '5 Gift Subs',
+    );
+
+    test('selects a channel badge with the channel id', () async {
+      reply({
+        'data': {
+          'selectChannelBadge': {
+            'isSuccessful': true,
+            'user': {'id': '2'},
+          },
+        },
+      });
+
+      final outcome = await service.selectBadge(
+        scope: ChatBadgeScope.channel,
+        channelId: '1000',
+        authToken: 'tok',
+        badge: badge,
+      );
+
+      expect(outcome, ViewerActionOutcome.done);
+      expect(sent()['operationName'], 'SelectChannelBadgeMutation');
+      expect(sent()['variables'], {
+        'input': {
+          'badgeSetID': 'sub-gifter',
+          'badgeSetVersion': '5',
+          'channelID': '1000',
+        },
+      });
+    });
+
+    test('selects a global badge without a channel', () async {
+      reply({
+        'data': {
+          'selectGlobalBadge': {'isSuccessful': false, 'user': null},
+        },
+      });
+
+      final outcome = await service.selectBadge(
+        scope: ChatBadgeScope.global,
+        channelId: '1000',
+        authToken: 'tok',
+        badge: badge,
+      );
+
+      expect(outcome, ViewerActionOutcome.failed);
+      expect(sent()['variables'], {
+        'input': {'badgeSetID': 'sub-gifter', 'badgeSetVersion': '5'},
+      });
+    });
+
+    test('clears the badges with the deselect mutations', () async {
+      reply({
+        'data': {
+          'deselectGlobalBadge': {
+            'user': {'id': '2'},
+          },
+        },
+      });
+
+      final outcome = await service.selectBadge(
+        scope: ChatBadgeScope.global,
+        channelId: '1000',
+        authToken: 'tok',
+      );
+
+      expect(outcome, ViewerActionOutcome.done);
+      expect(sent()['operationName'], 'DeselectGlobalBadgeMutation');
+      expect(sent()['variables'], isEmpty);
+    });
+
+    test('hides the sub flair', () async {
+      reply({
+        'data': {
+          'updateUserSubscriptionSettings': {
+            'subscriptionSettings': {'isBadgeModifierHidden': true},
+          },
+        },
+      });
+
+      final outcome = await service.setSubFlairHidden(
+        hidden: true,
+        authToken: 'tok',
+      );
+
+      expect(outcome, ViewerActionOutcome.done);
+      expect(sent()['operationName'], 'UpdateSubFlairHiddenMutation');
+      expect(sent()['variables'], {
+        'input': {'isBadgeModifierHidden': true},
+      });
+    });
+
+    test('never asks when logged out', () async {
+      expect(
+        await service.setSubFlairHidden(hidden: true, authToken: ''),
+        ViewerActionOutcome.signedOut,
+      );
+      expect(requests, isEmpty);
     });
   });
 }

@@ -11800,5 +11800,87 @@
         "example": "1000"
       }
     }
+  },
+  "chatBadgeTitle": "Chat badge",
+  "@chatBadgeTitle": {
+    "description": "Chat menu row and sheet title: choose the badge shown next to your name."
+  },
+  "chatBadgeChannel": "In this channel",
+  "@chatBadgeChannel": {
+    "description": "Section: the badge shown in this channel only."
+  },
+  "chatBadgeGlobal": "On every channel",
+  "@chatBadgeGlobal": {
+    "description": "Section: the global badge."
+  },
+  "chatBadgeNone": "No badge",
+  "@chatBadgeNone": {
+    "description": "Choice: show no badge."
+  },
+  "chatBadgeConfirm": "{none, select, yes{Show no badge next to your name?} other{Show “{badge}” next to your name?}}",
+  "@chatBadgeConfirm": {
+    "description": "Confirmation title before changing the displayed badge.",
+    "placeholders": {
+      "none": {
+        "type": "String",
+        "example": "no"
+      },
+      "badge": {
+        "type": "String",
+        "example": "Subscriber"
+      }
+    }
+  },
+  "chatBadgeConfirmBody": "{scope, select, channel{Everyone in this channel will see it. You can change it back anytime.} other{Everyone will see it on channels where you haven’t picked a badge. You can change it back anytime.}}",
+  "@chatBadgeConfirmBody": {
+    "description": "Confirmation body before changing the displayed badge.",
+    "placeholders": {
+      "scope": {
+        "type": "String",
+        "example": "channel"
+      }
+    }
+  },
+  "chatBadgeChange": "Change",
+  "@chatBadgeChange": {
+    "description": "Confirm button of a badge change."
+  },
+  "chatBadgeChanged": "Badge changed.",
+  "@chatBadgeChanged": {
+    "description": "Snackbar after a badge or flair change, with an Undo button."
+  },
+  "chatBadgeFailed": "Couldn’t change your badge. Try again.",
+  "@chatBadgeFailed": {
+    "description": "A badge or flair change failed."
+  },
+  "chatBadgeLoadFailed": "Couldn’t load your badges.",
+  "@chatBadgeLoadFailed": {
+    "description": "The badge list could not be read."
+  },
+  "chatBadgeLogIn": "Log in again to choose your badge from ONSET.",
+  "@chatBadgeLogIn": {
+    "description": "The web session needed for badges is missing."
+  },
+  "chatBadgeHideFlair": "Hide sub badge flair",
+  "@chatBadgeHideFlair": {
+    "description": "Switch: show the sub badge without its Tier 2 or Tier 3 look."
+  },
+  "chatBadgeHideFlairDetail": "Without the Tier 2 or Tier 3 look.",
+  "@chatBadgeHideFlairDetail": {
+    "description": "Detail under the hide flair switch."
+  },
+  "chatBadgeFlairConfirm": "{hide, select, yes{Hide your sub badge flair?} other{Show your sub badge flair?}}",
+  "@chatBadgeFlairConfirm": {
+    "description": "Confirmation before changing the sub badge flair setting.",
+    "placeholders": {
+      "hide": {
+        "type": "String",
+        "example": "yes"
+      }
+    }
+  },
+  "chatBadgeFlairBody": "It applies on every channel. You can change it back anytime.",
+  "@chatBadgeFlairBody": {
+    "description": "Confirmation body for the flair setting."
   }
 }

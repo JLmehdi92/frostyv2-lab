@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_community_service.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/main.dart';
@@ -17,6 +18,7 @@ import 'package:onset/screens/channel/chat/details/chat_users_list.dart';
 import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/mod_tools/widgets/mod_tools_sheet.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_badge_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/live_together.dart';
 import 'package:onset/screens/channel/chat/widgets/shared_chat_banner.dart';
@@ -24,6 +26,7 @@ import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
+import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/twitch_links.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
@@ -209,6 +212,36 @@ class _ChatDetailsState extends State<ChatDetails> {
       costream: () => service.getCostreamers(channelLogin: store.channelName),
     );
     if (mounted && roster != null) setState(() => _liveTogether = roster);
+  }
+
+  void _openBadges() {
+    final community = context.read<TwitchCommunityService?>();
+    final actions = context.read<TwitchViewerActionsService?>();
+    final channelId = widget.chatStore.channelId;
+    String token() => context.authStore.twitchWebToken ?? '';
+    showOnsetSheet<void>(
+      context: context,
+      builder: (_) => ChatBadgeSheet(
+        load: () async => community?.getChatIdentity(
+          channelId: channelId,
+          authToken: token(),
+        ),
+        select: (scope, badge) async =>
+            await actions?.selectBadge(
+              scope: scope,
+              channelId: channelId,
+              authToken: token(),
+              badge: badge,
+            ) ??
+            ViewerActionOutcome.failed,
+        setFlairHidden: (hidden) async =>
+            await actions?.setSubFlairHidden(
+              hidden: hidden,
+              authToken: token(),
+            ) ??
+            ViewerActionOutcome.failed,
+      ),
+    );
   }
 
   void _openLiveTogether(LiveTogetherMember member) {
@@ -487,6 +520,14 @@ class _ChatDetailsState extends State<ChatDetails> {
                     )
                   : null,
               onTap: _openColorPicker,
+            ),
+          if (loggedIn)
+            SheetRow(
+              key: const ValueKey('chat-badge-row'),
+              glyph: SheetGlyphKind.star,
+              label: context.l10n.chatBadgeTitle,
+              end: SheetRowEnd.chevron,
+              onTap: _openBadges,
             ),
           if (loggedIn)
             SheetRow(

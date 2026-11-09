@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/apis/twitch_viewer_actions_service.dart';
+import 'package:onset/models/chat_identity.dart';
 import 'package:onset/models/live_together.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_badge_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/live_together.dart';
 
+import '../fixtures/chat_identity_payloads.dart';
 import '../fixtures/live_together_payloads.dart';
 import '../helpers/l10n.dart';
 
@@ -48,6 +52,42 @@ void main() {
           tester,
           'guest list, $at',
           content: const ['GuestOne', 'GuestTwo'],
+        );
+      });
+      testWidgets('the chat badge sheet, $at', (tester) async {
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: ChatBadgeSheet(
+              load: () async => ChatIdentity.fromBody(chatIdentityResponse()),
+              select: (_, _) async => ViewerActionOutcome.done,
+              setFlairHidden: (_) async => ViewerActionOutcome.done,
+            ),
+          ),
+          size: size,
+          textScale: scale,
+        );
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(
+          tester,
+          'chat badge sheet, $at',
+          content: const [
+            'Subscriber',
+            '5 Gift Subs',
+            'Prime Gaming',
+            'GLHF Pledge',
+          ],
+        );
+        await tester.tap(
+          find.byKey(
+            ChatBadgeSheet.choiceKey(ChatBadgeScope.channel, 'sub-gifter/5'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await expectFrenchThroughout(
+          tester,
+          'chat badge confirm, $at',
+          content: const ['5 Gift Subs'],
         );
       });
     }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/channel_leaderboards.dart';
+import 'package:onset/models/chat_identity.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/emote_traits.dart';
@@ -322,6 +323,37 @@ class TwitchCommunityService extends BaseApiClient {
     if (!RegExp(r'^[A-Za-z0-9_]{1,64}$').hasMatch(emoteId)) return null;
     return bitsThresholdFrom(
       await _ask('EmoteCard', _emoteCardQuery, {'emoteId': emoteId}),
+    );
+  }
+
+  static const _chatIdentityQuery =
+      'query ChatIdentityQuery(\$channelID: ID!) { user { id login '
+      'displayName chatColor availableBadges { __typename '
+      '...UserBadgeFragment } selectedBadge { __typename '
+      '...UserBadgeFragment } subscriptionSettings { '
+      'isBadgeModifierHidden } } channel: user(id: \$channelID) { id '
+      'displayName self { displayBadges { __typename ...UserBadgeFragment '
+      '} availableBadges { __typename ...UserBadgeFragment } '
+      'availableChannelAuthorityBadges { __typename ...UserBadgeFragment '
+      '} selectedBadge { __typename ...UserBadgeFragment } '
+      'selectedChannelAuthorityBadge { __typename ...UserBadgeFragment } '
+      'isFounder isModerator isVIP subscriptionBenefit { tier } '
+      'subscriptionTenure(tenureMethod: CUMULATIVE) { months } } } '
+      'channelFlair: channel(id: \$channelID) { creatorBadgeFlair { '
+      'setting } } }  fragment UserBadgeFragment on Badge { setID '
+      'imageUrlNormal: imageURL(size: NORMAL) imageUrlDouble: '
+      'imageURL(size: DOUBLE) imageUrlQuadruple: imageURL(size: '
+      'QUADRUPLE) version title }';
+
+  Future<ChatIdentity?> getChatIdentity({
+    required String channelId,
+    required String authToken,
+  }) async {
+    if (authToken.isEmpty || !_numericId.hasMatch(channelId)) return null;
+    return ChatIdentity.fromBody(
+      await _ask('ChatIdentityQuery', _chatIdentityQuery, {
+        'channelID': channelId,
+      }, authToken: authToken),
     );
   }
 

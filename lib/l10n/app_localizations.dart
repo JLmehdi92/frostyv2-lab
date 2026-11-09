@@ -12130,6 +12130,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{Unlocked by cheering {count} Bit in this channel} other{Unlocked by cheering {count} Bits in this channel}}'**
   String emoteBitsThreshold({required int count});
+
+  /// Chat menu row and sheet title: choose the badge shown next to your name.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat badge'**
+  String get chatBadgeTitle;
+
+  /// Section: the badge shown in this channel only.
+  ///
+  /// In en, this message translates to:
+  /// **'In this channel'**
+  String get chatBadgeChannel;
+
+  /// Section: the global badge.
+  ///
+  /// In en, this message translates to:
+  /// **'On every channel'**
+  String get chatBadgeGlobal;
+
+  /// Choice: show no badge.
+  ///
+  /// In en, this message translates to:
+  /// **'No badge'**
+  String get chatBadgeNone;
+
+  /// Confirmation title before changing the displayed badge.
+  ///
+  /// In en, this message translates to:
+  /// **'{none, select, yes{Show no badge next to your name?} other{Show “{badge}” next to your name?}}'**
+  String chatBadgeConfirm({required String none, required String badge});
+
+  /// Confirmation body before changing the displayed badge.
+  ///
+  /// In en, this message translates to:
+  /// **'{scope, select, channel{Everyone in this channel will see it. You can change it back anytime.} other{Everyone will see it on channels where you haven’t picked a badge. You can change it back anytime.}}'**
+  String chatBadgeConfirmBody({required String scope});
+
+  /// Confirm button of a badge change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get chatBadgeChange;
+
+  /// Snackbar after a badge or flair change, with an Undo button.
+  ///
+  /// In en, this message translates to:
+  /// **'Badge changed.'**
+  String get chatBadgeChanged;
+
+  /// A badge or flair change failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t change your badge. Try again.'**
+  String get chatBadgeFailed;
+
+  /// The badge list could not be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your badges.'**
+  String get chatBadgeLoadFailed;
+
+  /// The web session needed for badges is missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again to choose your badge from ONSET.'**
+  String get chatBadgeLogIn;
+
+  /// Switch: show the sub badge without its Tier 2 or Tier 3 look.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide sub badge flair'**
+  String get chatBadgeHideFlair;
+
+  /// Detail under the hide flair switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Without the Tier 2 or Tier 3 look.'**
+  String get chatBadgeHideFlairDetail;
+
+  /// Confirmation before changing the sub badge flair setting.
+  ///
+  /// In en, this message translates to:
+  /// **'{hide, select, yes{Hide your sub badge flair?} other{Show your sub badge flair?}}'**
+  String chatBadgeFlairConfirm({required String hide});
+
+  /// Confirmation body for the flair setting.
+  ///
+  /// In en, this message translates to:
+  /// **'It applies on every channel. You can change it back anytime.'**
+  String get chatBadgeFlairBody;
 }
 
 class _AppLocalizationsDelegate

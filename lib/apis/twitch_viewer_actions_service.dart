@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/models/chat_identity.dart';
 import 'package:onset/models/community_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/weekly_rewards.dart';
@@ -164,6 +165,92 @@ class TwitchViewerActionsService extends BaseApiClient {
       input: {'channelID': channelId},
     );
   }
+
+  static const _selectChannelBadgeDocument =
+      'mutation SelectChannelBadgeMutation(\$input: '
+      'SelectChannelBadgeInput!) { selectChannelBadge(input: \$input) { '
+      'isSuccessful user { id } } }';
+
+  static const _deselectChannelBadgeDocument =
+      'mutation DeselectChannelBadgeMutation(\$input: '
+      'DeselectChannelBadgeInput!) { deselectChannelBadge(input: \$input) '
+      '{ user { id } } }';
+
+  static const _selectGlobalBadgeDocument =
+      'mutation SelectGlobalBadgeMutation(\$input: '
+      'SelectGlobalBadgeInput!) { selectGlobalBadge(input: \$input) { '
+      'isSuccessful user { id } } }';
+
+  static const _deselectGlobalBadgeDocument =
+      'mutation DeselectGlobalBadgeMutation { deselectGlobalBadge { user '
+      '{ id } } }';
+
+  static const _subFlairDocument =
+      'mutation UpdateSubFlairHiddenMutation(\$input: '
+      'UpdateUserSubscriptionSettingsInput!) { '
+      'updateUserSubscriptionSettings(input: \$input) { '
+      'subscriptionSettings { isBadgeModifierHidden } } }';
+
+  static final _badgeToken = RegExp(r'^[A-Za-z0-9_\-]{1,64}$');
+
+  Future<ViewerActionOutcome> selectBadge({
+    required ChatBadgeScope scope,
+    required String channelId,
+    required String authToken,
+    ChatBadgeChoice? badge,
+  }) {
+    if (!_numericId.hasMatch(channelId) ||
+        (badge != null &&
+            (!_badgeToken.hasMatch(badge.setId) ||
+                !_badgeToken.hasMatch(badge.version)))) {
+      return _failedAtOnce(authToken);
+    }
+    final channel = scope == ChatBadgeScope.channel;
+    if (badge == null) {
+      return channel
+          ? _send(
+              operation: 'DeselectChannelBadgeMutation',
+              document: _deselectChannelBadgeDocument,
+              field: 'deselectChannelBadge',
+              authToken: authToken,
+              input: {'channelID': channelId},
+            )
+          : _send(
+              operation: 'DeselectGlobalBadgeMutation',
+              document: _deselectGlobalBadgeDocument,
+              field: 'deselectGlobalBadge',
+              authToken: authToken,
+              variables: const {},
+            );
+    }
+    return _send(
+      operation: channel
+          ? 'SelectChannelBadgeMutation'
+          : 'SelectGlobalBadgeMutation',
+      document: channel
+          ? _selectChannelBadgeDocument
+          : _selectGlobalBadgeDocument,
+      field: channel ? 'selectChannelBadge' : 'selectGlobalBadge',
+      authToken: authToken,
+      input: {
+        'badgeSetID': badge.setId,
+        'badgeSetVersion': badge.version,
+        'channelID': ?(channel ? channelId : null),
+      },
+      succeeded: (payload) => payload['isSuccessful'] != false,
+    );
+  }
+
+  Future<ViewerActionOutcome> setSubFlairHidden({
+    required bool hidden,
+    required String authToken,
+  }) => _send(
+    operation: 'UpdateSubFlairHiddenMutation',
+    document: _subFlairDocument,
+    field: 'updateUserSubscriptionSettings',
+    authToken: authToken,
+    input: {'isBadgeModifierHidden': hidden},
+  );
 
   Future<ViewerActionOutcome> _raid(
     String operation,

@@ -1976,5 +1976,20 @@
   "liveTogetherNotLive": "Pas en direct sur sa chaîne",
   "htMythicChosen": "Emote choisie\u00a0: {name}",
   "emoteModifierLine": "{code, select, BW{Effet\u00a0: noir et blanc} HF{Effet\u00a0: miroir} SG{Effet\u00a0: lunettes de soleil} SQ{Effet\u00a0: écrasé} TK{Effet\u00a0: pensif} other{Effet\u00a0: modifié}}",
-  "emoteBitsThreshold": "{count, plural, one{Se débloque après {count}\u00a0Bit envoyé sur cette chaîne} other{Se débloque après {count}\u00a0Bits envoyés sur cette chaîne}}"
+  "emoteBitsThreshold": "{count, plural, one{Se débloque après {count}\u00a0Bit envoyé sur cette chaîne} other{Se débloque après {count}\u00a0Bits envoyés sur cette chaîne}}",
+  "chatBadgeTitle": "Badge du chat",
+  "chatBadgeChannel": "Sur cette chaîne",
+  "chatBadgeGlobal": "Sur toutes les chaînes",
+  "chatBadgeNone": "Aucun badge",
+  "chatBadgeConfirm": "{none, select, yes{N’afficher aucun badge à côté de votre nom\u202f?} other{Afficher «\u00a0{badge}\u00a0» à côté de votre nom\u202f?}}",
+  "chatBadgeConfirmBody": "{scope, select, channel{Tout le monde le verra sur cette chaîne. Vous pourrez revenir en arrière à tout moment.} other{Tout le monde le verra sur les chaînes où vous n’avez choisi aucun badge. Vous pourrez revenir en arrière à tout moment.}}",
+  "chatBadgeChange": "Modifier",
+  "chatBadgeChanged": "Badge modifié.",
+  "chatBadgeFailed": "Impossible de modifier votre badge. Réessayez.",
+  "chatBadgeLoadFailed": "Impossible de charger vos badges.",
+  "chatBadgeLogIn": "Reconnectez-vous pour choisir votre badge depuis ONSET.",
+  "chatBadgeHideFlair": "Masquer l’ornement du badge d’abonné",
+  "chatBadgeHideFlairDetail": "Sans l’apparence du niveau 2 ou 3.",
+  "chatBadgeFlairConfirm": "{hide, select, yes{Masquer l’ornement de votre badge d’abonné\u202f?} other{Afficher l’ornement de votre badge d’abonné\u202f?}}",
+  "chatBadgeFlairBody": "Cela s’applique sur toutes les chaînes. Vous pourrez revenir en arrière à tout moment."
 }

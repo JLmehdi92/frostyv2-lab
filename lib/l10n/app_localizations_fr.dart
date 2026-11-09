@@ -9362,4 +9362,72 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get chatBadgeTitle => 'Badge du chat';
+
+  @override
+  String get chatBadgeChannel => 'Sur cette chaîne';
+
+  @override
+  String get chatBadgeGlobal => 'Sur toutes les chaînes';
+
+  @override
+  String get chatBadgeNone => 'Aucun badge';
+
+  @override
+  String chatBadgeConfirm({required String none, required String badge}) {
+    String _temp0 = intl.Intl.selectLogic(none, {
+      'yes': 'N’afficher aucun badge à côté de votre nom ?',
+      'other': 'Afficher « $badge » à côté de votre nom ?',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String chatBadgeConfirmBody({required String scope}) {
+    String _temp0 = intl.Intl.selectLogic(scope, {
+      'channel':
+          'Tout le monde le verra sur cette chaîne. Vous pourrez revenir en arrière à tout moment.',
+      'other':
+          'Tout le monde le verra sur les chaînes où vous n’avez choisi aucun badge. Vous pourrez revenir en arrière à tout moment.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get chatBadgeChange => 'Modifier';
+
+  @override
+  String get chatBadgeChanged => 'Badge modifié.';
+
+  @override
+  String get chatBadgeFailed =>
+      'Impossible de modifier votre badge. Réessayez.';
+
+  @override
+  String get chatBadgeLoadFailed => 'Impossible de charger vos badges.';
+
+  @override
+  String get chatBadgeLogIn =>
+      'Reconnectez-vous pour choisir votre badge depuis ONSET.';
+
+  @override
+  String get chatBadgeHideFlair => 'Masquer l’ornement du badge d’abonné';
+
+  @override
+  String get chatBadgeHideFlairDetail => 'Sans l’apparence du niveau 2 ou 3.';
+
+  @override
+  String chatBadgeFlairConfirm({required String hide}) {
+    String _temp0 = intl.Intl.selectLogic(hide, {
+      'yes': 'Masquer l’ornement de votre badge d’abonné ?',
+      'other': 'Afficher l’ornement de votre badge d’abonné ?',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get chatBadgeFlairBody =>
+      'Cela s’applique sur toutes les chaînes. Vous pourrez revenir en arrière à tout moment.';
 }

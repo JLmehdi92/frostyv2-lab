@@ -6,6 +6,7 @@ import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/models/channel_leaderboards.dart';
 
+import '../fixtures/chat_identity_payloads.dart';
 import '../fixtures/community_goal_payloads.dart';
 import '../fixtures/community_gql_payloads.dart';
 import '../fixtures/drops_gql_payloads.dart';
@@ -385,6 +386,29 @@ void main() {
 
     test('refuses an odd id without asking', () async {
       expect(await service.getEmoteBitsThreshold(emoteId: '../x'), isNull);
+      expect(requests, isEmpty);
+    });
+  });
+
+  group('getChatIdentity', () {
+    test('asks for the badges with the viewer token', () async {
+      reply(chatIdentityResponse());
+
+      final identity = await service.getChatIdentity(
+        channelId: '1000',
+        authToken: 'tok',
+      );
+
+      expect(identity?.channelBadges, hasLength(2));
+      expect(sent()['operationName'], 'ChatIdentityQuery');
+      expect(requests.single.headers['Authorization'], 'OAuth tok');
+    });
+
+    test('never asks without a token', () async {
+      expect(
+        await service.getChatIdentity(channelId: '1000', authToken: ''),
+        isNull,
+      );
       expect(requests, isEmpty);
     });
   });
