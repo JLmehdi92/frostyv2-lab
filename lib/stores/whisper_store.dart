@@ -7,6 +7,7 @@ import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/l10n/api_errors.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/whisper_history.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/services/telemetry.dart';
 
@@ -147,6 +148,30 @@ abstract class WhisperThreadBase with Store {
     }
     lastAt = whisper.sentAt;
   }
+
+  static bool _sameWhisper(Whisper a, Whisper b) =>
+      a.mine == b.mine &&
+      a.text == b.text &&
+      a.sentAt.difference(b.sentAt).abs() < const Duration(minutes: 2);
+
+  @action
+  bool _merge(Whisper whisper) {
+    if (whispers.any((w) => w.id == whisper.id || _sameWhisper(w, whisper))) {
+      return false;
+    }
+    final index = whispers.indexWhere((w) => w.sentAt.isAfter(whisper.sentAt));
+    if (index < 0) {
+      whispers.add(whisper);
+    } else {
+      whispers.insert(index, whisper);
+    }
+    if (whispers.length > maxWhispers) {
+      whispers.removeRange(0, whispers.length - maxWhispers);
+    }
+    final latest = whispers.last.sentAt;
+    if (lastAt == null || latest.isAfter(lastAt!)) lastAt = latest;
+    return true;
+  }
 }
 
 /// Whether whispers arrive.
@@ -184,6 +209,8 @@ abstract class WhisperStoreBase with Store {
     Set<String> archivedUserIds = const {},
     void Function(Set<String> muted, Set<String> archived)?
     onPreferencesChanged,
+    this.historyThreads,
+    this.historyMessages,
   }) : _listen = listen,
        _onPreferencesChanged = onPreferencesChanged {
     _muted.addAll(mutedUserIds);
@@ -202,6 +229,17 @@ abstract class WhisperStoreBase with Store {
 
   final _muted = ObservableSet<String>();
   final _archived = ObservableSet<String>();
+
+  final Future<List<WhisperHistoryThread>?> Function(String me)?
+  historyThreads;
+  final Future<List<WhisperHistoryMessage>?> Function(String threadId)?
+  historyMessages;
+
+  final _remoteThreadIds = <String, String>{};
+  final _hiddenAt = <String, DateTime>{};
+
+  @readonly
+  bool? _historyAvailable;
 
   /// At most this many conversations are kept (the oldest go first).
   static const maxThreads = 50;
@@ -271,8 +309,66 @@ abstract class WhisperStoreBase with Store {
     if (_archived.remove(userId)) _savePreferences();
   }
 
+  String? remoteThreadId(String userId) => _remoteThreadIds[userId];
+
+  static const historyRefreshGap = Duration(seconds: 30);
+  DateTime? _historyAskedAt;
+
+  Future<void> refreshHistory() async {
+    final me = _me;
+    final fetch = historyThreads;
+    if (me == null || fetch == null) return;
+    final now = clock.now();
+    final asked = _historyAskedAt;
+    if (asked != null && now.difference(asked) < historyRefreshGap) return;
+    _historyAskedAt = now;
+    final threads = await fetch(me);
+    if (_me != me) return;
+    runInAction(() {
+      _historyAvailable = threads != null;
+      if (threads == null) return;
+      for (final remote in threads) {
+        _remoteThreadIds[remote.peer.id] = remote.id;
+        final last = remote.last;
+        final hiddenAt = _hiddenAt[remote.peer.id];
+        if (last == null) continue;
+        if (hiddenAt != null && !last.sentAt.isAfter(hiddenAt)) continue;
+        thread(
+          userId: remote.peer.id,
+          login: remote.peer.login,
+          displayName: remote.peer.displayName,
+        )._merge(_fromHistory(last, me));
+      }
+    });
+  }
+
+  Future<void> loadConversation(String userId) async {
+    final me = _me;
+    final threadId = _remoteThreadIds[userId];
+    final fetch = historyMessages;
+    if (me == null || threadId == null || fetch == null) return;
+    final messages = await fetch(threadId);
+    if (_me != me || messages == null) return;
+    runInAction(() {
+      final target = _threads[userId];
+      if (target == null) return;
+      for (final message in messages) {
+        target._merge(_fromHistory(message, me));
+      }
+    });
+  }
+
+  static Whisper _fromHistory(WhisperHistoryMessage message, String me) =>
+      Whisper(
+        id: message.id,
+        text: message.text,
+        mine: message.fromId == me,
+        sentAt: message.sentAt,
+      );
+
   @action
   void hide(String userId) {
+    _hiddenAt[userId] = clock.now();
     _threads.remove(userId);
     _openUserIds.removeWhere((id) => id == userId);
     unarchive(userId);
@@ -295,6 +391,10 @@ abstract class WhisperStoreBase with Store {
     _events = null;
     // Another account (or none): its whispers are not this one's.
     _threads.clear();
+    _remoteThreadIds.clear();
+    _hiddenAt.clear();
+    _historyAskedAt = null;
+    _historyAvailable = null;
     _openUserIds.clear();
     _me = me;
     if (me == null) {

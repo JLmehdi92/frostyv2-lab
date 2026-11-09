@@ -118,6 +118,7 @@ class _WhispersScreenState extends State<WhispersScreen>
     super.initState();
     _selected = widget.initial;
     _open = widget.initial != null;
+    unawaited(widget.store.refreshHistory());
     _slide = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 340),
@@ -680,6 +681,12 @@ class WhispersList extends StatefulWidget {
 
 class _WhispersListState extends State<WhispersList> {
   var _showArchived = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(widget.store.refreshHistory());
+  }
 
   void _open(BuildContext context, WhisperThread thread) {
     final onOpen = widget.onOpen;

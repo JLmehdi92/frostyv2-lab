@@ -110,6 +110,7 @@ class _WhisperConversationState extends State<WhisperConversation> {
       displayName: widget.displayName,
     );
     _known = {for (final whisper in _thread.whispers) whisper.id};
+    unawaited(widget.store.loadConversation(widget.userId));
   }
 
   @override

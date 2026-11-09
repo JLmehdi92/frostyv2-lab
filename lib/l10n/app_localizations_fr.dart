@@ -5271,7 +5271,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatWhisperSent({required String name}) {
-    return 'Chuchotement envoyé à $name.';
+    return 'Chuchotement envoyé à $name. La conversation est dans vos chuchotements.';
   }
 
   @override
@@ -9826,6 +9826,210 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get unbanConfirmBody =>
       'Vous ne pouvez faire appel qu’une seule fois. Les modérateurs de la chaîne liront votre message.';
+
+  @override
+  String get whisperPrivacyTitle => 'Confidentialité des chuchotements';
+
+  @override
+  String get whisperBlockStrangers => 'Bloquer les chuchotements d’inconnus';
+
+  @override
+  String get whisperBlockStrangersDetail =>
+      'Les inconnus ne peuvent pas commencer de conversation avec vous. Une personne à qui vous chuchotez peut vous répondre pendant 48 heures.';
+
+  @override
+  String get whisperPrivacyUnavailable =>
+      'Impossible de charger vos réglages de chuchotements. Reconnectez-vous ou réessayez plus tard.';
+
+  @override
+  String get whisperPrivacyBanned =>
+      'Twitch a restreint les chuchotements sur votre compte.';
+
+  @override
+  String get whisperPrivacyParent =>
+      'Un parent a désactivé les chuchotements avec les outils de contrôle parental de Twitch.';
+
+  @override
+  String whisperStopReplies({required String name}) {
+    return 'Empêcher $name de répondre';
+  }
+
+  @override
+  String whisperStopRepliesTitle({required String name}) {
+    return 'Empêcher $name de répondre ?';
+  }
+
+  @override
+  String whisperStopRepliesBody({required String name}) {
+    return 'Tant que vous bloquez les chuchotements d’inconnus, $name ne pourra plus vous répondre, sauf si vous lui chuchotez à nouveau.';
+  }
+
+  @override
+  String get whisperStopRepliesConfirm => 'Empêcher les réponses';
+
+  @override
+  String get notificationCenterTitle => 'Notifications Twitch';
+
+  @override
+  String get notificationCenterEntryDetail => 'Depuis votre compte Twitch';
+
+  @override
+  String notificationCenterUnseen({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString nouvelles',
+      one: '$countString nouvelle',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notificationCenterEmpty => 'Aucune notification de Twitch';
+
+  @override
+  String get notificationCenterFailed =>
+      'Impossible de charger vos notifications Twitch.';
+
+  @override
+  String get twitchNotificationSettingsTitle => 'Push et e-mail sur Twitch';
+
+  @override
+  String get twitchNotificationSettingsUnavailable =>
+      'Impossible de charger vos réglages de notifications Twitch. Reconnectez-vous ou réessayez plus tard.';
+
+  @override
+  String get twitchNotificationSettingsEdit => 'Les modifier sur twitch.tv';
+
+  @override
+  String twitchNotificationPlatforms({
+    required String push,
+    required String email,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(push, {
+      'on': 'Notifications push activées',
+      'off': 'Notifications push désactivées',
+      'other': 'Pas de notifications push',
+    });
+    String _temp1 = intl.Intl.selectLogic(email, {
+      'on': 'e-mail activé',
+      'off': 'e-mail désactivé',
+      'other': 'pas d’e-mail',
+    });
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get notificationCategoryLive => 'Chaînes en direct';
+
+  @override
+  String get recommendationsTitle => 'Chaînes pour vous';
+
+  @override
+  String recommendationsSimilarTitle({required String name}) {
+    return 'Chaînes similaires à $name';
+  }
+
+  @override
+  String get recommendationsSimilarTooltip => 'Chaînes similaires';
+
+  @override
+  String get recommendationsEmpty => 'Aucune suggestion pour le moment.';
+
+  @override
+  String notInterestedTitle({required String name}) {
+    return '$name ne vous intéresse pas ?';
+  }
+
+  @override
+  String get notInterestedReasonNotInterested => 'Ça ne m’intéresse pas';
+
+  @override
+  String get notInterestedReasonOffensive => 'Contenu offensant';
+
+  @override
+  String get notInterestedReasonOther => 'Autre raison';
+
+  @override
+  String notInterestedDone({required String name}) {
+    return 'Vous ne verrez plus $name dans les suggestions. Annuler ne rétablit cette chaîne que dans ONSET.';
+  }
+
+  @override
+  String notInterestedOnlyHere({required String name}) {
+    return 'La chaîne $name est masquée dans ONSET uniquement. Twitch n’a pas enregistré votre raison.';
+  }
+
+  @override
+  String get notificationCategoryDevelopers =>
+      'Actualités pour les développeurs';
+
+  @override
+  String get notificationCategoryChat => 'Mentions dans le chat';
+
+  @override
+  String get notificationCategoryClips => 'Clips';
+
+  @override
+  String get notificationCategoryCreator => 'Pour les créateurs';
+
+  @override
+  String get notificationCategoryEvents => 'Événements';
+
+  @override
+  String get notificationCategoryGifts => 'Cadeaux et récompenses';
+
+  @override
+  String get notificationCategoryMarketing => 'Actualités et offres';
+
+  @override
+  String get notificationCategoryModeration => 'Modération';
+
+  @override
+  String get notificationCategoryRecommendedLive =>
+      'Chaînes en direct recommandées';
+
+  @override
+  String get notificationCategorySocial => 'Activité sociale';
+
+  @override
+  String get notificationCategorySubscriptions => 'Abonnements';
+
+  @override
+  String get notificationCategoryFollowers => 'Nouveaux followers';
+
+  @override
+  String get notificationCategoryVideos => 'Anciennes diffusions';
+
+  @override
+  String get notificationCategoryOther => 'Autres notifications';
+
+  @override
+  String get notInterestedSentToTwitch => 'Votre raison est envoyée à Twitch.';
+
+  @override
+  String notInterestedHiddenHere({required String name}) {
+    return 'Vous ne verrez plus $name dans les suggestions d’ONSET.';
+  }
+
+  @override
+  String notificationCenterMarkedRead({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString notifications marquées comme lues.',
+      one: '$countString notification marquée comme lue.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get castButton => 'Caster sur un appareil';

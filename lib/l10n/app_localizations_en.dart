@@ -5202,7 +5202,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatWhisperSent({required String name}) {
-    return 'Whisper sent to $name.';
+    return 'Whisper sent to $name. The conversation is in your whispers.';
   }
 
   @override
@@ -9686,6 +9686,208 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get unbanConfirmBody =>
       'You can only appeal once. The channel moderators will read your message.';
+
+  @override
+  String get whisperPrivacyTitle => 'Whisper privacy';
+
+  @override
+  String get whisperBlockStrangers => 'Block whispers from strangers';
+
+  @override
+  String get whisperBlockStrangersDetail =>
+      'Strangers can’t start a conversation with you. Someone you whisper can reply for 48 hours.';
+
+  @override
+  String get whisperPrivacyUnavailable =>
+      'Couldn’t load your whisper settings. Log in again, or try again later.';
+
+  @override
+  String get whisperPrivacyBanned =>
+      'Twitch has restricted whispers on your account.';
+
+  @override
+  String get whisperPrivacyParent =>
+      'A parent turned off whispers through Twitch’s parental tools.';
+
+  @override
+  String whisperStopReplies({required String name}) {
+    return 'Stop $name’s replies';
+  }
+
+  @override
+  String whisperStopRepliesTitle({required String name}) {
+    return 'Stop $name’s replies?';
+  }
+
+  @override
+  String whisperStopRepliesBody({required String name}) {
+    return 'While you block whispers from strangers, $name can’t reply to you again until you whisper them.';
+  }
+
+  @override
+  String get whisperStopRepliesConfirm => 'Stop replies';
+
+  @override
+  String get notificationCenterTitle => 'Twitch notifications';
+
+  @override
+  String get notificationCenterEntryDetail => 'From your Twitch account';
+
+  @override
+  String notificationCenterUnseen({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString new',
+      one: '$countString new',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notificationCenterEmpty => 'No notifications from Twitch';
+
+  @override
+  String get notificationCenterFailed =>
+      'Couldn’t load your Twitch notifications.';
+
+  @override
+  String get twitchNotificationSettingsTitle => 'Push and email on Twitch';
+
+  @override
+  String get twitchNotificationSettingsUnavailable =>
+      'Couldn’t load your Twitch notification settings. Log in again, or try again later.';
+
+  @override
+  String get twitchNotificationSettingsEdit => 'Change them on twitch.tv';
+
+  @override
+  String twitchNotificationPlatforms({
+    required String push,
+    required String email,
+  }) {
+    String _temp0 = intl.Intl.selectLogic(push, {
+      'on': 'Push on',
+      'off': 'Push off',
+      'other': 'No push',
+    });
+    String _temp1 = intl.Intl.selectLogic(email, {
+      'on': 'email on',
+      'off': 'email off',
+      'other': 'no email',
+    });
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get notificationCategoryLive => 'Live channels';
+
+  @override
+  String get recommendationsTitle => 'Channels for you';
+
+  @override
+  String recommendationsSimilarTitle({required String name}) {
+    return 'Channels like $name';
+  }
+
+  @override
+  String get recommendationsSimilarTooltip => 'Similar channels';
+
+  @override
+  String get recommendationsEmpty => 'No suggestions right now.';
+
+  @override
+  String notInterestedTitle({required String name}) {
+    return 'Not interested in $name?';
+  }
+
+  @override
+  String get notInterestedReasonNotInterested => 'I’m not interested';
+
+  @override
+  String get notInterestedReasonOffensive => 'Offensive content';
+
+  @override
+  String get notInterestedReasonOther => 'Something else';
+
+  @override
+  String notInterestedDone({required String name}) {
+    return 'You won’t see $name in suggestions. Undo restores it in ONSET only.';
+  }
+
+  @override
+  String notInterestedOnlyHere({required String name}) {
+    return '$name is hidden in ONSET only. Twitch didn’t record your reason.';
+  }
+
+  @override
+  String get notificationCategoryDevelopers => 'Developer updates';
+
+  @override
+  String get notificationCategoryChat => 'Chat mentions';
+
+  @override
+  String get notificationCategoryClips => 'Clips';
+
+  @override
+  String get notificationCategoryCreator => 'For creators';
+
+  @override
+  String get notificationCategoryEvents => 'Events';
+
+  @override
+  String get notificationCategoryGifts => 'Gifts and rewards';
+
+  @override
+  String get notificationCategoryMarketing => 'News and offers';
+
+  @override
+  String get notificationCategoryModeration => 'Moderation';
+
+  @override
+  String get notificationCategoryRecommendedLive => 'Recommended live channels';
+
+  @override
+  String get notificationCategorySocial => 'Social activity';
+
+  @override
+  String get notificationCategorySubscriptions => 'Subscriptions';
+
+  @override
+  String get notificationCategoryFollowers => 'New followers';
+
+  @override
+  String get notificationCategoryVideos => 'Past broadcasts';
+
+  @override
+  String get notificationCategoryOther => 'Other notifications';
+
+  @override
+  String get notInterestedSentToTwitch => 'Twitch receives your reason.';
+
+  @override
+  String notInterestedHiddenHere({required String name}) {
+    return 'You won’t see $name in suggestions in ONSET.';
+  }
+
+  @override
+  String notificationCenterMarkedRead({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString notifications marked as read.',
+      one: '$countString notification marked as read.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get castButton => 'Cast to a device';
