@@ -52,6 +52,7 @@ const _sameInBothLanguages = {
   'streamTagSemantics': '"Tag" is Twitch\'s French word too; the tag follows.',
   'categorySectionClips': 'Twitch calls them "clips" in French.',
   'profileTabClips': 'Twitch calls them "clips" in French.',
+  'notificationCategoryClips': 'Twitch calls them "clips" in French.',
   'profileFollowers': '"followers" is Twitch\'s French word for them.',
   'profileFollowersShort': '"followers" is Twitch\'s French word for them.',
   'profileChat': '"Chat" is also the French word for it.',

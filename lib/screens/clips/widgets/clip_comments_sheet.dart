@@ -411,6 +411,7 @@ class _ClipCommentsSheetState extends State<ClipCommentsSheet> {
       button: true,
       toggled: liked,
       label: l.clipCommentLikes(count: comment.likeCount),
+      onTap: enabled ? () => unawaited(_toggleLike(comment)) : null,
       excludeSemantics: true,
       child: InkResponse(
         key: ClipCommentsSheet.likeKey(comment.id),

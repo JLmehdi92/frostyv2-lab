@@ -670,6 +670,7 @@ class ProfileRecapTile extends StatelessWidget {
     return Semantics(
       button: true,
       label: l.recapOpen(title: title, details: '$count · $details'),
+      onTap: () => unawaited(RecapScreen.open(context, recap: recap)),
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(
