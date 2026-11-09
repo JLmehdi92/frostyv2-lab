@@ -11,6 +11,7 @@ import 'arb.dart';
 /// Values that are the same in English and in French on purpose, by key.
 /// An entry whose values differ is stale and fails.
 const _sameInBothLanguages = {
+  'gifPoweredBy': 'GIPHY asks for its own “Powered by GIPHY” attribution mark.',
   'communityGoalMax': '"Max" is the usual short form in French too.',
   'settingsTwitchTurbo': 'A Twitch brand name.',
   'settingsTwitchPrime': 'An Amazon brand name.',

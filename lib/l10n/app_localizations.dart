@@ -5138,7 +5138,7 @@ abstract class AppLocalizations {
   /// Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name (Twitch’s error codes).
   ///
   /// In en, this message translates to:
-  /// **'{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t let you follow this.} refused{Twitch declined this follow.} integrityRefused{Twitch’s anti-bot check refused this. ONSET opens twitch.tv so you can do it there.} signedOut{Log in again to follow from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  /// **'{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} integrityRefused{Twitch’s anti-bot check refused this. ONSET opens twitch.tv so you can do it there.} signedOut{Log in again to follow from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
   String followError({required String status});
 
   /// Dialog title before unfollowing a channel or a category.
@@ -5198,7 +5198,7 @@ abstract class AppLocalizations {
   /// Dialog text before following every suggested channel.
   ///
   /// In en, this message translates to:
-  /// **'Each one is added to what your Twitch account follows.'**
+  /// **'Each channel is added to the channels your Twitch account follows.'**
   String get followAllConfirmBody;
 
   /// Snack bar after following the suggested channels.
@@ -5206,6 +5206,16 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{You now follow {count} more channel.} other{You now follow {count} more channels.}}'**
   String followAllDone({required int count});
+
+  /// Snackbar when Follow all stops at a channel: how many channels were followed, the channel that failed, and Twitch’s reason.
+  ///
+  /// In en, this message translates to:
+  /// **'{done, plural, =0{Couldn’t follow {name}.} =1{You followed 1 channel, then couldn’t follow {name}.} other{You followed {done} channels, then couldn’t follow {name}.}} {reason}'**
+  String followAllStopped({
+    required int done,
+    required String name,
+    required String reason,
+  });
 
   /// Chat line ONSET adds after a while of watching a channel the viewer doesn’t follow; its action button is “Follow”.
   ///
@@ -5636,19 +5646,19 @@ abstract class AppLocalizations {
   /// Free preview of a subscribers-only live: the banner title.
   ///
   /// In en, this message translates to:
-  /// **'{name} is streaming for subscribers'**
+  /// **'{name}’s stream is for subscribers only'**
   String freePreviewTitle({required String name});
 
   /// Free preview of a live for Tier 2 and Tier 3 subscribers: the banner title.
   ///
   /// In en, this message translates to:
-  /// **'{name} is streaming for Tier 2 and Tier 3 subscribers'**
+  /// **'{name}’s stream is for Tier 2 and Tier 3 subscribers only'**
   String freePreviewTitleTier2({required String name});
 
   /// Free preview of a live for Tier 3 subscribers: the banner title.
   ///
   /// In en, this message translates to:
-  /// **'{name} is streaming for Tier 3 subscribers'**
+  /// **'{name}’s stream is for Tier 3 subscribers only'**
   String freePreviewTitleTier3({required String name});
 
   /// Free preview banner: the time left before the preview ends, as minutes:seconds.
@@ -9393,7 +9403,7 @@ abstract class AppLocalizations {
   /// Snackbar when a GIF couldn’t be sent: a cooldown with the seconds to wait, or why it failed.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, cooldown{{seconds, plural, =1{You can send another GIF in 1 second.} other{You can send another GIF in {seconds} seconds.}}} refused{Twitch declined this GIF.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.} signedOut{Log in again to send GIFs from ONSET.} other{Couldn’t send the GIF. Try again.}}'**
+  /// **'{status, select, cooldown{{seconds, plural, =1{You can send another GIF in 1 second.} other{You can send another GIF in {seconds} seconds.}}} refused{Twitch declined this GIF.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t get past it. Try on twitch.tv instead.} signedOut{Log in again to send GIFs from ONSET.} other{Couldn’t send the GIF. Try again.}}'**
   String gifSendResult({required String status, required int seconds});
 
   /// Emote menu › GIFs: the channel has GIFs off, or Twitch’s GIF settings couldn’t be read.

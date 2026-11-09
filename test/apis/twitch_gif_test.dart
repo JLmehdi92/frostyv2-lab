@@ -128,12 +128,9 @@ void main() {
           messageId: null,
         ),
       );
-      final result = await TwitchViewerActionsService(dio).sendGif(
-        channelId: '1000',
-        gif: gif,
-        searchTerm: '',
-        authToken: 'tok',
-      );
+      final result = await TwitchViewerActionsService(
+        dio,
+      ).sendGif(channelId: '1000', gif: gif, searchTerm: '', authToken: 'tok');
       expect(result.status, GifSendStatus.cooldown);
       expect(result.secondsUntilCanSend, 12);
       expect(
@@ -144,12 +141,9 @@ void main() {
 
     test('an error without a wait is a refusal', () async {
       replyGql(sendGifResponse(error: 'BANNED', messageId: null));
-      final result = await TwitchViewerActionsService(dio).sendGif(
-        channelId: '1000',
-        gif: gif,
-        searchTerm: '',
-        authToken: 'tok',
-      );
+      final result = await TwitchViewerActionsService(
+        dio,
+      ).sendGif(channelId: '1000', gif: gif, searchTerm: '', authToken: 'tok');
       expect(result.status, GifSendStatus.refused);
     });
 
@@ -159,12 +153,9 @@ void main() {
           {'message': 'failed integrity check'},
         ],
       });
-      final result = await TwitchViewerActionsService(dio).sendGif(
-        channelId: '1000',
-        gif: gif,
-        searchTerm: '',
-        authToken: 'tok',
-      );
+      final result = await TwitchViewerActionsService(
+        dio,
+      ).sendGif(channelId: '1000', gif: gif, searchTerm: '', authToken: 'tok');
       expect(result.status, GifSendStatus.integrityRefused);
     });
   });
@@ -241,6 +232,22 @@ void main() {
         isNull,
       );
       expect(requests, isEmpty);
+    });
+
+    test('a failure is logged without the key', () {
+      final description = GiphyService.describeFailure(
+        DioException(
+          requestOptions: RequestOptions(
+            path: 'https://api.giphy.com/v1/gifs/search?api_key=abcDEF123456',
+          ),
+          response: Response(requestOptions: RequestOptions(), statusCode: 429),
+        ),
+      );
+      expect(description, 'HTTP 429');
+      expect(
+        GiphyService.describeFailure(Exception('api_key=abcDEF123456')),
+        isNot(contains('abcDEF123456')),
+      );
     });
 
     test('only https GIPHY images are kept', () {

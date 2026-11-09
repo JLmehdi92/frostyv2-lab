@@ -3302,7 +3302,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'unverifiedPhone': 'Verify your phone number on Twitch to follow.',
       'unverifiedPhoneAndEmail':
           'Verify your email address and phone number on Twitch to follow.',
-      'forbidden': 'Twitch doesn’t let you follow this.',
+      'forbidden': 'Twitch doesn’t allow this follow.',
       'refused': 'Twitch declined this follow.',
       'integrityRefused':
           'Twitch’s anti-bot check refused this. ONSET opens twitch.tv so you can do it there.',
@@ -3357,7 +3357,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get followAllConfirmBody =>
-      'Each one is added to what your Twitch account follows.';
+      'Each channel is added to the channels your Twitch account follows.';
 
   @override
   String followAllDone({required int count}) {
@@ -3368,6 +3368,22 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'You now follow $count more channel.',
     );
     return '$_temp0';
+  }
+
+  @override
+  String followAllStopped({
+    required int done,
+    required String name,
+    required String reason,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: 'You followed $done channels, then couldn’t follow $name.',
+      one: 'You followed 1 channel, then couldn’t follow $name.',
+      zero: 'Couldn’t follow $name.',
+    );
+    return '$_temp0 $reason';
   }
 
   @override
@@ -3643,17 +3659,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String freePreviewTitle({required String name}) {
-    return '$name is streaming for subscribers';
+    return '$name’s stream is for subscribers only';
   }
 
   @override
   String freePreviewTitleTier2({required String name}) {
-    return '$name is streaming for Tier 2 and Tier 3 subscribers';
+    return '$name’s stream is for Tier 2 and Tier 3 subscribers only';
   }
 
   @override
   String freePreviewTitleTier3({required String name}) {
-    return '$name is streaming for Tier 3 subscribers';
+    return '$name’s stream is for Tier 3 subscribers only';
   }
 
   @override
@@ -7013,7 +7029,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'cooldown': '$_temp0',
       'refused': 'Twitch declined this GIF.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.',
+          'Twitch’s anti-bot check refused this. ONSET can’t get past it. Try on twitch.tv instead.',
       'signedOut': 'Log in again to send GIFs from ONSET.',
       'other': 'Couldn’t send the GIF. Try again.',
     });

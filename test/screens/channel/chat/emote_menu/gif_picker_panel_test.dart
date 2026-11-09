@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -92,6 +94,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
     verify(() => giphy.search(config: _config, query: 'cat')).called(1);
+  });
+
+  testWidgets('a new search shows that it loads over the old GIFs', (
+    tester,
+  ) async {
+    await pump(tester, config: _config);
+    final pending = Completer<List<GiphyGif>?>();
+    when(
+      () => giphy.search(config: _config, query: 'cat'),
+    ).thenAnswer((_) => pending.future);
+    await tester.enterText(find.byKey(GifPickerPanel.searchKey), 'cat');
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(GifPickerPanel.loadingKey), findsOneWidget);
+    expect(find.byKey(GifPickerPanel.tileKey('a1')), findsOneWidget);
+    pending.complete(const []);
+    await tester.pump();
+    expect(find.byKey(GifPickerPanel.loadingKey), findsNothing);
   });
 
   testWidgets('a cooldown says how long to wait', (tester) async {

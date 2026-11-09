@@ -46,8 +46,15 @@ class GiphyService extends BaseApiClient {
       if (data is! List) return null;
       return List.unmodifiable(data.map(GiphyGif.fromJson).nonNulls);
     } catch (e) {
-      if (kDebugMode) debugPrint('GIPHY $path failed: $e');
+      if (kDebugMode) debugPrint('GIPHY $path failed: ${describeFailure(e)}');
       return null;
     }
   }
+
+  @visibleForTesting
+  static String describeFailure(Object error) => switch (error) {
+    DioException(:final response?) => 'HTTP ${response.statusCode}',
+    ApiException(:final statusCode?) => 'HTTP $statusCode',
+    _ => '${error.runtimeType}',
+  };
 }

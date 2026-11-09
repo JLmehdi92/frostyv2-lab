@@ -45,6 +45,8 @@ const lot8bScreenNames = [
   'chat account sync',
   'chat account sync unavailable',
   'gif picker empty',
+  'gif picker results',
+  'free preview tier 3',
   'gif picker subscribers',
 ];
 
@@ -55,6 +57,7 @@ FreePreviewController _preview(String name) {
     clock: () => now,
   );
   if (name.contains('tier 2')) controller.tier = SubscriberTier.tier2;
+  if (name.contains('tier 3')) controller.tier = SubscriberTier.tier3;
   if (name.contains('ended')) controller.expire();
   return controller;
 }
@@ -86,6 +89,18 @@ Map<String, Widget> _otherScreens() {
       query: any(named: 'query'),
     ),
   ).thenAnswer((_) async => const []);
+  final withResults = _MockGiphy();
+  when(
+    () => withResults.search(
+      config: _config,
+      query: any(named: 'query'),
+    ),
+  ).thenAnswer(
+    (_) async => [
+      for (final id in ['a1', 'b2', 'c3', 'd4', 'e5', 'f6'])
+        GiphyGif.fromJson(giphyGif(id))!,
+    ],
+  );
   return {
     'chat account sync': Scaffold(
       body: SettingsGroupsView(
@@ -117,6 +132,19 @@ Map<String, Widget> _otherScreens() {
           channelName: 'Streamer',
           loadConfig: () async => _config,
           giphy: giphy,
+          send: (_, _) async => const GifSendResult(GifSendStatus.sent),
+          onSent: () {},
+        ),
+      ),
+    ),
+    'gif picker results': Scaffold(
+      body: SizedBox(
+        height: 360,
+        child: GifPickerPanel(
+          channelLogin: 'streamer',
+          channelName: 'Streamer',
+          loadConfig: () async => _config,
+          giphy: withResults,
           send: (_, _) async => const GifSendResult(GifSendStatus.sent),
           onSent: () {},
         ),

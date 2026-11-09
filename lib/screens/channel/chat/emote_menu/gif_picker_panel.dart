@@ -22,6 +22,7 @@ class GifPickerPanel extends StatefulWidget {
 
   static const searchKey = ValueKey('gif-search');
   static const sendKey = ValueKey('gif-send');
+  static const loadingKey = ValueKey('gif-loading');
   static ValueKey<String> tileKey(String id) => ValueKey('gif-$id');
 
   final String channelLogin;
@@ -185,6 +186,15 @@ class _GifPickerPanelState extends State<GifPickerPanel> {
               ),
             ),
           ),
+        ),
+        SizedBox(
+          height: 2,
+          child: _loadingGifs && gifs != null
+              ? const LinearProgressIndicator(
+                  key: GifPickerPanel.loadingKey,
+                  minHeight: 2,
+                )
+              : null,
         ),
         Expanded(
           child: switch (gifs) {

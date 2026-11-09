@@ -58,6 +58,33 @@ class FollowFlow {
     return !following;
   }
 
+  static Future<bool?> followFromPrompt(
+    BuildContext context, {
+    required String id,
+    required String name,
+    required bool? following,
+    required bool confirm,
+    required Future<void> Function() openOnTwitch,
+    void Function(bool following)? onChanged,
+  }) async {
+    if (following == true) return null;
+    if (confirm && !await confirmFollow(context, name)) return null;
+    if (!context.mounted) return null;
+    final now = await toggle(
+      context,
+      target: FollowTarget.channel,
+      id: id,
+      name: name,
+      following: false,
+      openOnTwitch: openOnTwitch,
+    );
+    if (now != null) onChanged?.call(now);
+    if (now == true && context.mounted) {
+      await suggestAfterFollowing(context, channelId: id, name: name);
+    }
+    return now;
+  }
+
   static Future<bool> confirmFollow(BuildContext context, String name) =>
       _confirm(
         context,
@@ -204,6 +231,7 @@ class _FollowSuggestionsSheetState extends State<FollowSuggestionsSheet> {
     if (!confirmed || !mounted) return;
     var done = 0;
     FollowResult? failure;
+    StreamTwitch? failed;
     for (final stream in remaining) {
       final result = await _followOne(stream);
       if (!mounted) return;
@@ -211,6 +239,7 @@ class _FollowSuggestionsSheetState extends State<FollowSuggestionsSheet> {
         done++;
       } else {
         failure = result;
+        failed = stream;
         break;
       }
     }
@@ -220,9 +249,13 @@ class _FollowSuggestionsSheetState extends State<FollowSuggestionsSheet> {
       ..showSnackBar(
         SnackBar(
           content: Text(
-            failure == null
+            failure == null || failed == null
                 ? l.followAllDone(count: done)
-                : l.followError(status: failure.name),
+                : l.followAllStopped(
+                    done: done,
+                    name: getReadableName(failed.userName, failed.userLogin),
+                    reason: l.followError(status: failure.name),
+                  ),
           ),
         ),
       );

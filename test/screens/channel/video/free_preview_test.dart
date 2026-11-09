@@ -154,14 +154,17 @@ void main() {
 
     testWidgets('a banner names the tier and the time left', (tester) async {
       final controller = await pump(tester, onWeb: () {});
-      expect(find.text('Streamer is streaming for subscribers'), findsOneWidget);
+      expect(
+        find.text('Streamer’s stream is for subscribers only'),
+        findsOneWidget,
+      );
       expect(find.text('Free preview: 2:05 left'), findsOneWidget);
       expect(find.text('Subscribe'), findsOneWidget);
 
       controller.tier = SubscriberTier.tier3;
       await tester.pump();
       expect(
-        find.text('Streamer is streaming for Tier 3 subscribers'),
+        find.text('Streamer’s stream is for Tier 3 subscribers only'),
         findsOneWidget,
       );
 

@@ -193,10 +193,17 @@ void main() {
     ).thenAnswer((_) async => FollowResult.done);
     when(
       () => actions.followChannel('1'),
-    ).thenAnswer((_) async => FollowResult.tooManyFollows);
+    ).thenAnswer((_) async => FollowResult.done);
     when(
-      () => actions.suggestionsAfterFollowing('1000'),
-    ).thenAnswer((_) async => [_stream('1', 'Alpha'), _stream('2', 'Beta')]);
+      () => actions.followChannel('2'),
+    ).thenAnswer((_) async => FollowResult.tooManyFollows);
+    when(() => actions.suggestionsAfterFollowing('1000')).thenAnswer(
+      (_) async => [
+        _stream('1', 'Alpha'),
+        _stream('2', 'Beta'),
+        _stream('3', 'Gamma'),
+      ],
+    );
     await pump(tester);
     await tester.tap(find.text('Follow'));
     await tester.pumpAndSettle();
@@ -205,10 +212,83 @@ void main() {
     await tester.tap(find.byKey(FollowFlow.confirmKey));
     await tester.pumpAndSettle();
 
-    verifyNever(() => actions.followChannel('2'));
+    verifyNever(() => actions.followChannel('3'));
     expect(
-      find.text('You follow too many channels. Unfollow one, then try again.'),
+      find.text(
+        'You followed 1 channel, then couldn’t follow Beta. You follow too '
+        'many channels. Unfollow one, then try again.',
+      ),
       findsOneWidget,
     );
+  });
+
+  group('following from a prompt or a link', () {
+    Future<List<bool?>> run(
+      WidgetTester tester, {
+      required bool? following,
+      required bool confirm,
+    }) async {
+      final results = <bool?>[];
+      await pumpLocalized(
+        tester,
+        Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async => results.add(
+                await FollowFlow.followFromPrompt(
+                  context,
+                  id: '1000',
+                  name: 'Streamer',
+                  following: following,
+                  confirm: confirm,
+                  openOnTwitch: () async {},
+                ),
+              ),
+              child: const Text('go'),
+            ),
+          ),
+        ),
+        locale: en,
+        wrap: (app) =>
+            Provider<FollowActions?>.value(value: actions, child: app),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      return results;
+    }
+
+    testWidgets('a link for a followed channel asks nothing', (tester) async {
+      final results = await run(tester, following: true, confirm: true);
+      expect(find.byKey(FollowFlow.confirmKey), findsNothing);
+      expect(results, [null]);
+      verifyNever(() => actions.followChannel(any()));
+    });
+
+    testWidgets('a confirmed link follow opens the suggestions', (
+      tester,
+    ) async {
+      when(
+        () => actions.followChannel('1000'),
+      ).thenAnswer((_) async => FollowResult.done);
+      when(
+        () => actions.suggestionsAfterFollowing('1000'),
+      ).thenAnswer((_) async => [_stream('1', 'Alpha')]);
+      await run(tester, following: false, confirm: true);
+      await tester.tap(find.byKey(FollowFlow.confirmKey));
+      await tester.pumpAndSettle();
+      verify(() => actions.followChannel('1000')).called(1);
+      expect(find.byType(FollowSuggestionsSheet), findsOneWidget);
+    });
+
+    testWidgets('a callout follow opens the suggestions too', (tester) async {
+      when(
+        () => actions.followChannel('1000'),
+      ).thenAnswer((_) async => FollowResult.done);
+      when(
+        () => actions.suggestionsAfterFollowing('1000'),
+      ).thenAnswer((_) async => [_stream('1', 'Alpha')]);
+      await run(tester, following: false, confirm: false);
+      expect(find.byType(FollowSuggestionsSheet), findsOneWidget);
+    });
   });
 }

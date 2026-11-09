@@ -223,21 +223,16 @@ class _VideoChatState extends State<VideoChat>
     );
   }
 
-  Future<void> _offerFollow() async {
-    if (!mounted || !await FollowFlow.confirmFollow(context, widget.userName)) {
-      return;
-    }
-    await _followFromPrompt();
-  }
+  Future<void> _offerFollow() => _followFromPrompt(confirm: true);
 
-  Future<void> _followFromPrompt() async {
-    if (!mounted || _infoStore.following.value == true) return;
-    final now = await FollowFlow.toggle(
+  Future<void> _followFromPrompt({bool confirm = false}) async {
+    if (!mounted) return;
+    await FollowFlow.followFromPrompt(
       context,
-      target: FollowTarget.channel,
       id: widget.userId,
       name: widget.userName,
-      following: false,
+      following: _infoStore.following.value,
+      confirm: confirm,
       openOnTwitch: () async {
         await TwitchWebPage.open(
           context,
@@ -246,8 +241,8 @@ class _VideoChatState extends State<VideoChat>
         );
         _infoStore.refresh();
       },
+      onChanged: (now) => _infoStore.following.value = now,
     );
-    if (now != null) _infoStore.following.value = now;
   }
 
   /// Asks about the viewer again when they become known (a cold start) or

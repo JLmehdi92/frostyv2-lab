@@ -3354,7 +3354,7 @@ class AppLocalizationsFr extends AppLocalizations {
           'Vérifiez votre numéro de téléphone sur Twitch pour suivre.',
       'unverifiedPhoneAndEmail':
           'Vérifiez votre adresse e-mail et votre numéro de téléphone sur Twitch pour suivre.',
-      'forbidden': 'Twitch ne vous permet pas de suivre ceci.',
+      'forbidden': 'Twitch n’autorise pas ce suivi.',
       'refused': 'Twitch a refusé ce suivi.',
       'integrityRefused':
           'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ouvre twitch.tv pour que vous la fassiez là-bas.',
@@ -3421,6 +3421,22 @@ class AppLocalizationsFr extends AppLocalizations {
       one: 'Vous suivez désormais $count chaîne de plus.',
     );
     return '$_temp0';
+  }
+
+  @override
+  String followAllStopped({
+    required int done,
+    required String name,
+    required String reason,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: 'Vous avez suivi $done chaînes, mais le suivi de $name a échoué.',
+      one: 'Vous avez suivi $done chaîne, mais le suivi de $name a échoué.',
+      zero: 'Le suivi de $name a échoué.',
+    );
+    return '$_temp0 $reason';
   }
 
   @override
@@ -3499,7 +3515,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Personne ne peut vous offrir d’abonnement sur une chaîne que vous ne suivez pas.';
 
   @override
-  String get giftHideCount => 'Masquer votre nombre de cadeaux';
+  String get giftHideCount =>
+      'Masquer le nombre d’abonnements que vous avez offerts';
 
   @override
   String get giftHideCountDetail =>
@@ -7086,14 +7103,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gifSearchHint => 'Rechercher sur GIPHY';
 
   @override
-  String get gifPoweredBy => 'Fourni par GIPHY';
+  String get gifPoweredBy => 'Powered by GIPHY';
 
   @override
   String get gifSendTitle => 'Envoyer ce GIF ?';
 
   @override
   String get gifSendDisclosure =>
-      'Tout le chat le verra. Vous êtes responsable des GIF que vous envoyez : respectez les règles de la communauté Twitch.';
+      'Tout le chat le verra. Vous êtes responsable des GIF que vous envoyez : respectez les règles de la communauté de Twitch.';
 
   @override
   String get gifSend => 'Envoyer';
@@ -7110,7 +7127,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'cooldown': '$_temp0',
       'refused': 'Twitch a refusé ce GIF.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le passer ; essayez sur twitch.tv.',
+          'Le contrôle anti-robot de Twitch a refusé cette action. ONSET ne peut pas le franchir ; réessayez sur twitch.tv.',
       'signedOut': 'Reconnectez-vous pour envoyer des GIF depuis ONSET.',
       'other': 'Impossible d’envoyer le GIF. Réessayez.',
     });
