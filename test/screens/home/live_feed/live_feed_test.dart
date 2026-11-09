@@ -536,6 +536,20 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('stream previews off: the feed never plays on its own', (
+    tester,
+  ) async {
+    settings.streamPreviews = false;
+    await pump(tester);
+    await tester.pump(const Duration(seconds: 1));
+    expect(log, isEmpty);
+
+    await tester.tap(find.byTooltip('Play preview'));
+    await tester.pump(const Duration(seconds: 1));
+    expect(log, ['open https://usher/login1']);
+    await close(tester);
+  });
+
   testWidgets('Wi-Fi only, on mobile data: no preview', (tester) async {
     settings.vodAutoplay = VodAutoplay.wifiOnly;
     await pump(tester);
