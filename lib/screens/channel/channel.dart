@@ -16,6 +16,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
+import 'package:onset/models/private_callout.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/stream_push.dart';
@@ -78,6 +79,7 @@ import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/stores/whisper_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/link_router.dart';
 import 'package:onset/utils/modal_bottom_sheet.dart';
 import 'package:onset/utils/pip_callbacks.dart';
 import 'package:onset/widgets/announce.dart';
@@ -761,6 +763,8 @@ class _VideoChatState extends State<VideoChat>
         communityDropsLine(campaign, widget.userName, L10n.current),
       ),
     );
+    _privateCallouts = _eventsStore.privateCallouts.listen(_showPrivateCallout);
+    _predictionWins = _eventsStore.predictionWins.listen(_showPredictionWin);
     _communityMoments = _eventsStore.communityMoments.listen(
       (_) => _primaryChatStore?.addLocalNotice(
         L10n.current.momentChatLine(channel: widget.userName),
@@ -1229,6 +1233,33 @@ class _VideoChatState extends State<VideoChat>
 
   StreamSubscription<DropCampaign>? _communityDrops;
   StreamSubscription<CommunityMoment>? _communityMoments;
+  StreamSubscription<PrivateCallout>? _privateCallouts;
+  StreamSubscription<PredictionWin>? _predictionWins;
+
+  void _showPrivateCallout(PrivateCallout callout) {
+    final l = L10n.current;
+    final url = callout.actionUrl;
+    _primaryChatStore?.addLocalNotice(
+      l.privateCalloutLine(body: callout.body),
+      actionLabel: url == null
+          ? null
+          : callout.actionLabel ?? l.privateCalloutOpen,
+      onAction: url == null
+          ? null
+          : () => LinkRouter.open(
+              url.toString(),
+              launchExternal: false,
+              confirm: true,
+            ),
+    );
+  }
+
+  void _showPredictionWin(PredictionWin win) {
+    if (!mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text(context.l10n.predictionWon(count: win.points))),
+    );
+  }
 
   void _showWatchStreakChange(WatchStreakChange change) {
     if (!mounted) return;
@@ -2123,6 +2154,8 @@ class _VideoChatState extends State<VideoChat>
     unawaited(_streakChanges?.cancel());
     unawaited(_communityDrops?.cancel());
     unawaited(_communityMoments?.cancel());
+    unawaited(_privateCallouts?.cancel());
+    unawaited(_predictionWins?.cancel());
     _eventsStore.dispose();
     _viewerReaction?.call();
     _infoStore.dispose();

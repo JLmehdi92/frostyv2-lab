@@ -81,6 +81,25 @@ void main() {
     });
   });
 
+  test('a local notice can carry an action', () {
+    fakeAsync((async) {
+      final store = create();
+      async.flushMicrotasks();
+      var taps = 0;
+      store.addLocalNotice(
+        'Only for you',
+        actionLabel: 'Open',
+        onAction: () => taps++,
+      );
+      final line = lines(store).singleWhere((m) => m.message == 'Only for you');
+      expect(line.actionLabel, 'Open');
+      line.actionCallback!();
+      expect(taps, 1);
+      store.dispose();
+      async.elapse(const Duration(seconds: 30));
+    });
+  });
+
   test('the raid welcome shows right after joining, once', () {
     fakeAsync((async) {
       final store = create();

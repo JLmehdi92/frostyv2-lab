@@ -11940,5 +11940,30 @@
         "example": "ALREADY_CREATED"
       }
     }
+  },
+  "privateCalloutLine": "{body} · Only visible to you",
+  "@privateCalloutLine": {
+    "description": "A chat line Twitch sends to this viewer alone; the body is Twitch's own text.",
+    "placeholders": {
+      "body": {
+        "type": "String",
+        "example": "Keep watching to earn Weekly Rewards!"
+      }
+    }
+  },
+  "privateCalloutOpen": "Open",
+  "@privateCalloutOpen": {
+    "description": "Button on a private chat line when Twitch gives no label for its link."
+  },
+  "predictionWon": "{count, plural, one{You predicted it! You won {count} point.} other{You predicted it! You won {count} points.}}",
+  "@predictionWon": {
+    "description": "Banner when the viewer's prediction wins.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "2500"
+      }
+    }
   }
 }

@@ -543,6 +543,7 @@ void main() {
         () => hermes.subscribeAll([
           ...HermesTopics.forChannel('42'),
           ...HermesTopics.forViewer('7'),
+          'private-callout.7.42',
         ]),
       ).called(1);
       store.dispose();
@@ -1064,6 +1065,100 @@ void main() {
         ..add(gift('f', 5, type: 'subgift'));
       await pumpEventQueue();
       expect(store.giftedSinceJoining, 6);
+      store.dispose();
+    });
+  });
+
+  group('private callouts and prediction wins', () {
+    Map<String, dynamic> callout(String id) => {
+      'private_callout': {
+        'id': id,
+        'type': 'weekly_rewards',
+        'body': 'Keep watching to earn rewards!',
+        'render_style': 'default',
+        'thumbnail_url': '',
+        'actions': [
+          {
+            'id': 'a',
+            'type': 'link',
+            'body': 'Learn more',
+            'url': 'javascript:x',
+          },
+          {
+            'id': 'b',
+            'type': 'link',
+            'body': 'Learn more',
+            'url': 'https://www.twitch.tv/settings',
+          },
+        ],
+      },
+    };
+
+    test('a callout for this viewer and channel is said once', () async {
+      final store = build(viewerId: '7');
+      final shown = [];
+      store.privateCallouts.listen(shown.add);
+      await store.connect();
+      for (final topic in [
+        'private-callout.7.42',
+        'private-callout.7.42',
+        'private-callout.7.43',
+      ]) {
+        events.add(
+          HermesEvent(
+            topic: topic,
+            type: 'private_callout',
+            data: callout('c1'),
+          ),
+        );
+      }
+      await pumpEventQueue();
+
+      expect(shown, hasLength(1));
+      expect(
+        shown.single.actionUrl.toString(),
+        'https://www.twitch.tv/settings',
+      );
+      store.dispose();
+    });
+
+    test('a won prediction on the viewer topic is celebrated once', () async {
+      final store = build(viewerId: '7');
+      final wins = [];
+      store.predictionWins.listen(wins.add);
+      await store.connect();
+      Map<String, dynamic> result(String type) => {
+        'timestamp': '2026-11-09T20:00:00Z',
+        'prediction': {
+          'id': 'p1',
+          'event_id': 'e1',
+          'outcome_id': 'o1',
+          'channel_id': '42',
+          'points': 500,
+          'result': {
+            'type': type,
+            'points_won': 1250,
+            'is_acknowledged': false,
+          },
+        },
+      };
+      for (final (topic, type) in [
+        ('predictions-user-v1.7', 'LOSE'),
+        ('predictions-channel-v1.42', 'WIN'),
+        ('predictions-user-v1.7', 'WIN'),
+        ('predictions-user-v1.7', 'WIN'),
+      ]) {
+        events.add(
+          HermesEvent(
+            topic: topic,
+            type: 'prediction-result',
+            data: result(type),
+          ),
+        );
+      }
+      await pumpEventQueue();
+
+      expect(wins.map((w) => w.points), [1250]);
       store.dispose();
     });
   });

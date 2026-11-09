@@ -195,4 +195,10 @@ void main() {
     expect(HermesTopics.userSubscribeEvents('7'), 'user-subscribe-events-v1.7');
     expect(HermesTopics.userBitsUpdates('7'), 'user-bits-updates-v1.7');
   });
+
+  test('the private callouts topic names the viewer and the channel', () {
+    expect(HermesTopics.forViewerInChannel('7', '42'), [
+      'private-callout.7.42',
+    ]);
+  });
 }

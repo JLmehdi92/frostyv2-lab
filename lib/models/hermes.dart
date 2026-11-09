@@ -260,6 +260,13 @@ class HermesTopics {
   static String userBitsUpdates(String userId) =>
       'user-bits-updates-v1.$userId';
 
+  static String privateCallout(String userId, String channelId) =>
+      'private-callout.$userId.$channelId';
+
+  static List<String> forViewerInChannel(String userId, String channelId) => [
+    privateCallout(userId, channelId),
+  ];
+
   /// Everything worth watching for a channel the user is viewing. The hype
   /// train is left out: the hype train store follows it over EventSub/GQL.
   static List<String> forChannel(String channelId) => [

@@ -9491,4 +9491,27 @@ class AppLocalizationsFr extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String privateCalloutLine({required String body}) {
+    return '$body · Visible uniquement par vous';
+  }
+
+  @override
+  String get privateCalloutOpen => 'Ouvrir';
+
+  @override
+  String predictionWon({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bien vu ! Vous avez gagné $countString points.',
+      one: 'Bien vu ! Vous avez gagné $countString point.',
+    );
+    return '$_temp0';
+  }
 }

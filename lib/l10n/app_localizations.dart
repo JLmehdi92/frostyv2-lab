@@ -12274,6 +12274,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{code, select, ALREADY_CREATED{You’ve already sent an unban request.} TOO_SOON_SINCE_BAN{It’s too soon after your ban. Try again later.} UNBAN_REQUESTS_DISABLED{This channel doesn’t take unban requests.} NOT_BANNED{You’re not banned from this channel.} FAILED_MODERATION{Twitch refused this message. Reword it and try again.} signedOut{Log in again to send it from ONSET.} other{Couldn’t send your unban request. Try again.}}'**
   String unbanRequestFailed({required String code});
+
+  /// A chat line Twitch sends to this viewer alone; the body is Twitch's own text.
+  ///
+  /// In en, this message translates to:
+  /// **'{body} · Only visible to you'**
+  String privateCalloutLine({required String body});
+
+  /// Button on a private chat line when Twitch gives no label for its link.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get privateCalloutOpen;
+
+  /// Banner when the viewer's prediction wins.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{You predicted it! You won {count} point.} other{You predicted it! You won {count} points.}}'**
+  String predictionWon({required int count});
 }
 
 class _AppLocalizationsDelegate

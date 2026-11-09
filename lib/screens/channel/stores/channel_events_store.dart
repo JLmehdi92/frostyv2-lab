@@ -16,6 +16,7 @@ import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
 import 'package:onset/models/hermes.dart';
 import 'package:onset/models/legendary_collection.dart';
+import 'package:onset/models/private_callout.dart';
 import 'package:onset/models/resub_notification.dart';
 import 'package:onset/models/stream_push.dart';
 import 'package:onset/models/unlockable_emote.dart';
@@ -299,6 +300,31 @@ abstract class ChannelEventsStoreBase with Store {
 
   final _communityMoments = StreamController<CommunityMoment>.broadcast();
 
+  final _privateCallouts = StreamController<PrivateCallout>.broadcast();
+
+  Stream<PrivateCallout> get privateCallouts => _privateCallouts.stream;
+
+  final _shownCallouts = <String>{};
+
+  void _applyPrivateCallout(HermesEvent event) {
+    final callout = PrivateCallout.fromEvent(event.data);
+    if (callout == null || !_shownCallouts.add(callout.id)) return;
+    if (!_privateCallouts.isClosed) _privateCallouts.add(callout);
+  }
+
+  final _predictionWins = StreamController<PredictionWin>.broadcast();
+
+  Stream<PredictionWin> get predictionWins => _predictionWins.stream;
+
+  final _celebratedWins = <String>{};
+
+  void _applyPredictionWin(HermesEvent event) {
+    if (!event.topic.startsWith('predictions-user-v1.')) return;
+    final win = PredictionWin.fromEvent(event.type, event.data);
+    if (win == null || !_celebratedWins.add(win.eventId)) return;
+    if (!_predictionWins.isClosed) _predictionWins.add(win);
+  }
+
   Stream<CommunityMoment> get communityMoments => _communityMoments.stream;
 
   bool get canClaimMoments => _viewerActionsService != null;
@@ -523,6 +549,7 @@ abstract class ChannelEventsStoreBase with Store {
     await _client.subscribeAll([
       ...HermesTopics.forChannel(channelId),
       if (viewer != null) ...HermesTopics.forViewer(viewer),
+      if (viewer != null) ...HermesTopics.forViewerInChannel(viewer, channelId),
     ]);
 
     // Not awaited: the balance appearing a moment later is fine, a channel
@@ -901,10 +928,13 @@ abstract class ChannelEventsStoreBase with Store {
       _applyStreamPush(event);
     } else if (event.topic.startsWith('community-moments-channel')) {
       _applyMoment(event);
+    } else if (event.topic.startsWith('private-callout.')) {
+      _applyPrivateCallout(event);
     } else if (event.topic.startsWith('creator-goals-events')) {
       _applyGoal(event);
     } else if (event.topic.startsWith('community-points') ||
         event.topic.startsWith('predictions-')) {
+      _applyPredictionWin(event);
       // The payloads differ per event and Twitch does not resend the reward
       // list, so a refetch is both simpler and more correct than trying to
       // patch the local copy from a partial update.
@@ -1051,6 +1081,8 @@ abstract class ChannelEventsStoreBase with Store {
     unawaited(_watchStreakChanges.close());
     unawaited(_communityDrops.close());
     unawaited(_communityMoments.close());
+    unawaited(_privateCallouts.close());
+    unawaited(_predictionWins.close());
     unawaited(_streamPushes.close());
     unawaited(_goalsReached.close());
     _pointsRefreshTimer?.cancel();

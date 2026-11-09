@@ -286,12 +286,22 @@ abstract class ChatStoreBase with Store {
   /// Adds a line of ONSET's own to this chat (a celebration said quietly),
   /// held like chat while it is delayed to match the video, so it shows in
   /// step with what it is about.
-  void addLocalNotice(String text) {
+  void addLocalNotice(
+    String text, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
     if (_shouldDisconnect) return;
     // An action wherever it runs: the delay queue may release it from the
     // socket listener or a reaction.
     void add() => runInAction(
-      () => messageBuffer.add(IRCMessage.createNotice(message: text)),
+      () => messageBuffer.add(
+        IRCMessage.createNotice(
+          message: text,
+          actionLabel: actionLabel,
+          actionCallback: onAction,
+        ),
+      ),
     );
     if (_hasActiveChatDelay) {
       _enqueueDelayedCallback(_pendingChatCallbacks, add);

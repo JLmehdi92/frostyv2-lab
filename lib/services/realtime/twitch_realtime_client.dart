@@ -140,6 +140,7 @@ class TwitchRealtimeClient {
     'user-moderation-notifications.',
     'community-points-user-v1.',
     'predictions-user-v1.',
+    'private-callout.',
   };
 
   final RealtimeSocketFactory _connect;
