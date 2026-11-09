@@ -13,6 +13,7 @@ import 'package:onset/apis/bttv_api.dart';
 import 'package:onset/apis/dio_client.dart';
 import 'package:onset/apis/ffz_api.dart';
 import 'package:onset/apis/seventv_api.dart';
+import 'package:onset/apis/twitch_account_gql_service.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_auth_interceptor.dart';
 import 'package:onset/apis/twitch_channel_profile_service.dart';
@@ -209,6 +210,7 @@ void main() async {
     anonymousGqlDio,
   );
   final twitchCommunityService = TwitchCommunityService(anonymousGqlDio);
+  final twitchAccountGqlService = TwitchAccountGqlService(anonymousGqlDio);
 
   // One anonymous realtime connection (Hermes) for public Twitch topics such
   // as the hype train. It connects only when something subscribes and
@@ -394,6 +396,9 @@ void main() async {
           ),
         ),
         Provider<TwitchCommunityService>.value(value: twitchCommunityService),
+        Provider<TwitchAccountGqlService>.value(
+          value: twitchAccountGqlService,
+        ),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<TwitchEventSubClient>.value(value: eventSubClient),
