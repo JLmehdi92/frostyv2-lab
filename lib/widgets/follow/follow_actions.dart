@@ -48,6 +48,24 @@ class FollowActions {
     return followed.any((category) => category.id == categoryId);
   }
 
+  Future<({String id, bool following})?> channelFollowState(
+    String login,
+  ) async {
+    final viewer = _viewerId();
+    if (viewer == null || !canFollowInApp) return null;
+    try {
+      final user = await _api.getUser(userLogin: login);
+      final following = await _api.isFollowing(
+        userId: viewer,
+        broadcasterId: user.id,
+      );
+      return (id: user.id, following: following);
+    } catch (e) {
+      debugPrint('Channel follow state unavailable: $e');
+      return null;
+    }
+  }
+
   Future<List<StreamTwitch>> suggestionsAfterFollowing(String channelId) async {
     final viewer = _viewerId();
     if (viewer == null) return const [];

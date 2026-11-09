@@ -14,6 +14,7 @@ import 'package:onset/services/notifications/activity_log.dart';
 import 'package:onset/stores/whisper_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/motion/haptics.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
@@ -23,6 +24,7 @@ import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/state_glyph.dart';
 import 'package:onset/widgets/state_views.dart';
+import 'package:onset/widgets/twitch_web_page.dart';
 
 /// Twitch's Activity: the
 /// notifications (here, those ONSET posted on this device: go-live,
@@ -251,6 +253,17 @@ class _NotificationsListState extends State<_NotificationsList> {
   /// list mid-fold cannot bring it back.
   final _folding = <String, ActivityEntry>{};
 
+  final _followStates = <String, Future<({String id, bool following})?>>{};
+
+  Future<({String id, bool following})?>? _followState(String login) {
+    final actions = FollowFlow.actionsOf(context);
+    if (actions == null) return null;
+    return _followStates.putIfAbsent(
+      login.toLowerCase(),
+      () => actions.channelFollowState(login),
+    );
+  }
+
   void _open(ActivityEntry entry) {
     unawaited(widget.store.markRead(entry.id));
     final login = entry.login;
@@ -373,6 +386,12 @@ class _NotificationsListState extends State<_NotificationsList> {
               colors: colors,
               onTap: () => _open(entry),
               onMenu: () => unawaited(_menu(rowContext, entry)),
+              followState: entry.kind == ActivityKind.live
+                  ? null
+                  : switch (entry.login) {
+                      final login? => _followState(login),
+                      null => null,
+                    },
             ),
           ),
         );
@@ -639,6 +658,7 @@ class _EntryRow extends StatelessWidget {
     required this.colors,
     required this.onTap,
     required this.onMenu,
+    this.followState,
   });
 
   final ActivityEntry entry;
@@ -647,6 +667,7 @@ class _EntryRow extends StatelessWidget {
   final _ActivityColors colors;
   final VoidCallback onTap;
   final VoidCallback onMenu;
+  final Future<({String id, bool following})?>? followState;
 
   @override
   Widget build(BuildContext context) {
@@ -722,6 +743,13 @@ class _EntryRow extends StatelessWidget {
                               ),
                             ),
                           ),
+                          if (followState case final state?)
+                            _EntryFollow(
+                              state: state,
+                              login: entry.login!,
+                              name: _channelName(entry),
+                              colors: colors,
+                            ),
                         ],
                       ),
                     ),
@@ -743,6 +771,130 @@ class _EntryRow extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+String _channelName(ActivityEntry entry) =>
+    entry.params?['name'] ?? entry.params?['channel'] ?? entry.login ?? '';
+
+class _EntryFollow extends StatefulWidget {
+  const _EntryFollow({
+    required this.state,
+    required this.login,
+    required this.name,
+    required this.colors,
+  });
+
+  final Future<({String id, bool following})?> state;
+  final String login;
+  final String name;
+  final _ActivityColors colors;
+
+  @override
+  State<_EntryFollow> createState() => _EntryFollowState();
+}
+
+class _EntryFollowState extends State<_EntryFollow> {
+  String? _channelId;
+  bool? _following;
+  var _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_read());
+  }
+
+  Future<void> _read() async {
+    final state = await widget.state;
+    if (!mounted || state == null) return;
+    setState(() {
+      _channelId = state.id;
+      _following = state.following;
+    });
+  }
+
+  Future<void> _follow() async {
+    final id = _channelId;
+    if (id == null || _busy) return;
+    setState(() => _busy = true);
+    final now = await FollowFlow.toggle(
+      context,
+      target: FollowTarget.channel,
+      id: id,
+      name: widget.name,
+      following: false,
+      openOnTwitch: () => TwitchWebPage.open(
+        context,
+        title: widget.name,
+        url: Uri.https('www.twitch.tv', '/${widget.login.toLowerCase()}'),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      if (now != null) _following = now;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final following = _following;
+    if (following == null) return const SizedBox.shrink();
+    final l = context.l10n;
+    final colors = widget.colors;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: following
+            ? Semantics(
+                container: true,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 6,
+                  children: [
+                    Icon(
+                      Icons.check_rounded,
+                      size: 16,
+                      color: context.onsetColors.live,
+                    ),
+                    Flexible(
+                      child: Text(
+                        l.channelFollowing,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: colors.secondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : Tooltip(
+                message: l.channelFollowTooltip(name: widget.name),
+                child: PressScale(
+                  child: FilledButton(
+                    onPressed: _busy ? null : _follow,
+                    style: FilledButton.styleFrom(
+                      foregroundColor: OnsetTokens.backgroundDark,
+                      backgroundColor: context.onsetColors.live,
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(
+                        fontFamily: OnsetTokens.bodyFamily,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    child: Text(l.channelFollow),
+                  ),
+                ),
+              ),
       ),
     );
   }

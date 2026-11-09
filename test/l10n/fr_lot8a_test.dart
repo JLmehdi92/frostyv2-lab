@@ -4,11 +4,15 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/models/follow_result.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/screens/activity/activity_screen.dart';
+import 'package:onset/screens/activity/stores/activity_store.dart';
 import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
+import 'package:onset/services/notifications/activity_log.dart';
 import 'package:onset/widgets/follow/follow_actions.dart';
 import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/l10n.dart';
 
@@ -67,6 +71,47 @@ void main() {
         await tester.tap(find.byKey(FollowSuggestionsSheet.followAllKey));
         await tester.pumpAndSettle();
         await expectFrenchThroughout(tester, 'follow all confirm, $at');
+      });
+
+      testWidgets('a reminder with Follow, $at', (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final store = ActivityStore(log: await ActivityLog.load());
+        final now = DateTime.utc(2026, 10, 20, 12);
+        await store.addAll([
+          ActivityEntry(
+            id: 'r',
+            kind: ActivityKind.reminder,
+            title: 'Streamer',
+            body: '',
+            login: 'streamer',
+            at: now.subtract(const Duration(minutes: 5)),
+            params: const {'name': 'Streamer'},
+          ),
+        ]);
+        when(
+          () => actions.channelFollowState('streamer'),
+        ).thenAnswer((_) async => (id: '1000', following: false));
+        await pumpLocalized(
+          tester,
+          Scaffold(
+            body: ActivityScreen(
+              store: store,
+              onOpenChannel: (_) {},
+              now: () => now,
+            ),
+          ),
+          size: size,
+          textScale: scale,
+          wrap: (app) =>
+              Provider<FollowActions?>.value(value: actions, child: app),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(FilledButton), findsOneWidget);
+        await expectFrenchThroughout(
+          tester,
+          'reminder follow, $at',
+          content: const ['Streamer'],
+        );
       });
 
       testWidgets('the follow link confirmation, $at', (tester) async {
