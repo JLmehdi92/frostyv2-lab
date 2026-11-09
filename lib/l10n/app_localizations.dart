@@ -5633,6 +5633,54 @@ abstract class AppLocalizations {
   /// **'Captions {number}'**
   String liveCaptionsTrack({required int number});
 
+  /// Free preview of a subscribers-only live: the banner title.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is streaming for subscribers'**
+  String freePreviewTitle({required String name});
+
+  /// Free preview of a live for Tier 2 and Tier 3 subscribers: the banner title.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is streaming for Tier 2 and Tier 3 subscribers'**
+  String freePreviewTitleTier2({required String name});
+
+  /// Free preview of a live for Tier 3 subscribers: the banner title.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is streaming for Tier 3 subscribers'**
+  String freePreviewTitleTier3({required String name});
+
+  /// Free preview banner: the time left before the preview ends, as minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Free preview: {time} left'**
+  String freePreviewRemaining({required String time});
+
+  /// Tooltip of the button that hides the free preview banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get freePreviewHide;
+
+  /// Over the player when the free preview of a subscribers-only live ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Your free preview has ended'**
+  String get freePreviewEndedTitle;
+
+  /// Over the player when the free preview ends: how to keep watching.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe on twitch.tv to keep watching and support {name}.'**
+  String freePreviewEndedBody({required String name});
+
+  /// Over the player when the free preview ends: switches to the Twitch web player.
+  ///
+  /// In en, this message translates to:
+  /// **'Try the web player'**
+  String get freePreviewWebPlayer;
+
   /// Error message. Why the app's player cannot play a stream (then the web player tries): Twitch keeps it for subscribers. name is the channel's display name.
   ///
   /// In en, this message translates to:

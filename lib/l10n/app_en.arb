@@ -4668,6 +4668,68 @@
       }
     }
   },
+  "freePreviewTitle": "{name} is streaming for subscribers",
+  "@freePreviewTitle": {
+    "description": "Free preview of a subscribers-only live: the banner title.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "freePreviewTitleTier2": "{name} is streaming for Tier 2 and Tier 3 subscribers",
+  "@freePreviewTitleTier2": {
+    "description": "Free preview of a live for Tier 2 and Tier 3 subscribers: the banner title.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "freePreviewTitleTier3": "{name} is streaming for Tier 3 subscribers",
+  "@freePreviewTitleTier3": {
+    "description": "Free preview of a live for Tier 3 subscribers: the banner title.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "freePreviewRemaining": "Free preview: {time} left",
+  "@freePreviewRemaining": {
+    "description": "Free preview banner: the time left before the preview ends, as minutes:seconds.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "2:31"
+      }
+    }
+  },
+  "freePreviewHide": "Hide",
+  "@freePreviewHide": {
+    "description": "Tooltip of the button that hides the free preview banner."
+  },
+  "freePreviewEndedTitle": "Your free preview has ended",
+  "@freePreviewEndedTitle": {
+    "description": "Over the player when the free preview of a subscribers-only live ends."
+  },
+  "freePreviewEndedBody": "Subscribe on twitch.tv to keep watching and support {name}.",
+  "@freePreviewEndedBody": {
+    "description": "Over the player when the free preview ends: how to keep watching.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "freePreviewWebPlayer": "Try the web player",
+  "@freePreviewWebPlayer": {
+    "description": "Over the player when the free preview ends: switches to the Twitch web player."
+  },
   "liveRefusedSubscribersOnly": "{name} is streaming for subscribers only.",
   "@liveRefusedSubscribersOnly": {
     "description": "Error message. Why the app's player cannot play a stream (then the web player tries): Twitch keeps it for subscribers. name is the channel's display name.",

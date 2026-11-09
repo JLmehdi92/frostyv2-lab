@@ -65,6 +65,8 @@ class TwitchStreamService extends BaseApiClient {
   /// The refusal of each channel's last token (absent when it plays).
   final _refusals = <String, PlaybackRefusal>{};
 
+  final _previewEnds = <String, DateTime>{};
+
   TwitchStreamService(Dio dio, {PlaybackTokenCache? tokenCache})
     : _http = dio,
       _tokenCache = tokenCache,
@@ -177,6 +179,38 @@ class TwitchStreamService extends BaseApiClient {
   /// Why Twitch said [userLogin]'s stream would be refused, from its last
   /// token; null when it plays (or no token was fetched yet).
   PlaybackRefusal? refusalFor(String userLogin) => _refusals[userLogin];
+
+  DateTime? freePreviewEndFor(String userLogin) => _previewEnds[userLogin];
+
+  static const _streamRestrictionQuery =
+      'query StreamRestriction(\$login: String!) { user(login: \$login) { '
+      'stream { id restrictionType restrictionOptions } } }';
+
+  Future<SubscriberTier?> streamRestrictionTier(String userLogin) async {
+    try {
+      final data = await post<JsonMap>(
+        _gqlUrl,
+        headers: {'Client-ID': _gqlClientId},
+        data: {
+          'operationName': 'StreamRestriction',
+          'query': _streamRestrictionQuery,
+          'variables': {'login': userLogin},
+        },
+      );
+      return switch (data) {
+        {
+          'data': {
+            'user': {'stream': {'restrictionOptions': final List options}},
+          },
+        } =>
+          SubscriberTier.fromRestrictionOptions(options),
+        _ => null,
+      };
+    } catch (e) {
+      debugPrint('Stream restriction unavailable: $e');
+      return null;
+    }
+  }
 
   Future<QualityLadder?> qualityLadder(String url) async {
     final uri = Uri.tryParse(url);
@@ -390,6 +424,11 @@ class TwitchStreamService extends BaseApiClient {
       };
 
   void _remember(String login, PlaybackAccessToken token) {
+    if (token.previewEndsAt case final end?) {
+      _previewEnds[login] = end;
+    } else {
+      _previewEnds.remove(login);
+    }
     final refusal = token.refusal;
     if (refusal == null) {
       _refusals.remove(login);

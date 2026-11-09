@@ -3642,6 +3642,40 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String freePreviewTitle({required String name}) {
+    return '$name is streaming for subscribers';
+  }
+
+  @override
+  String freePreviewTitleTier2({required String name}) {
+    return '$name is streaming for Tier 2 and Tier 3 subscribers';
+  }
+
+  @override
+  String freePreviewTitleTier3({required String name}) {
+    return '$name is streaming for Tier 3 subscribers';
+  }
+
+  @override
+  String freePreviewRemaining({required String time}) {
+    return 'Free preview: $time left';
+  }
+
+  @override
+  String get freePreviewHide => 'Hide';
+
+  @override
+  String get freePreviewEndedTitle => 'Your free preview has ended';
+
+  @override
+  String freePreviewEndedBody({required String name}) {
+    return 'Subscribe on twitch.tv to keep watching and support $name.';
+  }
+
+  @override
+  String get freePreviewWebPlayer => 'Try the web player';
+
+  @override
   String liveRefusedSubscribersOnly({required String name}) {
     return '$name is streaming for subscribers only.';
   }

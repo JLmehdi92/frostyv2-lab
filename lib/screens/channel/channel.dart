@@ -17,6 +17,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/models/creator_goal.dart';
 import 'package:onset/models/drop_campaign.dart';
+import 'package:onset/models/playback_access_token.dart';
 import 'package:onset/models/private_callout.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/stream.dart';
@@ -56,6 +57,7 @@ import 'package:onset/screens/channel/stores/follow_prompts.dart';
 import 'package:onset/screens/channel/stream_end.dart';
 import 'package:onset/screens/channel/tablet_video_column.dart';
 import 'package:onset/screens/channel/video/content_warning_gate.dart';
+import 'package:onset/screens/channel/video/free_preview.dart';
 import 'package:onset/screens/channel/video/ivs_stats_panel.dart';
 import 'package:onset/screens/channel/video/ivs_video.dart';
 import 'package:onset/screens/channel/video/latency_pill.dart';
@@ -80,6 +82,7 @@ import 'package:onset/services/playback_focus.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/stores/whisper_store.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/link_router.dart';
 import 'package:onset/utils/modal_bottom_sheet.dart';
@@ -380,6 +383,26 @@ class _VideoChatState extends State<VideoChat>
   /// null while the setting is off. Never handed to the mini window.
   HypeTrainStore? _hypeTrainStore;
   ReactionDisposer? _hypeTrainSettingReaction;
+
+  FreePreviewController? _freePreview;
+  VoidCallback? _useWebPlayer;
+
+  Future<void> _startFreePreview(IvsVideoStore store) async {
+    final endsAt = store.freePreviewEndsAt;
+    if (!mounted || endsAt == null || !endsAt.isAfter(DateTime.now())) return;
+    final preview = FreePreviewController(
+      endsAt: endsAt,
+      onExpired: () {
+        if (identical(_videoStore, store) && !store.paused) {
+          store.handlePausePlay();
+        }
+      },
+    );
+    setState(() => _freePreview = preview);
+    final tier = await store.freePreviewTier();
+    if (tier != null && identical(_freePreview, preview)) preview.tier = tier;
+  }
+
   var _landscape = false;
 
   void _syncHypeTrainStore() {
@@ -848,13 +871,14 @@ class _VideoChatState extends State<VideoChat>
     // If the native engine fails to load the stream (offline, geo-block, or a
     // Twitch API change), fall back to the WebView engine for this session so
     // the player never dies silently.
-    void fallbackToWeb() {
-      // Only once, and only for the store this callback was attached to.
+    void switchToWeb() {
       if (!mounted || !identical(_videoStore, store)) return;
       // Twitch refusing the stream (subscribers only, region, ban) is said,
       // since the web player may not play it either.
       final notice = store is IvsVideoStore ? store.refusalNotice : null;
       setState(() {
+        _freePreview?.dispose();
+        _freePreview = null;
         store.dispose();
         _videoStore = _buildPlayerController(forceWeb: true)
           ..setContentGate(_contentGate);
@@ -872,6 +896,28 @@ class _VideoChatState extends State<VideoChat>
           ),
         );
       }
+    }
+
+    void fallbackToWeb() {
+      // Only once, and only for the store this callback was attached to.
+      if (!mounted || !identical(_videoStore, store)) return;
+      final preview = _freePreview;
+      if (preview != null &&
+          store is IvsVideoStore &&
+          (preview.expired ||
+              store.refusalNotice?.refusal ==
+                  PlaybackRefusal.subscribersOnly)) {
+        preview.expire();
+        return;
+      }
+      switchToWeb();
+    }
+
+    if (store is IvsVideoStore) {
+      _useWebPlayer = switchToWeb;
+      unawaited(
+        store.ready.then((_) => _startFreePreview(store), onError: (_) {}),
+      );
     }
 
     if (store is NativeVideoStore) {
@@ -1588,6 +1634,16 @@ class _VideoChatState extends State<VideoChat>
                   inPip: _videoStore.isInPipMode,
                 ),
               ),
+              if (_freePreview case final preview?
+                  when !_videoStore.isInPipMode)
+                Positioned.fill(
+                  child: FreePreviewLayer(
+                    controller: preview,
+                    name: getReadableName(widget.userName, widget.userLogin),
+                    login: widget.userLogin,
+                    onUseWebPlayer: () => _useWebPlayer?.call(),
+                  ),
+                ),
             ],
           );
         },
@@ -2226,6 +2282,7 @@ class _VideoChatState extends State<VideoChat>
     _eventsStore.dispose();
     _viewerReaction?.call();
     _followPrompts.dispose();
+    _freePreview?.dispose();
     _infoStore.dispose();
 
     // Skip disposal when handed to the mini window — the player and the live

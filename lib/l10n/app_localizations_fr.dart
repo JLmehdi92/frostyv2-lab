@@ -3698,6 +3698,40 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String freePreviewTitle({required String name}) {
+    return 'Ce live de la chaîne $name est réservé aux abonnés';
+  }
+
+  @override
+  String freePreviewTitleTier2({required String name}) {
+    return 'Ce live de la chaîne $name est réservé aux abonnés de niveau 2 et 3';
+  }
+
+  @override
+  String freePreviewTitleTier3({required String name}) {
+    return 'Ce live de la chaîne $name est réservé aux abonnés de niveau 3';
+  }
+
+  @override
+  String freePreviewRemaining({required String time}) {
+    return 'Aperçu gratuit : encore $time';
+  }
+
+  @override
+  String get freePreviewHide => 'Masquer';
+
+  @override
+  String get freePreviewEndedTitle => 'Votre aperçu gratuit est terminé';
+
+  @override
+  String freePreviewEndedBody({required String name}) {
+    return 'Abonnez-vous sur twitch.tv pour continuer à regarder et soutenir $name.';
+  }
+
+  @override
+  String get freePreviewWebPlayer => 'Essayer le lecteur web';
+
+  @override
   String liveRefusedSubscribersOnly({required String name}) {
     return 'Ce live de la chaîne $name est réservé aux abonnés.';
   }

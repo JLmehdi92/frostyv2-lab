@@ -773,6 +773,12 @@ abstract class IvsVideoStoreBase
     }
   }
 
+  DateTime? get freePreviewEndsAt =>
+      _streamService.freePreviewEndFor(userLogin);
+
+  Future<SubscriberTier?> freePreviewTier() =>
+      _streamService.streamRestrictionTier(userLogin);
+
   /// The token sent with the playback access token request.
   ///
   /// Some streams only expose the enhanced-broadcast renditions (1440p HEVC /

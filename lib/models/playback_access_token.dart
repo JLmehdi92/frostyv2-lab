@@ -11,6 +11,7 @@ class PlaybackAccessToken {
     required this.signature,
     required this.expiresAt,
     this.refusal,
+    this.previewEndsAt,
   });
 
   factory PlaybackAccessToken.fromValue({
@@ -22,6 +23,7 @@ class PlaybackAccessToken {
     signature: signature,
     expiresAt: parseExpiry(value),
     refusal: refusal,
+    previewEndsAt: parsePreviewEnd(value),
   );
 
   final String value;
@@ -33,6 +35,33 @@ class PlaybackAccessToken {
 
   /// When the token stops being accepted (null when unknown).
   final DateTime? expiresAt;
+
+  final DateTime? previewEndsAt;
+
+  static DateTime? parsePreviewEnd(String value) {
+    try {
+      final decoded = jsonDecode(value);
+      if (decoded is! Map) return null;
+      final viewUntil = switch (decoded['chansub']) {
+        {'view_until': final num seconds} => _utcSeconds(seconds),
+        _ => null,
+      };
+      final expires = switch (decoded['expires']) {
+        final num seconds => _utcSeconds(seconds),
+        _ => null,
+      };
+      if (viewUntil == null || expires == null) return null;
+      return viewUntil.isBefore(expires) ? viewUntil : null;
+    } on FormatException {
+      return null;
+    }
+  }
+
+  static DateTime _utcSeconds(num seconds) =>
+      DateTime.fromMillisecondsSinceEpoch(
+        (seconds * 1000).round(),
+        isUtc: true,
+      );
 
   /// Reads the `expires` unix time (seconds) from a token value, or null if
   /// it is missing or the value is not the expected JSON object.
@@ -88,4 +117,17 @@ enum PlaybackRefusal {
     'UNAUTHORIZED' => unauthorized,
     _ => null,
   };
+}
+
+enum SubscriberTier {
+  any,
+  tier2,
+  tier3;
+
+  static SubscriberTier fromRestrictionOptions(List<Object?> options) =>
+      options.contains('ALLOW_TIER_3_ONLY')
+      ? tier3
+      : options.contains('ALLOW_TIER_2_AND_3_ONLY')
+      ? tier2
+      : any;
 }
