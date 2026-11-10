@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/integrity_retry_interceptor.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/clip_comment.dart';
@@ -425,6 +426,7 @@ class TwitchAccountGqlService extends BaseApiClient {
     try {
       final Object? body = await post<dynamic>(
         _gqlUrl,
+        extra: IntegrityRetryInterceptor.userAction,
         headers: _headers(authToken),
         data: {
           'operationName': operation,

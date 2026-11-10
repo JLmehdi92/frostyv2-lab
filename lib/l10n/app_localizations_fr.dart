@@ -3392,7 +3392,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'forbidden': 'Twitch n’autorise pas ce suivi.',
       'refused': 'Twitch a refusé ce suivi.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action, même avec la vérification d’ONSET. ONSET ouvre twitch.tv pour que vous la fassiez là-bas.',
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. ONSET ouvre twitch.tv pour que vous la fassiez là-bas.',
       'signedOut': 'Reconnectez-vous pour suivre depuis ONSET.',
       'other': 'Impossible de joindre Twitch. Réessayez.',
     });
@@ -3421,11 +3421,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un lien demande à ONSET de suivre cette chaîne avec votre compte Twitch.';
 
   @override
-  String get followWebFallbackTitle => 'Suivre sur twitch.tv ?';
+  String get followWebFallbackTitle => 'Ouvrir twitch.tv ?';
 
   @override
-  String get followWebFallbackBody =>
-      'ONSET envoie les suivis par votre session Twitch, qui n’est pas connectée. Reconnectez-vous à ONSET pour la connecter, ou faites-le sur twitch.tv dès maintenant.';
+  String followWebFallbackBody({required String choice}) {
+    String _temp0 = intl.Intl.selectLogic(choice, {
+      'channelUnfollow': 'arrêtez de suivre la chaîne',
+      'categoryFollow': 'suivez la catégorie',
+      'categoryUnfollow': 'arrêtez de suivre la catégorie',
+      'other': 'suivez la chaîne',
+    });
+    return 'ONSET modifie vos suivis par votre session Twitch, qui n’est pas connectée. Reconnectez-vous à ONSET pour l’activer, ou $_temp0 sur twitch.tv dès maintenant.';
+  }
 
   @override
   String get followWebFallbackAction => 'Ouvrir twitch.tv';
@@ -7237,7 +7244,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'cooldown': '$_temp0',
       'refused': 'Twitch a refusé ce GIF.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action, même avec la vérification d’ONSET. Réessayez dans quelques minutes.',
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.',
       'signedOut': 'Reconnectez-vous pour envoyer des GIF depuis ONSET.',
       'other': 'Impossible d’envoyer le GIF. Réessayez.',
     });
@@ -7559,7 +7566,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pointsBonusBlocked =>
-      'Le contrôle anti-robot de Twitch a refusé le bonus, même avec la vérification d’ONSET. Rouvrez la chaîne pour réessayer.';
+      'Le contrôle anti-robot de Twitch a de nouveau refusé le bonus. Rouvrez la chaîne dans quelques minutes pour réessayer.';
 
   @override
   String get pointsCollectBonus => 'Récupérer le bonus';
@@ -7653,7 +7660,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(status, {
       'success': 'C’est fait.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action, même avec la vérification d’ONSET. Réessayez dans quelques minutes.',
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.',
       'notAuthenticated':
           'Twitch a refusé la connexion. Reconnectez-vous pour dépenser des points.',
       'network': 'Impossible de joindre Twitch. Réessayez.',
@@ -9390,7 +9397,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'done': 'C’est fait.',
       'refused': 'Twitch a refusé.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action, même avec la vérification d’ONSET. Réessayez dans quelques minutes.',
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.',
       'signedOut': 'Reconnectez-vous pour le faire depuis ONSET.',
       'other': 'Impossible de joindre Twitch. Réessayez.',
     });
@@ -9592,7 +9599,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'expired': 'Ce Drop a expiré.',
       'limitReached': 'Vous avez atteint la limite de cette récompense.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action, même avec la vérification d’ONSET. Réessayez dans quelques minutes.',
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.',
       'signedOut': 'Reconnectez-vous pour la récupérer depuis ONSET.',
       'refused': 'Twitch a refusé cette récupération.',
       'other': 'Impossible de joindre Twitch. Réessayez.',
@@ -9692,7 +9699,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'notOpen': 'Cet objectif n’accepte pas de points pour le moment.',
       'refused': 'Twitch a refusé cette contribution.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action, même avec la vérification d’ONSET. Réessayez dans quelques minutes.',
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.',
       'signedOut': 'Reconnectez-vous pour contribuer depuis ONSET.',
       'other': 'Impossible de joindre Twitch. Réessayez.',
     });
@@ -9903,7 +9910,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'expired': 'Ce moment ne peut plus être récupéré.',
       'invalid': 'Twitch ne connaît pas ce moment.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a refusé cette action, même avec la vérification d’ONSET. Réessayez dans quelques minutes.',
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.',
       'signedOut': 'Reconnectez-vous pour le récupérer depuis ONSET.',
       'other': 'Impossible de récupérer ce moment. Réessayez.',
     });

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -151,7 +153,7 @@ void main() {
 
     await tester.tap(find.text('Follow'));
     await tester.pumpAndSettle();
-    expect(find.text('Follow on twitch.tv?'), findsOneWidget);
+    expect(find.text('Open twitch.tv?'), findsOneWidget);
     expect(find.byKey(const ValueKey('web')), findsNothing);
 
     await tester.tap(find.byKey(FollowFlow.confirmKey));
@@ -159,6 +161,34 @@ void main() {
 
     expect(find.byKey(const ValueKey('web')), findsOneWidget);
     verifyNever(() => actions.followChannel(any()));
+  });
+
+  testWidgets('a follow waiting on Twitch ignores more taps', (tester) async {
+    final answer = Completer<FollowResult>();
+    when(() => actions.followChannel('1000')).thenAnswer((_) => answer.future);
+    await pump(tester);
+
+    await tester.tap(find.text('Follow'));
+    await tester.pump();
+    expect(FollowFlow.isPending('1000'), isTrue);
+    expect(
+      tester
+          .widget<AbsorbPointer>(
+            find.descendant(
+              of: find.byType(FollowPendingGate),
+              matching: find.byType(AbsorbPointer),
+            ),
+          )
+          .absorbing,
+      isTrue,
+    );
+    await tester.tap(find.text('Follow'), warnIfMissed: false);
+    await tester.pump();
+
+    answer.complete(FollowResult.done);
+    await tester.pumpAndSettle();
+    verify(() => actions.followChannel('1000')).called(1);
+    expect(FollowFlow.isPending('1000'), isFalse);
   });
 
   testWidgets('without a web token, Cancel opens nothing', (tester) async {

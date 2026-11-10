@@ -237,12 +237,15 @@ class _UserActionsFollowRowState extends State<UserActionsFollowRow> {
         },
       );
     }
-    return SheetRow(
-      glyph: SheetGlyphKind.heart,
-      label: following
-          ? l.userActionsUnfollow(name: widget.name)
-          : l.userActionsFollow(name: widget.name),
-      onTap: () => _toggle(following),
+    return FollowPendingGate(
+      id: widget.userId,
+      child: SheetRow(
+        glyph: SheetGlyphKind.heart,
+        label: following
+            ? l.userActionsUnfollow(name: widget.name)
+            : l.userActionsFollow(name: widget.name),
+        onTap: () => _toggle(following),
+      ),
     );
   }
 }

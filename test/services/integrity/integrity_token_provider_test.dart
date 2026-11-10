@@ -135,4 +135,35 @@ void main() {
     await provider.tokenFor('web-token');
     expect(mints, 2);
   });
+
+  test('a far-future token is kept at most one hour', () async {
+    final provider = providerWith(
+      () async => tokenExpiringIn(const Duration(days: 30)),
+    );
+    final token = await provider.tokenFor('web-token');
+    expect(token?.expiresAt, now.add(IntegrityToken.maxLifetime));
+  });
+
+  test('cancel stops the mint in flight and forgets the token', () async {
+    final pending = Completer<IntegrityToken>();
+    var cancelled = 0;
+    final provider = IntegrityTokenProvider(
+      mint: () {
+        mints++;
+        return pending.future;
+      },
+      cancelMint: () => cancelled++,
+      webSession: () => session,
+      now: () => now,
+    );
+    final call = provider.tokenFor('web-token');
+    expect(provider.isMinting, isTrue);
+    provider.cancel();
+    expect(provider.isMinting, isFalse);
+    pending.complete(tokenExpiringIn(const Duration(hours: 1)));
+    expect(await call, isNull);
+    expect(cancelled, 1);
+    await provider.tokenFor('web-token');
+    expect(mints, 2);
+  });
 }

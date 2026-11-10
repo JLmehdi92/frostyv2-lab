@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/integrity_retry_interceptor.dart';
 import 'package:onset/apis/twitch_api.dart' show ClipEligibilityRefusal;
 import 'package:onset/constants.dart';
 import 'package:onset/models/chat_identity.dart';
@@ -392,6 +393,7 @@ class TwitchViewerActionsService extends BaseApiClient {
       return UnbanRequestOutcome.fromBody(
         await post<dynamic>(
           _gqlUrl,
+          extra: IntegrityRetryInterceptor.userAction,
           headers: {
             'Client-ID': kTwitchWebClientId,
             'Authorization': 'OAuth $authToken',
@@ -453,6 +455,7 @@ class TwitchViewerActionsService extends BaseApiClient {
       return GoalContributionResult.fromBody(
         await post<dynamic>(
           _gqlUrl,
+          extra: IntegrityRetryInterceptor.userAction,
           headers: {
             'Client-ID': kTwitchWebClientId,
             'Authorization': 'OAuth $authToken',
@@ -495,6 +498,7 @@ class TwitchViewerActionsService extends BaseApiClient {
       return DropClaimResult.fromBody(
         await post<dynamic>(
           _gqlUrl,
+          extra: IntegrityRetryInterceptor.userAction,
           headers: {
             'Client-ID': kTwitchWebClientId,
             'Authorization': 'OAuth $authToken',
@@ -528,6 +532,7 @@ class TwitchViewerActionsService extends BaseApiClient {
       return MomentClaimResult.fromBody(
         await post<dynamic>(
           _gqlUrl,
+          extra: IntegrityRetryInterceptor.userAction,
           headers: {
             'Client-ID': kTwitchWebClientId,
             'Authorization': 'OAuth $authToken',
@@ -651,6 +656,7 @@ class TwitchViewerActionsService extends BaseApiClient {
       return FollowResult.fromBody(
         await post<dynamic>(
           _gqlUrl,
+          extra: IntegrityRetryInterceptor.userAction,
           headers: _viewerHeaders(authToken),
           data: {
             'operationName': operation,
@@ -798,6 +804,7 @@ class TwitchViewerActionsService extends BaseApiClient {
       return GifSendResult.fromBody(
         await post<dynamic>(
           _gqlUrl,
+          extra: IntegrityRetryInterceptor.userAction,
           headers: _viewerHeaders(authToken),
           data: {
             'operationName': 'sendGifMessage',
@@ -845,6 +852,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     try {
       final Object? body = await post<dynamic>(
         _gqlUrl,
+        extra: IntegrityRetryInterceptor.userAction,
         headers: {
           'Client-ID': kTwitchWebClientId,
           'Authorization': 'OAuth $authToken',

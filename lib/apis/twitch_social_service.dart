@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/integrity_retry_interceptor.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/onsite_notification.dart';
@@ -124,20 +125,16 @@ class TwitchSocialService extends BaseApiClient {
     required String authToken,
   }) async {
     if (!_numericId.hasMatch(me)) return null;
-    final data = await _query(
-      'UserWhisperThreadsQuery',
-      _threadsDocument,
-      {'limit': threadsPage},
-      authToken: authToken,
-    );
+    final data = await _query('UserWhisperThreadsQuery', _threadsDocument, {
+      'limit': threadsPage,
+    }, authToken: authToken);
     final user = data?['currentUser'];
     final threads = user is Map ? user['whisperThreads'] : null;
     final edges = threads is Map ? threads['edges'] : null;
     if (edges is! List) return null;
     return [
       for (final edge in edges)
-        if (edge is Map)
-          ?WhisperHistoryThread.fromJson(edge['node'], me: me),
+        if (edge is Map) ?WhisperHistoryThread.fromJson(edge['node'], me: me),
     ];
   }
 
@@ -146,12 +143,10 @@ class TwitchSocialService extends BaseApiClient {
     required String authToken,
   }) async {
     if (!_threadId.hasMatch(threadId)) return null;
-    final data = await _query(
-      'WhisperMessageQuery',
-      _messagesDocument,
-      {'thread': threadId, 'numMessages': messagesPage},
-      authToken: authToken,
-    );
+    final data = await _query('WhisperMessageQuery', _messagesDocument, {
+      'thread': threadId,
+      'numMessages': messagesPage,
+    }, authToken: authToken);
     final thread = data?['whisperThread'];
     final messages = thread is Map ? thread['messages'] : null;
     final edges = messages is Map ? messages['edges'] : null;
@@ -319,17 +314,12 @@ class TwitchSocialService extends BaseApiClient {
   }) async {
     final login = channelLogin?.toLowerCase();
     if (login != null && !_login.hasMatch(login)) return null;
-    final data = await _query(
-      'PersonalSections',
-      _sectionsDocument,
-      {
-        'input': {
-          'sectionInputs': [section.apiValue],
-          'contextChannelName': ?login,
-        },
+    final data = await _query('PersonalSections', _sectionsDocument, {
+      'input': {
+        'sectionInputs': [section.apiValue],
+        'contextChannelName': ?login,
       },
-      authToken: authToken,
-    );
+    }, authToken: authToken);
     final sections = data?['personalSections'];
     if (sections is! List) return null;
     final seen = <String>{};
@@ -426,6 +416,7 @@ class TwitchSocialService extends BaseApiClient {
     try {
       final Object? body = await post<dynamic>(
         _gqlUrl,
+        extra: IntegrityRetryInterceptor.userAction,
         headers: _headers(authToken),
         data: {
           'operationName': operation,

@@ -80,15 +80,18 @@ void main() {
     expect(find.text('Follow'), findsOneWidget);
   });
 
-  testWidgets('an unknown state still opens twitch.tv', (tester) async {
+  testWidgets('an unknown state follows from ONSET too', (tester) async {
     when(() => actions.followsChannel(any())).thenAnswer((_) async => null);
+    when(
+      () => actions.followChannel(any()),
+    ).thenAnswer((_) async => FollowResult.done);
     await pump(tester);
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Follow'));
     await tester.pumpAndSettle();
 
-    verifyNever(() => actions.followChannel(any()));
-    expect(find.byKey(const ValueKey('web')), findsOneWidget);
+    verify(() => actions.followChannel(any())).called(1);
+    expect(find.byKey(const ValueKey('web')), findsNothing);
   });
 }

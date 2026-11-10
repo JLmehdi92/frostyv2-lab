@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/services/integrity/integrity_token.dart';
@@ -6,24 +7,50 @@ import 'package:onset/services/integrity/webview_integrity_minter.dart';
 
 void main() {
   final token = 'v4.public.${'a' * 40}';
+  final now = DateTime.utc(2026, 11, 10, 12);
+  const nonce = 'f00dfeed';
 
   String capture({
     Object? value,
     Object? deviceId = 'abcdef0123456789',
-    Object? expiration = 1800000000000,
+    Object? expiration,
+    Object? sentNonce = nonce,
   }) => jsonEncode({
+    'nonce': sentNonce,
     'token': value ?? token,
     'deviceId': deviceId,
-    'expiration': expiration,
+    'expiration':
+        expiration ??
+        now.add(const Duration(minutes: 20)).millisecondsSinceEpoch,
   });
 
+  IntegrityToken? parse(String message) =>
+      IntegrityToken.fromCapture(message, nonce: nonce, now: now);
+
   test('reads a captured /integrity answer', () {
-    final parsed = IntegrityToken.fromCapture(capture());
+    final parsed = parse(capture());
     expect(parsed?.value, token);
     expect(parsed?.deviceId, 'abcdef0123456789');
+    expect(parsed?.expiresAt, now.add(const Duration(minutes: 20)));
+  });
+
+  test('a far-future expiration is capped at one hour', () {
+    final parsed = parse(
+      capture(expiration: DateTime.utc(2099).millisecondsSinceEpoch),
+    );
+    expect(parsed?.expiresAt, now.add(IntegrityToken.maxLifetime));
+  });
+
+  test('a message without this mint’s nonce is ignored', () {
+    expect(parse(capture(sentNonce: null)), isNull);
+    expect(parse(capture(sentNonce: 'other')), isNull);
     expect(
-      parsed?.expiresAt,
-      DateTime.fromMillisecondsSinceEpoch(1800000000000, isUtc: true),
+      IntegrityToken.fromCapture(
+        capture(sentNonce: ''),
+        nonce: '',
+        now: now,
+      ),
+      isNull,
     );
   });
 
@@ -38,19 +65,62 @@ void main() {
       capture(expiration: '1800000000000'),
       capture(expiration: -1),
     ]) {
-      expect(IntegrityToken.fromCapture(message), isNull, reason: message);
+      expect(parse(message), isNull, reason: message);
     }
   });
 
   test('never prints the token value', () {
-    final parsed = IntegrityToken.fromCapture(capture())!;
-    expect(parsed.toString(), isNot(contains(token)));
+    expect(parse(capture())!.toString(), isNot(contains(token)));
   });
 
-  test('the page script reads the session from the cookie, not from Dart', () {
-    final script = WebViewIntegrityMinter.captureScript();
-    expect(script, contains("cookie('auth-token')"));
-    expect(script, contains('gql.twitch.tv/integrity'));
-    expect(script, contains(WebViewIntegrityMinter.channelName));
+  group('the page', () {
+    final minter = WebViewIntegrityMinter(
+      overlay: () => null,
+      random: Random(1),
+    );
+
+    test('is asked for as a desktop browser', () {
+      expect(WebViewIntegrityMinter.desktopUserAgent, contains('Windows NT'));
+      expect(
+        WebViewIntegrityMinter.desktopUserAgent,
+        isNot(contains('Mobile')),
+      );
+    });
+
+    test('gets the capture on every twitch.tv host, and only there', () {
+      for (final url in [
+        'https://www.twitch.tv/',
+        'https://m.twitch.tv/',
+        'https://twitch.tv/',
+        'https://passport.twitch.tv/x',
+      ]) {
+        expect(WebViewIntegrityMinter.shouldInject(url), isTrue, reason: url);
+      }
+      for (final url in [
+        'http://www.twitch.tv/',
+        'https://twitch.tv.example.com/',
+        'https://eviltwitch.tv/',
+        'about:blank',
+      ]) {
+        expect(WebViewIntegrityMinter.shouldInject(url), isFalse, reason: url);
+      }
+    });
+
+    test('carries a fresh nonce and reads the session from the cookie', () {
+      final first = minter.newNonce();
+      final second = minter.newNonce();
+      expect(first, hasLength(32));
+      expect(first, isNot(second));
+      final script = WebViewIntegrityMinter.captureScript(first);
+      expect(script, contains("nonce: '$first'"));
+      expect(script, contains("cookie('auth-token')"));
+      expect(script, contains('window.location.host'));
+      expect(script, contains('gql.twitch.tv/integrity'));
+      expect(script, contains(WebViewIntegrityMinter.channelName));
+    });
+
+    test('cancelling with nothing in flight does nothing', () {
+      expect(minter.cancel, returnsNormally);
+    });
   });
 }

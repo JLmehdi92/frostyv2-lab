@@ -1,30 +1,56 @@
 import 'dart:async';
+import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/services/integrity/integrity_token.dart';
 import 'package:onset/services/twitch_web_token_service.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewIntegrityMinter {
-  const WebViewIntegrityMinter({this.deadline = const Duration(seconds: 15)});
+  WebViewIntegrityMinter({
+    required OverlayState? Function() overlay,
+    this.deadline = const Duration(seconds: 15),
+    DateTime Function()? now,
+    Random? random,
+  }) : _overlay = overlay,
+       _now = now ?? DateTime.now,
+       _random = random ?? Random.secure();
 
+  final OverlayState? Function() _overlay;
   final Duration deadline;
+  final DateTime Function() _now;
+  final Random _random;
 
   static const channelName = 'OnsetIntegrity';
 
-  static String get _userAgent => defaultTargetPlatform == TargetPlatform.iOS
-      ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1'
-      : 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36';
+  static const desktopUserAgent =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36';
 
-  static final _startUrl = Uri.https('www.twitch.tv', '/');
+  static final startUrl = Uri.https('www.twitch.tv', '/');
 
-  static String captureScript() =>
+  _Mint? _current;
+
+  static bool shouldInject(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null || uri.scheme != 'https') return false;
+    return uri.host == 'twitch.tv' || uri.host.endsWith('.twitch.tv');
+  }
+
+  String newNonce() => List.generate(
+    16,
+    (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ).join();
+
+  static String captureScript(String nonce) =>
       '''
 (function () {
   if (window.__onsetIntegrity) return;
   window.__onsetIntegrity = true;
+  var host = window.location.host;
+  if (host !== 'twitch.tv' && !/\\.twitch\\.tv\$/.test(host)) return;
   var channel = window.$channelName;
+  var sent = false;
   var cookie = function (name) {
     var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
     return match ? decodeURIComponent(match[1]) : null;
@@ -38,9 +64,13 @@ class WebViewIntegrityMinter {
     return null;
   };
   var report = function (text, deviceId) {
+    if (sent) return;
     try {
       var body = JSON.parse(text);
+      if (!body || typeof body.token !== 'string') return;
+      sent = true;
       channel.postMessage(JSON.stringify({
+        nonce: '$nonce',
         token: body.token,
         expiration: body.expiration,
         deviceId: deviceId
@@ -63,6 +93,7 @@ class WebViewIntegrityMinter {
   };
   var attempts = 0;
   var ask = function () {
+    if (sent) return;
     attempts += 1;
     var session = cookie('auth-token');
     var deviceId = cookie('unique_id');
@@ -89,16 +120,36 @@ class WebViewIntegrityMinter {
 ''';
 
   Future<IntegrityToken> call() async {
-    final captured = Completer<IntegrityToken>();
+    cancel();
+    final mint = _Mint(newNonce());
+    _current = mint;
+    try {
+      await _start(mint);
+      return await mint.captured.future.timeout(deadline);
+    } finally {
+      if (identical(_current, mint)) _current = null;
+      mint.release();
+    }
+  }
+
+  void cancel() {
+    final mint = _current;
+    _current = null;
+    if (mint == null) return;
+    if (!mint.captured.isCompleted) {
+      mint.captured.completeError(StateError('cancelled'));
+    }
+    mint.release();
+  }
+
+  Future<void> _start(_Mint mint) async {
     final controller = WebViewController();
+    mint.controller = controller;
     await controller.setJavaScriptMode(JavaScriptMode.unrestricted);
-    await controller.setUserAgent(_userAgent);
+    await controller.setUserAgent(desktopUserAgent);
     await controller.addJavaScriptChannel(
       channelName,
-      onMessageReceived: (message) {
-        final token = IntegrityToken.fromCapture(message.message);
-        if (token != null && !captured.isCompleted) captured.complete(token);
-      },
+      onMessageReceived: (message) => mint.accept(message.message, _now()),
     );
     await controller.setNavigationDelegate(
       NavigationDelegate(
@@ -107,26 +158,80 @@ class WebViewIntegrityMinter {
             ? NavigationDecision.navigate
             : NavigationDecision.prevent,
         onPageFinished: (url) {
-          if (Uri.tryParse(url)?.host != _startUrl.host) return;
+          if (!shouldInject(url) || mint.released) return;
           unawaited(
-            controller.runJavaScript(captureScript()).catchError((Object e) {
+            controller.runJavaScript(captureScript(mint.nonce)).catchError((
+              Object e,
+            ) {
               debugPrint('Integrity capture not injected: ${e.runtimeType}');
             }),
           );
         },
       ),
     );
-    try {
-      await controller.loadRequest(_startUrl);
-      return await captured.future.timeout(deadline);
-    } finally {
-      unawaited(
-        controller.loadRequest(Uri.parse('about:blank')).catchError((Object e) {
-          debugPrint(
-            'Releasing the integrity WebView failed: ${e.runtimeType}',
-          );
-        }),
-      );
-    }
+    mint.host = _mountOffstage(controller);
+    if (mint.released) return;
+    await controller.loadRequest(startUrl);
+  }
+
+  OverlayEntry? _mountOffstage(WebViewController controller) {
+    final overlay = _overlay();
+    if (overlay == null || !overlay.mounted) return null;
+    final entry = OverlayEntry(
+      builder: (_) => Positioned(
+        left: 0,
+        top: 0,
+        width: 1,
+        height: 1,
+        child: IgnorePointer(
+          child: ExcludeSemantics(
+            child: Opacity(
+              opacity: 0.01,
+              child: WebViewWidget(controller: controller),
+            ),
+          ),
+        ),
+      ),
+    );
+    overlay.insert(entry);
+    return entry;
+  }
+}
+
+class _Mint {
+  _Mint(this.nonce);
+
+  final String nonce;
+  final captured = Completer<IntegrityToken>();
+  WebViewController? controller;
+  OverlayEntry? host;
+  var released = false;
+  var answered = false;
+
+  void accept(String message, DateTime now) {
+    if (answered || released || captured.isCompleted) return;
+    final token = IntegrityToken.fromCapture(message, nonce: nonce, now: now);
+    if (token == null) return;
+    answered = true;
+    captured.complete(token);
+  }
+
+  void release() {
+    if (released) return;
+    released = true;
+    final entry = host;
+    host = null;
+    if (entry != null && entry.mounted) entry.remove();
+    final view = controller;
+    controller = null;
+    if (view == null) return;
+    unawaited(
+      view
+          .removeJavaScriptChannel(WebViewIntegrityMinter.channelName)
+          .then((_) => view.loadRequest(Uri.parse('about:blank')))
+          .catchError((Object e) {
+            debugPrint('Releasing the integrity page failed: ${e.runtimeType}');
+          }),
+    );
   }
 }

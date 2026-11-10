@@ -555,56 +555,59 @@ class FollowButton extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!_login.hasMatch(login.toLowerCase())) return const SizedBox.shrink();
     final colors = FeedColors.of(context);
-    return ValueListenableBuilder<bool?>(
-      valueListenable: info.following,
-      builder: (context, following, _) {
-        final follows = following ?? false;
-        final style = TextStyle(
-          fontFamily: OnsetTokens.bodyFamily,
-          fontSize: fontSize,
-          fontWeight: follows ? FontWeight.w600 : FontWeight.w700,
-        );
-        return Tooltip(
-          message: follows
-              ? context.l10n.channelFollowingTooltip(name: name)
-              : context.l10n.channelFollowTooltip(name: name),
-          child: PressScale(
-            child: follows
-                ? OutlinedButton(
-                    onPressed: () => _toggle(context),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: colors.text,
-                      backgroundColor: colors.raised,
-                      minimumSize: Size(0, height),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: height > 36 ? 18 : 16,
+    return FollowPendingGate(
+      id: info.channelId,
+      child: ValueListenableBuilder<bool?>(
+        valueListenable: info.following,
+        builder: (context, following, _) {
+          final follows = following ?? false;
+          final style = TextStyle(
+            fontFamily: OnsetTokens.bodyFamily,
+            fontSize: fontSize,
+            fontWeight: follows ? FontWeight.w600 : FontWeight.w700,
+          );
+          return Tooltip(
+            message: follows
+                ? context.l10n.channelFollowingTooltip(name: name)
+                : context.l10n.channelFollowTooltip(name: name),
+            child: PressScale(
+              child: follows
+                  ? OutlinedButton(
+                      onPressed: () => _toggle(context),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colors.text,
+                        backgroundColor: colors.raised,
+                        minimumSize: Size(0, height),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: height > 36 ? 18 : 16,
+                        ),
+                        side: BorderSide(
+                          color: colors.pillBorder,
+                          width: OnsetTokens.hairlineWidth,
+                        ),
+                        shape: const StadiumBorder(),
+                        textStyle: style,
                       ),
-                      side: BorderSide(
-                        color: colors.pillBorder,
-                        width: OnsetTokens.hairlineWidth,
+                      child: OneLineLabel(context.l10n.channelFollowing),
+                    )
+                  : FilledButton(
+                      onPressed: () => _toggle(context),
+                      style: FilledButton.styleFrom(
+                        foregroundColor: OnsetTokens.backgroundDark,
+                        backgroundColor: context.onsetColors.live,
+                        minimumSize: Size(0, height),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: height > 36 ? 18 : 16,
+                        ),
+                        shape: const StadiumBorder(),
+                        textStyle: style,
                       ),
-                      shape: const StadiumBorder(),
-                      textStyle: style,
+                      child: OneLineLabel(context.l10n.channelFollow),
                     ),
-                    child: OneLineLabel(context.l10n.channelFollowing),
-                  )
-                : FilledButton(
-                    onPressed: () => _toggle(context),
-                    style: FilledButton.styleFrom(
-                      foregroundColor: OnsetTokens.backgroundDark,
-                      backgroundColor: context.onsetColors.live,
-                      minimumSize: Size(0, height),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: height > 36 ? 18 : 16,
-                      ),
-                      shape: const StadiumBorder(),
-                      textStyle: style,
-                    ),
-                    child: OneLineLabel(context.l10n.channelFollow),
-                  ),
-          ),
-        );
-      },
+            ),
+          );
+        },
+      ),
     );
   }
 }

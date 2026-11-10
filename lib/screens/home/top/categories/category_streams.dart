@@ -264,14 +264,12 @@ class _CategoryViewState extends State<CategoryView> {
   }
 
   Future<void> _follow(String name) async {
-    final following = _followsCategory;
-    if (following == null) return _followOnTwitch(name);
     final now = await FollowFlow.toggle(
       context,
       target: FollowTarget.category,
       id: widget.categoryId,
       name: name,
-      following: following,
+      following: _followsCategory ?? false,
       openOnTwitch: () => _followOnTwitch(name),
     );
     if (now != null && mounted) setState(() => _followsCategory = now);
@@ -611,10 +609,13 @@ class _Title extends StatelessWidget {
     );
     final follow = onFollow == null
         ? null
-        : _FollowButton(
-            large: large,
-            following: following,
-            onPressed: () => onFollow!(category.name),
+        : FollowPendingGate(
+            id: category.id,
+            child: _FollowButton(
+              large: large,
+              following: following,
+              onPressed: () => onFollow!(category.name),
+            ),
           );
     // The heading is the eyebrow and the name; the button is its own node.
     final heading = MergeSemantics(

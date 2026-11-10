@@ -152,19 +152,24 @@ class _ShoutoutCardState extends State<ShoutoutCard> {
                 children: [
                   if (_login.hasMatch(login))
                     Expanded(
-                      child: SheetButton(
-                        key: ShoutoutCard.followKey,
-                        label: following ? l.channelFollowing : l.channelFollow,
-                        large: true,
-                        expand: true,
-                        tone: following
-                            ? SheetButtonTone.text
-                            : SheetButtonTone.primary,
-                        onPressed: () => _follow(
-                          id: profile?.id ?? widget.notice.targetId,
-                          login: login,
-                          name: name,
-                          following: following,
+                      child: FollowPendingGate(
+                        id: profile?.id ?? widget.notice.targetId,
+                        child: SheetButton(
+                          key: ShoutoutCard.followKey,
+                          label: following
+                              ? l.channelFollowing
+                              : l.channelFollow,
+                          large: true,
+                          expand: true,
+                          tone: following
+                              ? SheetButtonTone.text
+                              : SheetButtonTone.primary,
+                          onPressed: () => _follow(
+                            id: profile?.id ?? widget.notice.targetId,
+                            login: login,
+                            name: name,
+                            following: following,
+                          ),
                         ),
                       ),
                     ),

@@ -7,9 +7,14 @@ class IntegrityRetryInterceptor extends Interceptor {
   final Dio dio;
   final IntegrityTokenProvider tokens;
 
+  static const userActionKey = 'onsetUserAction';
   static const retriedKey = 'onsetIntegrityRetried';
 
+  static const Map<String, Object?> userAction = {userActionKey: true};
+
   static const backgroundOperations = {'UpdateUserViewedVideo'};
+
+  static const refusalText = 'failed integrity check';
 
   static final _mutation = RegExp(r'^\s*mutation\b');
 
@@ -19,7 +24,7 @@ class IntegrityRetryInterceptor extends Interceptor {
     ResponseInterceptorHandler handler,
   ) async {
     final request = response.requestOptions;
-    final webToken = _userMutationWebToken(request);
+    final webToken = userMutationWebToken(request);
     if (webToken == null || !isIntegrityRefusal(response.data)) {
       handler.next(response);
       return;
@@ -54,11 +59,12 @@ class IntegrityRetryInterceptor extends Interceptor {
     return errors.any(
       (error) =>
           error is Map &&
-          '${error['message']}'.toLowerCase().contains('integrity'),
+          '${error['message']}'.toLowerCase().contains(refusalText),
     );
   }
 
-  static String? _userMutationWebToken(RequestOptions request) {
+  static String? userMutationWebToken(RequestOptions request) {
+    if (request.extra[userActionKey] != true) return null;
     if (request.extra[retriedKey] == true) return null;
     if (request.method.toUpperCase() != 'POST') return null;
     if (request.uri.host != 'gql.twitch.tv' || request.uri.path != '/gql') {

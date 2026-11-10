@@ -113,28 +113,69 @@ void main() {
     expect(requests, hasLength(1));
   });
 
-  test('queries and background mutations never mint', () async {
-    replyRefusedThen(const {'data': {}});
-    for (final body in [
-      {'query': 'query Q { user { id } }'},
-      {
-        'operationName': 'UpdateUserViewedVideo',
-        'query': 'mutation UpdateUserViewedVideo { x }',
-      },
-    ]) {
-      await dio.post<dynamic>(
+  Future<void> postRaw(Object body, {bool userAction = true}) =>
+      dio.post<dynamic>(
         _gql,
         data: body,
-        options: Options(headers: {'Authorization': 'OAuth web-token'}),
+        options: Options(
+          headers: {'Authorization': 'OAuth web-token'},
+          extra: userAction ? IntegrityRetryInterceptor.userAction : null,
+        ),
       );
-    }
+
+  test('queries and background mutations never mint', () async {
+    replyRefusedThen(const {'data': {}});
+    await postRaw({'query': 'query Q { user { id } }'});
+    await postRaw({
+      'operationName': 'UpdateUserViewedVideo',
+      'query': 'mutation UpdateUserViewedVideo { x }',
+    });
     expect(mints, 0);
     expect(requests, hasLength(2));
   });
 
+  test('a mutation not marked as a user action never mints', () async {
+    replyRefusedThen(const {'data': {}});
+    await postRaw({'query': 'mutation M { x }'}, userAction: false);
+    expect(mints, 0);
+    expect(requests, hasLength(1));
+  });
+
+  test('batched and persisted-query requests are never retried', () async {
+    replyRefusedThen(const {'data': {}});
+    await postRaw([
+      {'query': 'mutation M { x }'},
+    ]);
+    await postRaw({
+      'operationName': 'M',
+      'extensions': {
+        'persistedQuery': {'version': 1, 'sha256Hash': 'abc'},
+      },
+    });
+    expect(mints, 0);
+  });
+
+  test('only Twitch’s integrity refusal mints', () async {
+    adapter.onPost(
+      _gql,
+      (server) => server.reply(200, {
+        'errors': [
+          {'message': 'data integrity violation'},
+        ],
+      }),
+      data: Matchers.any,
+    );
+    await postRaw({'query': 'mutation M { x }'});
+    expect(mints, 0);
+  });
+
   test('an anonymous mutation never mints', () async {
     replyRefusedThen(const {'data': {}});
-    await dio.post<dynamic>(_gql, data: {'query': 'mutation M { x }'});
+    await dio.post<dynamic>(
+      _gql,
+      data: {'query': 'mutation M { x }'},
+      options: Options(extra: IntegrityRetryInterceptor.userAction),
+    );
     expect(mints, 0);
   });
 

@@ -245,14 +245,21 @@ void main() async {
   // Add the unauthorized interceptor to catch 401 errors
   dioClient.interceptors.add(UnauthorizedInterceptor(authStore));
 
+  final integrityMinter = WebViewIntegrityMinter(
+    overlay: () => navigatorKey.currentState?.overlay,
+  );
+  final integrityTokens = IntegrityTokenProvider(
+    mint: integrityMinter.call,
+    cancelMint: integrityMinter.cancel,
+    webSession: () => authStore.twitchWebToken,
+  );
   anonymousGqlDio.interceptors.add(
-    IntegrityRetryInterceptor(
-      dio: anonymousGqlDio,
-      tokens: IntegrityTokenProvider(
-        mint: const WebViewIntegrityMinter().call,
-        webSession: () => authStore.twitchWebToken,
-      ),
-    ),
+    IntegrityRetryInterceptor(dio: anonymousGqlDio, tokens: integrityTokens),
+  );
+  AppLifecycleListener(onPause: integrityTokens.cancel);
+  reaction<String?>(
+    (_) => authStore.twitchWebToken,
+    (_) => integrityTokens.cancel(),
   );
 
   // VODs restricted to subscribers play for subscribers, like live 2K, and

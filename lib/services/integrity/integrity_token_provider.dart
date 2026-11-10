@@ -9,14 +9,17 @@ class IntegrityTokenProvider {
   IntegrityTokenProvider({
     required IntegrityMinter mint,
     required String? Function() webSession,
+    VoidCallback? cancelMint,
     DateTime Function()? now,
     this.timeout = const Duration(seconds: 15),
     this.expiryMargin = const Duration(minutes: 1),
   }) : _mint = mint,
+       _cancelMint = cancelMint,
        _webSession = webSession,
        _now = now ?? DateTime.now;
 
   final IntegrityMinter _mint;
+  final VoidCallback? _cancelMint;
   final String? Function() _webSession;
   final DateTime Function() _now;
   final Duration timeout;
@@ -26,6 +29,9 @@ class IntegrityTokenProvider {
   String? _cachedSession;
   Future<IntegrityToken?>? _inFlight;
   String? _inFlightSession;
+  var _generation = 0;
+
+  bool get isMinting => _inFlight != null;
 
   Future<IntegrityToken?> tokenFor(String webToken) {
     if (webToken.isEmpty || _webSession() != webToken) {
@@ -39,7 +45,7 @@ class IntegrityTokenProvider {
     }
     final inFlight = _inFlight;
     if (inFlight != null && _inFlightSession == webToken) return inFlight;
-    final mint = _mintFor(webToken);
+    final mint = _mintFor(webToken, _generation);
     _inFlight = mint;
     _inFlightSession = webToken;
     return mint.whenComplete(() {
@@ -55,9 +61,19 @@ class IntegrityTokenProvider {
     _cachedSession = null;
   }
 
-  Future<IntegrityToken?> _mintFor(String webToken) async {
+  void cancel() {
+    _generation++;
+    invalidate();
+    _inFlight = null;
+    _inFlightSession = null;
+    _cancelMint?.call();
+  }
+
+  Future<IntegrityToken?> _mintFor(String webToken, int generation) async {
     try {
-      final token = await _mint().timeout(timeout);
+      final minted = await _mint().timeout(timeout);
+      final token = minted.cappedAt(_now().add(IntegrityToken.maxLifetime));
+      if (generation != _generation) return null;
       if (!token.isUsableAt(_now().add(expiryMargin))) return null;
       if (_webSession() != webToken) return null;
       _cached = token;

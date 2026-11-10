@@ -134,7 +134,7 @@ void main() {
 
       await tester.tap(find.byKey(ShoutoutCard.followKey));
       await tester.pumpAndSettle();
-      expect(find.text('Follow on twitch.tv?'), findsOneWidget);
+      expect(find.text('Open twitch.tv?'), findsOneWidget);
       expect(find.byKey(const ValueKey('web')), findsNothing);
 
       await tester.tap(find.byKey(FollowFlow.confirmKey));

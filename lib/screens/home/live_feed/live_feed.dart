@@ -1325,17 +1325,12 @@ class _LiveFeedFollowButtonState extends State<LiveFeedFollowButton> {
   );
 
   Future<void> _onPressed() async {
-    final following = _following;
-    if (following == null) {
-      await _openOnTwitch();
-      return;
-    }
     final now = await FollowFlow.toggle(
       context,
       target: FollowTarget.channel,
       id: widget.stream.userId,
       name: _name,
-      following: following,
+      following: _following ?? false,
       openOnTwitch: _openOnTwitch,
     );
     if (now != null && mounted) setState(() => _following = now);
@@ -1352,25 +1347,28 @@ class _LiveFeedFollowButtonState extends State<LiveFeedFollowButton> {
         true => l.channelFollowingTooltip(name: _name),
         false => l.channelFollowTooltip(name: _name),
       },
-      child: OutlinedButton(
-        onPressed: _onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: OverImage.text,
-          backgroundColor: height > 40 ? const Color(0x4D000000) : null,
-          minimumSize: Size(0, height),
-          padding: EdgeInsets.symmetric(horizontal: height > 40 ? 18 : 14),
-          side: const BorderSide(
-            color: Color(0x4DFFFFFF),
-            width: OnsetTokens.hairlineWidth,
+      child: FollowPendingGate(
+        id: widget.stream.userId,
+        child: OutlinedButton(
+          onPressed: _onPressed,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: OverImage.text,
+            backgroundColor: height > 40 ? const Color(0x4D000000) : null,
+            minimumSize: Size(0, height),
+            padding: EdgeInsets.symmetric(horizontal: height > 40 ? 18 : 14),
+            side: const BorderSide(
+              color: Color(0x4DFFFFFF),
+              width: OnsetTokens.hairlineWidth,
+            ),
+            shape: const StadiumBorder(),
+            textStyle: TextStyle(
+              fontFamily: OnsetTokens.bodyFamily,
+              fontSize: height > 40 ? 14 : 13,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          shape: const StadiumBorder(),
-          textStyle: TextStyle(
-            fontFamily: OnsetTokens.bodyFamily,
-            fontSize: height > 40 ? 14 : 13,
-            fontWeight: FontWeight.w600,
-          ),
+          child: Text(following ? l.channelFollowing : l.liveFeedFollow),
         ),
-        child: Text(following ? l.channelFollowing : l.liveFeedFollow),
       ),
     );
   }

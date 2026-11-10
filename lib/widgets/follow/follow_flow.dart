@@ -27,6 +27,10 @@ class FollowFlow {
     return actions != null && actions.canFollowInApp ? actions : null;
   }
 
+  static final pending = ValueNotifier<Set<String>>(const {});
+
+  static bool isPending(String id) => pending.value.contains(id);
+
   static Future<bool?> toggle(
     BuildContext context, {
     required FollowTarget target,
@@ -35,18 +39,28 @@ class FollowFlow {
     required bool following,
     required Future<void> Function() openOnTwitch,
   }) async {
+    if (isPending(id)) return null;
     final actions = actionsOf(context);
     if (actions == null) {
-      if (await _confirmWebFallback(context)) await openOnTwitch();
+      if (await _confirmWebFallback(context, target, following)) {
+        await openOnTwitch();
+      }
       return null;
     }
     if (following && !await _confirmUnfollow(context, name)) return null;
-    final result = await switch ((target, following)) {
-      (FollowTarget.channel, false) => actions.followChannel(id),
-      (FollowTarget.channel, true) => actions.unfollowChannel(id),
-      (FollowTarget.category, false) => actions.followCategory(id),
-      (FollowTarget.category, true) => actions.unfollowCategory(id),
-    };
+    if (isPending(id)) return null;
+    pending.value = {...pending.value, id};
+    final FollowResult result;
+    try {
+      result = await switch ((target, following)) {
+        (FollowTarget.channel, false) => actions.followChannel(id),
+        (FollowTarget.channel, true) => actions.unfollowChannel(id),
+        (FollowTarget.category, false) => actions.followCategory(id),
+        (FollowTarget.category, true) => actions.unfollowCategory(id),
+      };
+    } finally {
+      pending.value = {...pending.value}..remove(id);
+    }
     if (!context.mounted) return null;
     showResult(context, result, name: name, followed: !following);
     if (result.opensTwitch) {
@@ -93,10 +107,16 @@ class FollowFlow {
         action: context.l10n.channelFollow,
       );
 
-  static Future<bool> _confirmWebFallback(BuildContext context) => _confirm(
+  static Future<bool> _confirmWebFallback(
+    BuildContext context,
+    FollowTarget target,
+    bool following,
+  ) => _confirm(
     context,
     title: context.l10n.followWebFallbackTitle,
-    message: context.l10n.followWebFallbackBody,
+    message: context.l10n.followWebFallbackBody(
+      choice: '${target.name}${following ? 'Unfollow' : 'Follow'}',
+    ),
     action: context.l10n.followWebFallbackAction,
   );
 
@@ -368,4 +388,32 @@ class _FollowSuggestionsSheetState extends State<FollowSuggestionsSheet> {
       ),
     );
   }
+}
+
+class FollowPendingGate extends StatelessWidget {
+  const FollowPendingGate({super.key, required this.id, required this.child});
+
+  final String id;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<Set<String>>(
+    valueListenable: FollowFlow.pending,
+    builder: (context, pending, child) {
+      final busy = pending.contains(id);
+      return Semantics(
+        enabled: !busy,
+        child: AbsorbPointer(
+          absorbing: busy,
+          child: AnimatedOpacity(
+            opacity: busy ? 0.5 : 1,
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOut,
+            child: child,
+          ),
+        ),
+      );
+    },
+    child: child,
+  );
 }

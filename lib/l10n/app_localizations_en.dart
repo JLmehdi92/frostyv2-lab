@@ -3340,7 +3340,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'forbidden': 'Twitch doesn’t allow this follow.',
       'refused': 'Twitch declined this follow.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this, even with ONSET’s verification. ONSET opens twitch.tv so you can do it there.',
+          'Twitch’s anti-bot check refused this again after a second try. ONSET opens twitch.tv so you can do it there.',
       'signedOut': 'Log in again to follow from ONSET.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
@@ -3369,11 +3369,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'A link asked ONSET to follow this channel with your Twitch account.';
 
   @override
-  String get followWebFallbackTitle => 'Follow on twitch.tv?';
+  String get followWebFallbackTitle => 'Open twitch.tv?';
 
   @override
-  String get followWebFallbackBody =>
-      'ONSET sends follows through your Twitch session, which isn’t connected. Log in to ONSET again to connect it, or do it on twitch.tv now.';
+  String followWebFallbackBody({required String choice}) {
+    String _temp0 = intl.Intl.selectLogic(choice, {
+      'channelUnfollow': 'unfollow the channel',
+      'categoryFollow': 'follow the category',
+      'categoryUnfollow': 'unfollow the category',
+      'other': 'follow the channel',
+    });
+    return 'ONSET changes what you follow through your Twitch session, which isn’t connected. Log in to ONSET again to connect it, or $_temp0 on twitch.tv now.';
+  }
 
   @override
   String get followWebFallbackAction => 'Open twitch.tv';
@@ -7138,7 +7145,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'cooldown': '$_temp0',
       'refused': 'Twitch declined this GIF.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
       'signedOut': 'Log in again to send GIFs from ONSET.',
       'other': 'Couldn’t send the GIF. Try again.',
     });
@@ -7458,7 +7465,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pointsBonusBlocked =>
-      'Twitch’s anti-bot check refused the bonus, even with ONSET’s verification. Reopen the channel to try again.';
+      'Twitch’s anti-bot check refused the bonus again after a second try. Reopen the channel in a few minutes to try again.';
 
   @override
   String get pointsCollectBonus => 'Collect bonus';
@@ -7552,7 +7559,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(status, {
       'success': 'Done.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
       'notAuthenticated':
           'Twitch rejected the login. Log in again to spend points.',
       'network': 'Couldn’t reach Twitch. Try again.',
@@ -9259,7 +9266,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'done': 'Done.',
       'refused': 'Twitch declined this.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
       'signedOut': 'Log in again to do this from ONSET.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
@@ -9454,7 +9461,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'expired': 'This Drop has expired.',
       'limitReached': 'You’ve reached this reward’s limit.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
       'signedOut': 'Log in again to claim from ONSET.',
       'refused': 'Twitch declined this claim.',
       'other': 'Couldn’t reach Twitch. Try again.',
@@ -9552,7 +9559,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'notOpen': 'This goal isn’t taking points right now.',
       'refused': 'Twitch declined this contribution.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
       'signedOut': 'Log in again to contribute from ONSET.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
@@ -9759,7 +9766,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'expired': 'This moment can’t be claimed anymore.',
       'invalid': 'Twitch doesn’t know this moment.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this, even with ONSET’s verification. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
       'signedOut': 'Log in again to claim from ONSET.',
       'other': 'Couldn’t claim this moment. Try again.',
     });
