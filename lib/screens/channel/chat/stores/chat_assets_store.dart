@@ -642,15 +642,19 @@ abstract class ChatAssetsStoreBase with Store {
   @action
   void _applySevenTvCosmetics(String userId, SevenTvUserCosmetics cosmetics) {
     if (cosmetics.badge case final badge? when showSevenTvBadges) {
+      _userTo7TVBadges.remove(userId);
       _userTo7TVBadges[userId] = [badge];
     }
     if (cosmetics.paint case final paint?
         when showSevenTvPaints && paint.isDrawable) {
+      userTo7TVPaint.remove(userId);
       userTo7TVPaint[userId] = paint;
     }
+    _trimPerUserMaps();
     final setId = cosmetics.personalSetId;
     if (setId != null && showSevenTvPersonalEmotes) {
       _ownPersonalSet(userId, setId);
+      _sevenTvPersonalEmotes.remove(userId);
       _sevenTvPersonalEmotes[userId] = {
         for (final emote in cosmetics.personalEmotes) emote.name: emote,
       };
@@ -684,7 +688,9 @@ abstract class ChatAssetsStoreBase with Store {
         if (!showSevenTvBadges) return;
         final badge = _sevenTvBadgeDefinitions[entitlement.refId];
         if (entitlement.granted && badge != null) {
+          _userTo7TVBadges.remove(userId);
           _userTo7TVBadges[userId] = [badge];
+          _trimPerUserMaps();
         } else if (!entitlement.granted) {
           _userTo7TVBadges.remove(userId);
         }
@@ -692,7 +698,9 @@ abstract class ChatAssetsStoreBase with Store {
         if (!showSevenTvPaints) return;
         final paint = _sevenTvPaintDefinitions[entitlement.refId];
         if (entitlement.granted && paint != null && paint.isDrawable) {
+          userTo7TVPaint.remove(userId);
           userTo7TVPaint[userId] = paint;
+          _trimPerUserMaps();
         } else if (!entitlement.granted) {
           userTo7TVPaint.remove(userId);
         }
@@ -748,6 +756,7 @@ abstract class ChatAssetsStoreBase with Store {
     if (!user.pro || user.emotes.isEmpty) {
       _bttvPersonalEmotes.remove(user.providerId);
     } else {
+      _bttvPersonalEmotes.remove(user.providerId);
       _bttvPersonalEmotes[user.providerId] = {
         for (final emote in user.emotes)
           emote.code: Emote.fromBTTV(emote, EmoteType.bttvPersonal),
@@ -769,11 +778,28 @@ abstract class ChatAssetsStoreBase with Store {
         if (showBttvPersonalEmotes) ...?_bttvPersonalEmotes[userId],
         if (showSevenTvPersonalEmotes) ...?_sevenTvPersonalEmotes[userId],
       };
-      if (merged.isEmpty) {
-        userToPersonalEmotes.remove(userId);
-      } else {
-        userToPersonalEmotes[userId] = merged;
+      userToPersonalEmotes.remove(userId);
+      if (merged.isNotEmpty) userToPersonalEmotes[userId] = merged;
+    }
+    _trimPerUserMaps();
+  }
+
+  static const perUserCapacity = 4000;
+
+  void _trimPerUserMaps() {
+    for (final map in <Map<String, Object>>[
+      _sevenTvPersonalEmotes,
+      _bttvPersonalEmotes,
+      userToPersonalEmotes,
+      _userTo7TVBadges,
+      userTo7TVPaint,
+    ]) {
+      while (map.length > perUserCapacity) {
+        map.remove(map.keys.first);
       }
+    }
+    while (_lookedUpChatters.length > perUserCapacity) {
+      _lookedUpChatters.remove(_lookedUpChatters.first);
     }
   }
 

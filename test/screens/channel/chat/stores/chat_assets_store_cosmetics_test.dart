@@ -277,4 +277,41 @@ void main() {
       isA<ObservableMap<String, List<ChatBadge>>>(),
     );
   });
+
+  test('per-user cosmetics keep only the most recent chatters', () {
+    final extra = ChatAssetsStoreBase.perUserCapacity + 5;
+    for (var i = 0; i < extra; i++) {
+      store.applyBttvProUser(
+        BttvProUser(
+          '$i',
+          pro: true,
+          emotes: [EmoteBTTV.fromJson({'id': 'x$i', 'code': 'e$i'})],
+        ),
+      );
+    }
+    expect(
+      store.userToPersonalEmotes.length,
+      ChatAssetsStoreBase.perUserCapacity,
+    );
+    expect(store.personalEmotesFor('0'), isNull);
+    expect(store.personalEmotesFor('${extra - 1}'), isNotNull);
+
+    store.applyBttvProUser(
+      BttvProUser(
+        '5',
+        pro: true,
+        emotes: [EmoteBTTV.fromJson({'id': 'y', 'code': 'again'})],
+      ),
+    );
+    store.applyBttvProUser(
+      BttvProUser(
+        'new',
+        pro: true,
+        emotes: [EmoteBTTV.fromJson({'id': 'z', 'code': 'z'})],
+      ),
+    );
+    expect(store.personalEmotesFor('5'), isNotNull);
+    expect(store.personalEmotesFor('6'), isNull);
+    expect(store.personalEmotesFor('7'), isNotNull);
+  });
 }
