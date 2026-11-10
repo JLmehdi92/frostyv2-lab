@@ -166,4 +166,48 @@ void main() {
     await provider.tokenFor('web-token');
     expect(mints, 2);
   });
+
+  test('each mint result carries its own failure', () async {
+    final slow = Completer<IntegrityToken>();
+    var calls = 0;
+    final provider = providerWith(() {
+      calls++;
+      return calls == 1 ? slow.future : Future.error(StateError('challenge'));
+    }, timeout: const Duration(milliseconds: 20));
+
+    final timedOut = await provider.mintFor('web-token');
+    final failed = await provider.mintFor('web-token');
+
+    expect(timedOut.token, isNull);
+    expect(timedOut.failure, IntegrityMintFailure.timedOut);
+    expect(failed.failure, IntegrityMintFailure.failed);
+  });
+
+  test(
+    'a session that changed during the mint is not an anti-bot failure',
+    () async {
+      final provider = providerWith(() async {
+        session = 'next-account';
+        return tokenExpiringIn(const Duration(hours: 1));
+      });
+
+      final result = await provider.mintFor('web-token');
+
+      expect(result.token, isNull);
+      expect(result.failure, IntegrityMintFailure.sessionChanged);
+      expect(
+        (await provider.mintFor('gone')).failure,
+        IntegrityMintFailure.sessionChanged,
+      );
+    },
+  );
+
+  test('a minted token comes back without a failure', () async {
+    final provider = providerWith(
+      () async => tokenExpiringIn(const Duration(hours: 1)),
+    );
+    final result = await provider.mintFor('web-token');
+    expect(result.token, isNotNull);
+    expect(result.failure, isNull);
+  });
 }

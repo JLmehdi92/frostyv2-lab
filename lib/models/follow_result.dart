@@ -21,12 +21,7 @@ enum FollowResult {
   bool get needsWebSession => this == noWebSession || this == signedOut;
 
   bool get canRetry => switch (this) {
-    refused ||
-    mintTimeout ||
-    mintFailed ||
-    integrityRefused ||
-    gqlError ||
-    failed => true,
+    refused || mintTimeout || mintFailed || gqlError || failed => true,
     _ => false,
   };
 
@@ -42,6 +37,7 @@ enum FollowResult {
       return switch (stage) {
         IntegrityStage.mintTimedOut => mintTimeout,
         IntegrityStage.mintFailed => mintFailed,
+        IntegrityStage.sessionChanged => noWebSession,
         _ => integrityRefused,
       };
     }

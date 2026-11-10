@@ -77,7 +77,9 @@ void main() {
               final where = '${locale.languageCode} $name ×$scale $what';
               expect(
                 find.byType(SnackBarAction),
-                findsOneWidget,
+                what == FollowResult.integrityRefused.name
+                    ? findsNothing
+                    : findsOneWidget,
                 reason: where,
               );
               expect(tester.takeException(), isNull, reason: where);

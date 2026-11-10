@@ -226,4 +226,39 @@ void main() {
     expect(mints, 0);
     expect(requests, hasLength(1));
   });
+
+  test(
+    'a session that changed during the mint asks to connect again',
+    () async {
+      final changing = Dio(BaseOptions());
+      final changingAdapter = DioAdapter(dio: changing);
+      var session = 'web-token';
+      changing.interceptors.add(
+        IntegrityRetryInterceptor(
+          dio: changing,
+          tokens: IntegrityTokenProvider(
+            mint: () async {
+              session = 'next';
+              return IntegrityToken(
+                value: _integrityToken,
+                deviceId: 'device0001',
+                expiresAt: DateTime.now().add(const Duration(hours: 1)),
+              );
+            },
+            webSession: () => session,
+          ),
+        ),
+      );
+      changingAdapter.onPost(
+        _gql,
+        (server) => server.reply(200, _refused),
+        data: Matchers.any,
+      );
+      final result = await TwitchViewerActionsService(
+        changing,
+      ).followChannel(channelId: '123', authToken: 'web-token');
+
+      expect(result, FollowResult.noWebSession);
+    },
+  );
 }

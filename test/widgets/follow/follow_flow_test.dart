@@ -133,7 +133,7 @@ void main() {
     expect(info.following.value, isFalse);
   });
 
-  testWidgets('an anti-bot refusal stays in ONSET and offers Retry', (
+  testWidgets('an anti-bot refusal stays in ONSET and asks to wait', (
     tester,
   ) async {
     when(
@@ -152,6 +152,18 @@ void main() {
       ),
       findsOneWidget,
     );
+    expect(find.text('Retry'), findsNothing);
+    expect(info.following.value, isFalse);
+  });
+
+  testWidgets('Retry sends the follow again', (tester) async {
+    when(
+      () => actions.followChannel('1000'),
+    ).thenAnswer((_) async => FollowResult.gqlError);
+    await pump(tester);
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
     when(
       () => actions.followChannel('1000'),
     ).thenAnswer((_) async => FollowResult.done);
@@ -160,7 +172,6 @@ void main() {
 
     verify(() => actions.followChannel('1000')).called(2);
     expect(info.following.value, isTrue);
-    expect(find.byKey(const ValueKey('web')), findsNothing);
   });
 
   for (final (result, text) in const [

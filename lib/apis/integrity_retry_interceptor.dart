@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:onset/services/integrity/integrity_token_provider.dart';
 
-enum IntegrityStage { mintTimedOut, mintFailed, retryRefused }
+enum IntegrityStage { mintTimedOut, mintFailed, sessionChanged, retryRefused }
 
 class IntegrityTrace {
   IntegrityStage? stage;
@@ -42,13 +42,10 @@ class IntegrityRetryInterceptor extends Interceptor {
       return;
     }
     final trace = request.extra[traceKey];
-    final token = await tokens.tokenFor(webToken);
+    final mint = await tokens.mintFor(webToken);
+    final token = mint.token;
     if (token == null) {
-      if (trace is IntegrityTrace) {
-        trace.stage = tokens.lastFailure == IntegrityMintFailure.timedOut
-            ? IntegrityStage.mintTimedOut
-            : IntegrityStage.mintFailed;
-      }
+      if (trace is IntegrityTrace) trace.stage = _stageOf(mint.failure);
       handler.next(response);
       return;
     }
@@ -72,6 +69,13 @@ class IntegrityRetryInterceptor extends Interceptor {
       handler.reject(e);
     }
   }
+
+  static IntegrityStage _stageOf(IntegrityMintFailure? failure) =>
+      switch (failure) {
+        IntegrityMintFailure.timedOut => IntegrityStage.mintTimedOut,
+        IntegrityMintFailure.sessionChanged => IntegrityStage.sessionChanged,
+        _ => IntegrityStage.mintFailed,
+      };
 
   static bool isIntegrityRefusal(Object? body) {
     if (body is! Map) return false;

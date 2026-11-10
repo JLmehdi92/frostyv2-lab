@@ -93,6 +93,7 @@ void main() {
         authToken: 'tok',
       );
       expect(result, FollowResult.integrityRefused);
+      expect(result.canRetry, isFalse);
     });
 
     test('another GraphQL error is a GraphQL error', () async {

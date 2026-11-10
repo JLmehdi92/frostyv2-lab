@@ -3,7 +3,12 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:onset/services/integrity/integrity_token.dart';
 
-enum IntegrityMintFailure { timedOut, failed }
+enum IntegrityMintFailure { timedOut, failed, sessionChanged }
+
+typedef IntegrityMint = ({
+  IntegrityToken? token,
+  IntegrityMintFailure? failure,
+});
 
 typedef IntegrityMinter = Future<IntegrityToken> Function();
 
@@ -29,25 +34,24 @@ class IntegrityTokenProvider {
 
   IntegrityToken? _cached;
   String? _cachedSession;
-  Future<IntegrityToken?>? _inFlight;
+  Future<IntegrityMint>? _inFlight;
   String? _inFlightSession;
   var _generation = 0;
-  IntegrityMintFailure? _lastFailure;
-
-  IntegrityMintFailure? get lastFailure => _lastFailure;
 
   bool get isMinting => _inFlight != null;
 
-  Future<IntegrityToken?> tokenFor(String webToken) {
+  Future<IntegrityToken?> tokenFor(String webToken) async =>
+      (await mintFor(webToken)).token;
+
+  Future<IntegrityMint> mintFor(String webToken) {
     if (webToken.isEmpty || _webSession() != webToken) {
-      _lastFailure = IntegrityMintFailure.failed;
-      return Future.value();
+      return Future.value(_failure(IntegrityMintFailure.sessionChanged));
     }
     final cached = _cached;
     if (cached != null &&
         _cachedSession == webToken &&
         cached.isUsableAt(_now().add(expiryMargin))) {
-      return Future.value(cached);
+      return Future.value((token: cached, failure: null));
     }
     final inFlight = _inFlight;
     if (inFlight != null && _inFlightSession == webToken) return inFlight;
@@ -62,6 +66,9 @@ class IntegrityTokenProvider {
     });
   }
 
+  static IntegrityMint _failure(IntegrityMintFailure failure) =>
+      (token: null, failure: failure);
+
   void invalidate() {
     _cached = null;
     _cachedSession = null;
@@ -75,28 +82,25 @@ class IntegrityTokenProvider {
     _cancelMint?.call();
   }
 
-  Future<IntegrityToken?> _mintFor(String webToken, int generation) async {
-    _lastFailure = null;
+  Future<IntegrityMint> _mintFor(String webToken, int generation) async {
     try {
       final minted = await _mint().timeout(timeout);
       final token = minted.cappedAt(_now().add(IntegrityToken.maxLifetime));
-      if (generation != _generation ||
-          !token.isUsableAt(_now().add(expiryMargin)) ||
-          _webSession() != webToken) {
-        _lastFailure = IntegrityMintFailure.failed;
-        return null;
+      if (generation != _generation || _webSession() != webToken) {
+        return _failure(IntegrityMintFailure.sessionChanged);
+      }
+      if (!token.isUsableAt(_now().add(expiryMargin))) {
+        return _failure(IntegrityMintFailure.failed);
       }
       _cached = token;
       _cachedSession = webToken;
-      return token;
+      return (token: token, failure: null);
     } on TimeoutException {
       debugPrint('Integrity token unavailable: timed out');
-      _lastFailure = IntegrityMintFailure.timedOut;
-      return null;
+      return _failure(IntegrityMintFailure.timedOut);
     } catch (e) {
       debugPrint('Integrity token unavailable: ${e.runtimeType}');
-      _lastFailure = IntegrityMintFailure.failed;
-      return null;
+      return _failure(IntegrityMintFailure.failed);
     }
   }
 }
