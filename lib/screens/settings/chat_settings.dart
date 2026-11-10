@@ -39,9 +39,7 @@ class ChatSettings extends StatefulWidget {
 class _ChatSettingsState extends State<ChatSettings> {
   final _recentLink = TapGestureRecognizer();
 
-  static TwitchViewerActionsService? _accountSyncService(
-    BuildContext context,
-  ) {
+  static TwitchViewerActionsService? _accountSyncService(BuildContext context) {
     try {
       final service = context.read<TwitchViewerActionsService?>();
       return service != null && context.authStore.isLoggedIn ? service : null;
@@ -493,6 +491,24 @@ class _ChatSettingsState extends State<ChatSettings> {
                       settingsStore.show7TVEmotes = newValue,
                 ),
                 SettingsListSwitch(
+                  title: l.settingsShow7tvBadges,
+                  value: settingsStore.show7TVBadges,
+                  onChanged: (newValue) =>
+                      settingsStore.show7TVBadges = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShow7tvPaints,
+                  value: settingsStore.show7TVPaints,
+                  onChanged: (newValue) =>
+                      settingsStore.show7TVPaints = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShow7tvPersonalEmotes,
+                  value: settingsStore.show7TVPersonalEmotes,
+                  onChanged: (newValue) =>
+                      settingsStore.show7TVPersonalEmotes = newValue,
+                ),
+                SettingsListSwitch(
                   title: l.settingsShowBttvEmotes,
                   value: settingsStore.showBTTVEmotes,
                   onChanged: (newValue) =>
@@ -505,6 +521,12 @@ class _ChatSettingsState extends State<ChatSettings> {
                       settingsStore.showBTTVBadges = newValue,
                 ),
                 SettingsListSwitch(
+                  title: l.settingsShowBttvPersonalEmotes,
+                  value: settingsStore.showBTTVPersonalEmotes,
+                  onChanged: (newValue) =>
+                      settingsStore.showBTTVPersonalEmotes = newValue,
+                ),
+                SettingsListSwitch(
                   title: l.settingsShowFfzEmotes,
                   value: settingsStore.showFFZEmotes,
                   onChanged: (newValue) =>
@@ -515,6 +537,19 @@ class _ChatSettingsState extends State<ChatSettings> {
                   value: settingsStore.showFFZBadges,
                   onChanged: (newValue) =>
                       settingsStore.showFFZBadges = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShowFfzRoomBadges,
+                  value: settingsStore.showFFZRoomBadges,
+                  onChanged: (newValue) =>
+                      settingsStore.showFFZRoomBadges = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShowEmoteChangeNotices,
+                  subtitle: Text(l.settingsShowEmoteChangeNoticesSubtitle),
+                  value: settingsStore.showEmoteChangeNotices,
+                  onChanged: (newValue) =>
+                      settingsStore.showEmoteChangeNotices = newValue,
                 ),
               ],
             ),

@@ -1449,6 +1449,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsShowFfzBadges => 'Show FFZ badges';
 
   @override
+  String get settingsShow7tvBadges => 'Show 7TV badges';
+
+  @override
+  String get settingsShow7tvPaints => 'Show 7TV name paints';
+
+  @override
+  String get settingsShow7tvPersonalEmotes => 'Show 7TV personal emotes';
+
+  @override
+  String get settingsShowBttvPersonalEmotes => 'Show BTTV personal emotes';
+
+  @override
+  String get settingsShowFfzRoomBadges =>
+      'Show the channel’s FFZ moderator and VIP badges';
+
+  @override
+  String get settingsShowEmoteChangeNotices => 'Announce emote changes in chat';
+
+  @override
+  String get settingsShowEmoteChangeNoticesSubtitle =>
+      'When the channel adds, removes, or renames a 7TV or BTTV emote.';
+
+  @override
   String get settingsRecentMessages => 'Recent messages';
 
   @override
@@ -5261,6 +5284,41 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String chatSevenTvEmoteRenamed({
+    required String name,
+    required String old,
+    required String emote,
+  }) {
+    return '$name renamed the 7TV emote “$old” to “$emote”.';
+  }
+
+  @override
+  String chatSevenTvEmoteSetSwitched({
+    required String name,
+    required String set,
+  }) {
+    return '$name switched this channel’s 7TV emotes to the set “$set”.';
+  }
+
+  @override
+  String get chatSevenTvSomeone => 'Someone';
+
+  @override
+  String chatBttvEmoteAdded({required String emote}) {
+    return 'The BTTV emote “$emote” was added to chat.';
+  }
+
+  @override
+  String chatBttvEmoteRemoved({required String emote}) {
+    return 'The BTTV emote “$emote” was removed from chat.';
+  }
+
+  @override
+  String chatBttvEmoteRenamed({required String old, required String emote}) {
+    return 'The BTTV emote “$old” was renamed “$emote”.';
+  }
+
+  @override
   String chatMessageTooLong({required int max}) {
     return 'Messages can be $max characters at most.';
   }
@@ -7687,6 +7745,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'bttvShared': 'BetterTTV shared emote',
       'sevenTVGlobal': '7TV global emote',
       'sevenTVChannel': '7TV channel emote',
+      'sevenTVPersonal': '7TV personal emote',
+      'bttvPersonal': 'BetterTTV personal emote',
       'other': '',
     });
     return '$_temp0';

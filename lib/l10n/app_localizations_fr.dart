@@ -1477,6 +1477,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsShowFfzBadges => 'Afficher les badges FFZ';
 
   @override
+  String get settingsShow7tvBadges => 'Afficher les badges 7TV';
+
+  @override
+  String get settingsShow7tvPaints => 'Afficher les peintures de pseudo 7TV';
+
+  @override
+  String get settingsShow7tvPersonalEmotes =>
+      'Afficher les emotes personnelles 7TV';
+
+  @override
+  String get settingsShowBttvPersonalEmotes =>
+      'Afficher les emotes personnelles BTTV';
+
+  @override
+  String get settingsShowFfzRoomBadges =>
+      'Afficher les badges de modérateur et de VIP FFZ de la chaîne';
+
+  @override
+  String get settingsShowEmoteChangeNotices =>
+      'Annoncer les changements d’emotes dans le chat';
+
+  @override
+  String get settingsShowEmoteChangeNoticesSubtitle =>
+      'Quand la chaîne ajoute, retire ou renomme une emote 7TV ou BTTV.';
+
+  @override
   String get settingsRecentMessages => 'Messages récents';
 
   @override
@@ -5330,6 +5356,41 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String chatSevenTvEmoteRenamed({
+    required String name,
+    required String old,
+    required String emote,
+  }) {
+    return '$name a renommé l’emote 7TV « $old » en « $emote »';
+  }
+
+  @override
+  String chatSevenTvEmoteSetSwitched({
+    required String name,
+    required String set,
+  }) {
+    return '$name a remplacé les emotes 7TV de la chaîne par l’ensemble « $set »';
+  }
+
+  @override
+  String get chatSevenTvSomeone => 'Quelqu’un';
+
+  @override
+  String chatBttvEmoteAdded({required String emote}) {
+    return 'L’emote BTTV « $emote » a été ajoutée au chat';
+  }
+
+  @override
+  String chatBttvEmoteRemoved({required String emote}) {
+    return 'L’emote BTTV « $emote » a été retirée du chat';
+  }
+
+  @override
+  String chatBttvEmoteRenamed({required String old, required String emote}) {
+    return 'L’emote BTTV « $old » a été renommée « $emote »';
+  }
+
+  @override
   String chatMessageTooLong({required int max}) {
     return 'Les messages sont limités à $max caractères';
   }
@@ -7789,6 +7850,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'bttvShared': 'Emote partagée BetterTTV',
       'sevenTVGlobal': 'Emote globale 7TV',
       'sevenTVChannel': 'Emote de chaîne 7TV',
+      'sevenTVPersonal': 'Emote personnelle 7TV',
+      'bttvPersonal': 'Emote personnelle BetterTTV',
       'other': '',
     });
     return '$_temp0';

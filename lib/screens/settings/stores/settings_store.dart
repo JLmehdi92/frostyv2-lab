@@ -543,6 +543,12 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowBTTVBadges = true;
   static const defaultShowFFZEmotes = true;
   static const defaultShowFFZBadges = true;
+  static const defaultShow7TVBadges = true;
+  static const defaultShow7TVPaints = true;
+  static const defaultShow7TVPersonalEmotes = true;
+  static const defaultShowBTTVPersonalEmotes = true;
+  static const defaultShowFFZRoomBadges = true;
+  static const defaultShowEmoteChangeNotices = true;
 
   // Recent messages defaults
   static const defaultShowRecentMessages = false;
@@ -851,6 +857,30 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var showFFZBadges = defaultShowFFZBadges;
 
+  @JsonKey(defaultValue: defaultShow7TVBadges)
+  @observable
+  var show7TVBadges = defaultShow7TVBadges;
+
+  @JsonKey(defaultValue: defaultShow7TVPaints)
+  @observable
+  var show7TVPaints = defaultShow7TVPaints;
+
+  @JsonKey(defaultValue: defaultShow7TVPersonalEmotes)
+  @observable
+  var show7TVPersonalEmotes = defaultShow7TVPersonalEmotes;
+
+  @JsonKey(defaultValue: defaultShowBTTVPersonalEmotes)
+  @observable
+  var showBTTVPersonalEmotes = defaultShowBTTVPersonalEmotes;
+
+  @JsonKey(defaultValue: defaultShowFFZRoomBadges)
+  @observable
+  var showFFZRoomBadges = defaultShowFFZRoomBadges;
+
+  @JsonKey(defaultValue: defaultShowEmoteChangeNotices)
+  @observable
+  var showEmoteChangeNotices = defaultShowEmoteChangeNotices;
+
   // Recent messages
   @JsonKey(defaultValue: defaultShowRecentMessages)
   @observable
@@ -961,6 +991,12 @@ abstract class _SettingsStoreBase with Store {
     showBTTVBadges = defaultShowBTTVBadges;
     showFFZEmotes = defaultShowFFZEmotes;
     showFFZBadges = defaultShowFFZBadges;
+    show7TVBadges = defaultShow7TVBadges;
+    show7TVPaints = defaultShow7TVPaints;
+    show7TVPersonalEmotes = defaultShow7TVPersonalEmotes;
+    showBTTVPersonalEmotes = defaultShowBTTVPersonalEmotes;
+    showFFZRoomBadges = defaultShowFFZRoomBadges;
+    showEmoteChangeNotices = defaultShowEmoteChangeNotices;
 
     showRecentMessages = defaultShowRecentMessages;
 

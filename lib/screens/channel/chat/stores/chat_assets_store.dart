@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/bttv_api.dart';
@@ -10,6 +11,8 @@ import 'package:onset/models/badges.dart';
 import 'package:onset/models/cheermote.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/shared_chat_session.dart';
+import 'package:onset/models/third_party_cosmetics.dart';
+import 'package:onset/models/third_party_events.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/stores/global_assets_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -111,8 +114,43 @@ abstract class ChatAssetsStoreBase with Store {
       globalAssetsStore.ffzBadges;
 
   /// The map of user IDs to their 7TV badges.
-  @readonly
-  var _userTo7TVBadges = <String, List<ChatBadge>>{};
+  Map<String, List<ChatBadge>> get userTo7TVBadges => _userTo7TVBadges;
+  final _userTo7TVBadges = ObservableMap<String, List<ChatBadge>>();
+
+  final userTo7TVPaint = ObservableMap<String, NamePaint>();
+
+  final userToPersonalEmotes = ObservableMap<String, Map<String, Emote>>();
+
+  NamePaint? paintFor(String? userId) =>
+      userId == null ? null : userTo7TVPaint[userId];
+
+  String? sevenTvUserId;
+
+  String? bttvChannelId;
+
+  var showSevenTvBadges = true;
+  var showSevenTvPaints = true;
+  var showSevenTvPersonalEmotes = true;
+  var showBttvPersonalEmotes = true;
+  var showFfzRoomBadges = true;
+
+  void Function(String setId)? onPersonalEmoteSetSeen;
+
+  final _sevenTvPaintDefinitions = <String, NamePaint>{};
+  final _sevenTvBadgeDefinitions = <String, ChatBadge>{};
+  final _sevenTvPersonalSetOwners = <String, Set<String>>{};
+  final _bttvPersonalEmotes = <String, Map<String, Emote>>{};
+  final _sevenTvPersonalEmotes = <String, Map<String, Emote>>{};
+  final _lookedUpChatters = <String>{};
+
+  bool get _wantsSevenTvLookups =>
+      showSevenTvBadges || showSevenTvPaints || showSevenTvPersonalEmotes;
+
+  Map<String, Emote>? personalEmotesFor(String? userId) =>
+      userId == null ? null : userToPersonalEmotes[userId];
+
+  Set<String> get sevenTvPersonalSetIds =>
+      _sevenTvPersonalSetOwners.keys.toSet();
 
   /// The map of user IDs to their BTTV badge (from global store).
   Map<String, ChatBadge> get userToBTTVBadges => globalAssetsStore.bttvBadges;
@@ -213,15 +251,21 @@ abstract class ChatAssetsStoreBase with Store {
                   .catchError(onEmoteError),
             if (show7TVEmotes)
               sevenTVApi
-                  .getEmotesChannel(id: channelId)
-                  .then((data) {
-                    final (setId, emotes) = data;
-                    sevenTvEmoteSetId = setId;
-                    return emotes;
+                  .getChannel(id: channelId)
+                  .then((channel) {
+                    sevenTvEmoteSetId = channel.setId;
+                    sevenTvUserId = channel.userId;
+                    return channel.emotes;
                   })
                   .catchError(onEmoteError),
             if (showBTTVEmotes)
-              bttvApi.getEmotesChannel(id: channelId).catchError(onEmoteError),
+              bttvApi
+                  .getEmotesChannel(id: channelId)
+                  .then((emotes) {
+                    bttvChannelId = channelId;
+                    return emotes;
+                  })
+                  .catchError(onEmoteError),
             if (showFFZEmotes)
               ffzApi
                   .getRoomInfo(id: channelId)
@@ -558,6 +602,232 @@ abstract class ChatAssetsStoreBase with Store {
   @action
   void removeChannelEmote(String emoteName) {
     _channelEmoteToObject.remove(emoteName);
+  }
+
+  @action
+  void configureCosmetics({
+    required bool sevenTvBadges,
+    required bool sevenTvPaints,
+    required bool sevenTvPersonalEmotes,
+    required bool bttvPersonalEmotes,
+    required bool ffzRoomBadges,
+  }) {
+    showSevenTvBadges = sevenTvBadges;
+    showSevenTvPaints = sevenTvPaints;
+    showSevenTvPersonalEmotes = sevenTvPersonalEmotes;
+    showBttvPersonalEmotes = bttvPersonalEmotes;
+    showFfzRoomBadges = ffzRoomBadges;
+    if (!sevenTvBadges) _userTo7TVBadges.clear();
+    if (!sevenTvPaints) userTo7TVPaint.clear();
+    if (!sevenTvPersonalEmotes) _sevenTvPersonalEmotes.clear();
+    if (!bttvPersonalEmotes) _bttvPersonalEmotes.clear();
+    _refreshPersonalEmotes();
+    if (_wantsSevenTvLookups) {
+      final chatters = _lookedUpChatters.toList();
+      _lookedUpChatters.clear();
+      chatters.forEach(noteChatter);
+    }
+  }
+
+  RoomFFZ? get ffzRoomBadges => showFfzRoomBadges ? ffzRoomInfo : null;
+
+  void noteChatter(String? userId) {
+    if (userId == null || userId.isEmpty || !_wantsSevenTvLookups) return;
+    if (!_lookedUpChatters.add(userId)) return;
+    globalAssetsStore.sevenTvCosmetics
+        .lookup(userId)
+        .then((cosmetics) => _applySevenTvCosmetics(userId, cosmetics));
+  }
+
+  @action
+  void _applySevenTvCosmetics(String userId, SevenTvUserCosmetics cosmetics) {
+    if (cosmetics.badge case final badge? when showSevenTvBadges) {
+      _userTo7TVBadges[userId] = [badge];
+    }
+    if (cosmetics.paint case final paint?
+        when showSevenTvPaints && paint.isDrawable) {
+      userTo7TVPaint[userId] = paint;
+    }
+    final setId = cosmetics.personalSetId;
+    if (setId != null && showSevenTvPersonalEmotes) {
+      _ownPersonalSet(userId, setId);
+      _sevenTvPersonalEmotes[userId] = {
+        for (final emote in cosmetics.personalEmotes) emote.name: emote,
+      };
+      _refreshPersonalEmotes(userId);
+    }
+  }
+
+  void _ownPersonalSet(String userId, String setId) {
+    final owners = _sevenTvPersonalSetOwners.putIfAbsent(setId, () {
+      onPersonalEmoteSetSeen?.call(setId);
+      return <String>{};
+    });
+    owners.add(userId);
+  }
+
+  @action
+  void defineSevenTvCosmetic(SevenTvCosmeticCreated cosmetic) {
+    if (cosmetic.paint case final paint?) {
+      _sevenTvPaintDefinitions[cosmetic.id] = paint;
+    }
+    if (cosmetic.badge case final badge?) {
+      _sevenTvBadgeDefinitions[cosmetic.id] = badge;
+    }
+  }
+
+  @action
+  Future<void> applySevenTvEntitlement(SevenTvEntitlement entitlement) async {
+    final userId = entitlement.twitchUserId;
+    switch (entitlement.kind) {
+      case SevenTvEntitlementKind.badge:
+        if (!showSevenTvBadges) return;
+        final badge = _sevenTvBadgeDefinitions[entitlement.refId];
+        if (entitlement.granted && badge != null) {
+          _userTo7TVBadges[userId] = [badge];
+        } else if (!entitlement.granted) {
+          _userTo7TVBadges.remove(userId);
+        }
+      case SevenTvEntitlementKind.paint:
+        if (!showSevenTvPaints) return;
+        final paint = _sevenTvPaintDefinitions[entitlement.refId];
+        if (entitlement.granted && paint != null && paint.isDrawable) {
+          userTo7TVPaint[userId] = paint;
+        } else if (!entitlement.granted) {
+          userTo7TVPaint.remove(userId);
+        }
+      case SevenTvEntitlementKind.emoteSet:
+        if (!showSevenTvPersonalEmotes) return;
+        if (!entitlement.granted) {
+          _sevenTvPersonalSetOwners[entitlement.refId]?.remove(userId);
+          _sevenTvPersonalEmotes.remove(userId);
+          _refreshPersonalEmotes(userId);
+          return;
+        }
+        _ownPersonalSet(userId, entitlement.refId);
+        final emotes = await globalAssetsStore.sevenTvCosmetics.emoteSet(
+          entitlement.refId,
+        );
+        runInAction(() {
+          if (!showSevenTvPersonalEmotes) return;
+          _sevenTvPersonalEmotes[userId] = {
+            for (final emote in emotes) emote.name: emote,
+          };
+          _refreshPersonalEmotes(userId);
+        });
+    }
+  }
+
+  @action
+  void applyPersonalEmoteSetChange(SevenTvEmoteSetChange change) {
+    final owners = _sevenTvPersonalSetOwners[change.setId];
+    if (owners == null || !showSevenTvPersonalEmotes) return;
+    globalAssetsStore.sevenTvCosmetics.forgetEmoteSet(change.setId);
+    for (final owner in owners) {
+      final emotes = {...?_sevenTvPersonalEmotes[owner]};
+      for (final name in change.removed) {
+        emotes.remove(name);
+      }
+      for (final rename in change.renamed) {
+        emotes.remove(rename.oldName);
+        final emote = Emote.from7TV(rename.emote, EmoteType.sevenTVPersonal);
+        if (emote.url.isNotEmpty) emotes[emote.name] = emote;
+      }
+      for (final added in change.added) {
+        final emote = Emote.from7TV(added, EmoteType.sevenTVPersonal);
+        if (emote.url.isNotEmpty) emotes[emote.name] = emote;
+      }
+      _sevenTvPersonalEmotes[owner] = emotes;
+      _refreshPersonalEmotes(owner);
+    }
+  }
+
+  @action
+  void applyBttvProUser(BttvProUser user) {
+    if (!showBttvPersonalEmotes) return;
+    if (!user.pro || user.emotes.isEmpty) {
+      _bttvPersonalEmotes.remove(user.providerId);
+    } else {
+      _bttvPersonalEmotes[user.providerId] = {
+        for (final emote in user.emotes)
+          emote.code: Emote.fromBTTV(emote, EmoteType.bttvPersonal),
+      };
+    }
+    _refreshPersonalEmotes(user.providerId);
+  }
+
+  void _refreshPersonalEmotes([String? onlyUserId]) {
+    final userIds = onlyUserId != null
+        ? {onlyUserId}
+        : {
+            ...userToPersonalEmotes.keys,
+            ..._sevenTvPersonalEmotes.keys,
+            ..._bttvPersonalEmotes.keys,
+          };
+    for (final userId in userIds) {
+      final merged = {
+        if (showBttvPersonalEmotes) ...?_bttvPersonalEmotes[userId],
+        if (showSevenTvPersonalEmotes) ...?_sevenTvPersonalEmotes[userId],
+      };
+      if (merged.isEmpty) {
+        userToPersonalEmotes.remove(userId);
+      } else {
+        userToPersonalEmotes[userId] = merged;
+      }
+    }
+  }
+
+  Future<bool> switchSevenTvSet(String setId) async {
+    final List<Emote> emotes;
+    try {
+      emotes = await sevenTVApi.getEmoteSet(
+        id: setId,
+        type: EmoteType.sevenTVChannel,
+      );
+    } catch (error) {
+      debugPrint('7TV emote set unavailable: $error');
+      return false;
+    }
+    runInAction(() {
+      replaceSevenTvChannelEmotes(emotes);
+      sevenTvEmoteSetId = setId;
+    });
+    return true;
+  }
+
+  @action
+  void replaceSevenTvChannelEmotes(List<Emote> emotes) {
+    _channelEmoteToObject.removeWhere(
+      (_, emote) => emote.type == EmoteType.sevenTVChannel,
+    );
+    for (final emote in emotes) {
+      _channelEmoteToObject.putIfAbsent(emote.name, () => emote);
+    }
+  }
+
+  @action
+  Emote? renameChannelEmote({
+    required bool Function(Emote emote) where,
+    required Emote Function(Emote emote) to,
+  }) {
+    final entry = _channelEmoteToObject.entries.firstWhereOrNull(
+      (entry) => where(entry.value),
+    );
+    if (entry == null) return null;
+    _channelEmoteToObject.remove(entry.key);
+    final renamed = to(entry.value);
+    _channelEmoteToObject[renamed.name] = renamed;
+    return entry.value;
+  }
+
+  @action
+  Emote? removeChannelEmoteWhere(bool Function(Emote emote) where) {
+    final entry = _channelEmoteToObject.entries.firstWhereOrNull(
+      (entry) => where(entry.value),
+    );
+    if (entry == null) return null;
+    _channelEmoteToObject.remove(entry.key);
+    return entry.value;
   }
 
   void dispose() => _disposeReaction();

@@ -236,6 +236,12 @@ SettingsStore _$SettingsStoreFromJson(
   ..showBTTVBadges = json['showBTTVBadges'] as bool? ?? true
   ..showFFZEmotes = json['showFFZEmotes'] as bool? ?? true
   ..showFFZBadges = json['showFFZBadges'] as bool? ?? true
+  ..show7TVBadges = json['show7TVBadges'] as bool? ?? true
+  ..show7TVPaints = json['show7TVPaints'] as bool? ?? true
+  ..show7TVPersonalEmotes = json['show7TVPersonalEmotes'] as bool? ?? true
+  ..showBTTVPersonalEmotes = json['showBTTVPersonalEmotes'] as bool? ?? true
+  ..showFFZRoomBadges = json['showFFZRoomBadges'] as bool? ?? true
+  ..showEmoteChangeNotices = json['showEmoteChangeNotices'] as bool? ?? true
   ..showRecentMessages = json['showRecentMessages'] as bool? ?? false
   ..persistChatTabs = json['persistChatTabs'] as bool? ?? true
   ..secondaryTabs =
@@ -379,6 +385,12 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'showBTTVBadges': instance.showBTTVBadges,
   'showFFZEmotes': instance.showFFZEmotes,
   'showFFZBadges': instance.showFFZBadges,
+  'show7TVBadges': instance.show7TVBadges,
+  'show7TVPaints': instance.show7TVPaints,
+  'show7TVPersonalEmotes': instance.show7TVPersonalEmotes,
+  'showBTTVPersonalEmotes': instance.showBTTVPersonalEmotes,
+  'showFFZRoomBadges': instance.showFFZRoomBadges,
+  'showEmoteChangeNotices': instance.showEmoteChangeNotices,
   'showRecentMessages': instance.showRecentMessages,
   'persistChatTabs': instance.persistChatTabs,
   'secondaryTabs': instance.secondaryTabs,
@@ -2422,6 +2434,126 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$show7TVBadgesAtom = Atom(
+    name: '_SettingsStoreBase.show7TVBadges',
+    context: context,
+  );
+
+  @override
+  bool get show7TVBadges {
+    _$show7TVBadgesAtom.reportRead();
+    return super.show7TVBadges;
+  }
+
+  @override
+  set show7TVBadges(bool value) {
+    _$show7TVBadgesAtom.reportWrite(value, super.show7TVBadges, () {
+      super.show7TVBadges = value;
+    });
+  }
+
+  late final _$show7TVPaintsAtom = Atom(
+    name: '_SettingsStoreBase.show7TVPaints',
+    context: context,
+  );
+
+  @override
+  bool get show7TVPaints {
+    _$show7TVPaintsAtom.reportRead();
+    return super.show7TVPaints;
+  }
+
+  @override
+  set show7TVPaints(bool value) {
+    _$show7TVPaintsAtom.reportWrite(value, super.show7TVPaints, () {
+      super.show7TVPaints = value;
+    });
+  }
+
+  late final _$show7TVPersonalEmotesAtom = Atom(
+    name: '_SettingsStoreBase.show7TVPersonalEmotes',
+    context: context,
+  );
+
+  @override
+  bool get show7TVPersonalEmotes {
+    _$show7TVPersonalEmotesAtom.reportRead();
+    return super.show7TVPersonalEmotes;
+  }
+
+  @override
+  set show7TVPersonalEmotes(bool value) {
+    _$show7TVPersonalEmotesAtom.reportWrite(
+      value,
+      super.show7TVPersonalEmotes,
+      () {
+        super.show7TVPersonalEmotes = value;
+      },
+    );
+  }
+
+  late final _$showBTTVPersonalEmotesAtom = Atom(
+    name: '_SettingsStoreBase.showBTTVPersonalEmotes',
+    context: context,
+  );
+
+  @override
+  bool get showBTTVPersonalEmotes {
+    _$showBTTVPersonalEmotesAtom.reportRead();
+    return super.showBTTVPersonalEmotes;
+  }
+
+  @override
+  set showBTTVPersonalEmotes(bool value) {
+    _$showBTTVPersonalEmotesAtom.reportWrite(
+      value,
+      super.showBTTVPersonalEmotes,
+      () {
+        super.showBTTVPersonalEmotes = value;
+      },
+    );
+  }
+
+  late final _$showFFZRoomBadgesAtom = Atom(
+    name: '_SettingsStoreBase.showFFZRoomBadges',
+    context: context,
+  );
+
+  @override
+  bool get showFFZRoomBadges {
+    _$showFFZRoomBadgesAtom.reportRead();
+    return super.showFFZRoomBadges;
+  }
+
+  @override
+  set showFFZRoomBadges(bool value) {
+    _$showFFZRoomBadgesAtom.reportWrite(value, super.showFFZRoomBadges, () {
+      super.showFFZRoomBadges = value;
+    });
+  }
+
+  late final _$showEmoteChangeNoticesAtom = Atom(
+    name: '_SettingsStoreBase.showEmoteChangeNotices',
+    context: context,
+  );
+
+  @override
+  bool get showEmoteChangeNotices {
+    _$showEmoteChangeNoticesAtom.reportRead();
+    return super.showEmoteChangeNotices;
+  }
+
+  @override
+  set showEmoteChangeNotices(bool value) {
+    _$showEmoteChangeNoticesAtom.reportWrite(
+      value,
+      super.showEmoteChangeNotices,
+      () {
+        super.showEmoteChangeNotices = value;
+      },
+    );
+  }
+
   late final _$showRecentMessagesAtom = Atom(
     name: '_SettingsStoreBase.showRecentMessages',
     context: context,
@@ -3016,6 +3148,12 @@ showBTTVEmotes: ${showBTTVEmotes},
 showBTTVBadges: ${showBTTVBadges},
 showFFZEmotes: ${showFFZEmotes},
 showFFZBadges: ${showFFZBadges},
+show7TVBadges: ${show7TVBadges},
+show7TVPaints: ${show7TVPaints},
+show7TVPersonalEmotes: ${show7TVPersonalEmotes},
+showBTTVPersonalEmotes: ${showBTTVPersonalEmotes},
+showFFZRoomBadges: ${showFFZRoomBadges},
+showEmoteChangeNotices: ${showEmoteChangeNotices},
 showRecentMessages: ${showRecentMessages},
 persistChatTabs: ${persistChatTabs},
 secondaryTabs: ${secondaryTabs},

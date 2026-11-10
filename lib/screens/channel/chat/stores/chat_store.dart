@@ -18,6 +18,7 @@ import 'package:onset/models/emotes.dart';
 import 'package:onset/models/events.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/models/third_party_events.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/user_notice.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
@@ -321,6 +322,12 @@ abstract class ChatStoreBase with Store {
 
   /// Pending delayed 7TV payloads waiting to be rendered.
   final _pendingSevenTVCallbacks = ChatDelayQueue();
+
+  final _pendingBttvCallbacks = ChatDelayQueue();
+
+  WebSocketChannel? _bttvChannel;
+
+  StreamSubscription? _bttvChannelListener;
 
   /// The set of message IDs that have been revealed by the user (for deleted messages).
   final revealedMessageIds = ObservableSet<String>();
@@ -1128,6 +1135,7 @@ abstract class ChatStoreBase with Store {
           if (!settings.show7TVEmotes) {
             _sevenTVChannel?.sink.close(1000);
           }
+          if (!settings.showBTTVEmotes) _closeBttvChannel();
 
           getAssets().then((_) {
             if (settings.show7TVEmotes) {
@@ -1136,10 +1144,30 @@ abstract class ChatStoreBase with Store {
                 listenToSevenTVEmoteSet(emoteSetId: emoteSetId);
               }
             }
+            if (settings.showBTTVEmotes &&
+                assetsStore.bttvChannelId != null &&
+                _bttvChannel == null) {
+              listenToBttvChannel();
+            }
           });
         },
       ),
     );
+
+    assetsStore.onPersonalEmoteSetSeen = _watchPersonalEmoteSet;
+    reactions.add(
+      reaction(
+        (_) => (
+          settings.show7TVBadges,
+          settings.show7TVPaints,
+          settings.show7TVPersonalEmotes,
+          settings.showBTTVPersonalEmotes,
+          settings.showFFZRoomBadges,
+        ),
+        (_) => _configureCosmetics(resubscribe: true),
+      ),
+    );
+    _configureCosmetics(resubscribe: false);
 
     // Start chat delay countdown when toggling video on, cancel when off
     reactions.add(
@@ -1232,11 +1260,13 @@ abstract class ChatStoreBase with Store {
     final delay = Duration(seconds: _chatDelaySeconds);
     _pendingChatCallbacks.flushDue(now, delay);
     _pendingSevenTVCallbacks.flushDue(now, delay);
+    _pendingBttvCallbacks.flushDue(now, delay);
   }
 
   void _flushPendingDelayedCallbacks() {
     _pendingChatCallbacks.flushAll();
     _pendingSevenTVCallbacks.flushAll();
+    _pendingBttvCallbacks.flushAll();
   }
 
   /// Handle and process the provided string-representation of the IRC data.
@@ -1293,6 +1323,10 @@ abstract class ChatStoreBase with Store {
               wholeWord: settings.matchWholeWord,
             )) {
           continue;
+        }
+
+        if (parsedIRCMessage.command == Command.privateMessage) {
+          assetsStore.noteChatter(parsedIRCMessage.tags['user-id']);
         }
 
         switch (parsedIRCMessage.command) {
@@ -1529,6 +1563,11 @@ abstract class ChatStoreBase with Store {
             listenToSevenTVEmoteSet(emoteSetId: emoteSetId);
           }
         }
+        if (settings.showBTTVEmotes &&
+            assetsStore.bttvChannelId != null &&
+            !_shouldDisconnect) {
+          listenToBttvChannel();
+        }
 
         // Transform reconnect message to summary on successful connection
         if (_reconnectMessage != null && _reconnectStartTime != null) {
@@ -1625,79 +1664,21 @@ abstract class ChatStoreBase with Store {
 
   @action
   void listenToSevenTVEmoteSet({required String emoteSetId}) {
-    final subscribePayload = SevenTVEvent(
-      op: 35,
-      d: SevenTVEventData(
-        type: 'emote_set.update',
-        condition: {'object_id': emoteSetId},
-      ),
-    );
-
+    _sevenTvSubscribedSets.clear();
     _sevenTVChannel?.sink.close(1000);
     _sevenTVChannel = _connectSocket(Uri.parse('wss://events.7tv.io/v3'));
+    _sevenTvActiveSetId = emoteSetId;
 
-    void listener(dynamic data) {
-      // debugPrint(data);
-      final decoded = jsonDecode(data);
-
-      final event = SevenTVEvent.fromJson(decoded);
-
-      final body = event.d.body;
-      if (event.d.type != 'emote_set.update' || body == null) return;
-
-      if (body.pushed != null) {
-        final pushedEmote = body.pushed?.first.value;
-
-        if (pushedEmote == null) return;
-
-        final emote = Emote.from7TV(pushedEmote, EmoteType.sevenTVChannel);
-
-        assetsStore.addChannelEmote(emote);
-
-        messageBuffer.add(
-          IRCMessage.createNotice(
-            message: L10n.current.chatSevenTvEmoteAdded(
-              name: getReadableName(
-                body.actor.displayName,
-                body.actor.username,
-              ),
-              emote: emote.name,
-            ),
-          ),
-        );
-      } else if (body.pulled != null) {
-        final pulledEmote = body.pulled?.first.oldValue;
-
-        if (pulledEmote == null) return;
-
-        assetsStore.removeChannelEmote(pulledEmote.name);
-
-        messageBuffer.add(
-          IRCMessage.createNotice(
-            message: L10n.current.chatSevenTvEmoteRemoved(
-              name: getReadableName(
-                body.actor.displayName,
-                body.actor.username,
-              ),
-              emote: pulledEmote.name,
-            ),
-          ),
-        );
-      }
-    }
-
-    // Cancel previous subscription if exists
     _sevenTVChannelListener?.cancel();
     _sevenTVChannelListener = _sevenTVChannel?.stream.listen(
       (data) {
         if (!_hasActiveChatDelay) {
-          // Whatever is still held goes first, so nothing overtakes it.
           _pendingSevenTVCallbacks.flushAll();
-          listener(data);
+          _onSevenTvEvent(data);
         } else {
           _enqueueDelayedCallback(
             _pendingSevenTVCallbacks,
-            () => listener(data),
+            () => _onSevenTvEvent(data),
           );
         }
       },
@@ -1709,12 +1690,236 @@ abstract class ChatStoreBase with Store {
           reason: '7TV WebSocket error',
         );
       },
-      // Held events stay: each is whole and releases on schedule, in order.
       onDone: () => debugPrint('7TV events done'),
     );
 
-    _sevenTVChannel?.sink.add(jsonEncode(subscribePayload));
+    _subscribeSevenTv('emote_set.update', {'object_id': emoteSetId});
+    _sevenTvSubscribedSets.add(emoteSetId);
+    final sevenTvUserId = assetsStore.sevenTvUserId;
+    if (sevenTvUserId != null) {
+      _subscribeSevenTv('user.update', {'object_id': sevenTvUserId});
+    }
+    if (settings.show7TVBadges ||
+        settings.show7TVPaints ||
+        settings.show7TVPersonalEmotes) {
+      final channelCondition = {
+        'ctx': 'channel',
+        'platform': 'TWITCH',
+        'id': channelId,
+      };
+      for (final type in const [
+        'cosmetic.create',
+        'entitlement.create',
+        'entitlement.delete',
+      ]) {
+        _subscribeSevenTv(type, channelCondition);
+      }
+    }
   }
+
+  static const _maxSevenTvSetSubscriptions = 100;
+
+  final _sevenTvSubscribedSets = <String>{};
+
+  String? _sevenTvActiveSetId;
+
+  void _subscribeSevenTv(String type, Map<String, String> condition) {
+    _sevenTVChannel?.sink.add(
+      jsonEncode(
+        SevenTVEvent(
+          op: 35,
+          d: SevenTVEventData(type: type, condition: condition),
+        ),
+      ),
+    );
+  }
+
+  void _watchPersonalEmoteSet(String setId) {
+    if (_sevenTVChannel == null ||
+        _sevenTvSubscribedSets.length >= _maxSevenTvSetSubscriptions ||
+        !_sevenTvSubscribedSets.add(setId)) {
+      return;
+    }
+    _subscribeSevenTv('emote_set.update', {'object_id': setId});
+  }
+
+  void _onSevenTvEvent(dynamic data) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(data as String);
+    } on FormatException {
+      return;
+    }
+    switch (SevenTvDispatch.parse(decoded)) {
+      case final SevenTvEmoteSetChange change
+          when change.setId == _sevenTvActiveSetId:
+        _applyChannelSevenTvChange(change);
+      case final SevenTvEmoteSetChange change:
+        assetsStore.applyPersonalEmoteSetChange(change);
+      case final SevenTvActiveSetSwitch change:
+        _switchSevenTvSet(change);
+      case final SevenTvCosmeticCreated cosmetic:
+        assetsStore.defineSevenTvCosmetic(cosmetic);
+      case final SevenTvEntitlement entitlement:
+        assetsStore.applySevenTvEntitlement(entitlement);
+      case null:
+        return;
+    }
+  }
+
+  String _sevenTvActorName(SevenTvActor? actor) => actor == null
+      ? L10n.current.chatSevenTvSomeone
+      : getReadableName(actor.displayName, actor.username);
+
+  void _applyChannelSevenTvChange(SevenTvEmoteSetChange change) {
+    final actor = _sevenTvActorName(change.actor);
+    for (final name in change.removed) {
+      assetsStore.removeChannelEmote(name);
+      _announceEmoteChange(
+        L10n.current.chatSevenTvEmoteRemoved(name: actor, emote: name),
+      );
+    }
+    for (final rename in change.renamed) {
+      final emote = Emote.from7TV(rename.emote, EmoteType.sevenTVChannel);
+      assetsStore.removeChannelEmote(rename.oldName);
+      if (emote.url.isNotEmpty) assetsStore.addChannelEmote(emote);
+      _announceEmoteChange(
+        L10n.current.chatSevenTvEmoteRenamed(
+          name: actor,
+          old: rename.oldName,
+          emote: emote.name,
+        ),
+      );
+    }
+    for (final added in change.added) {
+      final emote = Emote.from7TV(added, EmoteType.sevenTVChannel);
+      assetsStore.addChannelEmote(emote);
+      _announceEmoteChange(
+        L10n.current.chatSevenTvEmoteAdded(name: actor, emote: emote.name),
+      );
+    }
+  }
+
+  Future<void> _switchSevenTvSet(SevenTvActiveSetSwitch change) async {
+    if (change.userId != assetsStore.sevenTvUserId ||
+        change.setId == _sevenTvActiveSetId) {
+      return;
+    }
+    final switched = await assetsStore.switchSevenTvSet(change.setId);
+    if (!switched || _sevenTVChannel == null) return;
+    _sevenTvActiveSetId = change.setId;
+    if (_sevenTvSubscribedSets.add(change.setId)) {
+      _subscribeSevenTv('emote_set.update', {'object_id': change.setId});
+    }
+    _announceEmoteChange(
+      L10n.current.chatSevenTvEmoteSetSwitched(
+        name: _sevenTvActorName(change.actor),
+        set: change.setName,
+      ),
+    );
+  }
+
+  void _configureCosmetics({required bool resubscribe}) {
+    assetsStore.configureCosmetics(
+      sevenTvBadges: settings.show7TVBadges,
+      sevenTvPaints: settings.show7TVPaints,
+      sevenTvPersonalEmotes: settings.show7TVPersonalEmotes,
+      bttvPersonalEmotes: settings.showBTTVPersonalEmotes,
+      ffzRoomBadges: settings.showFFZRoomBadges,
+    );
+    final emoteSetId = _sevenTvActiveSetId;
+    if (resubscribe &&
+        settings.show7TVEmotes &&
+        _sevenTVChannel != null &&
+        emoteSetId != null) {
+      listenToSevenTVEmoteSet(emoteSetId: emoteSetId);
+    }
+  }
+
+  void _announceEmoteChange(String text) {
+    if (!settings.showEmoteChangeNotices) return;
+    messageBuffer.add(IRCMessage.createNotice(message: text));
+  }
+
+  @action
+  void listenToBttvChannel() {
+    _bttvChannelListener?.cancel();
+    _bttvChannel?.sink.close(1000);
+    _bttvChannel = _connectSocket(Uri.parse('wss://sockets.betterttv.net/ws'));
+    _bttvChannelListener = _bttvChannel?.stream.listen(
+      (data) {
+        if (!_hasActiveChatDelay) {
+          _pendingBttvCallbacks.flushAll();
+          _onBttvEvent(data);
+        } else {
+          _enqueueDelayedCallback(
+            _pendingBttvCallbacks,
+            () => _onBttvEvent(data),
+          );
+        }
+      },
+      onError: (error) => debugPrint('BTTV events error: $error'),
+      onDone: () => debugPrint('BTTV events done'),
+    );
+    _bttvChannel?.sink.add(
+      jsonEncode({
+        'name': 'join_channel',
+        'data': {'name': 'twitch:$channelId'},
+      }),
+    );
+  }
+
+  void _closeBttvChannel() {
+    _bttvChannelListener?.cancel();
+    _bttvChannelListener = null;
+    _bttvChannel?.sink.close(1000);
+    _bttvChannel = null;
+  }
+
+  void _onBttvEvent(dynamic data) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(data as String);
+    } on FormatException {
+      return;
+    }
+    switch (BttvSocketEvent.parse(decoded, channelId: channelId)) {
+      case BttvEmoteCreated(:final emote):
+        final added = Emote.fromBTTV(emote, EmoteType.bttvChannel);
+        assetsStore.addChannelEmote(added);
+        _announceEmoteChange(
+          L10n.current.chatBttvEmoteAdded(emote: added.name),
+        );
+      case BttvEmoteUpdated(:final id, :final code):
+        final before = assetsStore.renameChannelEmote(
+          where: (emote) => _isBttvEmote(emote, id),
+          to: (emote) => emote.renamed(code),
+        );
+        if (before != null && before.name != code) {
+          _announceEmoteChange(
+            L10n.current.chatBttvEmoteRenamed(old: before.name, emote: code),
+          );
+        }
+      case BttvEmoteDeleted(:final id):
+        final removed = assetsStore.removeChannelEmoteWhere(
+          (emote) => _isBttvEmote(emote, id),
+        );
+        if (removed != null) {
+          _announceEmoteChange(
+            L10n.current.chatBttvEmoteRemoved(emote: removed.name),
+          );
+        }
+      case final BttvProUser user:
+        assetsStore.applyBttvProUser(user);
+      case null:
+        return;
+    }
+  }
+
+  static bool _isBttvEmote(Emote emote, String id) =>
+      emote.providerId == id &&
+      (emote.type == EmoteType.bttvChannel ||
+          emote.type == EmoteType.bttvShared);
 
   @action
   Future<void> connectToChat({bool isReconnect = false}) async {
@@ -1775,6 +1980,7 @@ abstract class ChatStoreBase with Store {
 
         if (_shouldDisconnect) {
           _sevenTVChannel?.sink.close(1000);
+          _closeBttvChannel();
           return;
         }
 
@@ -2497,6 +2703,7 @@ abstract class ChatStoreBase with Store {
     // Close WebSocket channels
     _channel?.sink.close(1000);
     _sevenTVChannel?.sink.close(1000);
+    _closeBttvChannel();
 
     for (final reactionDisposer in reactions) {
       reactionDisposer();

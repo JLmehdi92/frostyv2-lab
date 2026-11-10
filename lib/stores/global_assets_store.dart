@@ -6,6 +6,7 @@ import 'package:onset/apis/seventv_api.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/emotes.dart';
+import 'package:onset/services/seventv_cosmetics_cache.dart';
 import 'package:onset/services/telemetry.dart';
 
 part 'global_assets_store.g.dart';
@@ -26,6 +27,8 @@ abstract class GlobalAssetsStoreBase with Store {
     required this.ffzApi,
     required this.sevenTVApi,
   });
+
+  late final sevenTvCosmetics = SevenTvCosmeticsCache(sevenTVApi);
 
   // ============= Loading State =============
 

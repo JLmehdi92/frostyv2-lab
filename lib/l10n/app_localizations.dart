@@ -2510,6 +2510,48 @@ abstract class AppLocalizations {
   /// **'Show FFZ badges'**
   String get settingsShowFfzBadges;
 
+  /// Settings › Chat › Emotes and badges: shows the badges 7TV users chose.
+  ///
+  /// In en, this message translates to:
+  /// **'Show 7TV badges'**
+  String get settingsShow7tvBadges;
+
+  /// Settings › Chat › Emotes and badges: draws the gradient or image colors 7TV users chose for their name.
+  ///
+  /// In en, this message translates to:
+  /// **'Show 7TV name paints'**
+  String get settingsShow7tvPaints;
+
+  /// Settings › Chat › Emotes and badges: shows the emotes 7TV subscribers can use in every channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Show 7TV personal emotes'**
+  String get settingsShow7tvPersonalEmotes;
+
+  /// Settings › Chat › Emotes and badges: shows the personal emotes of BetterTTV subscribers.
+  ///
+  /// In en, this message translates to:
+  /// **'Show BTTV personal emotes'**
+  String get settingsShowBttvPersonalEmotes;
+
+  /// Settings › Chat › Emotes and badges: replaces Twitch’s moderator and VIP badges with the ones the channel set on FrankerFaceZ.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the channel’s FFZ moderator and VIP badges'**
+  String get settingsShowFfzRoomBadges;
+
+  /// Settings › Chat › Emotes and badges: a switch for the chat lines about added, removed or renamed 7TV and BTTV emotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Announce emote changes in chat'**
+  String get settingsShowEmoteChangeNotices;
+
+  /// Settings › Chat › Emotes and badges: the subtitle of settingsShowEmoteChangeNotices.
+  ///
+  /// In en, this message translates to:
+  /// **'When the channel adds, removes, or renames a 7TV or BTTV emote.'**
+  String get settingsShowEmoteChangeNoticesSubtitle;
+
   /// Settings › Chat: the group of the fallback chat history.
   ///
   /// In en, this message translates to:
@@ -7382,6 +7424,49 @@ abstract class AppLocalizations {
   /// **'{name} removed the 7TV emote “{emote}” from chat.'**
   String chatSevenTvEmoteRemoved({required String name, required String emote});
 
+  /// A line when an editor of the channel renames a 7TV emote. name is the editor's name, old the emote's former code, emote its new code.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} renamed the 7TV emote “{old}” to “{emote}”.'**
+  String chatSevenTvEmoteRenamed({
+    required String name,
+    required String old,
+    required String emote,
+  });
+
+  /// A line when an editor of the channel makes another 7TV emote set the active one. name is the editor's name, set the set's name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} switched this channel’s 7TV emotes to the set “{set}”.'**
+  String chatSevenTvEmoteSetSwitched({
+    required String name,
+    required String set,
+  });
+
+  /// Stands for the name of a 7TV editor when 7TV does not say who changed the channel's emotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get chatSevenTvSomeone;
+
+  /// A line when the channel adds a BTTV emote. emote is the emote's code.
+  ///
+  /// In en, this message translates to:
+  /// **'The BTTV emote “{emote}” was added to chat.'**
+  String chatBttvEmoteAdded({required String emote});
+
+  /// A line when the channel removes a BTTV emote. emote is the emote's code.
+  ///
+  /// In en, this message translates to:
+  /// **'The BTTV emote “{emote}” was removed from chat.'**
+  String chatBttvEmoteRemoved({required String emote});
+
+  /// A line when the channel renames a BTTV emote. old is the former code, emote the new one.
+  ///
+  /// In en, this message translates to:
+  /// **'The BTTV emote “{old}” was renamed “{emote}”.'**
+  String chatBttvEmoteRenamed({required String old, required String emote});
+
   /// Error message. The note above the input when a message is too long for Twitch.
   ///
   /// In en, this message translates to:
@@ -10191,7 +10276,7 @@ abstract class AppLocalizations {
   /// An emote's kind, in its details. type is EmoteType.name.
   ///
   /// In en, this message translates to:
-  /// **'{type, select, twitchBits{Twitch Bits emote} twitchFollower{Twitch follower emote} twitchSub{Twitch sub emote} twitchGlobal{Twitch global emote} twitchUnlocked{Twitch unlocked emote} twitchChannel{Twitch channel emote} ffzGlobal{FrankerFaceZ global emote} ffzChannel{FrankerFaceZ channel emote} bttvGlobal{BetterTTV global emote} bttvChannel{BetterTTV channel emote} bttvShared{BetterTTV shared emote} sevenTVGlobal{7TV global emote} sevenTVChannel{7TV channel emote} other{}}'**
+  /// **'{type, select, twitchBits{Twitch Bits emote} twitchFollower{Twitch follower emote} twitchSub{Twitch sub emote} twitchGlobal{Twitch global emote} twitchUnlocked{Twitch unlocked emote} twitchChannel{Twitch channel emote} ffzGlobal{FrankerFaceZ global emote} ffzChannel{FrankerFaceZ channel emote} bttvGlobal{BetterTTV global emote} bttvChannel{BetterTTV channel emote} bttvShared{BetterTTV shared emote} sevenTVGlobal{7TV global emote} sevenTVChannel{7TV channel emote} sevenTVPersonal{7TV personal emote} bttvPersonal{BetterTTV personal emote} other{}}'**
   String emoteTypeName({required String type});
 
   /// A chat badge's source, in its details. type is BadgeType.name.

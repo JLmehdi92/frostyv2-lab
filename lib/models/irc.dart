@@ -18,12 +18,14 @@ import 'package:onset/models/emote_traits.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/models/report.dart';
+import 'package:onset/models/third_party_cosmetics.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/user_notice.dart';
 import 'package:onset/models/user_notice_text.dart';
 import 'package:onset/screens/channel/chat/chat_filters.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_gif_image.dart';
+import 'package:onset/screens/channel/chat/widgets/painted_name.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/cache_manager.dart';
 import 'package:onset/theme.dart';
@@ -508,7 +510,7 @@ class IRCMessage {
     final ffzUserToBadges = assetsStore.userToFFZBadges;
     final sevenTVUserToBadges = assetsStore.userTo7TVBadges;
     final bttvUserToBadge = assetsStore.userToBTTVBadges;
-    final ffzRoomInfo = assetsStore.ffzRoomInfo;
+    final ffzRoomInfo = assetsStore.ffzRoomBadges;
 
     final ffzUserBadges = ffzUserToBadges[tags['user-id']];
     final twitchBadges = tags['badges']?.split(',');
@@ -665,8 +667,10 @@ class IRCMessage {
     List<InlineSpan> span,
     BuildContext context,
     void Function()? onTapName,
-    double? nameContrast,
-  ) {
+    double? nameContrast, {
+    NamePaint? paint,
+    TextStyle? style,
+  }) {
     var color = Color(
       int.parse((tags['color'] ?? '#868686').replaceFirst('#', '0xFF')),
     );
@@ -680,17 +684,40 @@ class IRCMessage {
     }
 
     final displayName = tags['display-name']!;
-    span.add(
-      TextSpan(
-        text: isFromDeletedUser
-            ? shownDisplayName(context.l10n)
-            : user != null
-            ? utils.getReadableName(displayName, user!)
-            : displayName,
-        style: TextStyle(color: color, fontWeight: FontWeight.bold),
-        recognizer: TapGestureRecognizer()..onTap = onTapName,
-      ),
-    );
+    final shownName = isFromDeletedUser
+        ? shownDisplayName(context.l10n)
+        : user != null
+        ? utils.getReadableName(displayName, user!)
+        : displayName;
+    final nameStyle = TextStyle(color: color, fontWeight: FontWeight.bold);
+    if (paint != null && !isFromDeletedUser) {
+      span.add(
+        WidgetSpan(
+          alignment: PlaceholderAlignment.baseline,
+          baseline: TextBaseline.alphabetic,
+          child: GestureDetector(
+            onTap: onTapName,
+            child: PaintedName(
+              text: user != null
+                  ? utils.getReadableName(displayName, user!)
+                  : displayName,
+              paint: paint,
+              style: DefaultTextStyle.of(
+                context,
+              ).style.merge(style).merge(nameStyle),
+            ),
+          ),
+        ),
+      );
+    } else {
+      span.add(
+        TextSpan(
+          text: shownName,
+          style: nameStyle,
+          recognizer: TapGestureRecognizer()..onTap = onTapName,
+        ),
+      );
+    }
 
     // Add the colon separator between the username and their message
     if (action == false) span.add(const TextSpan(text: ':'));
@@ -715,6 +742,7 @@ class IRCMessage {
     bool animateGifs = true,
     _FilteredWords? filtered,
     VoidCallback? onTapFiltered,
+    Map<String, Emote>? personalEmotes,
   }) {
     if (!showMessage) {
       span.add(
@@ -750,6 +778,7 @@ class IRCMessage {
         cheermotes: cheermotes,
         hidden: hidden == null ? null : {for (final i in hidden) i - skip},
         onTapFiltered: onTapFiltered,
+        personalEmotes: personalEmotes,
       );
     }
 
@@ -837,6 +866,7 @@ class IRCMessage {
     Cheermotes cheermotes = Cheermotes.empty,
     Set<int>? hidden,
     VoidCallback? onTapFiltered,
+    Map<String, Emote>? personalEmotes,
   }) {
     // Keep a local span which will be reversed and added to the final span.
     final localSpan = <InlineSpan>[];
@@ -874,7 +904,7 @@ class IRCMessage {
       final cheer = isCheer ? cheermotes.match(word) : null;
       final emote = cheer != null
           ? null
-          : emoteToObject[word] ?? localEmotes?[word];
+          : emoteToObject[word] ?? personalEmotes?[word] ?? localEmotes?[word];
 
       if (cheer != null) {
         // Reversed order (like the other words): the amount, the image
@@ -924,6 +954,7 @@ class IRCMessage {
             launchExternal,
             linkColor: linkColor,
             animateEmotes: animateEmotes,
+            personalEmotes: personalEmotes,
           );
         } else {
           final giant = giantPending;
@@ -1000,6 +1031,7 @@ class IRCMessage {
     bool launchExternal, {
     Color? linkColor,
     bool animateEmotes = true,
+    Map<String, Emote>? personalEmotes,
   }) {
     final emoteStack = <Emote>[];
     var index = startIndex;
@@ -1009,11 +1041,19 @@ class IRCMessage {
     while (nextEmote != null && nextEmote.zeroWidth && index != 0) {
       emoteStack.add(nextEmote);
       index--;
-      nextEmote = emoteToObject[words[index]] ?? localEmotes?[words[index]];
+      nextEmote =
+          emoteToObject[words[index]] ??
+          personalEmotes?[words[index]] ??
+          localEmotes?[words[index]];
     }
 
     // If there's one more emote that's NOT zero-width, add it to the base of the stack.
     if (nextEmote != null) emoteStack.add(nextEmote);
+
+    final stackModifiers = emoteStack.fold<int>(
+      0,
+      (flags, emote) => flags | emote.modifierFlags,
+    );
 
     // Check if the next word is an emoji to be added to the stack.
     final nextWordIsEmoji = regexEmoji.hasMatch(words[index]);
@@ -1025,14 +1065,28 @@ class IRCMessage {
           words[index],
           style: textStyle?.copyWith(fontSize: emoteSize - _emojiSizeOffset),
         ),
-      ...emoteStack.reversed.map(
-        (emote) => OnsetCachedNetworkImage(
-          imageUrl: emote.urlFor(animate: animateEmotes),
-          height: emote.height != null ? emote.height! * emoteScale : emoteSize,
-          width: emote.width != null ? emote.width! * emoteScale : emoteSize,
-          useFade: false,
-        ),
-      ),
+      for (final emote in emoteStack.reversed)
+        if (!emote.hidesItself)
+          _modifiedEmote(
+            modifiers: emote.zeroWidth ? 0 : stackModifiers,
+            child: OnsetCachedNetworkImage(
+              imageUrl: emote.urlFor(animate: animateEmotes),
+              height: emote.height != null
+                  ? emote.height! * emoteScale
+                  : emoteSize,
+              width:
+                  (emote.width != null
+                      ? emote.width! * emoteScale
+                      : emoteSize) *
+                  (!emote.zeroWidth && stackModifiers & FfzModifier.growX != 0
+                      ? 2
+                      : 1),
+              fit: !emote.zeroWidth && stackModifiers & FfzModifier.growX != 0
+                  ? BoxFit.fill
+                  : null,
+              useFade: false,
+            ),
+          ),
     ];
 
     // Create the message for the tooltip
@@ -1101,6 +1155,20 @@ class IRCMessage {
     return index - 1;
   }
 
+  static Widget _modifiedEmote({
+    required int modifiers,
+    required Widget child,
+  }) {
+    final flipX = modifiers & FfzModifier.flipX != 0;
+    final flipY = modifiers & FfzModifier.flipY != 0;
+    if (!flipX && !flipY) return child;
+    return Transform.scale(
+      scaleX: flipX ? -1 : 1,
+      scaleY: flipY ? -1 : 1,
+      child: child,
+    );
+  }
+
   bool get isGigantified => tags['msg-id'] == 'gigantified-emote-message';
 
   static const gigantifiedEmoteFactor = 3.0;
@@ -1155,7 +1223,15 @@ class IRCMessage {
       _badgeOrigin(channelIdToUserTwitch, currentChannelId),
     );
 
-    _addUsername(span, context, onTapName, nameContrast);
+    final senderId = tags['user-id'];
+    _addUsername(
+      span,
+      context,
+      onTapName,
+      nameContrast,
+      paint: assetsStore.paintFor(senderId),
+      style: style,
+    );
 
     // Italicize the text if it was called with an IRC Action (e.g., "/me").
     final textStyle = action == true
@@ -1180,6 +1256,7 @@ class IRCMessage {
       animateGifs: animateGifs,
       filtered: chatFilters == null ? null : _filteredWords(chatFilters),
       onTapFiltered: onTapFiltered,
+      personalEmotes: assetsStore.personalEmotesFor(senderId),
     );
 
     return span;

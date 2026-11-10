@@ -39,9 +39,7 @@ void main() {
     test('returns empty list for empty emotes', () async {
       dioAdapter.onGet(
         'https://7tv.io/v3/emote-sets/global',
-        (server) => server.reply(200, {
-          'emotes': <dynamic>[],
-        }),
+        (server) => server.reply(200, {'emotes': <dynamic>[]}),
       );
 
       final emotes = await api.getEmotesGlobal();
@@ -136,6 +134,116 @@ void main() {
       expect(
         () => api.getEmotesChannel(id: '99999'),
         throwsA(isA<NotFoundException>()),
+      );
+    });
+  });
+
+  group('getChannel', () {
+    test('also names the channel’s 7TV user', () async {
+      dioAdapter.onGet(
+        'https://7tv.io/v3/users/twitch/12345',
+        (server) => server.reply(200, {
+          ...sevenTVEmotesChannelResponse,
+          'user': {'id': '7tv-user-1'},
+        }),
+      );
+
+      final channel = await api.getChannel(id: '12345');
+
+      expect(channel.userId, '7tv-user-1');
+      expect(channel.setId, isNotEmpty);
+      expect(channel.emotes, isNotEmpty);
+    });
+  });
+
+  group('getEmoteSet', () {
+    test('reads a set’s emotes with the given type', () async {
+      dioAdapter.onGet(
+        'https://7tv.io/v3/emote-sets/set9',
+        (server) => server.reply(200, {
+          'id': 'set9',
+          'emotes': sevenTVEmotesChannelResponse['emote_set']!['emotes'],
+        }),
+      );
+
+      final emotes = await api.getEmoteSet(
+        id: 'set9',
+        type: EmoteType.sevenTVPersonal,
+      );
+
+      expect(emotes, isNotEmpty);
+      expect(
+        emotes.every((emote) => emote.type == EmoteType.sevenTVPersonal),
+        isTrue,
+      );
+    });
+  });
+
+  group('getUsersCosmetics', () {
+    test('asks for every user in one query and maps the answers', () async {
+      String? query;
+      dioAdapter.onPost(
+        'https://7tv.io/v4/gql',
+        (server) => server.reply(200, {
+          'data': {
+            'users': {
+              'u0': {
+                'style': {
+                  'activeBadge': {
+                    'name': 'Sub',
+                    'images': [
+                      {
+                        'url': 'https://cdn.7tv.app/badge/b/3x.webp',
+                        'mime': 'image/webp',
+                        'scale': 3,
+                        'frameCount': 1,
+                      },
+                    ],
+                  },
+                },
+              },
+              'u1': null,
+            },
+          },
+        }),
+        data: Matchers.any,
+      );
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            query = (options.data as Map)['query'] as String;
+            handler.next(options);
+          },
+        ),
+      );
+
+      final cosmetics = await api.getUsersCosmetics(['1', '2', '1', 'x']);
+
+      expect(cosmetics.keys, ['1', '2']);
+      expect(cosmetics['1']!.badge!.name, 'Sub');
+      expect(cosmetics['2']!.badge, isNull);
+      expect(query, contains('u0: userByConnection'));
+      expect(query, contains('platformId: "2"'));
+      expect(query, isNot(contains('"x"')));
+    });
+
+    test('no valid id asks nothing', () async {
+      expect(await api.getUsersCosmetics(['a"b']), isEmpty);
+    });
+
+    test('an answer without users is an error', () async {
+      dioAdapter.onPost(
+        'https://7tv.io/v4/gql',
+        (server) => server.reply(200, {
+          'errors': [
+            {'message': 'changed'},
+          ],
+        }),
+        data: Matchers.any,
+      );
+      await expectLater(
+        api.getUsersCosmetics(['1']),
+        throwsA(isA<FormatException>()),
       );
     });
   });

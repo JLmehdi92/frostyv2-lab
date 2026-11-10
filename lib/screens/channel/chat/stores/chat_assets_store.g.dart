@@ -182,26 +182,6 @@ mixin _$ChatAssetsStore on ChatAssetsStoreBase, Store {
     );
   }
 
-  late final _$_userTo7TVBadgesAtom = Atom(
-    name: 'ChatAssetsStoreBase._userTo7TVBadges',
-    context: context,
-  );
-
-  Map<String, List<ChatBadge>> get userTo7TVBadges {
-    _$_userTo7TVBadgesAtom.reportRead();
-    return super._userTo7TVBadges;
-  }
-
-  @override
-  Map<String, List<ChatBadge>> get _userTo7TVBadges => userTo7TVBadges;
-
-  @override
-  set _userTo7TVBadges(Map<String, List<ChatBadge>> value) {
-    _$_userTo7TVBadgesAtom.reportWrite(value, super._userTo7TVBadges, () {
-      super._userTo7TVBadges = value;
-    });
-  }
-
   late final _$showEmoteMenuAtom = Atom(
     name: 'ChatAssetsStoreBase.showEmoteMenu',
     context: context,
@@ -358,6 +338,18 @@ mixin _$ChatAssetsStore on ChatAssetsStoreBase, Store {
     );
   }
 
+  late final _$applySevenTvEntitlementAsyncAction = AsyncAction(
+    'ChatAssetsStoreBase.applySevenTvEntitlement',
+    context: context,
+  );
+
+  @override
+  Future<void> applySevenTvEntitlement(SevenTvEntitlement entitlement) {
+    return _$applySevenTvEntitlementAsyncAction.run(
+      () => super.applySevenTvEntitlement(entitlement),
+    );
+  }
+
   late final _$ChatAssetsStoreBaseActionController = ActionController(
     name: 'ChatAssetsStoreBase',
     context: context,
@@ -394,6 +386,117 @@ mixin _$ChatAssetsStore on ChatAssetsStoreBase, Store {
     );
     try {
       return super.removeChannelEmote(emoteName);
+    } finally {
+      _$ChatAssetsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void configureCosmetics({
+    required bool sevenTvBadges,
+    required bool sevenTvPaints,
+    required bool sevenTvPersonalEmotes,
+    required bool bttvPersonalEmotes,
+    required bool ffzRoomBadges,
+  }) {
+    final _$actionInfo = _$ChatAssetsStoreBaseActionController.startAction(
+      name: 'ChatAssetsStoreBase.configureCosmetics',
+    );
+    try {
+      return super.configureCosmetics(
+        sevenTvBadges: sevenTvBadges,
+        sevenTvPaints: sevenTvPaints,
+        sevenTvPersonalEmotes: sevenTvPersonalEmotes,
+        bttvPersonalEmotes: bttvPersonalEmotes,
+        ffzRoomBadges: ffzRoomBadges,
+      );
+    } finally {
+      _$ChatAssetsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void _applySevenTvCosmetics(String userId, SevenTvUserCosmetics cosmetics) {
+    final _$actionInfo = _$ChatAssetsStoreBaseActionController.startAction(
+      name: 'ChatAssetsStoreBase._applySevenTvCosmetics',
+    );
+    try {
+      return super._applySevenTvCosmetics(userId, cosmetics);
+    } finally {
+      _$ChatAssetsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void defineSevenTvCosmetic(SevenTvCosmeticCreated cosmetic) {
+    final _$actionInfo = _$ChatAssetsStoreBaseActionController.startAction(
+      name: 'ChatAssetsStoreBase.defineSevenTvCosmetic',
+    );
+    try {
+      return super.defineSevenTvCosmetic(cosmetic);
+    } finally {
+      _$ChatAssetsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void applyPersonalEmoteSetChange(SevenTvEmoteSetChange change) {
+    final _$actionInfo = _$ChatAssetsStoreBaseActionController.startAction(
+      name: 'ChatAssetsStoreBase.applyPersonalEmoteSetChange',
+    );
+    try {
+      return super.applyPersonalEmoteSetChange(change);
+    } finally {
+      _$ChatAssetsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void applyBttvProUser(BttvProUser user) {
+    final _$actionInfo = _$ChatAssetsStoreBaseActionController.startAction(
+      name: 'ChatAssetsStoreBase.applyBttvProUser',
+    );
+    try {
+      return super.applyBttvProUser(user);
+    } finally {
+      _$ChatAssetsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void replaceSevenTvChannelEmotes(List<Emote> emotes) {
+    final _$actionInfo = _$ChatAssetsStoreBaseActionController.startAction(
+      name: 'ChatAssetsStoreBase.replaceSevenTvChannelEmotes',
+    );
+    try {
+      return super.replaceSevenTvChannelEmotes(emotes);
+    } finally {
+      _$ChatAssetsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  Emote? renameChannelEmote({
+    required bool Function(Emote) where,
+    required Emote Function(Emote) to,
+  }) {
+    final _$actionInfo = _$ChatAssetsStoreBaseActionController.startAction(
+      name: 'ChatAssetsStoreBase.renameChannelEmote',
+    );
+    try {
+      return super.renameChannelEmote(where: where, to: to);
+    } finally {
+      _$ChatAssetsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  Emote? removeChannelEmoteWhere(bool Function(Emote) where) {
+    final _$actionInfo = _$ChatAssetsStoreBaseActionController.startAction(
+      name: 'ChatAssetsStoreBase.removeChannelEmoteWhere',
+    );
+    try {
+      return super.removeChannelEmoteWhere(where);
     } finally {
       _$ChatAssetsStoreBaseActionController.endAction(_$actionInfo);
     }

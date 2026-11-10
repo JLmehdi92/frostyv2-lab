@@ -1863,6 +1863,34 @@
   "@settingsShowFfzBadges": {
     "description": "Settings › Chat › Emotes and badges: a provider switch."
   },
+  "settingsShow7tvBadges": "Show 7TV badges",
+  "@settingsShow7tvBadges": {
+    "description": "Settings › Chat › Emotes and badges: shows the badges 7TV users chose."
+  },
+  "settingsShow7tvPaints": "Show 7TV name paints",
+  "@settingsShow7tvPaints": {
+    "description": "Settings › Chat › Emotes and badges: draws the gradient or image colors 7TV users chose for their name."
+  },
+  "settingsShow7tvPersonalEmotes": "Show 7TV personal emotes",
+  "@settingsShow7tvPersonalEmotes": {
+    "description": "Settings › Chat › Emotes and badges: shows the emotes 7TV subscribers can use in every channel."
+  },
+  "settingsShowBttvPersonalEmotes": "Show BTTV personal emotes",
+  "@settingsShowBttvPersonalEmotes": {
+    "description": "Settings › Chat › Emotes and badges: shows the personal emotes of BetterTTV subscribers."
+  },
+  "settingsShowFfzRoomBadges": "Show the channel’s FFZ moderator and VIP badges",
+  "@settingsShowFfzRoomBadges": {
+    "description": "Settings › Chat › Emotes and badges: replaces Twitch’s moderator and VIP badges with the ones the channel set on FrankerFaceZ."
+  },
+  "settingsShowEmoteChangeNotices": "Announce emote changes in chat",
+  "@settingsShowEmoteChangeNotices": {
+    "description": "Settings › Chat › Emotes and badges: a switch for the chat lines about added, removed or renamed 7TV and BTTV emotes."
+  },
+  "settingsShowEmoteChangeNoticesSubtitle": "When the channel adds, removes, or renames a 7TV or BTTV emote.",
+  "@settingsShowEmoteChangeNoticesSubtitle": {
+    "description": "Settings › Chat › Emotes and badges: the subtitle of settingsShowEmoteChangeNotices."
+  },
   "settingsRecentMessages": "Recent messages",
   "@settingsRecentMessages": {
     "description": "Settings › Chat: the group of the fallback chat history."
@@ -6864,6 +6892,76 @@
       }
     }
   },
+  "chatSevenTvEmoteRenamed": "{name} renamed the 7TV emote “{old}” to “{emote}”.",
+  "@chatSevenTvEmoteRenamed": {
+    "description": "A line when an editor of the channel renames a 7TV emote. name is the editor's name, old the emote's former code, emote its new code.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Editor"
+      },
+      "old": {
+        "type": "String",
+        "example": "KEKW"
+      },
+      "emote": {
+        "type": "String",
+        "example": "LUL"
+      }
+    }
+  },
+  "chatSevenTvEmoteSetSwitched": "{name} switched this channel’s 7TV emotes to the set “{set}”.",
+  "@chatSevenTvEmoteSetSwitched": {
+    "description": "A line when an editor of the channel makes another 7TV emote set the active one. name is the editor's name, set the set's name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Editor"
+      },
+      "set": {
+        "type": "String",
+        "example": "Summer emotes"
+      }
+    }
+  },
+  "chatSevenTvSomeone": "Someone",
+  "@chatSevenTvSomeone": {
+    "description": "Stands for the name of a 7TV editor when 7TV does not say who changed the channel's emotes."
+  },
+  "chatBttvEmoteAdded": "The BTTV emote “{emote}” was added to chat.",
+  "@chatBttvEmoteAdded": {
+    "description": "A line when the channel adds a BTTV emote. emote is the emote's code.",
+    "placeholders": {
+      "emote": {
+        "type": "String",
+        "example": "catJAM"
+      }
+    }
+  },
+  "chatBttvEmoteRemoved": "The BTTV emote “{emote}” was removed from chat.",
+  "@chatBttvEmoteRemoved": {
+    "description": "A line when the channel removes a BTTV emote. emote is the emote's code.",
+    "placeholders": {
+      "emote": {
+        "type": "String",
+        "example": "catJAM"
+      }
+    }
+  },
+  "chatBttvEmoteRenamed": "The BTTV emote “{old}” was renamed “{emote}”.",
+  "@chatBttvEmoteRenamed": {
+    "description": "A line when the channel renames a BTTV emote. old is the former code, emote the new one.",
+    "placeholders": {
+      "old": {
+        "type": "String",
+        "example": "catJAM"
+      },
+      "emote": {
+        "type": "String",
+        "example": "catDance"
+      }
+    }
+  },
   "chatMessageTooLong": "Messages can be {max} characters at most.",
   "@chatMessageTooLong": {
     "description": "Error message. The note above the input when a message is too long for Twitch.",
@@ -9734,7 +9832,7 @@
       }
     }
   },
-  "emoteTypeName": "{type, select, twitchBits{Twitch Bits emote} twitchFollower{Twitch follower emote} twitchSub{Twitch sub emote} twitchGlobal{Twitch global emote} twitchUnlocked{Twitch unlocked emote} twitchChannel{Twitch channel emote} ffzGlobal{FrankerFaceZ global emote} ffzChannel{FrankerFaceZ channel emote} bttvGlobal{BetterTTV global emote} bttvChannel{BetterTTV channel emote} bttvShared{BetterTTV shared emote} sevenTVGlobal{7TV global emote} sevenTVChannel{7TV channel emote} other{}}",
+  "emoteTypeName": "{type, select, twitchBits{Twitch Bits emote} twitchFollower{Twitch follower emote} twitchSub{Twitch sub emote} twitchGlobal{Twitch global emote} twitchUnlocked{Twitch unlocked emote} twitchChannel{Twitch channel emote} ffzGlobal{FrankerFaceZ global emote} ffzChannel{FrankerFaceZ channel emote} bttvGlobal{BetterTTV global emote} bttvChannel{BetterTTV channel emote} bttvShared{BetterTTV shared emote} sevenTVGlobal{7TV global emote} sevenTVChannel{7TV channel emote} sevenTVPersonal{7TV personal emote} bttvPersonal{BetterTTV personal emote} other{}}",
   "@emoteTypeName": {
     "description": "An emote's kind, in its details. type is EmoteType.name.",
     "placeholders": {

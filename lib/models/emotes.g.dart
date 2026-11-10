@@ -58,6 +58,8 @@ EmoteFFZ _$EmoteFFZFromJson(Map<String, dynamic> json) => EmoteFFZ(
   json['animated'] == null
       ? null
       : ImagesFFZ.fromJson(json['animated'] as Map<String, dynamic>),
+  modifier: json['modifier'] as bool? ?? false,
+  modifierFlags: (json['modifier_flags'] as num?)?.toInt() ?? 0,
 );
 
 Emote7TV _$Emote7TVFromJson(Map<String, dynamic> json) => Emote7TV(
@@ -112,6 +114,8 @@ Emote _$EmoteFromJson(Map<String, dynamic> json) => Emote(
   ownerId: json['ownerId'] as String?,
   animated: json['animated'] as bool? ?? false,
   limitedTime: json['limitedTime'] as bool? ?? false,
+  providerId: json['providerId'] as String?,
+  modifierFlags: (json['modifierFlags'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$EmoteToJson(Emote instance) => <String, dynamic>{
@@ -129,6 +133,8 @@ Map<String, dynamic> _$EmoteToJson(Emote instance) => <String, dynamic>{
   'ownerId': instance.ownerId,
   'animated': instance.animated,
   'limitedTime': instance.limitedTime,
+  'providerId': instance.providerId,
+  'modifierFlags': instance.modifierFlags,
 };
 
 const _$EmoteTypeEnumMap = {
@@ -145,4 +151,6 @@ const _$EmoteTypeEnumMap = {
   EmoteType.bttvShared: 'bttvShared',
   EmoteType.sevenTVGlobal: 'sevenTVGlobal',
   EmoteType.sevenTVChannel: 'sevenTVChannel',
+  EmoteType.sevenTVPersonal: 'sevenTVPersonal',
+  EmoteType.bttvPersonal: 'bttvPersonal',
 };

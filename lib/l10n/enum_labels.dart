@@ -332,7 +332,9 @@ extension EmoteTypeLabel on EmoteType {
     EmoteType.bttvChannel ||
     EmoteType.bttvShared ||
     EmoteType.sevenTVGlobal ||
-    EmoteType.sevenTVChannel => l.emoteTypeName(type: name),
+    EmoteType.sevenTVChannel ||
+    EmoteType.sevenTVPersonal ||
+    EmoteType.bttvPersonal => l.emoteTypeName(type: name),
   };
 }
 

@@ -107,14 +107,22 @@ class EmoteFFZ {
   final ImagesFFZ urls;
   final ImagesFFZ? animated;
 
+  @JsonKey(defaultValue: false)
+  final bool modifier;
+
+  @JsonKey(name: 'modifier_flags', defaultValue: 0)
+  final int modifierFlags;
+
   const EmoteFFZ(
     this.name,
     this.height,
     this.width,
     this.owner,
     this.urls,
-    this.animated,
-  );
+    this.animated, {
+    this.modifier = false,
+    this.modifierFlags = 0,
+  });
 
   factory EmoteFFZ.fromJson(Map<String, dynamic> json) =>
       _$EmoteFFZFromJson(json);
@@ -227,6 +235,11 @@ class Emote {
   @JsonKey(defaultValue: false)
   final bool limitedTime;
 
+  final String? providerId;
+
+  @JsonKey(defaultValue: 0)
+  final int modifierFlags;
+
   const Emote({
     required this.name,
     this.realName,
@@ -242,7 +255,30 @@ class Emote {
     this.ownerId,
     this.animated = false,
     this.limitedTime = false,
+    this.providerId,
+    this.modifierFlags = 0,
   });
+
+  bool get hidesItself => modifierFlags & FfzModifier.hidden != 0;
+
+  Emote renamed(String newName) => Emote(
+    name: newName,
+    realName: newName == (realName ?? name) ? null : realName ?? name,
+    width: width,
+    height: height,
+    zeroWidth: zeroWidth,
+    url: url,
+    staticUrl: staticUrl,
+    subTier: subTier,
+    type: type,
+    ownerDisplayName: ownerDisplayName,
+    ownerUsername: ownerUsername,
+    ownerId: ownerId,
+    animated: animated,
+    limitedTime: limitedTime,
+    providerId: providerId,
+    modifierFlags: modifierFlags,
+  );
 
   factory Emote.fromTwitch(EmoteTwitch emote, EmoteType type) => Emote(
     name: emote.name,
@@ -272,11 +308,13 @@ class Emote {
         : null,
     type: type,
     animated: emote.animated,
+    providerId: emote.id,
   );
 
   factory Emote.fromFFZ(EmoteFFZ emote, EmoteType type) => Emote(
     name: emote.name,
-    zeroWidth: false,
+    zeroWidth: emote.modifier,
+    modifierFlags: emote.modifier ? emote.modifierFlags : 0,
     width: emote.width,
     height: emote.height,
     url:
@@ -322,6 +360,7 @@ class Emote {
       ownerDisplayName: emoteData.owner?.displayName,
       ownerUsername: emoteData.owner?.username,
       animated: emoteData.animated,
+      providerId: emoteData.id,
     );
   }
 
@@ -349,6 +388,13 @@ class Emote {
   Map<String, dynamic> toJson() => _$EmoteToJson(this);
 }
 
+abstract final class FfzModifier {
+  static const hidden = 1;
+  static const flipX = 2;
+  static const flipY = 4;
+  static const growX = 8;
+}
+
 enum EmoteType {
   twitchBits,
   twitchFollower,
@@ -362,7 +408,9 @@ enum EmoteType {
   bttvChannel,
   bttvShared,
   sevenTVGlobal,
-  sevenTVChannel;
+  sevenTVChannel,
+  sevenTVPersonal,
+  bttvPersonal;
 
   @override
   String toString() {
@@ -393,6 +441,10 @@ enum EmoteType {
         return '7TV global emote';
       case EmoteType.sevenTVChannel:
         return '7TV channel emote';
+      case EmoteType.sevenTVPersonal:
+        return '7TV personal emote';
+      case EmoteType.bttvPersonal:
+        return 'BetterTTV personal emote';
     }
   }
 }

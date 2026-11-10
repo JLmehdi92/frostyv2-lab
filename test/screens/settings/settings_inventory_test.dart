@@ -77,6 +77,12 @@ final SwitchRows _chat = {
   'Show BTTV badges': (s) => s.showBTTVBadges,
   'Show FFZ emotes': (s) => s.showFFZEmotes,
   'Show FFZ badges': (s) => s.showFFZBadges,
+  'Show 7TV badges': (s) => s.show7TVBadges,
+  'Show 7TV name paints': (s) => s.show7TVPaints,
+  'Show 7TV personal emotes': (s) => s.show7TVPersonalEmotes,
+  'Show BTTV personal emotes': (s) => s.showBTTVPersonalEmotes,
+  'Show the channel’s FFZ moderator and VIP badges': (s) => s.showFFZRoomBadges,
+  'Announce emote changes in chat': (s) => s.showEmoteChangeNotices,
   'Fallback chat history (third-party)': (s) => s.showRecentMessages,
 };
 

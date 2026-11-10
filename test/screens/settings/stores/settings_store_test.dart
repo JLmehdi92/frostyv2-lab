@@ -242,6 +242,12 @@ void main() {
       expect(store.showBTTVBadges, isTrue);
       expect(store.showFFZEmotes, isTrue);
       expect(store.showFFZBadges, isTrue);
+      expect(store.show7TVBadges, isTrue);
+      expect(store.show7TVPaints, isTrue);
+      expect(store.show7TVPersonalEmotes, isTrue);
+      expect(store.showBTTVPersonalEmotes, isTrue);
+      expect(store.showFFZRoomBadges, isTrue);
+      expect(store.showEmoteChangeNotices, isTrue);
       expect(store.showRecentMessages, isFalse);
       expect(store.persistChatTabs, isTrue);
       expect(store.secondaryTabs, isEmpty);
@@ -635,6 +641,12 @@ void main() {
       store.mutedWords = ['word1'];
       store.showBTTVEmotes = false;
       store.showFFZBadges = false;
+      store.show7TVBadges = false;
+      store.show7TVPaints = false;
+      store.show7TVPersonalEmotes = false;
+      store.showBTTVPersonalEmotes = false;
+      store.showFFZRoomBadges = false;
+      store.showEmoteChangeNotices = false;
 
       store.resetChatSettings();
 
@@ -651,6 +663,12 @@ void main() {
       expect(store.mutedWords, isEmpty);
       expect(store.showBTTVEmotes, isTrue);
       expect(store.showFFZBadges, isTrue);
+      expect(store.show7TVBadges, isTrue);
+      expect(store.show7TVPaints, isTrue);
+      expect(store.show7TVPersonalEmotes, isTrue);
+      expect(store.showBTTVPersonalEmotes, isTrue);
+      expect(store.showFFZRoomBadges, isTrue);
+      expect(store.showEmoteChangeNotices, isTrue);
     });
 
     test('resetOtherSettings restores other defaults', () {

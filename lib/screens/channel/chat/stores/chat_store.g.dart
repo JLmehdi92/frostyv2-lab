@@ -607,6 +607,18 @@ mixin _$ChatStore on ChatStoreBase, Store {
   }
 
   @override
+  void listenToBttvChannel() {
+    final _$actionInfo = _$ChatStoreBaseActionController.startAction(
+      name: 'ChatStoreBase.listenToBttvChannel',
+    );
+    try {
+      return super.listenToBttvChannel();
+    } finally {
+      _$ChatStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void addMessages() {
     final _$actionInfo = _$ChatStoreBaseActionController.startAction(
       name: 'ChatStoreBase.addMessages',
