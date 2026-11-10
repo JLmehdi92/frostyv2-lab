@@ -109,4 +109,40 @@ void main() {
     await subject.emoteSet('s');
     expect(calls, 2);
   });
+
+  test('after a failed batch, the rest of the flush is not sent', () {
+    when(() => api.getUsersCosmetics(any())).thenThrow(Exception('down'));
+    fakeAsync((async) {
+      final subject = cache(batchSize: 2);
+      final results = <SevenTvUserCosmetics>[];
+      for (final id in ['1', '2', '3', '4', '5']) {
+        subject.lookup(id).then(results.add);
+      }
+      async.elapse(const Duration(seconds: 1));
+      verify(() => api.getUsersCosmetics(any())).called(1);
+      expect(results, hasLength(5));
+    });
+  });
+
+  test('the emote set cache keeps only the most recent sets', () async {
+    when(
+      () => api.getEmoteSet(
+        id: any(named: 'id'),
+        type: EmoteType.sevenTVPersonal,
+      ),
+    ).thenAnswer((_) async => const []);
+    final subject = SevenTvCosmeticsCache(api, setCapacity: 2);
+    await subject.emoteSet('a');
+    await subject.emoteSet('b');
+    await subject.emoteSet('a');
+    await subject.emoteSet('c');
+    await subject.emoteSet('a');
+    await subject.emoteSet('b');
+    verify(
+      () => api.getEmoteSet(id: 'a', type: EmoteType.sevenTVPersonal),
+    ).called(1);
+    verify(
+      () => api.getEmoteSet(id: 'b', type: EmoteType.sevenTVPersonal),
+    ).called(2);
+  });
 }

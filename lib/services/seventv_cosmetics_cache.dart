@@ -10,6 +10,7 @@ class SevenTvCosmeticsCache {
   final Duration batchWindow;
   final int batchSize;
   final int capacity;
+  final int setCapacity;
   final Duration pauseAfterFailure;
   final DateTime Function() now;
 
@@ -18,6 +19,7 @@ class SevenTvCosmeticsCache {
     this.batchWindow = const Duration(milliseconds: 400),
     this.batchSize = 20,
     this.capacity = 4000,
+    this.setCapacity = 200,
     this.pauseAfterFailure = const Duration(minutes: 5),
     DateTime Function()? now,
   }) : now = now ?? DateTime.now;
@@ -27,6 +29,11 @@ class SevenTvCosmeticsCache {
   final _sets = <String, Future<List<Emote>>>{};
   Timer? _flushTimer;
   DateTime? _pausedUntil;
+
+  bool get _isPaused {
+    final pausedUntil = _pausedUntil;
+    return pausedUntil != null && now().isBefore(pausedUntil);
+  }
 
   SevenTvUserCosmetics? cached(String twitchId) => _known[twitchId];
 
@@ -41,26 +48,27 @@ class SevenTvCosmeticsCache {
   Future<SevenTvUserCosmetics> lookup(String twitchId) {
     if (_known[twitchId] case final known?) return Future.value(known);
     if (_waiting[twitchId] case final waiting?) return waiting.future;
-    final pausedUntil = _pausedUntil;
-    if (pausedUntil != null && now().isBefore(pausedUntil)) {
-      return Future.value(SevenTvUserCosmetics.none);
-    }
+    if (_isPaused) return Future.value(SevenTvUserCosmetics.none);
     final completer = Completer<SevenTvUserCosmetics>();
     _waiting[twitchId] = completer;
     _flushTimer ??= Timer(batchWindow, _flush);
     return completer.future;
   }
 
-  Future<List<Emote>> emoteSet(String setId) => _sets.putIfAbsent(
-    setId,
-    () => api
+  Future<List<Emote>> emoteSet(String setId) {
+    final known = _sets.remove(setId);
+    if (known != null) return _sets[setId] = known;
+    while (_sets.length >= setCapacity) {
+      _sets.remove(_sets.keys.first);
+    }
+    return _sets[setId] = api
         .getEmoteSet(id: setId, type: EmoteType.sevenTVPersonal)
         .catchError((Object error) {
           _sets.remove(setId);
           debugPrint('7TV emote set unavailable: $error');
           return <Emote>[];
-        }),
-  );
+        });
+  }
 
   void forgetEmoteSet(String setId) => _sets.remove(setId);
 
@@ -70,6 +78,12 @@ class SevenTvCosmeticsCache {
     _waiting.clear();
     final ids = pending.keys.toList();
     for (var start = 0; start < ids.length; start += batchSize) {
+      if (_isPaused) {
+        for (final id in ids.skip(start)) {
+          pending[id]!.complete(SevenTvUserCosmetics.none);
+        }
+        return;
+      }
       final batch = ids.sublist(
         start,
         (start + batchSize).clamp(0, ids.length),
