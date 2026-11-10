@@ -2,15 +2,16 @@ import 'package:flutter/material.dart' as material show Clip;
 import 'package:flutter/material.dart' hide Clip;
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
+import 'package:onset/models/report.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/screens/vod/widgets/video_kit.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/report/report_sheet.dart';
 
 /// Title, views and age, category, channel and clipper, and the actions of
 /// a clip under the player: Watch full video, Copy link and
@@ -245,10 +246,15 @@ class ClipInfoPanel extends StatelessWidget {
                   glyph: VideoGlyphKind.alert,
                   label: l.clipReport,
                   raised: true,
-                  onTap: () => openTwitchReport(
+                  onTap: () => reportFromOnset(
                     context,
+                    target: ReportTarget.clip(
+                      slug: clip.slug,
+                      broadcasterId: clip.broadcasterId,
+                      name: clip.broadcasterDisplayName,
+                    ),
                     title: l.clipReport,
-                    url: Uri.https('clips.twitch.tv', '/${clip.slug}'),
+                    fallbackUrl: Uri.https('clips.twitch.tv', '/${clip.slug}'),
                   ),
                 ),
               ],

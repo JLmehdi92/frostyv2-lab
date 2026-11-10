@@ -17,6 +17,7 @@ import 'package:onset/models/cheermote.dart';
 import 'package:onset/models/emote_traits.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/models/report.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/user_notice.dart';
 import 'package:onset/models/user_notice_text.dart';
@@ -32,9 +33,9 @@ import 'package:onset/utils/link_router.dart';
 import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/onset_photo_view_dialog.dart';
+import 'package:onset/widgets/report/report_sheet.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
-import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 
 // Constants for IRC message rendering
@@ -1368,11 +1369,19 @@ class IRCMessage {
             label: context.l10n.chatReportEmote,
             end: SheetRowEnd.external,
             onTap: () {
-              final url = twitchReportUri(emote.ownerUsername!)!;
               final navigator = Navigator.of(context);
               final title = context.l10n.chatReportEmote;
               navigator.pop();
-              TwitchWebPage.open(navigator.context, title: title, url: url);
+              reportFromOnset(
+                navigator.context,
+                target: ReportTarget.emote(
+                  emoteId: ReportTarget.twitchEmoteId(emote.url) ?? '',
+                  ownerId: emote.ownerId ?? '',
+                  name: emote.name,
+                ),
+                title: title,
+                fallbackUrl: twitchReportUri(emote.ownerUsername!),
+              );
             },
           ),
         if (onRemoveRecent != null)

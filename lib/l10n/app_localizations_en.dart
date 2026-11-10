@@ -10385,6 +10385,71 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep watching in a floating window while you use other apps.';
 
   @override
+  String reportTitle({required String kind, required String name}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'channel': 'Report $name’s channel',
+      'emote': 'Report the $name emote',
+      'message': 'Report $name’s message',
+      'clip': 'Report this clip',
+      'other': 'Report $name',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get reportWhy => 'Why are you reporting this?';
+
+  @override
+  String reportReason({required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'harassment': 'Bullying or harassment',
+      'hatefulConduct': 'Hateful conduct',
+      'spam': 'Spam, scams, or bots',
+      'sexualContent': 'Nudity or sexual content',
+      'gore': 'Violence or gore',
+      'harm': 'Dangerous or harmful acts',
+      'selfHarm': 'Self-harm',
+      'terrorism': 'Terrorism or mass violence',
+      'impersonation': 'Impersonation',
+      'misinformation': 'Misinformation',
+      'ipViolation': 'Copyright or trademark',
+      'underaged': 'Underage user',
+      'banEvasion': 'Ban evasion',
+      'chatBanEvasion': 'Chat ban evasion',
+      'cheating': 'Cheating in a game',
+      'bitsViolation': 'Misuse of Bits',
+      'other': 'Something else',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get reportConfirmTitle => 'Confirm your report';
+
+  @override
+  String get reportConfirmBody =>
+      'Twitch reviews every report and never tells the person you report who sent it.';
+
+  @override
+  String get reportDetailsLabel => 'Details (optional)';
+
+  @override
+  String get reportDetailsHint => 'What happened?';
+
+  @override
+  String get reportSend => 'Send report';
+
+  @override
+  String get reportSent => 'Report sent. Thank you.';
+
+  @override
+  String get reportWebFallbackTitle => 'Report on twitch.tv?';
+
+  @override
+  String get reportWebFallbackBody =>
+      'ONSET sends reports through your Twitch session, which isn’t connected. Log in to ONSET again to connect it, or report on twitch.tv now.';
+
+  @override
   String get clipManage => 'Edit clip';
 
   @override

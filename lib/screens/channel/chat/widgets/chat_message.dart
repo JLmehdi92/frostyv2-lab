@@ -6,6 +6,7 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
+import 'package:onset/models/report.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/user_notice.dart';
 import 'package:onset/models/user_notice_presentation.dart';
@@ -25,6 +26,7 @@ import 'package:onset/screens/channel/chat/widgets/user_notice_row.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/twitch_report.dart';
+import 'package:onset/widgets/report/report_sheet.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
@@ -337,10 +339,19 @@ class ChatMessage extends StatelessWidget {
                 end: SheetRowEnd.external,
                 onTap: () {
                   Navigator.pop(context);
-                  openTwitchReport(
+                  reportFromOnset(
                     outerContext,
+                    target: ReportTarget.message(
+                      messageId: ircMessage.tags['id'] ?? '',
+                      senderId: ircMessage.tags['user-id'] ?? '',
+                      channelId: ircMessage.tags['room-id'] ?? '',
+                      name:
+                          ircMessage.tags['display-name'] ??
+                          ircMessage.user ??
+                          '',
+                    ),
                     title: outerContext.l10n.chatReportMessage,
-                    url: url,
+                    fallbackUrl: url,
                   );
                 },
               ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/recap.dart';
+import 'package:onset/models/report.dart';
 import 'package:onset/screens/clips/clip_story_screen.dart';
 import 'package:onset/screens/vod/widgets/video_back_button.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
@@ -11,6 +12,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/report/report_sheet.dart';
 
 class RecapScreen extends StatefulWidget {
   const RecapScreen({
@@ -81,7 +83,15 @@ class _RecapScreenState extends State<RecapScreen> {
     final url = twitchReportUri(_recap.channelLogin);
     if (url == null) return;
     unawaited(
-      openTwitchReport(context, title: context.l10n.recapReport, url: url),
+      reportFromOnset(
+        context,
+        target: ReportTarget.channel(
+          channelId: _recap.channelId,
+          name: _recap.channelDisplayName,
+        ),
+        title: context.l10n.recapReport,
+        fallbackUrl: url,
+      ),
     );
   }
 

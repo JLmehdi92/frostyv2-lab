@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/report.dart';
 import 'package:onset/screens/channel_profile/channel_preferences_screen.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -11,7 +12,9 @@ import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/go_live_setting.dart';
 import 'package:onset/screens/vod/channel_videos.dart';
 import 'package:onset/utils/share_link.dart';
+import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/follow/follow_flow.dart';
+import 'package:onset/widgets/report/report_sheet.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
@@ -159,10 +162,11 @@ class UserActionsModal extends StatelessWidget {
         SheetRow(
           glyph: SheetGlyphKind.flag,
           label: l.userActionsReport(name: name),
-          onTap: () => TwitchWebPage.open(
+          onTap: () => reportFromOnset(
             context,
+            target: ReportTarget.user(userId: userId, name: name),
             title: l.userActionsReport(name: name),
-            url: Uri.https('www.twitch.tv', '/$userLogin/report'),
+            fallbackUrl: twitchReportUri(userLogin),
           ),
         ),
       ],

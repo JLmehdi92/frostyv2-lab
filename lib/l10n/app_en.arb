@@ -13166,6 +13166,66 @@
   "@coachMarkPopOut": {
     "description": "One-time tip beside the new floating player button of the live player (Android)."
   },
+  "reportTitle": "{kind, select, channel{Report {name}’s channel} emote{Report the {name} emote} message{Report {name}’s message} clip{Report this clip} other{Report {name}}}",
+  "@reportTitle": {
+    "description": "Title of the report sheet. kind is user, channel, emote, message or clip; name is the person, the channel or the emote.",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "user"
+      },
+      "name": {
+        "type": "String",
+        "example": "Streamer"
+      }
+    }
+  },
+  "reportWhy": "Why are you reporting this?",
+  "@reportWhy": {
+    "description": "Section label above the list of report reasons."
+  },
+  "reportReason": "{reason, select, harassment{Bullying or harassment} hatefulConduct{Hateful conduct} spam{Spam, scams, or bots} sexualContent{Nudity or sexual content} gore{Violence or gore} harm{Dangerous or harmful acts} selfHarm{Self-harm} terrorism{Terrorism or mass violence} impersonation{Impersonation} misinformation{Misinformation} ipViolation{Copyright or trademark} underaged{Underage user} banEvasion{Ban evasion} chatBanEvasion{Chat ban evasion} cheating{Cheating in a game} bitsViolation{Misuse of Bits} other{Something else}}",
+  "@reportReason": {
+    "description": "One report reason, in the list and as the title of the confirmation step. reason is ReportReason.name.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "harassment"
+      }
+    }
+  },
+  "reportConfirmTitle": "Confirm your report",
+  "@reportConfirmTitle": {
+    "description": "Title of the report confirmation step, above the reason picked."
+  },
+  "reportConfirmBody": "Twitch reviews every report and never tells the person you report who sent it.",
+  "@reportConfirmBody": {
+    "description": "Text of the report confirmation step, above the optional details."
+  },
+  "reportDetailsLabel": "Details (optional)",
+  "@reportDetailsLabel": {
+    "description": "Label of the optional text field of a report."
+  },
+  "reportDetailsHint": "What happened?",
+  "@reportDetailsHint": {
+    "description": "Hint inside the optional text field of a report."
+  },
+  "reportSend": "Send report",
+  "@reportSend": {
+    "description": "Button that sends a report to Twitch."
+  },
+  "reportSent": "Report sent. Thank you.",
+  "@reportSent": {
+    "description": "Snack bar after Twitch accepted a report."
+  },
+  "reportWebFallbackTitle": "Report on twitch.tv?",
+  "@reportWebFallbackTitle": {
+    "description": "Dialog title when a report can’t be sent from ONSET because the Twitch session isn’t connected."
+  },
+  "reportWebFallbackBody": "ONSET sends reports through your Twitch session, which isn’t connected. Log in to ONSET again to connect it, or report on twitch.tv now.",
+  "@reportWebFallbackBody": {
+    "description": "Dialog text under reportWebFallbackTitle."
+  },
   "clipManage": "Edit clip",
   "@clipManage": {
     "description": "Button on one of the viewer’s clips that opens Rename and Delete."

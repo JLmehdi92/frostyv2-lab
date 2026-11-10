@@ -10545,6 +10545,71 @@ class AppLocalizationsFr extends AppLocalizations {
       'Continuez à regarder dans une fenêtre flottante pendant que vous utilisez d’autres applications.';
 
   @override
+  String reportTitle({required String kind, required String name}) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'channel': 'Signaler la chaîne $name',
+      'emote': 'Signaler l’emote $name',
+      'message': 'Signaler le message de $name',
+      'clip': 'Signaler ce clip',
+      'other': 'Signaler $name',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get reportWhy => 'Pourquoi signalez-vous ce contenu ?';
+
+  @override
+  String reportReason({required String reason}) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'harassment': 'Harcèlement ou intimidation',
+      'hatefulConduct': 'Conduite haineuse',
+      'spam': 'Spam, arnaque ou robot',
+      'sexualContent': 'Nudité ou contenu sexuel',
+      'gore': 'Violence ou contenu choquant',
+      'harm': 'Actes dangereux ou nuisibles',
+      'selfHarm': 'Automutilation',
+      'terrorism': 'Terrorisme ou violence de masse',
+      'impersonation': 'Usurpation d’identité',
+      'misinformation': 'Désinformation',
+      'ipViolation': 'Droit d’auteur ou marque',
+      'underaged': 'Personne mineure',
+      'banEvasion': 'Contournement de bannissement',
+      'chatBanEvasion': 'Contournement de bannissement du chat',
+      'cheating': 'Triche dans un jeu',
+      'bitsViolation': 'Utilisation abusive des Bits',
+      'other': 'Autre chose',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get reportConfirmTitle => 'Confirmer le signalement';
+
+  @override
+  String get reportConfirmBody =>
+      'Twitch examine chaque signalement et ne dit jamais à la personne signalée qui l’a envoyé.';
+
+  @override
+  String get reportDetailsLabel => 'Précisions (facultatif)';
+
+  @override
+  String get reportDetailsHint => 'Que s’est-il passé ?';
+
+  @override
+  String get reportSend => 'Envoyer le signalement';
+
+  @override
+  String get reportSent => 'Signalement envoyé. Merci.';
+
+  @override
+  String get reportWebFallbackTitle => 'Signaler sur twitch.tv ?';
+
+  @override
+  String get reportWebFallbackBody =>
+      'ONSET envoie les signalements par votre session Twitch, qui n’est pas connectée. Reconnectez-vous à ONSET pour l’activer, ou signalez sur twitch.tv dès maintenant.';
+
+  @override
   String get clipManage => 'Modifier le clip';
 
   @override

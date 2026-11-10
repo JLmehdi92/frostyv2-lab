@@ -93,6 +93,17 @@ const l10nAllowlist = <String, Map<String, String>>{
     'JPG': _imageFormat,
     'GIF': _imageFormat,
   },
+  'lib/models/report.dart': {
+    'harassment': _reportReasonId,
+    'spam': _reportReasonId,
+    'gore': _reportReasonId,
+    'harm': _reportReasonId,
+    'selfharm': _reportReasonId,
+    'impersonation': _reportReasonId,
+    'misinformation': _reportReasonId,
+    'underaged': _reportReasonId,
+    'cheating': _reportReasonId,
+  },
   'lib/models/vod.dart': {
     'ARCHIVE':
         'A GQL value sent to Twitch (VodType / WatchedVideoType.gqlName): code.',
@@ -312,6 +323,10 @@ const _chatColorId =
 const _imageFormat =
     'A UserImageUploadFormat value sent to Twitch with a profile image '
     '(ProfileImageFormat.gqlName): code.';
+
+const _reportReasonId =
+    'A report reason\'s id sent to Twitch (ReportReason.id); the reason '
+    'picker words it with reportReason.';
 
 const _helixValue =
     'A value Twitch\'s Helix API reads (a status or an action): code.';

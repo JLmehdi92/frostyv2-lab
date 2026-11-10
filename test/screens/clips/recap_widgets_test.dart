@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/recap.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_recaps_shelf.dart';
 import 'package:onset/screens/clips/recap_screen.dart';
+import 'package:onset/widgets/report/report_sheet.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 
 import '../../fixtures/clip_extras_payloads.dart';
@@ -67,6 +68,9 @@ void main() {
       expect(find.text('Caster'), findsOneWidget);
       expect(find.text('Warzone night'), findsOneWidget);
       await tester.tap(find.byKey(RecapScreen.reportKey));
+      await tester.pumpAndSettle();
+      expect(find.text('Report on twitch.tv?'), findsOneWidget);
+      await tester.tap(find.byKey(ReportSheet.webFallbackKey));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('web')), findsOneWidget);
     });

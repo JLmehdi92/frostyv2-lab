@@ -13596,6 +13596,72 @@ abstract class AppLocalizations {
   /// **'Keep watching in a floating window while you use other apps.'**
   String get coachMarkPopOut;
 
+  /// Title of the report sheet. kind is user, channel, emote, message or clip; name is the person, the channel or the emote.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, channel{Report {name}’s channel} emote{Report the {name} emote} message{Report {name}’s message} clip{Report this clip} other{Report {name}}}'**
+  String reportTitle({required String kind, required String name});
+
+  /// Section label above the list of report reasons.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you reporting this?'**
+  String get reportWhy;
+
+  /// One report reason, in the list and as the title of the confirmation step. reason is ReportReason.name.
+  ///
+  /// In en, this message translates to:
+  /// **'{reason, select, harassment{Bullying or harassment} hatefulConduct{Hateful conduct} spam{Spam, scams, or bots} sexualContent{Nudity or sexual content} gore{Violence or gore} harm{Dangerous or harmful acts} selfHarm{Self-harm} terrorism{Terrorism or mass violence} impersonation{Impersonation} misinformation{Misinformation} ipViolation{Copyright or trademark} underaged{Underage user} banEvasion{Ban evasion} chatBanEvasion{Chat ban evasion} cheating{Cheating in a game} bitsViolation{Misuse of Bits} other{Something else}}'**
+  String reportReason({required String reason});
+
+  /// Title of the report confirmation step, above the reason picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your report'**
+  String get reportConfirmTitle;
+
+  /// Text of the report confirmation step, above the optional details.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch reviews every report and never tells the person you report who sent it.'**
+  String get reportConfirmBody;
+
+  /// Label of the optional text field of a report.
+  ///
+  /// In en, this message translates to:
+  /// **'Details (optional)'**
+  String get reportDetailsLabel;
+
+  /// Hint inside the optional text field of a report.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get reportDetailsHint;
+
+  /// Button that sends a report to Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get reportSend;
+
+  /// Snack bar after Twitch accepted a report.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent. Thank you.'**
+  String get reportSent;
+
+  /// Dialog title when a report can’t be sent from ONSET because the Twitch session isn’t connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Report on twitch.tv?'**
+  String get reportWebFallbackTitle;
+
+  /// Dialog text under reportWebFallbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ONSET sends reports through your Twitch session, which isn’t connected. Log in to ONSET again to connect it, or report on twitch.tv now.'**
+  String get reportWebFallbackBody;
+
   /// Button on one of the viewer’s clips that opens Rename and Delete.
   ///
   /// In en, this message translates to:

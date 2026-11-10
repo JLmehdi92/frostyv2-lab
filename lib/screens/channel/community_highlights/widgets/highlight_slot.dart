@@ -6,6 +6,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/community_highlights.dart';
+import 'package:onset/models/report.dart';
 import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:onset/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/gift_bomb_pin.dart';
@@ -16,6 +17,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/report/report_sheet.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
@@ -92,10 +94,14 @@ Widget buildHighlightCard(
             url: Uri.https('www.twitch.tv', '/popout/$login/chat'),
           ),
     onReport: switch (login == null ? null : twitchReportUri(login)) {
-      final url? => () => openTwitchReport(
+      final url? => () => reportFromOnset(
         context,
+        target: ReportTarget.channel(
+          channelId: store.channelId,
+          name: login ?? '',
+        ),
         title: context.l10n.reportOnTwitch,
-        url: url,
+        fallbackUrl: url,
       ),
       null => null,
     },
