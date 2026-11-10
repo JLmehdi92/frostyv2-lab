@@ -1782,8 +1782,6 @@
   "editProfileTitle": "Modifier le profil",
   "editProfileRefused": "{code, select, DISPLAY_NAME_CHANGE_AGAIN{Vous ne pouvez pas encore changer à nouveau votre nom affiché.} DISPLAY_NAME_NOT_AVAILABLE{Ce nom affiché n’est pas disponible.} DISPLAY_NAME_ONLY_CAP{Votre nom affiché ne peut différer de votre nom d’utilisateur que par les majuscules et minuscules.} DISPLAY_NAME_TOO_LONG{Ce nom affiché est trop long.} DISPLAY_NAME_TOO_SHORT{Ce nom affiché est trop court.} INVALID_CHARS_IN_DISPLAY_NAME{Ce nom affiché contient des caractères refusés par Twitch.} DESCRIPTION_FAILED_MODERATION{Cette bio n’a pas passé la modération.} DESCRIPTION_TOO_LONG{Cette bio est trop longue.} LOGIN_CHANGE_COOLDOWN{Vous ne pouvez pas encore changer à nouveau votre nom d’utilisateur.} LOGIN_CHANGE_EMAIL_VERIFIED{Vérifiez votre adresse e-mail sur twitch.tv pour changer de nom d’utilisateur.} LOGIN_CONTAINS_INVALID_CHARACTERS{Ce nom d’utilisateur contient des caractères refusés par Twitch.} LOGIN_TOO_LONG{Ce nom d’utilisateur est trop long.} LOGIN_TOO_SHORT{Ce nom d’utilisateur est trop court.} LOGIN_UNAVAILABLE{Ce nom d’utilisateur n’est pas disponible.} FAILED_TITLE_MODERATION{Ce titre n’a pas passé la modération.} INVALID_URL{Twitch n’accepte pas ce lien.} TITLE_TOO_LONG{Ce titre est trop long.} TOO_MANY{Vous avez déjà le maximum de liens sociaux autorisé par Twitch.} NOT_FOUND{Ce lien social n’existe plus.} REAUTH_NEEDED{Reconnectez-vous sur twitch.tv pour faire cette modification.} REQUESTS_THROTTLED{Trop de modifications. Réessayez plus tard.} TOO_MANY_REQUESTS{Trop de modifications. Réessayez plus tard.} other{Twitch a refusé cette modification.}}",
   "editProfileAbout": "Profil",
-  "editProfileImages": "Photo de profil et bannière",
-  "editProfileImagesHelp": "Modifiez-les sur twitch.tv.",
   "editProfileDisplayName": "Nom affiché",
   "editProfileDisplayNameHelp": "Votre nom affiché peut différer de {login} par les majuscules et minuscules. Certains noms en caractères non latins ne peuvent plus être changés pendant 60 jours.",
   "editProfileDisplayNameSaved": "Nom affiché modifié",
@@ -2235,5 +2233,11 @@
   "clipActionFailed": "{status, select, refused{Twitch a refusé cette modification.} integrityRefused{Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.} signedOut{Reconnectez-vous pour modifier vos clips depuis ONSET.} other{Impossible de joindre Twitch. Réessayez.}}",
   "clipCreateRenameDetail": "Nommez votre clip dans ONSET",
   "clipCreateTrim": "Couper",
-  "clipCreateTrimDetail": "Choisissez le moment dans l’éditeur de clips de twitch.tv"
+  "clipCreateTrimDetail": "Choisissez le moment dans l’éditeur de clips de twitch.tv",
+  "editProfileAvatarChange": "Changer la photo de profil",
+  "editProfileBannerChange": "Changer la bannière",
+  "editProfileImageHelp": "PNG, JPG ou GIF, 10\u00a0Mo au plus",
+  "editProfileImageUploading": "Envoi…",
+  "editProfileImageSaved": "Enregistré. Twitch peut mettre une minute à l’afficher.",
+  "editProfileImageInvalid": "Choisissez une image PNG, JPG ou GIF de 10\u00a0Mo au plus."
 }

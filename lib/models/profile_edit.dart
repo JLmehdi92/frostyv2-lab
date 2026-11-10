@@ -1,4 +1,51 @@
+import 'dart:typed_data';
+
 enum AccountEditOutcome { done, refused, integrityRefused, signedOut, failed }
+
+enum ProfileImageKind { avatar, banner }
+
+enum ProfileImageFormat {
+  png('PNG', 'image/png'),
+  jpg('JPG', 'image/jpeg'),
+  gif('GIF', 'image/gif');
+
+  const ProfileImageFormat(this.gqlName, this.mimeType);
+
+  final String gqlName;
+  final String mimeType;
+
+  static ProfileImageFormat? ofFileName(String name) =>
+      switch (name.toLowerCase().split('.').last) {
+        'png' => png,
+        'jpg' || 'jpeg' => jpg,
+        'gif' => gif,
+        _ => null,
+      };
+}
+
+class ProfileImagePick {
+  const ProfileImagePick(this.file);
+
+  final ProfileImageFile? file;
+}
+
+class ProfileImageFile {
+  const ProfileImageFile({required this.bytes, required this.format});
+
+  static const maxBytes = 10 * 1024 * 1024;
+
+  final Uint8List bytes;
+  final ProfileImageFormat format;
+
+  bool get isAcceptable => bytes.isNotEmpty && bytes.length <= maxBytes;
+
+  static ProfileImageFile? fromNamed(String name, Uint8List bytes) {
+    final format = ProfileImageFormat.ofFileName(name);
+    if (format == null) return null;
+    final file = ProfileImageFile(bytes: bytes, format: format);
+    return file.isAcceptable ? file : null;
+  }
+}
 
 class AccountEditResult<T> {
   const AccountEditResult(this.outcome, {this.code, this.value});

@@ -338,6 +338,17 @@ class TwitchAccountGqlService extends BaseApiClient {
       'mutation UpdateClipMutation(\$input: UpdateClipInput!) { '
       'updateClip(input: \$input) { clip { slug title } error { message } } }';
 
+  static const _imageUploadDocument =
+      'mutation CreateProfileImageUploadURL(\$input: '
+      'CreateProfileImageUploadURLInput!) { createProfileImageUploadURL('
+      'input: \$input) { uploadURL uploadID error { code } } }';
+
+  static const _bannerUploadDocument =
+      'mutation CreateProfileBannerImageUploadURL(\$input: '
+      'CreateProfileBannerImageUploadURLInput!) { '
+      'createProfileBannerImageUploadURL(input: \$input) { uploadURL '
+      'uploadID error { code } } }';
+
   Future<AccountEditOutcome> deleteClip({
     required String slug,
     required String authToken,
@@ -392,6 +403,52 @@ class TwitchAccountGqlService extends BaseApiClient {
     return saved is String
         ? AccountEditResult(AccountEditOutcome.done, value: saved)
         : const AccountEditResult.failed();
+  }
+
+  Future<AccountEditOutcome> uploadProfileImage({
+    required String userId,
+    required ProfileImageKind kind,
+    required ProfileImageFile file,
+    required String authToken,
+  }) async {
+    if (!_numericId.hasMatch(userId) || !file.isAcceptable) {
+      return (await _failedAtOnce<void>(authToken)).outcome;
+    }
+    final banner = kind == ProfileImageKind.banner;
+    final result = await _mutate(
+      operation: banner
+          ? 'CreateProfileBannerImageUploadURL'
+          : 'CreateProfileImageUploadURL',
+      document: banner ? _bannerUploadDocument : _imageUploadDocument,
+      field: banner
+          ? 'createProfileBannerImageUploadURL'
+          : 'createProfileImageUploadURL',
+      authToken: authToken,
+      variables: {
+        'input': {'userID': userId, 'format': file.format.gqlName},
+      },
+    );
+    if (result.outcome != AccountEditOutcome.done) return result.outcome;
+    final uploadUrl = Uri.tryParse('${result.value?['uploadURL']}');
+    if (uploadUrl == null ||
+        uploadUrl.scheme != 'https' ||
+        uploadUrl.host.isEmpty) {
+      return AccountEditOutcome.failed;
+    }
+    try {
+      await put<dynamic>(
+        uploadUrl.toString(),
+        data: file.bytes,
+        headers: {
+          Headers.contentTypeHeader: file.format.mimeType,
+          Headers.contentLengthHeader: '${file.bytes.length}',
+        },
+      );
+      return AccountEditOutcome.done;
+    } catch (e) {
+      if (kDebugMode) debugPrint('Profile image upload failed: $e');
+      return AccountEditOutcome.failed;
+    }
   }
 
   static bool _validLink(String title, String url) {

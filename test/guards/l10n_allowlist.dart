@@ -88,6 +88,11 @@ const l10nAllowlist = <String, Map<String, String>>{
         'sender carries as data, as the chat always had it (a reply quotes '
         'it); shown worded in the language on screen (chatDeletedUser).',
   },
+  'lib/models/profile_edit.dart': {
+    'PNG': _imageFormat,
+    'JPG': _imageFormat,
+    'GIF': _imageFormat,
+  },
   'lib/models/vod.dart': {
     'ARCHIVE':
         'A GQL value sent to Twitch (VodType / WatchedVideoType.gqlName): code.',
@@ -303,6 +308,10 @@ const _apiLog =
 const _chatColorId =
     'A chat colour\'s id sent to Twitch (chatColorNames, /color); the '
     'colour picker words it with chatColorName.';
+
+const _imageFormat =
+    'A UserImageUploadFormat value sent to Twitch with a profile image '
+    '(ProfileImageFormat.gqlName): code.';
 
 const _helixValue =
     'A value Twitch\'s Helix API reads (a status or an action): code.';

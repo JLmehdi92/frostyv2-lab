@@ -10653,14 +10653,6 @@
   "@editProfileAbout": {
     "description": "The group of the edit profile page with the display name, the username and the bio."
   },
-  "editProfileImages": "Profile picture and banner",
-  "@editProfileImages": {
-    "description": "The edit profile page's row that opens Twitch's profile settings on twitch.tv, where the picture and the banner are changed."
-  },
-  "editProfileImagesHelp": "Change them on twitch.tv.",
-  "@editProfileImagesHelp": {
-    "description": "Under the profile picture and banner row."
-  },
   "editProfileDisplayName": "Display name",
   "@editProfileDisplayName": {
     "description": "The edit profile row and dialog for the name shown in chat and on the channel."
@@ -13235,5 +13227,29 @@
   "clipCreateTrimDetail": "Choose the moment in the twitch.tv clip editor",
   "@clipCreateTrimDetail": {
     "description": "Second line of the Trim row."
+  },
+  "editProfileAvatarChange": "Change profile picture",
+  "@editProfileAvatarChange": {
+    "description": "Row that picks a new profile picture and sends it to Twitch."
+  },
+  "editProfileBannerChange": "Change banner",
+  "@editProfileBannerChange": {
+    "description": "Row that picks a new profile banner and sends it to Twitch."
+  },
+  "editProfileImageHelp": "PNG, JPG, or GIF, up to 10 MB",
+  "@editProfileImageHelp": {
+    "description": "Second line of the picture and banner rows."
+  },
+  "editProfileImageUploading": "Uploading…",
+  "@editProfileImageUploading": {
+    "description": "Second line of a picture row while the image is uploading."
+  },
+  "editProfileImageSaved": "Saved. Twitch may take a minute to show it.",
+  "@editProfileImageSaved": {
+    "description": "Snack bar after a new picture or banner was uploaded."
+  },
+  "editProfileImageInvalid": "Pick a PNG, JPG, or GIF image of up to 10 MB.",
+  "@editProfileImageInvalid": {
+    "description": "Snack bar when the chosen image has another format or is too large."
   }
 }

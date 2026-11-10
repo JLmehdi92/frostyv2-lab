@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/l10n/enum_labels.dart';
@@ -34,6 +37,8 @@ EditProfileActions profileActions(
   UsernameAvailability availability = UsernameAvailability.available,
   AccountEditResult<EditableProfile>? profileResult,
   void Function()? onAccountChanged,
+  ProfileImagePick? picked,
+  Future<AccountEditOutcome> Function()? upload,
 }) {
   AccountEditResult<EditableProfile> ok(EditableProfile p) =>
       profileResult ?? AccountEditResult(AccountEditOutcome.done, value: p);
@@ -98,6 +103,11 @@ EditProfileActions profileActions(
     deleteLink: (id) async {
       calls.log.add('delete $id');
       return const AccountEditResult(AccountEditOutcome.done, value: []);
+    },
+    pickImage: () async => picked,
+    uploadImage: (kind, file) {
+      calls.log.add('upload ${kind.name} ${file.format.name}');
+      return upload?.call() ?? Future.value(AccountEditOutcome.done);
     },
     onAccountChanged: () async => onAccountChanged?.call(),
   );
@@ -325,5 +335,62 @@ void main() {
     expect(find.text('Caster'), findsOneWidget);
     expect(find.text('Couldn’t load your social links.'), findsOneWidget);
     expect(find.byKey(EditProfile.addLinkKey), findsNothing);
+  });
+
+  testWidgets('a new profile picture uploads from ONSET', (tester) async {
+    final calls = Calls();
+    final answer = Completer<AccountEditOutcome>();
+    await pumpEditProfile(
+      tester,
+      profileActions(
+        calls,
+        picked: ProfileImagePick(
+          ProfileImageFile(
+            bytes: Uint8List.fromList([1]),
+            format: ProfileImageFormat.png,
+          ),
+        ),
+        upload: () => answer.future,
+      ),
+    );
+    await tester.scrollUntilVisible(find.byKey(EditProfile.avatarKey), 100);
+    await tester.tap(find.byKey(EditProfile.avatarKey));
+    await tester.pump();
+    expect(calls.log, ['upload avatar png']);
+    expect(find.text('Uploading…'), findsOneWidget);
+    await tester.tap(find.byKey(EditProfile.bannerKey), warnIfMissed: false);
+    await tester.pump();
+    expect(calls.log, ['upload avatar png']);
+    answer.complete(AccountEditOutcome.done);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Saved. Twitch may take a minute to show it.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('an unusable image uploads nothing and says why', (tester) async {
+    final calls = Calls();
+    await pumpEditProfile(
+      tester,
+      profileActions(calls, picked: const ProfileImagePick(null)),
+    );
+    await tester.scrollUntilVisible(find.byKey(EditProfile.bannerKey), 100);
+    await tester.tap(find.byKey(EditProfile.bannerKey));
+    await tester.pumpAndSettle();
+    expect(calls.log, isEmpty);
+    expect(
+      find.text('Pick a PNG, JPG, or GIF image of up to 10 MB.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a cancelled pick does nothing', (tester) async {
+    final calls = Calls();
+    await pumpEditProfile(tester, profileActions(calls));
+    await tester.scrollUntilVisible(find.byKey(EditProfile.avatarKey), 100);
+    await tester.tap(find.byKey(EditProfile.avatarKey));
+    await tester.pumpAndSettle();
+    expect(calls.log, isEmpty);
   });
 }

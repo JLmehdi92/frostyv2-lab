@@ -8369,12 +8369,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editProfileAbout => 'Profile';
 
   @override
-  String get editProfileImages => 'Profile picture and banner';
-
-  @override
-  String get editProfileImagesHelp => 'Change them on twitch.tv.';
-
-  @override
   String get editProfileDisplayName => 'Display name';
 
   @override
@@ -10442,4 +10436,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get clipCreateTrimDetail =>
       'Choose the moment in the twitch.tv clip editor';
+
+  @override
+  String get editProfileAvatarChange => 'Change profile picture';
+
+  @override
+  String get editProfileBannerChange => 'Change banner';
+
+  @override
+  String get editProfileImageHelp => 'PNG, JPG, or GIF, up to 10 MB';
+
+  @override
+  String get editProfileImageUploading => 'Uploading…';
+
+  @override
+  String get editProfileImageSaved =>
+      'Saved. Twitch may take a minute to show it.';
+
+  @override
+  String get editProfileImageInvalid =>
+      'Pick a PNG, JPG, or GIF image of up to 10 MB.';
 }

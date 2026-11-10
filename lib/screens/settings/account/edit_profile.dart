@@ -10,6 +10,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/services/profile_image_picker.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
@@ -27,6 +28,8 @@ class EditProfileActions {
     required this.addLink,
     required this.updateLink,
     required this.deleteLink,
+    this.uploadImage,
+    this.pickImage,
     this.onAccountChanged,
   });
 
@@ -34,6 +37,7 @@ class EditProfileActions {
     TwitchAccountGqlService service, {
     required String Function() token,
     Future<void> Function()? onAccountChanged,
+    Future<ProfileImagePick?> Function()? pickImage,
   }) {
     late String userId;
     return EditProfileActions(
@@ -79,6 +83,13 @@ class EditProfileActions {
         linkId: id,
         authToken: token(),
       ),
+      uploadImage: (kind, file) => service.uploadProfileImage(
+        userId: userId,
+        kind: kind,
+        file: file,
+        authToken: token(),
+      ),
+      pickImage: pickImage,
       onAccountChanged: onAccountChanged,
     );
   }
@@ -99,6 +110,12 @@ class EditProfileActions {
     );
   }
 
+  final Future<AccountEditOutcome> Function(
+    ProfileImageKind kind,
+    ProfileImageFile file,
+  )?
+  uploadImage;
+  final Future<ProfileImagePick?> Function()? pickImage;
   final Future<EditableProfile?> Function() profile;
   final Future<LoginRenameStatus?> Function() renameStatus;
   final Future<List<SocialLink>?> Function() socialLinks;
@@ -137,7 +154,8 @@ class EditProfile extends StatefulWidget {
   static const bioKey = ValueKey('edit-profile-bio');
   static const usernameKey = ValueKey('edit-profile-username');
   static const addLinkKey = ValueKey('edit-profile-add-link');
-  static const imagesKey = ValueKey('edit-profile-images');
+  static const avatarKey = ValueKey('edit-profile-avatar');
+  static const bannerKey = ValueKey('edit-profile-banner');
   static const fieldKey = ValueKey('edit-profile-field');
   static const secondFieldKey = ValueKey('edit-profile-field-2');
   static const saveKey = ValueKey('edit-profile-save');
@@ -192,6 +210,36 @@ class _EditProfileState extends State<EditProfile> {
       url: twitchProfileSettingsUrl,
     ),
   );
+
+  ProfileImageKind? _uploading;
+
+  bool get _canChangeImages =>
+      _actions.uploadImage != null && _actions.pickImage != null;
+
+  Future<void> _changeImage(ProfileImageKind kind) async {
+    final upload = _actions.uploadImage;
+    final pick = _actions.pickImage;
+    if (upload == null || pick == null || _uploading != null) return;
+    final l = context.l10n;
+    final picked = await pick();
+    if (!mounted || picked == null) return;
+    final file = picked.file;
+    if (file == null) {
+      _say(l.editProfileImageInvalid);
+      return;
+    }
+    setState(() => _uploading = kind);
+    final outcome = await upload(kind, file);
+    if (!mounted) return;
+    setState(() => _uploading = null);
+    if (outcome == AccountEditOutcome.done) {
+      _say(l.editProfileImageSaved);
+      unawaited(_actions.onAccountChanged?.call());
+      unawaited(_load());
+    } else {
+      _say(_failure(AccountEditResult<Object?>(outcome)));
+    }
+  }
 
   void _say(String text) => ScaffoldMessenger.maybeOf(context)
     ?..hideCurrentSnackBar()
@@ -408,17 +456,26 @@ class _EditProfileState extends State<EditProfile> {
         SettingsGroup(
           children: [
             _ProfileImages(profile: profile),
-            SettingsRow(
-              key: EditProfile.imagesKey,
-              glyph: SettingsGlyphKind.user,
-              title: l.editProfileImages,
-              subtitle: Text(
-                l.editProfileImagesHelp,
-                style: SettingsText.detail.copyWith(color: colors.secondary),
+            for (final kind in ProfileImageKind.values)
+              SettingsRow(
+                key: kind == ProfileImageKind.avatar
+                    ? EditProfile.avatarKey
+                    : EditProfile.bannerKey,
+                glyph: SettingsGlyphKind.user,
+                title: kind == ProfileImageKind.avatar
+                    ? l.editProfileAvatarChange
+                    : l.editProfileBannerChange,
+                subtitle: Text(
+                  _uploading == kind
+                      ? l.editProfileImageUploading
+                      : l.editProfileImageHelp,
+                  style: SettingsText.detail.copyWith(color: colors.secondary),
+                ),
+                end: SettingsRowEnd.chevron,
+                onTap: _uploading != null || !_canChangeImages
+                    ? null
+                    : () => unawaited(_changeImage(kind)),
               ),
-              end: SettingsRowEnd.external,
-              onTap: _openOnTwitch,
-            ),
           ],
         ),
         SettingsGroup(
@@ -842,6 +899,7 @@ class EditProfileHost extends StatelessWidget {
           : EditProfileActions.of(
               service,
               token: () => authStore.twitchWebToken ?? '',
+              pickImage: pickProfileImage,
               onAccountChanged: () async {
                 try {
                   await authStore.user.init();

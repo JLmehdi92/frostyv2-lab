@@ -10945,18 +10945,6 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get editProfileAbout;
 
-  /// The edit profile page's row that opens Twitch's profile settings on twitch.tv, where the picture and the banner are changed.
-  ///
-  /// In en, this message translates to:
-  /// **'Profile picture and banner'**
-  String get editProfileImages;
-
-  /// Under the profile picture and banner row.
-  ///
-  /// In en, this message translates to:
-  /// **'Change them on twitch.tv.'**
-  String get editProfileImagesHelp;
-
   /// The edit profile row and dialog for the name shown in chat and on the channel.
   ///
   /// In en, this message translates to:
@@ -13691,6 +13679,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose the moment in the twitch.tv clip editor'**
   String get clipCreateTrimDetail;
+
+  /// Row that picks a new profile picture and sends it to Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Change profile picture'**
+  String get editProfileAvatarChange;
+
+  /// Row that picks a new profile banner and sends it to Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Change banner'**
+  String get editProfileBannerChange;
+
+  /// Second line of the picture and banner rows.
+  ///
+  /// In en, this message translates to:
+  /// **'PNG, JPG, or GIF, up to 10 MB'**
+  String get editProfileImageHelp;
+
+  /// Second line of a picture row while the image is uploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading…'**
+  String get editProfileImageUploading;
+
+  /// Snack bar after a new picture or banner was uploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved. Twitch may take a minute to show it.'**
+  String get editProfileImageSaved;
+
+  /// Snack bar when the chosen image has another format or is too large.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a PNG, JPG, or GIF image of up to 10 MB.'**
+  String get editProfileImageInvalid;
 }
 
 class _AppLocalizationsDelegate
