@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +12,17 @@ import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 
 import '../../../../helpers/chat_store_harness.dart';
+
+class _FullJitter implements Random {
+  @override
+  double nextDouble() => 0.999;
+
+  @override
+  bool nextBool() => true;
+
+  @override
+  int nextInt(int max) => max - 1;
+}
 
 const _welcome = ':tmi.twitch.tv 001 justinfan :Welcome, GLHF!';
 
@@ -484,6 +497,116 @@ void main() {
         ),
       ).called(1);
       finish(store, async);
+    });
+  });
+
+  int count(String host) =>
+      sockets.where((socket) => socket.uri.host == host).length;
+
+  test('a dropped 7TV socket comes back with a growing, capped delay', () {
+    fakeAsync((async) {
+      final store = open(async)..thirdPartyJitter = _FullJitter();
+      expect(count('events.7tv.io'), 1);
+
+      for (final (attempt, seconds) in [(1, 1), (2, 2), (3, 4), (4, 8)]) {
+        unawaited(socketFor('events.7tv.io').drop());
+        async.elapse(Duration(milliseconds: seconds * 1000 - 50));
+        expect(count('events.7tv.io'), attempt, reason: 'still waiting');
+        async.elapse(const Duration(milliseconds: 100));
+        expect(count('events.7tv.io'), attempt + 1);
+      }
+      expect(
+        subscriptions(socketFor('events.7tv.io')).first['d']['condition'],
+        {'object_id': 'set1'},
+      );
+
+      for (var i = 0; i < 6; i++) {
+        unawaited(socketFor('events.7tv.io').drop());
+        async.elapse(const Duration(seconds: 61));
+      }
+      final before = count('events.7tv.io');
+      unawaited(socketFor('events.7tv.io').drop());
+      async.elapse(const Duration(seconds: 59));
+      expect(count('events.7tv.io'), before, reason: 'capped at 60 s');
+      async.elapse(const Duration(seconds: 2));
+      expect(count('events.7tv.io'), before + 1);
+      finish(store, async);
+    });
+  });
+
+  test('an event resets the 7TV backoff', () {
+    fakeAsync((async) {
+      final store = open(async)..thirdPartyJitter = _FullJitter();
+      unawaited(socketFor('events.7tv.io').drop());
+      async.elapse(const Duration(seconds: 2));
+      unawaited(socketFor('events.7tv.io').drop());
+      async.elapse(const Duration(seconds: 3));
+      socketFor('events.7tv.io').receive('{"op":1,"d":{}}');
+      async.flushMicrotasks();
+      final before = count('events.7tv.io');
+      unawaited(socketFor('events.7tv.io').drop());
+      async.elapse(const Duration(milliseconds: 1100));
+      expect(count('events.7tv.io'), before + 1);
+      finish(store, async);
+    });
+  });
+
+  test('a dropped BTTV socket comes back and joins again', () {
+    fakeAsync((async) {
+      final store = open(async)..thirdPartyJitter = _FullJitter();
+      unawaited(socketFor('sockets.betterttv.net').drop());
+      async.elapse(const Duration(milliseconds: 1100));
+      expect(count('sockets.betterttv.net'), 2);
+      expect(
+        jsonDecode(socketFor('sockets.betterttv.net').sent.single as String),
+        {
+          'name': 'join_channel',
+          'data': {'name': 'twitch:12345'},
+        },
+      );
+      finish(store, async);
+    });
+  });
+
+  test('nothing reconnects after dispose or with the provider off', () {
+    fakeAsync((async) {
+      final store = open(async);
+      settings.showBTTVEmotes = false;
+      async.flushMicrotasks();
+      unawaited(socketFor('sockets.betterttv.net').drop());
+      async.elapse(const Duration(seconds: 61));
+      expect(count('sockets.betterttv.net'), 1);
+
+      final sevenTvSockets = count('events.7tv.io');
+      unawaited(socketFor('events.7tv.io').drop());
+      store.dispose();
+      async.elapse(const Duration(seconds: 61));
+      expect(count('events.7tv.io'), sevenTvSockets);
+    });
+  });
+
+  test('turning BTTV back on opens its socket again', () {
+    fakeAsync((async) {
+      final store = open(async);
+      settings.showBTTVEmotes = false;
+      async.flushMicrotasks();
+      expect(socketFor('sockets.betterttv.net').closeCode, 1000);
+      settings.showBTTVEmotes = true;
+      async.flushMicrotasks();
+      expect(count('sockets.betterttv.net'), 2);
+      finish(store, async);
+    });
+  });
+
+  test('dispose closes both sockets', () {
+    fakeAsync((async) {
+      final store = open(async);
+      final sevenTv = socketFor('events.7tv.io');
+      final bttv = socketFor('sockets.betterttv.net');
+      store.dispose();
+      expect(sevenTv.closeCode, 1000);
+      expect(bttv.closeCode, 1000);
+      async.elapse(const Duration(seconds: 30));
     });
   });
 }

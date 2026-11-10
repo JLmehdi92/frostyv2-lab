@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
@@ -1132,9 +1133,7 @@ abstract class ChatStoreBase with Store {
           settings.showFFZBadges,
         ],
         (_) {
-          if (!settings.show7TVEmotes) {
-            _sevenTVChannel?.sink.close(1000);
-          }
+          if (!settings.show7TVEmotes) _closeSevenTvChannel();
           if (!settings.showBTTVEmotes) _closeBttvChannel();
 
           getAssets().then((_) {
@@ -1664,14 +1663,15 @@ abstract class ChatStoreBase with Store {
 
   @action
   void listenToSevenTVEmoteSet({required String emoteSetId}) {
+    _closeSevenTvChannel();
     _sevenTvSubscribedSets.clear();
-    _sevenTVChannel?.sink.close(1000);
+    final generation = _sevenTvGeneration;
     _sevenTVChannel = _connectSocket(Uri.parse('wss://events.7tv.io/v3'));
     _sevenTvActiveSetId = emoteSetId;
 
-    _sevenTVChannelListener?.cancel();
     _sevenTVChannelListener = _sevenTVChannel?.stream.listen(
       (data) {
+        _sevenTvRetries = 0;
         if (!_hasActiveChatDelay) {
           _pendingSevenTVCallbacks.flushAll();
           _onSevenTvEvent(data);
@@ -1690,7 +1690,19 @@ abstract class ChatStoreBase with Store {
           reason: '7TV WebSocket error',
         );
       },
-      onDone: () => debugPrint('7TV events done'),
+      onDone: () {
+        if (generation != _sevenTvGeneration ||
+            _thirdPartyClosed ||
+            !settings.show7TVEmotes) {
+          return;
+        }
+        _sevenTVChannel = null;
+        _sevenTVChannelListener = null;
+        _sevenTvRetryTimer = Timer(
+          _thirdPartyBackoff(_sevenTvRetries++),
+          () => listenToSevenTVEmoteSet(emoteSetId: emoteSetId),
+        );
+      },
     );
 
     _subscribeSevenTv('emote_set.update', {'object_id': emoteSetId});
@@ -1718,6 +1730,38 @@ abstract class ChatStoreBase with Store {
   }
 
   static const _maxSevenTvSetSubscriptions = 100;
+
+  static const _maxThirdPartyBackoffSeconds = 60;
+
+  @visibleForTesting
+  math.Random thirdPartyJitter = math.Random();
+
+  var _thirdPartyClosed = false;
+  var _sevenTvGeneration = 0;
+  var _sevenTvRetries = 0;
+  Timer? _sevenTvRetryTimer;
+  var _bttvGeneration = 0;
+  var _bttvRetries = 0;
+  Timer? _bttvRetryTimer;
+
+  Duration _thirdPartyBackoff(int attempt) {
+    final ceiling = math.min(
+      _maxThirdPartyBackoffSeconds,
+      1 << math.min(attempt, 6),
+    );
+    final factor = 0.5 + thirdPartyJitter.nextDouble() / 2;
+    return Duration(milliseconds: (ceiling * 1000 * factor).round());
+  }
+
+  void _closeSevenTvChannel() {
+    _sevenTvGeneration++;
+    _sevenTvRetryTimer?.cancel();
+    _sevenTvRetryTimer = null;
+    _sevenTVChannelListener?.cancel();
+    _sevenTVChannelListener = null;
+    _sevenTVChannel?.sink.close(1000);
+    _sevenTVChannel = null;
+  }
 
   final _sevenTvSubscribedSets = <String>{};
 
@@ -1843,11 +1887,12 @@ abstract class ChatStoreBase with Store {
 
   @action
   void listenToBttvChannel() {
-    _bttvChannelListener?.cancel();
-    _bttvChannel?.sink.close(1000);
+    _closeBttvChannel();
+    final generation = _bttvGeneration;
     _bttvChannel = _connectSocket(Uri.parse('wss://sockets.betterttv.net/ws'));
     _bttvChannelListener = _bttvChannel?.stream.listen(
       (data) {
+        _bttvRetries = 0;
         if (!_hasActiveChatDelay) {
           _pendingBttvCallbacks.flushAll();
           _onBttvEvent(data);
@@ -1859,7 +1904,19 @@ abstract class ChatStoreBase with Store {
         }
       },
       onError: (error) => debugPrint('BTTV events error: $error'),
-      onDone: () => debugPrint('BTTV events done'),
+      onDone: () {
+        if (generation != _bttvGeneration ||
+            _thirdPartyClosed ||
+            !settings.showBTTVEmotes) {
+          return;
+        }
+        _bttvChannel = null;
+        _bttvChannelListener = null;
+        _bttvRetryTimer = Timer(
+          _thirdPartyBackoff(_bttvRetries++),
+          listenToBttvChannel,
+        );
+      },
     );
     _bttvChannel?.sink.add(
       jsonEncode({
@@ -1870,6 +1927,9 @@ abstract class ChatStoreBase with Store {
   }
 
   void _closeBttvChannel() {
+    _bttvGeneration++;
+    _bttvRetryTimer?.cancel();
+    _bttvRetryTimer = null;
     _bttvChannelListener?.cancel();
     _bttvChannelListener = null;
     _bttvChannel?.sink.close(1000);
@@ -1979,7 +2039,7 @@ abstract class ChatStoreBase with Store {
         _chatDelaySyncCompleted = false;
 
         if (_shouldDisconnect) {
-          _sevenTVChannel?.sink.close(1000);
+          _closeSevenTvChannel();
           _closeBttvChannel();
           return;
         }
@@ -2698,11 +2758,11 @@ abstract class ChatStoreBase with Store {
 
     // Cancel WebSocket subscriptions
     _channelListener?.cancel();
-    _sevenTVChannelListener?.cancel();
 
     // Close WebSocket channels
     _channel?.sink.close(1000);
-    _sevenTVChannel?.sink.close(1000);
+    _thirdPartyClosed = true;
+    _closeSevenTvChannel();
     _closeBttvChannel();
 
     for (final reactionDisposer in reactions) {
