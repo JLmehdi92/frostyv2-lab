@@ -7,7 +7,6 @@ import 'package:onset/theme.dart';
 import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
-import 'package:onset/widgets/twitch_web_page.dart';
 
 class ShoutoutCard extends StatefulWidget {
   const ShoutoutCard({
@@ -37,7 +36,6 @@ class _ShoutoutCardState extends State<ShoutoutCard> {
 
   Future<void> _follow({
     required String id,
-    required String login,
     required String name,
     required bool following,
   }) async {
@@ -47,11 +45,7 @@ class _ShoutoutCardState extends State<ShoutoutCard> {
       id: id,
       name: name,
       following: following,
-      openOnTwitch: () => TwitchWebPage.open(
-        context,
-        title: name,
-        url: Uri.https('www.twitch.tv', '/$login'),
-      ),
+      onRetry: () => _follow(id: id, name: name, following: following),
     );
     if (!mounted) return;
     setState(() {
@@ -166,7 +160,6 @@ class _ShoutoutCardState extends State<ShoutoutCard> {
                               : SheetButtonTone.primary,
                           onPressed: () => _follow(
                             id: profile?.id ?? widget.notice.targetId,
-                            login: login,
                             name: name,
                             following: following,
                           ),

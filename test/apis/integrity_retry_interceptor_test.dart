@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -24,6 +26,7 @@ void main() {
   late List<RequestOptions> requests;
   late int mints;
   late bool mintFails;
+  late bool mintHangs;
 
   setUp(() {
     dio = Dio(BaseOptions());
@@ -31,6 +34,7 @@ void main() {
     requests = [];
     mints = 0;
     mintFails = false;
+    mintHangs = false;
     dio.interceptors
       ..add(
         IntegrityRetryInterceptor(
@@ -39,6 +43,7 @@ void main() {
             mint: () async {
               mints++;
               if (mintFails) throw StateError('no session');
+              if (mintHangs) return Completer<IntegrityToken>().future;
               return IntegrityToken(
                 value: _integrityToken,
                 deviceId: 'device0001',
@@ -46,6 +51,7 @@ void main() {
               );
             },
             webSession: () => 'web-token',
+            timeout: const Duration(milliseconds: 20),
           ),
         ),
       )
@@ -102,16 +108,40 @@ void main() {
     expect(requests, hasLength(2));
   });
 
-  test('without a token the original refusal comes back', () async {
+  test('a mint that fails is told apart from a refusal', () async {
     mintFails = true;
     replyRefusedThen(const {'data': {}});
     final result = await TwitchViewerActionsService(
       dio,
     ).followChannel(channelId: '123', authToken: 'web-token');
 
-    expect(result, FollowResult.integrityRefused);
+    expect(result, FollowResult.mintFailed);
     expect(requests, hasLength(1));
   });
+
+  test('a mint that runs out of time says so', () async {
+    mintHangs = true;
+    replyRefusedThen(const {'data': {}});
+    final result = await TwitchViewerActionsService(
+      dio,
+    ).followChannel(channelId: '123', authToken: 'web-token');
+
+    expect(result, FollowResult.mintTimeout);
+    expect(requests, hasLength(1));
+  });
+
+  test(
+    'a follow refused again after the retry is an integrity refusal',
+    () async {
+      replyRefusedThen(_refused);
+      final result = await TwitchViewerActionsService(
+        dio,
+      ).followChannel(channelId: '123', authToken: 'web-token');
+
+      expect(result, FollowResult.integrityRefused);
+      expect(requests, hasLength(2));
+    },
+  );
 
   Future<void> postRaw(Object body, {bool userAction = true}) =>
       dio.post<dynamic>(

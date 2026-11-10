@@ -3362,13 +3362,28 @@ class AppLocalizationsEn extends AppLocalizations {
           'Verify your email address and phone number on Twitch to follow.',
       'forbidden': 'Twitch doesn’t allow this follow.',
       'refused': 'Twitch declined this follow.',
+      'noWebSession':
+          'ONSET has no Twitch web session to send this with. Log in to connect it.',
+      'signedOut':
+          'Twitch refused ONSET’s web session. Log in again to reconnect it.',
+      'mintTimeout':
+          'Twitch’s anti-bot check took too long to answer. Try again.',
+      'mintFailed':
+          'ONSET couldn’t complete Twitch’s anti-bot check. Try again.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this again after a second try. ONSET opens twitch.tv so you can do it there.',
-      'signedOut': 'Log in again to follow from ONSET.',
+          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+      'gqlError': 'Twitch answered with an error. Try again.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
     return '$_temp0';
   }
+
+  @override
+  String get followSignInNeeded =>
+      'Log in to ONSET to follow channels and categories.';
+
+  @override
+  String get followLogInAction => 'Log in';
 
   @override
   String unfollowConfirmTitle({required String name}) {
@@ -3390,20 +3405,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get followDeepLinkBody =>
       'A link asked ONSET to follow this channel with your Twitch account.';
-
-  @override
-  String get followWebFallbackTitle => 'Open twitch.tv?';
-
-  @override
-  String followWebFallbackBody({required String choice}) {
-    String _temp0 = intl.Intl.selectLogic(choice, {
-      'channelUnfollow': 'unfollow the channel',
-      'categoryFollow': 'follow the category',
-      'categoryUnfollow': 'unfollow the category',
-      'other': 'follow the channel',
-    });
-    return 'ONSET changes what you follow through your Twitch session, which isn’t connected. Log in to ONSET again to connect it, or $_temp0 on twitch.tv now.';
-  }
 
   @override
   String get followWebFallbackAction => 'Open twitch.tv';

@@ -1,3 +1,5 @@
+import 'package:onset/apis/integrity_retry_interceptor.dart';
+
 enum FollowResult {
   done,
   tooManyFollows,
@@ -6,23 +8,42 @@ enum FollowResult {
   unverifiedPhoneAndEmail,
   forbidden,
   refused,
-  integrityRefused,
+  noWebSession,
   signedOut,
+  mintTimeout,
+  mintFailed,
+  integrityRefused,
+  gqlError,
   failed;
 
   bool get succeeded => this == done;
 
-  bool get opensTwitch => this == integrityRefused;
+  bool get needsWebSession => this == noWebSession || this == signedOut;
 
-  static FollowResult fromBody(Object? body, String field) {
+  bool get canRetry => switch (this) {
+    refused ||
+    mintTimeout ||
+    mintFailed ||
+    integrityRefused ||
+    gqlError ||
+    failed => true,
+    _ => false,
+  };
+
+  static FollowResult fromBody(
+    Object? body,
+    String field, {
+    IntegrityStage? stage,
+  }) {
     if (body is! Map) return failed;
     final errors = body['errors'];
     if (errors is List && errors.isNotEmpty) {
-      final text = errors
-          .map((e) => e is Map ? '${e['message']}' : '$e')
-          .join(' ')
-          .toLowerCase();
-      return text.contains('integrity') ? integrityRefused : failed;
+      if (!IntegrityRetryInterceptor.isIntegrityRefusal(body)) return gqlError;
+      return switch (stage) {
+        IntegrityStage.mintTimedOut => mintTimeout,
+        IntegrityStage.mintFailed => mintFailed,
+        _ => integrityRefused,
+      };
     }
     final data = body['data'];
     final payload = data is Map ? data[field] : null;

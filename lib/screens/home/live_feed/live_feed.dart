@@ -40,7 +40,6 @@ import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:onset/widgets/state_views.dart';
-import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 
 /// Shows [categoryId]'s live channels in the feed (null: All), from the
@@ -1318,12 +1317,6 @@ class _LiveFeedFollowButtonState extends State<LiveFeedFollowButton> {
   String get _name =>
       getReadableName(widget.stream.userName, widget.stream.userLogin);
 
-  Future<void> _openOnTwitch() => TwitchWebPage.open(
-    context,
-    title: _name,
-    url: Uri.https('www.twitch.tv', '/${widget.stream.userLogin}'),
-  );
-
   Future<void> _onPressed() async {
     final now = await FollowFlow.toggle(
       context,
@@ -1331,7 +1324,7 @@ class _LiveFeedFollowButtonState extends State<LiveFeedFollowButton> {
       id: widget.stream.userId,
       name: _name,
       following: _following ?? false,
-      openOnTwitch: _openOnTwitch,
+      onRetry: _onPressed,
     );
     if (now != null && mounted) setState(() => _following = now);
   }

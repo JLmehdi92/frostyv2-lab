@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/follow_result.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/screens/onboarding/login_webview.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/widgets/follow/follow_actions.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
@@ -31,20 +32,34 @@ class FollowFlow {
 
   static bool isPending(String id) => pending.value.contains(id);
 
+  static Future<void> Function(BuildContext context) openLogin =
+      defaultOpenLogin;
+
+  static Future<void> defaultOpenLogin(BuildContext context) => Navigator.push(
+    context,
+    MaterialPageRoute<void>(builder: (_) => const LoginWebView()),
+  );
+
+  static FollowActions? _providedActions(BuildContext context) {
+    try {
+      return context.read<FollowActions?>();
+    } on ProviderNotFoundException {
+      return null;
+    }
+  }
+
   static Future<bool?> toggle(
     BuildContext context, {
     required FollowTarget target,
     required String id,
     required String name,
     required bool following,
-    required Future<void> Function() openOnTwitch,
+    Future<void> Function()? onRetry,
   }) async {
     if (isPending(id)) return null;
-    final actions = actionsOf(context);
-    if (actions == null) {
-      if (await _confirmWebFallback(context, target, following)) {
-        await openOnTwitch();
-      }
+    final actions = _providedActions(context);
+    if (actions == null || !actions.isSignedIn) {
+      _showSignInNeeded(context);
       return null;
     }
     if (following && !await _confirmUnfollow(context, name)) return null;
@@ -52,21 +67,25 @@ class FollowFlow {
     pending.value = {...pending.value, id};
     final FollowResult result;
     try {
-      result = await switch ((target, following)) {
-        (FollowTarget.channel, false) => actions.followChannel(id),
-        (FollowTarget.channel, true) => actions.unfollowChannel(id),
-        (FollowTarget.category, false) => actions.followCategory(id),
-        (FollowTarget.category, true) => actions.unfollowCategory(id),
-      };
+      result = await actions.connectWebSession()
+          ? await switch ((target, following)) {
+              (FollowTarget.channel, false) => actions.followChannel(id),
+              (FollowTarget.channel, true) => actions.unfollowChannel(id),
+              (FollowTarget.category, false) => actions.followCategory(id),
+              (FollowTarget.category, true) => actions.unfollowCategory(id),
+            }
+          : FollowResult.noWebSession;
     } finally {
       pending.value = {...pending.value}..remove(id);
     }
     if (!context.mounted) return null;
-    showResult(context, result, name: name, followed: !following);
-    if (result.opensTwitch) {
-      await openOnTwitch();
-      return null;
-    }
+    showResult(
+      context,
+      result,
+      name: name,
+      followed: !following,
+      onRetry: onRetry,
+    );
     if (!result.succeeded) return null;
     unawaited(HapticFeedback.lightImpact());
     return !following;
@@ -78,7 +97,6 @@ class FollowFlow {
     required String name,
     required bool? following,
     required bool confirm,
-    required Future<void> Function() openOnTwitch,
     void Function(bool following)? onChanged,
   }) async {
     if (following == true) return null;
@@ -90,7 +108,14 @@ class FollowFlow {
       id: id,
       name: name,
       following: false,
-      openOnTwitch: openOnTwitch,
+      onRetry: () => followFromPrompt(
+        context,
+        id: id,
+        name: name,
+        following: false,
+        confirm: false,
+        onChanged: onChanged,
+      ),
     );
     if (now != null) onChanged?.call(now);
     if (now == true && context.mounted) {
@@ -107,18 +132,35 @@ class FollowFlow {
         action: context.l10n.channelFollow,
       );
 
-  static Future<bool> _confirmWebFallback(
+  static void _showSignInNeeded(BuildContext context) {
+    _showSnackBar(
+      context,
+      context.l10n.followSignInNeeded,
+      _logInAction(context),
+    );
+  }
+
+  static SnackBarAction _logInAction(BuildContext context) {
+    final navigator = Navigator.maybeOf(context, rootNavigator: true);
+    return SnackBarAction(
+      label: context.l10n.followLogInAction,
+      onPressed: () {
+        if (navigator != null && navigator.mounted) {
+          unawaited(openLogin(navigator.context));
+        }
+      },
+    );
+  }
+
+  static void _showSnackBar(
     BuildContext context,
-    FollowTarget target,
-    bool following,
-  ) => _confirm(
-    context,
-    title: context.l10n.followWebFallbackTitle,
-    message: context.l10n.followWebFallbackBody(
-      choice: '${target.name}${following ? 'Unfollow' : 'Follow'}',
-    ),
-    action: context.l10n.followWebFallbackAction,
-  );
+    String text, [
+    SnackBarAction? action,
+  ]) {
+    ScaffoldMessenger.maybeOf(context)
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text), action: action));
+  }
 
   static Future<bool> _confirmUnfollow(BuildContext context, String name) =>
       _confirm(
@@ -161,16 +203,36 @@ class FollowFlow {
     FollowResult result, {
     required String name,
     required bool followed,
+    Future<void> Function()? onRetry,
   }) {
     final l = context.l10n;
-    final text = result.succeeded
-        ? followed
-              ? l.followDone(name: name)
-              : l.unfollowDone(name: name)
-        : l.followError(status: result.name);
-    ScaffoldMessenger.maybeOf(context)
-      ?..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(text)));
+    if (result.succeeded) {
+      _showSnackBar(
+        context,
+        followed ? l.followDone(name: name) : l.unfollowDone(name: name),
+      );
+      return;
+    }
+    _showSnackBar(
+      context,
+      l.followError(status: result.name),
+      _failureAction(context, result, onRetry),
+    );
+  }
+
+  static SnackBarAction? _failureAction(
+    BuildContext context,
+    FollowResult result,
+    Future<void> Function()? onRetry,
+  ) {
+    if (result.needsWebSession) return _logInAction(context);
+    if (onRetry == null || !result.canRetry) return null;
+    return SnackBarAction(
+      label: context.l10n.commonRetry,
+      onPressed: () {
+        if (context.mounted) unawaited(onRetry());
+      },
+    );
   }
 
   static Future<void> suggestAfterFollowing(

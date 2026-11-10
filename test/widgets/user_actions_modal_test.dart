@@ -4,7 +4,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/models/follow_result.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/widgets/follow/follow_actions.dart';
-import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:onset/widgets/user_actions_modal.dart';
 import 'package:provider/provider.dart';
@@ -33,15 +32,15 @@ void main() {
     );
   }
 
-  testWidgets('a logged-in viewer can follow on twitch.tv', (tester) async {
+  testWidgets('a logged-in viewer can follow from ONSET', (tester) async {
     await pump(tester, loggedIn: true);
-    expect(find.text('Follow Streamer on Twitch'), findsOneWidget);
+    expect(find.text('Follow Streamer'), findsOneWidget);
     expect(find.text('Report Streamer'), findsOneWidget);
   });
 
   testWidgets('logged out, there is nothing to follow with', (tester) async {
     await pump(tester, loggedIn: false);
-    expect(find.text('Follow Streamer on Twitch'), findsNothing);
+    expect(find.text('Follow Streamer'), findsNothing);
   });
 
   group('in-app follow', () {
@@ -50,6 +49,8 @@ void main() {
     setUp(() {
       actions = _MockActions();
       when(() => actions.canFollowInApp).thenReturn(true);
+      when(() => actions.isSignedIn).thenReturn(true);
+      when(() => actions.connectWebSession()).thenAnswer((_) async => true);
     });
 
     Future<void> pumpWithActions(WidgetTester tester) async {
@@ -113,12 +114,18 @@ void main() {
       expect(find.byType(UserActionsModal), findsOneWidget);
     });
 
-    testWidgets('an unknown state keeps the twitch.tv row', (tester) async {
+    testWidgets('an unknown state still follows from ONSET', (tester) async {
       when(() => actions.followsChannel('1')).thenAnswer((_) async => null);
+      when(
+        () => actions.followChannel('1'),
+      ).thenAnswer((_) async => FollowResult.done);
       await pumpWithActions(tester);
 
-      expect(find.text('Follow Streamer on Twitch'), findsOneWidget);
-      expect(find.byKey(FollowFlow.confirmKey), findsNothing);
+      await tester.tap(find.text('Follow Streamer'));
+      await tester.pumpAndSettle();
+
+      verify(() => actions.followChannel('1')).called(1);
+      expect(find.text('You now follow Streamer.'), findsOneWidget);
     });
   });
 

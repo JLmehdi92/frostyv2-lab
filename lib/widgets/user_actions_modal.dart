@@ -17,7 +17,6 @@ import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/report/report_sheet.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
-import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 
 class UserActionsModal extends StatelessWidget {
@@ -132,11 +131,7 @@ class UserActionsModal extends StatelessWidget {
           },
         ),
         if (authStore.isLoggedIn)
-          UserActionsFollowRow(
-            name: name,
-            userLogin: userLogin,
-            userId: userId,
-          ),
+          UserActionsFollowRow(name: name, userId: userId),
         SheetRow(
           glyph: SheetGlyphKind.link,
           label: l.userActionsCopyLink,
@@ -178,12 +173,10 @@ class UserActionsFollowRow extends StatefulWidget {
   const UserActionsFollowRow({
     super.key,
     required this.name,
-    required this.userLogin,
     required this.userId,
   });
 
   final String name;
-  final String userLogin;
   final String userId;
 
   @override
@@ -206,12 +199,6 @@ class _UserActionsFollowRowState extends State<UserActionsFollowRow> {
     if (mounted) setState(() => _following = following);
   }
 
-  Future<void> _openOnTwitch() => TwitchWebPage.open(
-    context,
-    title: widget.name,
-    url: Uri.https('www.twitch.tv', '/${widget.userLogin}'),
-  );
-
   Future<void> _toggle(bool following) async {
     final navigator = Navigator.of(context);
     final now = await FollowFlow.toggle(
@@ -220,7 +207,7 @@ class _UserActionsFollowRowState extends State<UserActionsFollowRow> {
       id: widget.userId,
       name: widget.name,
       following: following,
-      openOnTwitch: _openOnTwitch,
+      onRetry: () => _toggle(following),
     );
     if (now != null && mounted) navigator.pop();
   }
@@ -228,19 +215,8 @@ class _UserActionsFollowRowState extends State<UserActionsFollowRow> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final following = _following;
-    if (following == null) {
-      return SheetRow(
-        glyph: SheetGlyphKind.heart,
-        label: l.userActionsFollowOnTwitch(name: widget.name),
-        detail: l.userActionsFollowDetail,
-        end: SheetRowEnd.external,
-        onTap: () {
-          Navigator.pop(context);
-          unawaited(_openOnTwitch());
-        },
-      );
-    }
+    if (widget.userId.isEmpty) return const SizedBox.shrink();
+    final following = _following ?? false;
     return FollowPendingGate(
       id: widget.userId,
       child: SheetRow(

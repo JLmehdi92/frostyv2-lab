@@ -31,6 +31,8 @@ void main() {
   setUp(() {
     actions = _MockActions();
     when(() => actions.canFollowInApp).thenReturn(true);
+    when(() => actions.isSignedIn).thenReturn(true);
+    when(() => actions.connectWebSession()).thenAnswer((_) async => true);
     TwitchWebPage.debugBody = () => const SizedBox(key: ValueKey('web'));
   });
 

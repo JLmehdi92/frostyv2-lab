@@ -1,6 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:onset/services/integrity/integrity_token_provider.dart';
 
+enum IntegrityStage { mintTimedOut, mintFailed, retryRefused }
+
+class IntegrityTrace {
+  IntegrityStage? stage;
+}
+
 class IntegrityRetryInterceptor extends Interceptor {
   IntegrityRetryInterceptor({required this.dio, required this.tokens});
 
@@ -9,6 +15,12 @@ class IntegrityRetryInterceptor extends Interceptor {
 
   static const userActionKey = 'onsetUserAction';
   static const retriedKey = 'onsetIntegrityRetried';
+  static const traceKey = 'onsetIntegrityTrace';
+
+  static Map<String, Object?> tracedUserAction(IntegrityTrace trace) => {
+    userActionKey: true,
+    traceKey: trace,
+  };
 
   static const Map<String, Object?> userAction = {userActionKey: true};
 
@@ -29,8 +41,14 @@ class IntegrityRetryInterceptor extends Interceptor {
       handler.next(response);
       return;
     }
+    final trace = request.extra[traceKey];
     final token = await tokens.tokenFor(webToken);
     if (token == null) {
+      if (trace is IntegrityTrace) {
+        trace.stage = tokens.lastFailure == IntegrityMintFailure.timedOut
+            ? IntegrityStage.mintTimedOut
+            : IntegrityStage.mintFailed;
+      }
       handler.next(response);
       return;
     }
@@ -45,7 +63,10 @@ class IntegrityRetryInterceptor extends Interceptor {
           extra: {...request.extra, retriedKey: true},
         ),
       );
-      if (isIntegrityRefusal(retried.data)) tokens.invalidate();
+      if (isIntegrityRefusal(retried.data)) {
+        tokens.invalidate();
+        if (trace is IntegrityTrace) trace.stage = IntegrityStage.retryRefused;
+      }
       handler.resolve(retried);
     } on DioException catch (e) {
       handler.reject(e);

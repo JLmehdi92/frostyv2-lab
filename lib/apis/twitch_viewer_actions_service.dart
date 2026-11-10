@@ -685,22 +685,21 @@ class TwitchViewerActionsService extends BaseApiClient {
     required String authToken,
     required Map<String, Object?> variables,
   }) async {
-    if (authToken.isEmpty) return FollowResult.signedOut;
+    if (authToken.isEmpty) return FollowResult.noWebSession;
     if (!_numericId.hasMatch(id)) return FollowResult.failed;
+    final trace = IntegrityTrace();
     try {
-      return FollowResult.fromBody(
-        await post<dynamic>(
-          _gqlUrl,
-          extra: IntegrityRetryInterceptor.userAction,
-          headers: _viewerHeaders(authToken),
-          data: {
-            'operationName': operation,
-            'query': document,
-            'variables': variables,
-          },
-        ),
-        field,
+      final Object? body = await post<dynamic>(
+        _gqlUrl,
+        extra: IntegrityRetryInterceptor.tracedUserAction(trace),
+        headers: _viewerHeaders(authToken),
+        data: {
+          'operationName': operation,
+          'query': document,
+          'variables': variables,
+        },
       );
+      return FollowResult.fromBody(body, field, stage: trace.stage);
     } on UnauthorizedException {
       return FollowResult.signedOut;
     } catch (e) {

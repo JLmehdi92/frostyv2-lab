@@ -38,6 +38,8 @@ void main() {
   setUp(() {
     actions = _MockActions();
     when(() => actions.canFollowInApp).thenReturn(true);
+    when(() => actions.isSignedIn).thenReturn(true);
+    when(() => actions.connectWebSession()).thenAnswer((_) async => true);
     when(
       () => actions.suggestionsAfterFollowing(any()),
     ).thenAnswer((_) async => const []);
@@ -131,7 +133,7 @@ void main() {
     expect(info.following.value, isFalse);
   });
 
-  testWidgets('an anti-bot refusal opens the channel on twitch.tv', (
+  testWidgets('an anti-bot refusal stays in ONSET and offers Retry', (
     tester,
   ) async {
     when(
@@ -142,25 +144,119 @@ void main() {
     await tester.tap(find.text('Follow'));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('web')), findsOneWidget);
+    expect(find.byKey(const ValueKey('web')), findsNothing);
+    expect(
+      find.text(
+        'Twitch’s anti-bot check refused this again after a second try. '
+        'Try again in a few minutes.',
+      ),
+      findsOneWidget,
+    );
+    when(
+      () => actions.followChannel('1000'),
+    ).thenAnswer((_) async => FollowResult.done);
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+
+    verify(() => actions.followChannel('1000')).called(2);
+    expect(info.following.value, isTrue);
+    expect(find.byKey(const ValueKey('web')), findsNothing);
   });
 
-  testWidgets('without a web token it asks before opening twitch.tv', (
+  for (final (result, text) in const [
+    (
+      FollowResult.mintTimeout,
+      'Twitch’s anti-bot check took too long to answer. Try again.',
+    ),
+    (
+      FollowResult.mintFailed,
+      'ONSET couldn’t complete Twitch’s anti-bot check. Try again.',
+    ),
+    (FollowResult.gqlError, 'Twitch answered with an error. Try again.'),
+    (FollowResult.failed, 'Couldn’t reach Twitch. Try again.'),
+  ]) {
+    testWidgets('${result.name} names its own step', (tester) async {
+      when(() => actions.followChannel('1000')).thenAnswer((_) async => result);
+      await pump(tester);
+
+      await tester.tap(find.text('Follow'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(text), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+      expect(find.byKey(const ValueKey('web')), findsNothing);
+    });
+  }
+
+  testWidgets('without a web token it connects one, then follows natively', (
     tester,
   ) async {
+    var connected = false;
+    when(() => actions.canFollowInApp).thenAnswer((_) => connected);
+    when(() => actions.connectWebSession()).thenAnswer((_) async {
+      connected = true;
+      return true;
+    });
+    when(
+      () => actions.followChannel('1000'),
+    ).thenAnswer((_) async => FollowResult.done);
+    await pump(tester);
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+
+    verify(() => actions.connectWebSession()).called(1);
+    verify(() => actions.followChannel('1000')).called(1);
+    expect(info.following.value, isTrue);
+    expect(find.byKey(const ValueKey('web')), findsNothing);
+  });
+
+  testWidgets('a session it cannot connect asks for an ONSET login', (
+    tester,
+  ) async {
+    when(() => actions.canFollowInApp).thenReturn(false);
+    when(() => actions.connectWebSession()).thenAnswer((_) async => false);
+    var logins = 0;
+    FollowFlow.openLogin = (_) async => logins++;
+    addTearDown(() => FollowFlow.openLogin = FollowFlow.defaultOpenLogin);
+    await pump(tester);
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'ONSET has no Twitch web session to send this with. Log in to '
+        'connect it.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('web')), findsNothing);
+    verifyNever(() => actions.followChannel(any()));
+
+    await tester.tap(find.text('Log in'));
+    await tester.pumpAndSettle();
+    expect(logins, 1);
+    expect(find.byKey(const ValueKey('web')), findsNothing);
+  });
+
+  testWidgets('a logged-out viewer is asked to log in to ONSET', (
+    tester,
+  ) async {
+    when(() => actions.isSignedIn).thenReturn(false);
     when(() => actions.canFollowInApp).thenReturn(false);
     await pump(tester);
 
     await tester.tap(find.text('Follow'));
     await tester.pumpAndSettle();
-    expect(find.text('Open twitch.tv?'), findsOneWidget);
+
+    expect(
+      find.text('Log in to ONSET to follow channels and categories.'),
+      findsOneWidget,
+    );
+    expect(find.text('Log in'), findsOneWidget);
+    verifyNever(() => actions.connectWebSession());
     expect(find.byKey(const ValueKey('web')), findsNothing);
-
-    await tester.tap(find.byKey(FollowFlow.confirmKey));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const ValueKey('web')), findsOneWidget);
-    verifyNever(() => actions.followChannel(any()));
   });
 
   testWidgets('a follow waiting on Twitch ignores more taps', (tester) async {
@@ -189,18 +285,6 @@ void main() {
     await tester.pumpAndSettle();
     verify(() => actions.followChannel('1000')).called(1);
     expect(FollowFlow.isPending('1000'), isFalse);
-  });
-
-  testWidgets('without a web token, Cancel opens nothing', (tester) async {
-    when(() => actions.canFollowInApp).thenReturn(false);
-    await pump(tester);
-
-    await tester.tap(find.text('Follow'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const ValueKey('web')), findsNothing);
   });
 
   testWidgets('after a follow, suggested channels and Follow all', (
@@ -288,7 +372,6 @@ void main() {
                   name: 'Streamer',
                   following: following,
                   confirm: confirm,
-                  openOnTwitch: () async {},
                 ),
               ),
               child: const Text('go'),

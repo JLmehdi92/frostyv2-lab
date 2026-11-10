@@ -12,11 +12,13 @@ class FollowActions {
     required TwitchFollowedCategoriesService categories,
     required String? Function() webToken,
     required String? Function() viewerId,
+    required Future<bool> Function() connectWebSession,
   }) : _service = service,
        _api = api,
        _categories = categories,
        _webToken = webToken,
-       _viewerId = viewerId;
+       _viewerId = viewerId,
+       _connectWebSession = connectWebSession;
 
   static const suggestionLimit = 5;
 
@@ -25,10 +27,24 @@ class FollowActions {
   final TwitchFollowedCategoriesService _categories;
   final String? Function() _webToken;
   final String? Function() _viewerId;
+  final Future<bool> Function() _connectWebSession;
 
   String get _token => _webToken() ?? '';
 
-  bool get canFollowInApp => _token.isNotEmpty && _viewerId() != null;
+  bool get isSignedIn => _viewerId() != null;
+
+  bool get canFollowInApp => _token.isNotEmpty && isSignedIn;
+
+  Future<bool> connectWebSession() async {
+    if (canFollowInApp) return true;
+    if (!isSignedIn) return false;
+    try {
+      await _connectWebSession();
+    } catch (e) {
+      debugPrint('Connecting the Twitch web session failed: ${e.runtimeType}');
+    }
+    return canFollowInApp;
+  }
 
   Future<FollowResult> followChannel(String channelId) =>
       _service.followChannel(channelId: channelId, authToken: _token);

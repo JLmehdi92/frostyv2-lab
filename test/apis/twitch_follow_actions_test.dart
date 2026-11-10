@@ -86,20 +86,31 @@ void main() {
       });
     }
 
-    test('an integrity refusal sends the viewer to twitch.tv', () async {
+    test('an integrity refusal is reported, never as a web page', () async {
       reply(integrityRefusedResponse);
       final result = await service.followChannel(
         channelId: '1000',
         authToken: 'tok',
       );
       expect(result, FollowResult.integrityRefused);
-      expect(result.opensTwitch, isTrue);
     });
 
-    test('a signed-out viewer sends nothing', () async {
+    test('another GraphQL error is a GraphQL error', () async {
+      reply({
+        'errors': [
+          {'message': 'service timeout'},
+        ],
+      });
+      expect(
+        await service.followChannel(channelId: '1000', authToken: 'tok'),
+        FollowResult.gqlError,
+      );
+    });
+
+    test('a viewer without a web session sends nothing', () async {
       expect(
         await service.followChannel(channelId: '1000', authToken: ''),
-        FollowResult.signedOut,
+        FollowResult.noWebSession,
       );
       expect(requests, isEmpty);
     });

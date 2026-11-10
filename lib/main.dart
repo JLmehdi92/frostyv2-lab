@@ -428,6 +428,7 @@ void main() async {
             webToken: () => authStore.twitchWebToken,
             viewerId: () =>
                 authStore.isLoggedIn ? authStore.user.details?.id : null,
+            connectWebSession: authStore.ensureTwitchWebToken,
           ),
         ),
         Provider<TwitchCommunityService>.value(value: twitchCommunityService),

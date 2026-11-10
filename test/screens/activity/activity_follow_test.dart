@@ -38,6 +38,8 @@ void main() {
     store = ActivityStore(log: await ActivityLog.load());
     actions = _MockActions();
     when(() => actions.canFollowInApp).thenReturn(true);
+    when(() => actions.isSignedIn).thenReturn(true);
+    when(() => actions.connectWebSession()).thenAnswer((_) async => true);
     when(
       () => actions.channelFollowState('streamer'),
     ).thenAnswer((_) async => (id: '1000', following: false));

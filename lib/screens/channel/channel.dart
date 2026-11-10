@@ -94,7 +94,6 @@ import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/onset_notification.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
-import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
@@ -233,14 +232,6 @@ class _VideoChatState extends State<VideoChat>
       name: widget.userName,
       following: _infoStore.following.value,
       confirm: confirm,
-      openOnTwitch: () async {
-        await TwitchWebPage.open(
-          context,
-          title: widget.userName,
-          url: Uri.https('www.twitch.tv', '/${widget.userLogin.toLowerCase()}'),
-        );
-        _infoStore.refresh();
-      },
       onChanged: (now) => _infoStore.following.value = now,
     );
   }

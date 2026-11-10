@@ -3417,13 +3417,28 @@ class AppLocalizationsFr extends AppLocalizations {
           'Vérifiez votre adresse e-mail et votre numéro de téléphone sur Twitch pour suivre.',
       'forbidden': 'Twitch n’autorise pas ce suivi.',
       'refused': 'Twitch a refusé ce suivi.',
+      'noWebSession':
+          'ONSET n’a pas de session web Twitch pour envoyer cette action. Connectez-vous pour l’activer.',
+      'signedOut':
+          'Twitch a refusé la session web d’ONSET. Reconnectez-vous pour la rétablir.',
+      'mintTimeout':
+          'Le contrôle anti-robot de Twitch a mis trop de temps à répondre. Réessayez.',
+      'mintFailed':
+          'ONSET n’a pas pu terminer le contrôle anti-robot de Twitch. Réessayez.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. ONSET ouvre twitch.tv pour que vous la fassiez là-bas.',
-      'signedOut': 'Reconnectez-vous pour suivre depuis ONSET.',
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.',
+      'gqlError': 'Twitch a répondu par une erreur. Réessayez.',
       'other': 'Impossible de joindre Twitch. Réessayez.',
     });
     return '$_temp0';
   }
+
+  @override
+  String get followSignInNeeded =>
+      'Connectez-vous à ONSET pour suivre des chaînes et des catégories.';
+
+  @override
+  String get followLogInAction => 'Se connecter';
 
   @override
   String unfollowConfirmTitle({required String name}) {
@@ -3445,20 +3460,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get followDeepLinkBody =>
       'Un lien demande à ONSET de suivre cette chaîne avec votre compte Twitch.';
-
-  @override
-  String get followWebFallbackTitle => 'Ouvrir twitch.tv ?';
-
-  @override
-  String followWebFallbackBody({required String choice}) {
-    String _temp0 = intl.Intl.selectLogic(choice, {
-      'channelUnfollow': 'arrêtez de suivre la chaîne',
-      'categoryFollow': 'suivez la catégorie',
-      'categoryUnfollow': 'arrêtez de suivre la catégorie',
-      'other': 'suivez la chaîne',
-    });
-    return 'ONSET modifie vos suivis par votre session Twitch, qui n’est pas connectée. Reconnectez-vous à ONSET pour l’activer, ou $_temp0 sur twitch.tv dès maintenant.';
-  }
 
   @override
   String get followWebFallbackAction => 'Ouvrir twitch.tv';

@@ -25,8 +25,12 @@ void main() {
   String? token;
   String? viewer;
   late FollowActions actions;
+  late int connects;
+  late String? Function() connectedToken;
 
   setUp(() {
+    connects = 0;
+    connectedToken = () => token;
     api = _MockApi();
     categories = _MockCategories();
     token = 'tok';
@@ -37,7 +41,35 @@ void main() {
       categories: categories,
       webToken: () => token,
       viewerId: () => viewer,
+      connectWebSession: () async {
+        connects++;
+        token = connectedToken();
+        return token != null && token!.isNotEmpty;
+      },
     );
+  });
+
+  test('connecting fetches a missing web session once per tap', () async {
+    token = null;
+    connectedToken = () => 'fresh';
+    expect(await actions.connectWebSession(), isTrue);
+    expect(connects, 1);
+    expect(await actions.connectWebSession(), isTrue);
+    expect(connects, 1);
+  });
+
+  test('connecting reports a session it could not get', () async {
+    token = null;
+    connectedToken = () => null;
+    expect(await actions.connectWebSession(), isFalse);
+  });
+
+  test('a logged-out viewer never connects', () async {
+    token = null;
+    viewer = null;
+    expect(await actions.connectWebSession(), isFalse);
+    expect(connects, 0);
+    expect(actions.isSignedIn, isFalse);
   });
 
   test('following in the app needs the web token and a viewer', () {

@@ -6,7 +6,6 @@ import 'package:onset/models/shoutout_profile.dart';
 import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
 import 'package:onset/screens/channel/chat/widgets/shoutout_card.dart';
 import 'package:onset/widgets/follow/follow_actions.dart';
-import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 
@@ -110,6 +109,8 @@ void main() {
     testWidgets('follows from ONSET without opening twitch.tv', (tester) async {
       final actions = _MockActions();
       when(() => actions.canFollowInApp).thenReturn(true);
+      when(() => actions.isSignedIn).thenReturn(true);
+      when(() => actions.connectWebSession()).thenAnswer((_) async => true);
       when(
         () => actions.followChannel('2'),
       ).thenAnswer((_) async => FollowResult.done);
@@ -127,19 +128,18 @@ void main() {
       expect(find.byKey(const ValueKey('web')), findsNothing);
     });
 
-    testWidgets('without a Twitch session it asks before opening twitch.tv', (
+    testWidgets('logged out, it asks for an ONSET login, never twitch.tv', (
       tester,
     ) async {
       await pump(tester, ShoutoutProfile.tryParse(shoutoutResponse));
 
       await tester.tap(find.byKey(ShoutoutCard.followKey));
       await tester.pumpAndSettle();
-      expect(find.text('Open twitch.tv?'), findsOneWidget);
+      expect(
+        find.text('Log in to ONSET to follow channels and categories.'),
+        findsOneWidget,
+      );
       expect(find.byKey(const ValueKey('web')), findsNothing);
-
-      await tester.tap(find.byKey(FollowFlow.confirmKey));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('web')), findsOneWidget);
     });
   });
 }

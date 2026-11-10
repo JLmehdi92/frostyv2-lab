@@ -518,15 +518,6 @@ class FollowButton extends StatelessWidget {
   final double height;
   final double fontSize;
 
-  Future<void> _openOnTwitch(BuildContext context) async {
-    await TwitchWebPage.open(
-      context,
-      title: name,
-      url: Uri.https('www.twitch.tv', '/${login.toLowerCase()}'),
-    );
-    info.refresh();
-  }
-
   Future<void> _toggle(BuildContext context) async {
     final now = await FollowFlow.toggle(
       context,
@@ -534,7 +525,7 @@ class FollowButton extends StatelessWidget {
       id: info.channelId,
       name: name,
       following: info.following.value ?? false,
-      openOnTwitch: () => _openOnTwitch(context),
+      onRetry: () => _toggle(context),
     );
     if (now == null) return;
     info.following.value = now;

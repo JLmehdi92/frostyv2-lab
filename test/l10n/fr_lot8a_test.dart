@@ -41,6 +41,8 @@ void main() {
   setUp(() {
     actions = _MockActions();
     when(() => actions.canFollowInApp).thenReturn(true);
+    when(() => actions.isSignedIn).thenReturn(true);
+    when(() => actions.connectWebSession()).thenAnswer((_) async => true);
     when(
       () => actions.followChannel(any()),
     ).thenAnswer((_) async => FollowResult.done);

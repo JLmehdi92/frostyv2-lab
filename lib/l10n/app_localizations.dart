@@ -5219,11 +5219,23 @@ abstract class AppLocalizations {
   /// **'You no longer follow {name}.'**
   String unfollowDone({required String name});
 
-  /// Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name (Twitch’s error codes).
+  /// Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name: Twitch’s error codes, or the failing step (noWebSession: no Twitch web session stored; signedOut: Twitch rejected it; mintTimeout and mintFailed: the anti-bot token couldn’t be obtained; integrityRefused: refused again after the retry; gqlError: another GraphQL error; other: network). Each step has its own text, so the owner can tell them apart on a device.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. ONSET opens twitch.tv so you can do it there.} signedOut{Log in again to follow from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  /// **'{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} noWebSession{ONSET has no Twitch web session to send this with. Log in to connect it.} signedOut{Twitch refused ONSET’s web session. Log in again to reconnect it.} mintTimeout{Twitch’s anti-bot check took too long to answer. Try again.} mintFailed{ONSET couldn’t complete Twitch’s anti-bot check. Try again.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} gqlError{Twitch answered with an error. Try again.} other{Couldn’t reach Twitch. Try again.}}'**
   String followError({required String status});
+
+  /// Snack bar when a logged-out viewer taps Follow or Unfollow. Its action, followLogInAction, opens ONSET’s login page.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to ONSET to follow channels and categories.'**
+  String get followSignInNeeded;
+
+  /// Snack bar action under followSignInNeeded, or under followError when ONSET has no usable Twitch web session. It opens ONSET’s own login page; nothing opens twitch.tv.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get followLogInAction;
 
   /// Dialog title before unfollowing a channel or a category.
   ///
@@ -5255,19 +5267,7 @@ abstract class AppLocalizations {
   /// **'A link asked ONSET to follow this channel with your Twitch account.'**
   String get followDeepLinkBody;
 
-  /// Dialog title when a follow or an unfollow can’t be sent from ONSET because the Twitch session that sends it isn’t connected (or the viewer is logged out). Neutral: the same title serves follows and unfollows.
-  ///
-  /// In en, this message translates to:
-  /// **'Open twitch.tv?'**
-  String get followWebFallbackTitle;
-
-  /// Dialog text under followWebFallbackTitle. It says why the change can’t happen in the app and what fixes it. choice is what the viewer tapped: channelFollow, channelUnfollow, categoryFollow or categoryUnfollow.
-  ///
-  /// In en, this message translates to:
-  /// **'ONSET changes what you follow through your Twitch session, which isn’t connected. Log in to ONSET again to connect it, or {choice, select, channelUnfollow{unfollow the channel} categoryFollow{follow the category} categoryUnfollow{unfollow the category} other{follow the channel}} on twitch.tv now.'**
-  String followWebFallbackBody({required String choice});
-
-  /// Dialog button under followWebFallbackBody. It opens the channel or category page on twitch.tv inside ONSET.
+  /// Button that opens a page on twitch.tv inside ONSET (the report sheet uses it). Follows and unfollows never use it.
   ///
   /// In en, this message translates to:
   /// **'Open twitch.tv'**

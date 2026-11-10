@@ -5,10 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
-import 'package:onset/apis/twitch_followed_categories_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
-import 'package:onset/models/followed_category.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
 import 'package:onset/screens/clips/widgets/channel_clips_tab.dart';
@@ -30,7 +28,6 @@ import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/onset_chip.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
-import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 
 /// A category's page: its header, then its live streams,
@@ -239,15 +236,6 @@ class _CategoryViewState extends State<CategoryView> {
 
   /// Opens the category on twitch.tv, where the viewer can follow or
   /// unfollow it.
-  Future<void> _followOnTwitch(String name) async {
-    final service = context.read<TwitchFollowedCategoriesService?>();
-    final url = service != null
-        ? await service.categoryPageUrl(widget.categoryId, name: name)
-        : FollowedCategory.twitchUrlFor(slug: null, name: name);
-    if (!mounted) return;
-    await TwitchWebPage.open(context, title: name, url: url);
-  }
-
   bool? _followsCategory;
 
   @override
@@ -270,7 +258,7 @@ class _CategoryViewState extends State<CategoryView> {
       id: widget.categoryId,
       name: name,
       following: _followsCategory ?? false,
-      openOnTwitch: () => _followOnTwitch(name),
+      onRetry: () => _follow(name),
     );
     if (now != null && mounted) setState(() => _followsCategory = now);
   }

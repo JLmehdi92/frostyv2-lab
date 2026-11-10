@@ -25,7 +25,6 @@ import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/state_glyph.dart';
 import 'package:onset/widgets/state_views.dart';
-import 'package:onset/widgets/twitch_web_page.dart';
 
 /// Twitch's Activity: the
 /// notifications (here, those ONSET posted on this device: go-live,
@@ -830,11 +829,7 @@ class _EntryFollowState extends State<_EntryFollow> {
       id: id,
       name: widget.name,
       following: false,
-      openOnTwitch: () => TwitchWebPage.open(
-        context,
-        title: widget.name,
-        url: Uri.https('www.twitch.tv', '/${widget.login.toLowerCase()}'),
-      ),
+      onRetry: _follow,
     );
     if (!mounted) return;
     setState(() {
