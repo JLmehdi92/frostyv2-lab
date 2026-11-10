@@ -169,26 +169,6 @@ void main() {
     });
   });
 
-  group('category slug', () {
-    test('is read anonymously', () async {
-      reply({
-        'data': {
-          'game': {'slug': 'just-chatting'},
-        },
-      });
-
-      expect(await service.getCategorySlug('509658'), 'just-chatting');
-      expect(requests.single.headers.containsKey('Authorization'), isFalse);
-    });
-
-    test('a failure or an odd id gives nothing', () async {
-      reply({'errors': []}, status: 500);
-
-      expect(await service.getCategorySlug('509658'), isNull);
-      expect(await service.getCategorySlug('../x'), isNull);
-    });
-  });
-
   group('the twitch.tv page of a category', () {
     test('uses the slug, or the name when the slug is unknown', () {
       expect(

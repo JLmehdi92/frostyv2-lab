@@ -136,6 +136,13 @@ void main() {
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     expect(find.text('Report on twitch.tv?'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(ReportSheet.webFallbackKey),
+        matching: find.text('Open twitch.tv'),
+      ),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('web')), findsNothing);
     await tester.tap(find.byKey(ReportSheet.webFallbackKey));
     await tester.pumpAndSettle();

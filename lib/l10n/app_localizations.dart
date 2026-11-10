@@ -812,18 +812,6 @@ abstract class AppLocalizations {
   /// **'Block {name}'**
   String userActionsBlock({required String name});
 
-  /// Channel long-press menu: follows the channel on twitch.tv.
-  ///
-  /// In en, this message translates to:
-  /// **'Follow {name} on Twitch'**
-  String userActionsFollowOnTwitch({required String name});
-
-  /// Channel long-press menu: the second line under "Follow … on Twitch".
-  ///
-  /// In en, this message translates to:
-  /// **'Opens the channel on twitch.tv'**
-  String get userActionsFollowDetail;
-
   /// Channel long-press menu: follows the channel in the app.
   ///
   /// In en, this message translates to:
@@ -5222,7 +5210,7 @@ abstract class AppLocalizations {
   /// Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name: Twitch’s error codes, or the failing step (noWebSession: no Twitch web session stored; signedOut: Twitch rejected it; mintTimeout and mintFailed: the anti-bot token couldn’t be obtained; integrityRefused: refused again after the retry; gqlError: another GraphQL error; other: network). Each step has its own text, so the owner can tell them apart on a device.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} noWebSession{ONSET has no Twitch web session to send this with. Log in to connect it.} signedOut{Twitch refused ONSET’s web session. Log in again to reconnect it.} mintTimeout{Twitch’s anti-bot check took too long to answer. Try again.} mintFailed{ONSET couldn’t complete Twitch’s anti-bot check. Try again.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} gqlError{Twitch answered with an error. Try again.} other{Couldn’t reach Twitch. Try again.}}'**
+  /// **'{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} noWebSession{ONSET isn’t connected to your Twitch web session. Log in to connect it.} signedOut{Twitch rejected ONSET’s web session. Log in again to restore it.} mintTimeout{Twitch’s anti-bot check took too long to answer. Try again.} mintFailed{ONSET couldn’t complete Twitch’s anti-bot check. Try again.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} gqlError{Twitch answered with an error. Try again.} other{Couldn’t reach Twitch. Try again.}}'**
   String followError({required String status});
 
   /// Snack bar when a logged-out viewer taps Follow or Unfollow. Its action, followLogInAction, opens ONSET’s login page.
@@ -5267,11 +5255,11 @@ abstract class AppLocalizations {
   /// **'A link asked ONSET to follow this channel with your Twitch account.'**
   String get followDeepLinkBody;
 
-  /// Button that opens a page on twitch.tv inside ONSET (the report sheet uses it). Follows and unfollows never use it.
+  /// Report sheet button that opens the report page on twitch.tv inside ONSET.
   ///
   /// In en, this message translates to:
   /// **'Open twitch.tv'**
-  String get followWebFallbackAction;
+  String get reportOpenOnTwitchAction;
 
   /// Title of the sheet of suggested channels shown after following a channel.
   ///

@@ -448,14 +448,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String userActionsFollowOnTwitch({required String name}) {
-    return 'Follow $name on Twitch';
-  }
-
-  @override
-  String get userActionsFollowDetail => 'Opens the channel on twitch.tv';
-
-  @override
   String userActionsFollow({required String name}) {
     return 'Follow $name';
   }
@@ -3363,9 +3355,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'forbidden': 'Twitch doesn’t allow this follow.',
       'refused': 'Twitch declined this follow.',
       'noWebSession':
-          'ONSET has no Twitch web session to send this with. Log in to connect it.',
+          'ONSET isn’t connected to your Twitch web session. Log in to connect it.',
       'signedOut':
-          'Twitch refused ONSET’s web session. Log in again to reconnect it.',
+          'Twitch rejected ONSET’s web session. Log in again to restore it.',
       'mintTimeout':
           'Twitch’s anti-bot check took too long to answer. Try again.',
       'mintFailed':
@@ -3407,7 +3399,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'A link asked ONSET to follow this channel with your Twitch account.';
 
   @override
-  String get followWebFallbackAction => 'Open twitch.tv';
+  String get reportOpenOnTwitchAction => 'Open twitch.tv';
 
   @override
   String followSuggestionsTitle({required String name}) {

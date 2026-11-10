@@ -249,8 +249,8 @@ void main() {
 
     expect(
       find.text(
-        'ONSET has no Twitch web session to send this with. Log in to '
-        'connect it.',
+        'ONSET isn’t connected to your Twitch web session. Log in to connect '
+        'it.',
       ),
       findsOneWidget,
     );

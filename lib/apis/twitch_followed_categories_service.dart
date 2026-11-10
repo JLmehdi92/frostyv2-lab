@@ -16,17 +16,12 @@ class TwitchFollowedCategoriesService extends BaseApiClient {
   static const _gqlClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
   static const _gqlUrl = 'https://gql.twitch.tv/gql';
 
-  static final _numericId = RegExp(r'^[0-9]{1,20}$');
-
   // The `FollowedGamesQuery` fields ONSET shows, plus the slug for the
   // twitch.tv link. Validated anonymously on 2026-10-20.
   static const _followedQuery =
       'query FollowedGamesQuery(\$first: Int) { currentUser { '
       'followedGames(first: \$first) { nodes { id name displayName slug '
       'viewersCount boxArtURL(width: 285, height: 380) } } } }';
-
-  static const _slugQuery =
-      'query OnsetCategorySlug(\$id: ID!) { game(id: \$id) { slug } }';
 
   /// The followed categories, in Twitch's order, or null when Twitch does
   /// not give them.
@@ -55,26 +50,6 @@ class TwitchFollowedCategoriesService extends BaseApiClient {
       return [for (final node in nodes) ?FollowedCategory.tryParse(node)];
     } catch (e) {
       if (kDebugMode) debugPrint('Followed categories unavailable: $e');
-      return null;
-    }
-  }
-
-  /// The twitch.tv slug of the category [gameId] (anonymous), or null.
-  Future<String?> getCategorySlug(String gameId) async {
-    if (!_numericId.hasMatch(gameId)) return null;
-    try {
-      final body = await post<JsonMap>(
-        _gqlUrl,
-        headers: {'Client-ID': _gqlClientId},
-        data: {
-          'query': _slugQuery,
-          'variables': {'id': gameId},
-        },
-      );
-      final game = (body['data'] as Map?)?['game'];
-      return game is Map ? FollowedCategory.validSlug(game['slug']) : null;
-    } catch (e) {
-      if (kDebugMode) debugPrint('Category slug unavailable: $e');
       return null;
     }
   }

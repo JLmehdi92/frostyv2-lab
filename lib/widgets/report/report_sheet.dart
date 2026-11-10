@@ -94,7 +94,7 @@ Future<bool> _confirmWebReport(BuildContext context) async {
         ),
         SheetButton(
           key: ReportSheet.webFallbackKey,
-          label: context.l10n.followWebFallbackAction,
+          label: context.l10n.reportOpenOnTwitchAction,
           onPressed: () => Navigator.pop(context, true),
         ),
       ],

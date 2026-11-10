@@ -454,14 +454,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String userActionsFollowOnTwitch({required String name}) {
-    return 'Suivre $name sur Twitch';
-  }
-
-  @override
-  String get userActionsFollowDetail => 'Ouvre la chaîne sur twitch.tv';
-
-  @override
   String userActionsFollow({required String name}) {
     return 'Suivre $name';
   }
@@ -3418,7 +3410,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'forbidden': 'Twitch n’autorise pas ce suivi.',
       'refused': 'Twitch a refusé ce suivi.',
       'noWebSession':
-          'ONSET n’a pas de session web Twitch pour envoyer cette action. Connectez-vous pour l’activer.',
+          'ONSET n’est pas connecté à votre session web Twitch. Connectez-vous pour la relier.',
       'signedOut':
           'Twitch a refusé la session web d’ONSET. Reconnectez-vous pour la rétablir.',
       'mintTimeout':
@@ -3426,7 +3418,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'mintFailed':
           'ONSET n’a pas pu terminer le contrôle anti-robot de Twitch. Réessayez.',
       'integrityRefused':
-          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.',
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action après un second essai. Réessayez dans quelques minutes.',
       'gqlError': 'Twitch a répondu par une erreur. Réessayez.',
       'other': 'Impossible de joindre Twitch. Réessayez.',
     });
@@ -3462,7 +3454,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un lien demande à ONSET de suivre cette chaîne avec votre compte Twitch.';
 
   @override
-  String get followWebFallbackAction => 'Ouvrir twitch.tv';
+  String get reportOpenOnTwitchAction => 'Ouvrir twitch.tv';
 
   @override
   String followSuggestionsTitle({required String name}) {
