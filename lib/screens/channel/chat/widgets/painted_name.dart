@@ -6,6 +6,10 @@ import 'package:onset/models/third_party_cosmetics.dart';
 import 'package:onset/services/cache_manager.dart';
 
 class PaintedName extends StatefulWidget {
+  static const paintImageHeight = 64;
+  static const _measureCapacity = 500;
+  static final _measured = <(String, TextStyle, double), Size>{};
+
   final String text;
   final NamePaint paint;
   final TextStyle style;
@@ -18,6 +22,36 @@ class PaintedName extends StatefulWidget {
     required this.style,
     this.imageProviderFor,
   });
+
+  static Size measure(String text, TextStyle style, TextScaler scaler) {
+    final key = (text, style, scaler.scale(1));
+    final known = _measured.remove(key);
+    if (known != null) return _measured[key] = known;
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: scaler,
+      maxLines: 1,
+    )..layout();
+    final size = painter.size;
+    painter.dispose();
+    while (_measured.length >= _measureCapacity) {
+      _measured.remove(_measured.keys.first);
+    }
+    return _measured[key] = size;
+  }
+
+  static ImageProvider boundedPaintImage(ImageProvider image) => ResizeImage(
+    image,
+    height: paintImageHeight,
+    policy: ResizeImagePolicy.fit,
+  );
+
+  @visibleForTesting
+  static int get measuredCount => _measured.length;
+
+  @visibleForTesting
+  static void clearMeasurements() => _measured.clear();
 
   @override
   State<PaintedName> createState() => _PaintedNameState();
@@ -47,12 +81,13 @@ class _PaintedNameState extends State<PaintedName> {
   void _resolveImage() {
     final url = widget.paint.imageUrl;
     if (widget.paint.kind != NamePaintKind.image || url == null) return;
-    final provider =
-        widget.imageProviderFor?.call(url) ??
-        CachedNetworkImageProvider(
-          url,
-          cacheManager: CustomCacheManager.instance,
-        );
+    final provider = PaintedName.boundedPaintImage(
+      widget.imageProviderFor?.call(url) ??
+          CachedNetworkImageProvider(
+            url,
+            cacheManager: CustomCacheManager.instance,
+          ),
+    );
     final stream = provider.resolve(ImageConfiguration.empty);
     final listener = ImageStreamListener(
       (info, _) {
@@ -79,61 +114,62 @@ class _PaintedNameState extends State<PaintedName> {
     super.dispose();
   }
 
-  Shader? _shader(Rect bounds) {
-    final image = _image;
-    if (widget.paint.kind == NamePaintKind.image) {
-      if (image == null || bounds.isEmpty) return null;
-      final scale = bounds.height / image.height;
-      return ImageShader(
-        image,
-        TileMode.repeated,
-        TileMode.repeated,
-        (Matrix4.identity()..scaleByDouble(scale, scale, 1, 1)).storage,
-      );
+  Shader? _shader(Size size) {
+    final bounds = Offset.zero & size;
+    if (widget.paint.kind != NamePaintKind.image) {
+      return widget.paint.gradientShader(bounds);
     }
-    return widget.paint.gradientShader(bounds);
+    final image = _image;
+    if (image == null || bounds.isEmpty) return null;
+    final scale = bounds.height / image.height;
+    return ImageShader(
+      image,
+      TileMode.repeated,
+      TileMode.repeated,
+      (Matrix4.identity()..scaleByDouble(scale, scale, 1, 1)).storage,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final paint = widget.paint;
-    final waitingForImage = paint.kind == NamePaintKind.image && _image == null;
-    final fill = Text(
+    final size = PaintedName.measure(
       widget.text,
-      style: widget.style.copyWith(
-        color: waitingForImage
-            ? paint.fallbackColor ?? widget.style.color
-            : Colors.white,
-      ),
+      widget.style,
+      MediaQuery.textScalerOf(context),
     );
-    final painted = waitingForImage
-        ? fill
-        : ShaderMask(
-            blendMode: BlendMode.srcIn,
-            shaderCallback: (bounds) =>
-                _shader(bounds) ??
-                LinearGradient(
-                  colors: [
-                    widget.style.color ?? Colors.white,
-                    widget.style.color ?? Colors.white,
-                  ],
-                ).createShader(bounds),
-            child: fill,
-          );
-    if (paint.shadows.isEmpty) return painted;
-    return Stack(
-      children: [
-        ExcludeSemantics(
-          child: Text(
-            widget.text,
-            style: widget.style.copyWith(
-              color: Colors.transparent,
-              shadows: paint.shadows,
-            ),
-          ),
-        ),
-        painted,
-      ],
+    final shader = _shader(size);
+    final shadows = paint.shadows.isEmpty ? null : paint.shadows;
+    return Text(
+      widget.text,
+      maxLines: 1,
+      softWrap: false,
+      style: shader == null
+          ? widget.style.copyWith(
+              color: paint.fallbackColor ?? widget.style.color,
+              shadows: shadows,
+            )
+          : _withoutColor(
+              widget.style,
+            ).copyWith(foreground: Paint()..shader = shader, shadows: shadows),
     );
   }
+
+  static TextStyle _withoutColor(TextStyle style) => TextStyle(
+    inherit: false,
+    fontFamily: style.fontFamily,
+    fontFamilyFallback: style.fontFamilyFallback,
+    fontSize: style.fontSize,
+    fontWeight: style.fontWeight,
+    fontStyle: style.fontStyle,
+    letterSpacing: style.letterSpacing,
+    wordSpacing: style.wordSpacing,
+    height: style.height,
+    leadingDistribution: style.leadingDistribution,
+    textBaseline: style.textBaseline,
+    locale: style.locale,
+    fontFeatures: style.fontFeatures,
+    fontVariations: style.fontVariations,
+    decoration: style.decoration,
+  );
 }

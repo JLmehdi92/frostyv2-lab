@@ -693,7 +693,10 @@ class IRCMessage {
         ? utils.getReadableName(displayName, user!)
         : displayName;
     final nameStyle = TextStyle(color: color, fontWeight: FontWeight.bold);
-    if (paint != null && !isFromDeletedUser) {
+    final readablePaint = paint != null && nameContrast != null
+        ? _readablePaint(context, paint, nameContrast)
+        : paint;
+    if (readablePaint != null && !isFromDeletedUser) {
       span.add(
         WidgetSpan(
           alignment: PlaceholderAlignment.baseline,
@@ -701,10 +704,10 @@ class IRCMessage {
           child: GestureDetector(
             onTap: onTapName,
             child: PaintedName(
+              paint: readablePaint,
               text: user != null
                   ? utils.getReadableName(displayName, user!)
                   : displayName,
-              paint: paint,
               style: DefaultTextStyle.of(
                 context,
               ).style.merge(style).merge(nameStyle),
@@ -1158,12 +1161,32 @@ class IRCMessage {
     return index - 1;
   }
 
+  static NamePaint? _readablePaint(
+    BuildContext context,
+    NamePaint paint,
+    double contrast,
+  ) {
+    final colors = [?paint.color, for (final stop in paint.stops) stop.color];
+    final readable = colors.every(
+      (color) =>
+          utils.adjustChatNameColor(
+            context,
+            color.withValues(alpha: 1),
+            targetContrast: contrast,
+          ) ==
+          color.withValues(alpha: 1),
+    );
+    return readable ? paint : null;
+  }
+
   static List<ChatBadge>? _mergeBadges(
     List<ChatBadge>? global,
     List<ChatBadge>? room,
   ) {
     if (room == null) return global;
-    final shown = {for (final badge in global ?? const <ChatBadge>[]) badge.url};
+    final shown = {
+      for (final badge in global ?? const <ChatBadge>[]) badge.url,
+    };
     return [
       ...?global,
       for (final badge in room)

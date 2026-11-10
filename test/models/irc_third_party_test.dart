@@ -46,10 +46,16 @@ void main() {
     when(() => assets.userToBTTVBadges).thenReturn({});
   });
 
-  Future<List<InlineSpan>> render(WidgetTester tester, String text) async {
+  Future<List<InlineSpan>> render(
+    WidgetTester tester,
+    String text, {
+    double? nameContrast,
+    bool selectable = false,
+  }) async {
     late List<InlineSpan> spans;
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(brightness: Brightness.dark),
         home: Scaffold(
           body: Builder(
             builder: (context) {
@@ -59,9 +65,10 @@ void main() {
                 badgeScale: 1,
                 emoteScale: 1,
                 launchExternal: false,
-                nameContrast: null,
+                nameContrast: nameContrast,
               );
-              return Text.rich(TextSpan(children: spans));
+              final line = Text.rich(TextSpan(children: spans));
+              return selectable ? SelectionArea(child: line) : line;
             },
           ),
         ),
@@ -77,8 +84,7 @@ void main() {
 
     final painted = tester.widget<PaintedName>(find.byType(PaintedName));
     expect(painted.text, 'Fan');
-    expect(find.byType(ShaderMask), findsOneWidget);
-    expect(find.text('Fan'), findsNWidgets(2));
+    expect(find.text('Fan'), findsOneWidget);
   });
 
   testWidgets('without a paint the name stays plain text', (tester) async {
@@ -241,5 +247,86 @@ void main() {
         )
         .map((image) => image.imageUrl);
     expect(urls, [global.url, room.url]);
+  });
+
+  testWidgets('a painted name is one text, measured once', (tester) async {
+    PaintedName.clearMeasurements();
+    when(() => assets.paintFor('42')).thenReturn(_paint);
+
+    await render(tester, 'hello');
+    await render(tester, 'hello again');
+
+    expect(
+      find.descendant(
+        of: find.byType(PaintedName),
+        matching: find.byType(RichText),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byType(ShaderMask), findsNothing);
+    expect(PaintedName.measuredCount, 1);
+    final text = tester.widget<Text>(
+      find.descendant(
+        of: find.byType(PaintedName),
+        matching: find.byType(Text),
+      ),
+    );
+    expect(text.style!.foreground!.shader, isNotNull);
+    expect(text.style!.shadows, _paint.shadows);
+  });
+
+  testWidgets('a painted name can be selected with the message', (
+    tester,
+  ) async {
+    when(() => assets.paintFor('42')).thenReturn(_paint);
+
+    await render(tester, 'hello', selectable: true);
+
+    final name = tester.widget<RichText>(
+      find.descendant(
+        of: find.byType(PaintedName),
+        matching: find.byType(RichText),
+      ),
+    );
+    expect(name.selectionRegistrar, isNotNull);
+  });
+
+  testWidgets('a paint too dark to read falls back to the readable color', (
+    tester,
+  ) async {
+    when(() => assets.paintFor('42')).thenReturn(
+      const NamePaint(
+        id: 'dark',
+        kind: NamePaintKind.linearGradient,
+        stops: [
+          NamePaintStop(0, Color(0xFF000010)),
+          NamePaintStop(1, Color(0xFF000033)),
+        ],
+      ),
+    );
+
+    final spans = await render(tester, 'hello', nameContrast: 4.5);
+
+    expect(find.byType(PaintedName), findsNothing);
+    final name = spans.whereType<TextSpan>().firstWhere((s) => s.text == 'Fan');
+    expect(name.style!.color, const Color(0xFFFF0000));
+  });
+
+  testWidgets('a readable paint is kept with readable colors on', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(400, 300));
+    when(() => assets.paintFor('42')).thenReturn(_paint);
+
+    await render(tester, 'hello', nameContrast: 1.5);
+
+    expect(find.byType(PaintedName), findsOneWidget);
+  });
+
+  test('paint images are decoded at a bounded height', () {
+    final bounded =
+        PaintedName.boundedPaintImage(const AssetImage('x.png')) as ResizeImage;
+    expect(bounded.height, PaintedName.paintImageHeight);
+    expect(bounded.width, isNull);
   });
 }
