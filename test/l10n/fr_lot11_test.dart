@@ -9,24 +9,24 @@ void main() {
   test('the emote change lines read naturally in French', () {
     expect(
       fr.chatSevenTvEmoteRenamed(name: 'Ana', old: 'KEKW', emote: 'LUL'),
-      'Ana a renommé l’emote 7TV « KEKW » en « LUL »',
+      'Ana a renommé l’emote 7TV « KEKW » en « LUL ».',
     );
     expect(
       fr.chatSevenTvEmoteSetSwitched(name: 'Ana', set: 'Été'),
       'Ana a remplacé les emotes 7TV de la chaîne par l’ensemble '
-      '« Été »',
+      '« Été ».',
     );
     expect(
       fr.chatBttvEmoteAdded(emote: 'catJAM'),
-      'L’emote BTTV « catJAM » a été ajoutée au chat',
+      'L’emote BTTV « catJAM » a été ajoutée au chat.',
     );
     expect(
       fr.chatBttvEmoteRemoved(emote: 'catJAM'),
-      'L’emote BTTV « catJAM » a été retirée du chat',
+      'L’emote BTTV « catJAM » a été retirée du chat.',
     );
     expect(
       fr.chatBttvEmoteRenamed(old: 'a', emote: 'b'),
-      'L’emote BTTV « a » a été renommée « b »',
+      'L’emote BTTV « a » a été renommée « b ».',
     );
     expect(fr.chatSevenTvSomeone, 'Quelqu’un');
   });
@@ -46,7 +46,7 @@ void main() {
     expect(fr.settingsShow7tvPaints, 'Afficher les peintures de pseudo 7TV');
     expect(
       fr.settingsShowFfzRoomBadges,
-      'Afficher les badges de modérateur et de VIP FFZ de la chaîne',
+      'Afficher les badges FFZ de modérateur et de VIP de la chaîne',
     );
     expect(
       fr.settingsShowEmoteChangeNoticesSubtitle,

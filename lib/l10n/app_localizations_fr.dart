@@ -1492,7 +1492,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsShowFfzRoomBadges =>
-      'Afficher les badges de modérateur et de VIP FFZ de la chaîne';
+      'Afficher les badges FFZ de modérateur et de VIP de la chaîne';
 
   @override
   String get settingsShowEmoteChangeNotices =>
@@ -5344,7 +5344,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatSevenTvEmoteAdded({required String name, required String emote}) {
-    return '$name a ajouté l’emote 7TV « $emote » au chat';
+    return '$name a ajouté l’emote 7TV « $emote » au chat.';
   }
 
   @override
@@ -5352,7 +5352,7 @@ class AppLocalizationsFr extends AppLocalizations {
     required String name,
     required String emote,
   }) {
-    return '$name a retiré l’emote 7TV « $emote » du chat';
+    return '$name a retiré l’emote 7TV « $emote » du chat.';
   }
 
   @override
@@ -5361,7 +5361,7 @@ class AppLocalizationsFr extends AppLocalizations {
     required String old,
     required String emote,
   }) {
-    return '$name a renommé l’emote 7TV « $old » en « $emote »';
+    return '$name a renommé l’emote 7TV « $old » en « $emote ».';
   }
 
   @override
@@ -5369,7 +5369,7 @@ class AppLocalizationsFr extends AppLocalizations {
     required String name,
     required String set,
   }) {
-    return '$name a remplacé les emotes 7TV de la chaîne par l’ensemble « $set »';
+    return '$name a remplacé les emotes 7TV de la chaîne par l’ensemble « $set ».';
   }
 
   @override
@@ -5377,17 +5377,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String chatBttvEmoteAdded({required String emote}) {
-    return 'L’emote BTTV « $emote » a été ajoutée au chat';
+    return 'L’emote BTTV « $emote » a été ajoutée au chat.';
   }
 
   @override
   String chatBttvEmoteRemoved({required String emote}) {
-    return 'L’emote BTTV « $emote » a été retirée du chat';
+    return 'L’emote BTTV « $emote » a été retirée du chat.';
   }
 
   @override
   String chatBttvEmoteRenamed({required String old, required String emote}) {
-    return 'L’emote BTTV « $old » a été renommée « $emote »';
+    return 'L’emote BTTV « $old » a été renommée « $emote ».';
   }
 
   @override
