@@ -6,6 +6,7 @@ import 'package:onset/models/cheermote.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/third_party_cosmetics.dart';
+import 'package:onset/screens/channel/chat/widgets/ffz_modified_emote.dart';
 import 'package:onset/screens/channel/chat/widgets/painted_name.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
@@ -328,5 +329,28 @@ void main() {
         PaintedName.boundedPaintImage(const AssetImage('x.png')) as ResizeImage;
     expect(bounded.height, PaintedName.paintImageHeight);
     expect(bounded.width, isNull);
+  });
+
+  testWidgets('an animated FFZ modifier animates the emote under it', (
+    tester,
+  ) async {
+    when(() => assets.emoteToObject).thenReturn({
+      'KEKW': _emote('KEKW'),
+      'ffzSpin': _emote(
+        'ffzSpin',
+        zeroWidth: true,
+        flags: FfzModifier.hidden | FfzModifier.rotate,
+      ),
+    });
+
+    await render(tester, 'KEKW ffzSpin');
+
+    final modified = tester.widget<FfzModifiedEmote>(
+      find.byType(FfzModifiedEmote),
+    );
+    expect(modified.modifiers & FfzModifier.rotate, FfzModifier.rotate);
+    expect(modified.animate, isTrue);
+    expect(find.byType(OnsetCachedNetworkImage), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
   });
 }

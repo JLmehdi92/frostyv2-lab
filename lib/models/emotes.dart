@@ -405,6 +405,24 @@ abstract final class FfzModifier {
   static const flipX = 2;
   static const flipY = 4;
   static const growX = 8;
+  static const slide = 16;
+  static const appear = 32;
+  static const disappear = 64;
+  static const rotate = 128;
+  static const rotate90 = 256;
+  static const greyscale = 512;
+  static const sepia = 1024;
+  static const rainbow = 2048;
+  static const hyperRed = 4096;
+  static const hyperShake = 8192;
+  static const cursed = 16384;
+  static const jam = 32768;
+  static const bounce = 65536;
+
+  static const moving =
+      slide | appear | disappear | rotate | rainbow | hyperShake | jam | bounce;
+
+  static const tinted = greyscale | sepia | hyperRed | cursed | rainbow;
 }
 
 enum EmoteType {
