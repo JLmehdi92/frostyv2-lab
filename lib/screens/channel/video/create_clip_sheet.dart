@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/apis/twitch_account_gql_service.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/chat/moderation_notice.dart';
 import 'package:onset/screens/channel/stores/create_clip_store.dart';
+import 'package:onset/screens/clips/widgets/clip_manage_sheet.dart';
 import 'package:onset/screens/onboarding/login_webview.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
@@ -76,6 +78,7 @@ class CreateClipSheet extends StatelessWidget {
     required this.onLogIn,
     required this.onOpenEditor,
     required this.onShare,
+    this.onRename,
     this.framePreviewUrl,
     this.channelLogin,
     this.channelName,
@@ -88,6 +91,11 @@ class CreateClipSheet extends StatelessWidget {
   final VoidCallback onLogIn;
   final void Function(Uri editUrl) onOpenEditor;
   final void Function(String link) onShare;
+
+  final void Function(String slug)? onRename;
+
+  static const renameKey = ValueKey('clip-create-rename');
+  static const trimKey = ValueKey('clip-create-trim');
 
   /// The live frame behind the work (null: a plain dark card).
   final String? framePreviewUrl;
@@ -107,6 +115,9 @@ class CreateClipSheet extends StatelessWidget {
   }) async {
     final authStore = context.read<AuthStore>();
     final viewerActions = context.read<TwitchViewerActionsService?>();
+    final accountService = (authStore.twitchWebToken ?? '').isEmpty
+        ? null
+        : context.read<TwitchAccountGqlService?>();
     final store = CreateClipStore(
       twitchApi: context.read<TwitchApi>(),
       broadcasterId: broadcasterId,
@@ -146,6 +157,21 @@ class CreateClipSheet extends StatelessWidget {
             url: url,
           ),
           onShare: (link) => shareLink(sheetContext, link),
+          onRename: switch (accountService) {
+            final service? => (slug) => unawaited(
+              renameClip(
+                sheetContext,
+                slug: slug,
+                title: '',
+                rename: (slug, title) => service.renameClip(
+                  slug: slug,
+                  title: title,
+                  authToken: authStore.twitchWebToken ?? '',
+                ),
+              ),
+            ),
+            null => null,
+          },
         ),
       );
     } finally {
@@ -266,7 +292,22 @@ class CreateClipSheet extends StatelessWidget {
                     .join(' · '),
               ),
             ),
-            if (editUrl != null) _EditRow(onTap: () => onOpenEditor(editUrl)),
+            if (onRename case final rename?)
+              _EditRow(
+                key: CreateClipSheet.renameKey,
+                label: context.l10n.clipRename,
+                detail: context.l10n.clipCreateRenameDetail,
+                glyph: VideoGlyphKind.pencil,
+                onTap: () => rename(creation.id),
+              ),
+            if (editUrl != null)
+              _EditRow(
+                key: CreateClipSheet.trimKey,
+                label: context.l10n.clipCreateTrim,
+                detail: context.l10n.clipCreateTrimDetail,
+                glyph: VideoGlyphKind.clip,
+                onTap: () => onOpenEditor(editUrl),
+              ),
             Row(
               spacing: 8,
               children: [
@@ -650,8 +691,17 @@ class _Reveal extends StatelessWidget {
 
 /// "Edit · Title and moment, in the twitch.tv clip editor".
 class _EditRow extends StatelessWidget {
-  const _EditRow({required this.onTap});
+  const _EditRow({
+    super.key,
+    required this.label,
+    required this.detail,
+    required this.glyph,
+    required this.onTap,
+  });
 
+  final String label;
+  final String detail;
+  final VideoGlyphKind glyph;
   final VoidCallback onTap;
 
   @override
@@ -659,9 +709,7 @@ class _EditRow extends StatelessWidget {
     final colors = SheetColors.of(context);
     return Semantics(
       button: true,
-      label:
-          '${context.l10n.clipCreateEdit}, '
-          '${context.l10n.clipCreateEditDetail}',
+      label: '$label, $detail',
       onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
@@ -684,7 +732,7 @@ class _EditRow extends StatelessWidget {
                 child: Row(
                   spacing: 12,
                   children: [
-                    VideoGlyph(VideoGlyphKind.pencil, color: colors.text),
+                    VideoGlyph(glyph, color: colors.text),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -692,7 +740,7 @@ class _EditRow extends StatelessWidget {
                         spacing: 1,
                         children: [
                           Text(
-                            context.l10n.clipCreateEdit,
+                            label,
                             style: SheetText.row.copyWith(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -700,7 +748,7 @@ class _EditRow extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            context.l10n.clipCreateEditDetail,
+                            detail,
                             style: SheetText.rowDetail.copyWith(
                               fontSize: 12,
                               color: colors.secondary,

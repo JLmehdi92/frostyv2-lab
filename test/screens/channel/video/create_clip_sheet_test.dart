@@ -32,7 +32,10 @@ void main() {
     ).thenAnswer((_) async => const CreatedClip(id: 'Slug-abc'));
   });
 
-  Future<CreateClipStore> pump(WidgetTester tester) async {
+  Future<CreateClipStore> pump(
+    WidgetTester tester, {
+    void Function(String slug)? onRename,
+  }) async {
     final store = CreateClipStore(
       twitchApi: api,
       broadcasterId: '42',
@@ -48,6 +51,7 @@ void main() {
             onLogIn: () => actions.add('log in'),
             onOpenEditor: edited.add,
             onShare: (link) => actions.add('share $link'),
+            onRename: onRename,
           ),
         ),
       ),
@@ -71,7 +75,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Rendering clip…'), findsNothing);
-    await tester.tap(find.text('Edit'));
+    await tester.tap(find.text('Trim'));
     expect(edited, [Uri.parse('https://www.twitch.tv/streamer/clip/Slug-abc')]);
 
     await tester.tap(find.text('Share clip'));
@@ -140,7 +144,31 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await tester.pump();
     expect(find.text('Copy link'), findsOneWidget);
-    expect(find.text('Edit'), findsNothing, reason: 'no edit link given');
+    expect(find.text('Trim'), findsNothing, reason: 'no edit link given');
+  });
+
+  testWidgets('the finished clip can be renamed from ONSET', (tester) async {
+    final renamed = <String>[];
+    final store = await pump(tester, onRename: renamed.add);
+    store.start();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(CreateClipSheet.renameKey));
+    expect(renamed, ['Slug-abc']);
+  });
+
+  testWidgets('without a Twitch session there is no Rename row', (
+    tester,
+  ) async {
+    final store = await pump(tester);
+    store.start();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(CreateClipSheet.renameKey), findsNothing);
   });
 
   test('each refusal has its own wording', () {

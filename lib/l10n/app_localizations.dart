@@ -6184,18 +6184,6 @@ abstract class AppLocalizations {
   /// **'Clip thumbnail'**
   String get clipCreateThumbnail;
 
-  /// Create clip sheet: the row that opens the clip in twitch.tv's clip editor.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get clipCreateEdit;
-
-  /// Under « Edit »: what can be changed there.
-  ///
-  /// In en, this message translates to:
-  /// **'Title and moment, in the twitch.tv clip editor'**
-  String get clipCreateEditDetail;
-
   /// The title of the in-app twitch.tv page of the clip editor.
   ///
   /// In en, this message translates to:
@@ -12097,12 +12085,6 @@ abstract class AppLocalizations {
   /// **'Clipped by me'**
   String get myClipsMadeByMe;
 
-  /// My clips: opens Twitch's clip manager, where clips can be deleted (Twitch's API can't delete a clip).
-  ///
-  /// In en, this message translates to:
-  /// **'Manage on Twitch'**
-  String get myClipsManage;
-
   /// The settings row that opens My clips: what it lists.
   ///
   /// In en, this message translates to:
@@ -13625,6 +13607,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep watching in a floating window while you use other apps.'**
   String get coachMarkPopOut;
+
+  /// Button on one of the viewer’s clips that opens Rename and Delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit clip'**
+  String get clipManage;
+
+  /// Row of the clip edit sheet and its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get clipRename;
+
+  /// Title of the dialog that changes a clip’s title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename the clip'**
+  String get clipRenameTitle;
+
+  /// Label of the clip title field.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get clipRenameField;
+
+  /// Button that saves a clip’s new title.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get clipRenameSave;
+
+  /// Snack bar after Twitch saved a clip’s new title.
+  ///
+  /// In en, this message translates to:
+  /// **'Clip renamed.'**
+  String get clipRenamed;
+
+  /// Row of the clip edit sheet that deletes the clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get clipDelete;
+
+  /// Title of the dialog that confirms deleting a clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this clip?'**
+  String get clipDeleteTitle;
+
+  /// Text of the dialog that confirms deleting a clip.
+  ///
+  /// In en, this message translates to:
+  /// **'The clip leaves Twitch for everyone. You can’t undo this.'**
+  String get clipDeleteBody;
+
+  /// Snack bar after Twitch deleted a clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clip deleted.'**
+  String get clipDeleted;
+
+  /// Snack bar when renaming or deleting a clip fails. status is AccountEditOutcome.name.
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, refused{Twitch declined this change.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to edit your clips from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  String clipActionFailed({required String status});
+
+  /// Second line of the Rename row on a clip that was just made.
+  ///
+  /// In en, this message translates to:
+  /// **'Name your clip in ONSET'**
+  String get clipCreateRenameDetail;
+
+  /// Row on a clip that was just made: it opens twitch.tv’s clip editor to choose the moment.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get clipCreateTrim;
+
+  /// Second line of the Trim row.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the moment in the twitch.tv clip editor'**
+  String get clipCreateTrimDetail;
 }
 
 class _AppLocalizationsDelegate

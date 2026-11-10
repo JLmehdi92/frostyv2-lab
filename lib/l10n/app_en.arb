@@ -5231,14 +5231,6 @@
   "@clipCreateThumbnail": {
     "description": "What a screen reader calls the made clip's picture."
   },
-  "clipCreateEdit": "Edit",
-  "@clipCreateEdit": {
-    "description": "Create clip sheet: the row that opens the clip in twitch.tv's clip editor."
-  },
-  "clipCreateEditDetail": "Title and moment, in the twitch.tv clip editor",
-  "@clipCreateEditDetail": {
-    "description": "Under « Edit »: what can be changed there."
-  },
   "clipCreateEditorTitle": "Edit clip",
   "@clipCreateEditorTitle": {
     "description": "The title of the in-app twitch.tv page of the clip editor."
@@ -11607,10 +11599,6 @@
   "@myClipsMadeByMe": {
     "description": "My clips: the tab with the clips the viewer made on any channel."
   },
-  "myClipsManage": "Manage on Twitch",
-  "@myClipsManage": {
-    "description": "My clips: opens Twitch's clip manager, where clips can be deleted (Twitch's API can't delete a clip)."
-  },
   "myClipsSubtitle": "Your channel’s clips and the ones you made",
   "@myClipsSubtitle": {
     "description": "The settings row that opens My clips: what it lists."
@@ -13185,5 +13173,67 @@
   "coachMarkPopOut": "Keep watching in a floating window while you use other apps.",
   "@coachMarkPopOut": {
     "description": "One-time tip beside the new floating player button of the live player (Android)."
+  },
+  "clipManage": "Edit clip",
+  "@clipManage": {
+    "description": "Button on one of the viewer’s clips that opens Rename and Delete."
+  },
+  "clipRename": "Rename",
+  "@clipRename": {
+    "description": "Row of the clip edit sheet and its dialog."
+  },
+  "clipRenameTitle": "Rename the clip",
+  "@clipRenameTitle": {
+    "description": "Title of the dialog that changes a clip’s title."
+  },
+  "clipRenameField": "Title",
+  "@clipRenameField": {
+    "description": "Label of the clip title field."
+  },
+  "clipRenameSave": "Save",
+  "@clipRenameSave": {
+    "description": "Button that saves a clip’s new title."
+  },
+  "clipRenamed": "Clip renamed.",
+  "@clipRenamed": {
+    "description": "Snack bar after Twitch saved a clip’s new title."
+  },
+  "clipDelete": "Delete",
+  "@clipDelete": {
+    "description": "Row of the clip edit sheet that deletes the clip."
+  },
+  "clipDeleteTitle": "Delete this clip?",
+  "@clipDeleteTitle": {
+    "description": "Title of the dialog that confirms deleting a clip."
+  },
+  "clipDeleteBody": "The clip leaves Twitch for everyone. You can’t undo this.",
+  "@clipDeleteBody": {
+    "description": "Text of the dialog that confirms deleting a clip."
+  },
+  "clipDeleted": "Clip deleted.",
+  "@clipDeleted": {
+    "description": "Snack bar after Twitch deleted a clip."
+  },
+  "clipActionFailed": "{status, select, refused{Twitch declined this change.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to edit your clips from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "@clipActionFailed": {
+    "description": "Snack bar when renaming or deleting a clip fails. status is AccountEditOutcome.name.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "refused"
+      }
+    }
+  },
+  "clipCreateRenameDetail": "Name your clip in ONSET",
+  "@clipCreateRenameDetail": {
+    "description": "Second line of the Rename row on a clip that was just made."
+  },
+  "clipCreateTrim": "Trim",
+  "@clipCreateTrim": {
+    "description": "Row on a clip that was just made: it opens twitch.tv’s clip editor to choose the moment."
+  },
+  "clipCreateTrimDetail": "Choose the moment in the twitch.tv clip editor",
+  "@clipCreateTrimDetail": {
+    "description": "Second line of the Trim row."
   }
 }

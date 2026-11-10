@@ -4072,13 +4072,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get clipCreateThumbnail => 'Miniature du clip';
 
   @override
-  String get clipCreateEdit => 'Modifier';
-
-  @override
-  String get clipCreateEditDetail =>
-      'Titre et moment, dans l’éditeur de clips de twitch.tv';
-
-  @override
   String get clipCreateEditorTitle => 'Modifier le clip';
 
   @override
@@ -9240,9 +9233,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get myClipsMadeByMe => 'Créés par moi';
 
   @override
-  String get myClipsManage => 'Gérer sur Twitch';
-
-  @override
   String get myClipsSubtitle =>
       'Les clips de votre chaîne et ceux que vous avez créés';
 
@@ -10559,4 +10549,57 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get coachMarkPopOut =>
       'Continuez à regarder dans une fenêtre flottante pendant que vous utilisez d’autres applications.';
+
+  @override
+  String get clipManage => 'Modifier le clip';
+
+  @override
+  String get clipRename => 'Renommer';
+
+  @override
+  String get clipRenameTitle => 'Renommer le clip';
+
+  @override
+  String get clipRenameField => 'Titre';
+
+  @override
+  String get clipRenameSave => 'Enregistrer';
+
+  @override
+  String get clipRenamed => 'Clip renommé.';
+
+  @override
+  String get clipDelete => 'Supprimer';
+
+  @override
+  String get clipDeleteTitle => 'Supprimer ce clip ?';
+
+  @override
+  String get clipDeleteBody =>
+      'Le clip disparaît de Twitch pour tout le monde. Cette action est définitive.';
+
+  @override
+  String get clipDeleted => 'Clip supprimé.';
+
+  @override
+  String clipActionFailed({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'refused': 'Twitch a refusé cette modification.',
+      'integrityRefused':
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.',
+      'signedOut': 'Reconnectez-vous pour modifier vos clips depuis ONSET.',
+      'other': 'Impossible de joindre Twitch. Réessayez.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get clipCreateRenameDetail => 'Nommez votre clip dans ONSET';
+
+  @override
+  String get clipCreateTrim => 'Couper';
+
+  @override
+  String get clipCreateTrimDetail =>
+      'Choisissez le moment dans l’éditeur de clips de twitch.tv';
 }

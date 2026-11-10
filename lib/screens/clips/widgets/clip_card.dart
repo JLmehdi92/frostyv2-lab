@@ -2,9 +2,11 @@ import 'package:flutter/material.dart' hide Clip;
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/screens/clips/clip_screen.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/screens/vod/widgets/video_card_layout.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/theme.dart';
 
 /// A clip in a list, laid out like the VOD cards: thumbnail with its views and length, then the title, category
 /// (or channel), age and clipper.
@@ -13,6 +15,7 @@ class ClipCard extends StatelessWidget {
     super.key,
     required this.clip,
     this.onTap,
+    this.onManage,
     this.showChannel = false,
     this.tile = false,
   });
@@ -27,6 +30,11 @@ class ClipCard extends StatelessWidget {
 
   /// Defaults to opening the clip in-app.
   final VoidCallback? onTap;
+
+  final VoidCallback? onManage;
+
+  static ValueKey<String> manageKey(String slug) =>
+      ValueKey('clip-manage-$slug');
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +57,35 @@ class ClipCard extends StatelessWidget {
       subtitle: showChannel ? clip.broadcasterDisplayName : clip.gameName,
       channelLogin: showChannel && tile ? clip.broadcasterLogin : null,
       details: details,
+      footer: switch (onManage) {
+        final manage? => Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            key: manageKey(clip.slug),
+            onPressed: manage,
+            style: TextButton.styleFrom(
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              foregroundColor: FeedColors.of(context).text,
+            ),
+            icon: VideoGlyph(
+              VideoGlyphKind.pencil,
+              size: 16,
+              color: FeedColors.of(context).text,
+            ),
+            label: Text(
+              l.clipManage,
+              style: const TextStyle(
+                fontFamily: OnsetTokens.bodyFamily,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        null => null,
+      },
       onTap:
           onTap ?? () => ClipScreen.open(context, slug: clip.slug, clip: clip),
     );

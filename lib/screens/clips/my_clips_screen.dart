@@ -1,17 +1,21 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Clip;
 import 'package:flutter/services.dart';
+import 'package:onset/apis/twitch_account_gql_service.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/clip.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
 import 'package:onset/screens/clips/widgets/channel_clips_tab.dart';
+import 'package:onset/screens/clips/widgets/clip_manage_sheet.dart';
 import 'package:onset/screens/home/shell/shell_tabs.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
-import 'package:onset/widgets/twitch_web_page.dart';
+import 'package:provider/provider.dart';
 
 class MyClipsScreen extends StatefulWidget {
   const MyClipsScreen({super.key, required this.login, required this.userId});
@@ -20,11 +24,6 @@ class MyClipsScreen extends StatefulWidget {
   final String userId;
 
   static const routeName = '/my-clips';
-
-  static Uri manageUrl(String login) => Uri.https(
-    'dashboard.twitch.tv',
-    '/u/${login.toLowerCase()}/content/clips',
-  );
 
   static Future<void> open(
     BuildContext context, {
@@ -69,13 +68,28 @@ class _MyClipsScreenState extends State<MyClipsScreen> {
     super.dispose();
   }
 
-  void _manage() => unawaited(
-    TwitchWebPage.open(
+  ClipManageActions? get _manageActions {
+    final service = context.read<TwitchAccountGqlService?>();
+    final auth = context.read<AuthStore?>();
+    if (service == null || auth == null) return null;
+    if ((auth.twitchWebToken ?? '').isEmpty) return null;
+    return ClipManageActions.of(
+      service,
+      token: () => auth.twitchWebToken ?? '',
+    );
+  }
+
+  Future<void> _manage(Clip clip, ChannelClipsStore store) async {
+    final actions = _manageActions;
+    if (actions == null) return;
+    final change = await showClipManageSheet(
       context,
-      title: context.l10n.myClipsManage,
-      url: MyClipsScreen.manageUrl(widget.login),
-    ),
-  );
+      slug: clip.slug,
+      title: clip.title,
+      actions: actions,
+    );
+    if (change != null && mounted) unawaited(store.refresh());
+  }
 
   Widget _iconButton({
     required String tooltip,
@@ -106,6 +120,7 @@ class _MyClipsScreenState extends State<MyClipsScreen> {
     final ground = theme.scaffoldBackgroundColor;
     final padding = MediaQuery.paddingOf(context);
     final l = context.l10n;
+    final canManage = _manageActions != null;
     final header = DecoratedBox(
       decoration: BoxDecoration(
         color: ground.withValues(alpha: 0.92),
@@ -154,11 +169,6 @@ class _MyClipsScreenState extends State<MyClipsScreen> {
                         ),
                       ),
                     ),
-                    _iconButton(
-                      tooltip: l.myClipsManage,
-                      glyph: VideoGlyphKind.pencil,
-                      onPressed: _manage,
-                    ),
                   ],
                 ),
               ),
@@ -202,11 +212,17 @@ class _MyClipsScreenState extends State<MyClipsScreen> {
                     ChannelClipsTab(
                       key: const PageStorageKey('my-channel-clips'),
                       store: _channelClips,
+                      onManage: canManage
+                          ? (clip) => unawaited(_manage(clip, _channelClips))
+                          : null,
                     ),
                     ChannelClipsTab(
                       key: const PageStorageKey('my-made-clips'),
                       store: _madeClips,
                       showChannel: true,
+                      onManage: canManage
+                          ? (clip) => unawaited(_manage(clip, _madeClips))
+                          : null,
                     ),
                   ],
                 ),

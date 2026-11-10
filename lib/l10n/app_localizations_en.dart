@@ -4014,13 +4014,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clipCreateThumbnail => 'Clip thumbnail';
 
   @override
-  String get clipCreateEdit => 'Edit';
-
-  @override
-  String get clipCreateEditDetail =>
-      'Title and moment, in the twitch.tv clip editor';
-
-  @override
   String get clipCreateEditorTitle => 'Edit clip';
 
   @override
@@ -9112,9 +9105,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get myClipsMadeByMe => 'Clipped by me';
 
   @override
-  String get myClipsManage => 'Manage on Twitch';
-
-  @override
   String get myClipsSubtitle => 'Your channel’s clips and the ones you made';
 
   @override
@@ -10399,4 +10389,57 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get coachMarkPopOut =>
       'Keep watching in a floating window while you use other apps.';
+
+  @override
+  String get clipManage => 'Edit clip';
+
+  @override
+  String get clipRename => 'Rename';
+
+  @override
+  String get clipRenameTitle => 'Rename the clip';
+
+  @override
+  String get clipRenameField => 'Title';
+
+  @override
+  String get clipRenameSave => 'Save';
+
+  @override
+  String get clipRenamed => 'Clip renamed.';
+
+  @override
+  String get clipDelete => 'Delete';
+
+  @override
+  String get clipDeleteTitle => 'Delete this clip?';
+
+  @override
+  String get clipDeleteBody =>
+      'The clip leaves Twitch for everyone. You can’t undo this.';
+
+  @override
+  String get clipDeleted => 'Clip deleted.';
+
+  @override
+  String clipActionFailed({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'refused': 'Twitch declined this change.',
+      'integrityRefused':
+          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+      'signedOut': 'Log in again to edit your clips from ONSET.',
+      'other': 'Couldn’t reach Twitch. Try again.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get clipCreateRenameDetail => 'Name your clip in ONSET';
+
+  @override
+  String get clipCreateTrim => 'Trim';
+
+  @override
+  String get clipCreateTrimDetail =>
+      'Choose the moment in the twitch.tv clip editor';
 }

@@ -328,6 +328,72 @@ class TwitchAccountGqlService extends BaseApiClient {
     return result.outcome;
   }
 
+  static const maxClipTitleLength = 100;
+
+  static const _deleteClipsDocument =
+      'mutation DeleteClipsMutation(\$input: DeleteClipsInput!) { '
+      'deleteClips(input: \$input) { clips { slug } } }';
+
+  static const _updateClipDocument =
+      'mutation UpdateClipMutation(\$input: UpdateClipInput!) { '
+      'updateClip(input: \$input) { clip { slug title } error { message } } }';
+
+  Future<AccountEditOutcome> deleteClip({
+    required String slug,
+    required String authToken,
+  }) async {
+    if (!isValidClipSlug(slug)) {
+      return (await _failedAtOnce<void>(authToken)).outcome;
+    }
+    final result = await _mutate(
+      operation: 'DeleteClipsMutation',
+      document: _deleteClipsDocument,
+      field: 'deleteClips',
+      authToken: authToken,
+      variables: {
+        'input': {
+          'slugs': [slug],
+        },
+      },
+    );
+    if (result.outcome != AccountEditOutcome.done) return result.outcome;
+    final deleted = result.value?['clips'];
+    return deleted is List &&
+            deleted.any((clip) => clip is Map && clip['slug'] == slug)
+        ? AccountEditOutcome.done
+        : AccountEditOutcome.refused;
+  }
+
+  Future<AccountEditResult<String>> renameClip({
+    required String slug,
+    required String title,
+    required String authToken,
+  }) async {
+    final text = title.trim();
+    if (!isValidClipSlug(slug) ||
+        text.isEmpty ||
+        text.length > maxClipTitleLength) {
+      return _failedAtOnce(authToken);
+    }
+    final result = await _mutate(
+      operation: 'UpdateClipMutation',
+      document: _updateClipDocument,
+      field: 'updateClip',
+      authToken: authToken,
+      variables: {
+        'input': {'slug': slug, 'title': text},
+      },
+    );
+    if (result.outcome != AccountEditOutcome.done) {
+      return AccountEditResult(result.outcome, code: result.code);
+    }
+    final clip = result.value?['clip'];
+    final saved = clip is Map ? clip['title'] : null;
+    return saved is String
+        ? AccountEditResult(AccountEditOutcome.done, value: saved)
+        : const AccountEditResult.failed();
+  }
+
   static bool _validLink(String title, String url) {
     final name = title.trim();
     return name.isNotEmpty &&

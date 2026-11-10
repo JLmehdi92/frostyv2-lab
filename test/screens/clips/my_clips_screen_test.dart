@@ -105,11 +105,4 @@ void main() {
     await frames(tester);
     expect(find.text('Couldn’t load clips.'), findsOneWidget);
   });
-
-  test('manage points at the clip manager', () {
-    expect(
-      MyClipsScreen.manageUrl('Viewer').toString(),
-      'https://dashboard.twitch.tv/u/viewer/content/clips',
-    );
-  });
 }

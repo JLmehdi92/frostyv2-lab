@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Clip;
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/clip.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
 import 'package:onset/screens/clips/widgets/clip_card.dart';
 import 'package:onset/screens/clips/widgets/clip_filter_bar.dart';
+import 'package:onset/screens/clips/widgets/clip_manage_sheet.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/widgets/video_card_layout.dart';
 import 'package:onset/screens/vod/widgets/video_kit.dart';
@@ -25,7 +27,10 @@ class ChannelClipsTab extends StatefulWidget {
     this.leadingSlivers = const [],
     this.refreshEdgeOffset = 0,
     this.filtersInList = false,
+    this.onManage,
   });
+
+  final void Function(Clip clip)? onManage;
 
   /// The period and sort chips scroll with the list, after
   /// [leadingSlivers] (a category's header), instead of staying above it.
@@ -134,6 +139,12 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
             clip: clips[index],
             tile: tiles,
             showChannel: widget.showChannel,
+            onManage: switch (widget.onManage) {
+              final manage? when clips[index].isManageable => () => manage(
+                clips[index],
+              ),
+              _ => null,
+            },
           ),
         ),
         if (store.hasMore)
