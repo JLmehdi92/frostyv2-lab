@@ -57,7 +57,6 @@ void main() {
                         id: '1',
                         name: 'Streamer',
                         following: false,
-                        onRetry: () async {},
                       ),
                       child: const Text('go'),
                     ),

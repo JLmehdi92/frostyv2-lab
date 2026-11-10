@@ -19,6 +19,16 @@ class _MockActions extends Mock implements FollowActions {}
 
 class _MockApi extends Mock implements TwitchApi {}
 
+class _PushObserver extends NavigatorObserver {
+  _PushObserver(this.pushes);
+
+  final List<Route<dynamic>> pushes;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      pushes.add(route);
+}
+
 StreamTwitch _stream(String id, String name) => StreamTwitch(
   id,
   name.toLowerCase(),
@@ -40,6 +50,8 @@ void main() {
     when(() => actions.canFollowInApp).thenReturn(true);
     when(() => actions.isSignedIn).thenReturn(true);
     when(() => actions.connectWebSession()).thenAnswer((_) async => true);
+    when(() => actions.followsChannel(any())).thenAnswer((_) async => false);
+    when(() => actions.followsCategory(any())).thenAnswer((_) async => false);
     when(
       () => actions.suggestionsAfterFollowing(any()),
     ).thenAnswer((_) async => const []);
@@ -362,6 +374,126 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a signed-in viewer without a web session still gets actions', (
+    tester,
+  ) async {
+    when(() => actions.canFollowInApp).thenReturn(false);
+    FollowActions? found;
+    await pumpLocalized(
+      tester,
+      Builder(
+        builder: (context) {
+          found = FollowFlow.actionsOf(context);
+          return const SizedBox();
+        },
+      ),
+      locale: en,
+      wrap: (app) => Provider<FollowActions?>.value(value: actions, child: app),
+    );
+    expect(found, same(actions));
+  });
+
+  testWidgets('a state learned after connecting is not followed twice', (
+    tester,
+  ) async {
+    var connected = false;
+    when(() => actions.canFollowInApp).thenAnswer((_) => connected);
+    when(() => actions.connectWebSession()).thenAnswer((_) async {
+      connected = true;
+      return true;
+    });
+    when(() => actions.followsChannel('1000')).thenAnswer((_) async => true);
+    await pump(tester, following: null);
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+
+    verifyNever(() => actions.followChannel(any()));
+    expect(info.following.value, isTrue);
+  });
+
+  testWidgets('Retry still works once the button that asked is gone', (
+    tester,
+  ) async {
+    when(
+      () => actions.followChannel('1000'),
+    ).thenAnswer((_) async => FollowResult.gqlError);
+    final shown = ValueNotifier(true);
+    info.following.value = false;
+    await pumpLocalized(
+      tester,
+      Scaffold(
+        body: ValueListenableBuilder<bool>(
+          valueListenable: shown,
+          builder: (context, visible, _) => visible
+              ? FollowButton(
+                  info: info,
+                  login: 'streamer',
+                  name: 'Streamer',
+                  height: 40,
+                )
+              : const SizedBox(),
+        ),
+      ),
+      locale: en,
+      wrap: (app) => Provider<FollowActions?>.value(value: actions, child: app),
+    );
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+    shown.value = false;
+    await tester.pump();
+    when(
+      () => actions.followChannel('1000'),
+    ).thenAnswer((_) async => FollowResult.done);
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+
+    verify(() => actions.followChannel('1000')).called(2);
+    expect(find.text('You now follow Streamer.'), findsOneWidget);
+  });
+
+  testWidgets('a session that never connects never leaves ONSET', (
+    tester,
+  ) async {
+    when(() => actions.canFollowInApp).thenReturn(false);
+    when(() => actions.connectWebSession()).thenAnswer((_) async => false);
+    var logins = 0;
+    FollowFlow.openLogin = (_) async => logins++;
+    addTearDown(() => FollowFlow.openLogin = FollowFlow.defaultOpenLogin);
+    final pushes = <Route<dynamic>>[];
+    info.following.value = false;
+    await pumpLocalized(
+      tester,
+      Scaffold(
+        body: Center(
+          child: FollowButton(
+            info: info,
+            login: 'streamer',
+            name: 'Streamer',
+            height: 40,
+          ),
+        ),
+      ),
+      locale: en,
+      observer: _PushObserver(pushes),
+      wrap: (app) => Provider<FollowActions?>.value(value: actions, child: app),
+    );
+    final before = pushes.length;
+
+    for (var tap = 0; tap < 2; tap++) {
+      await tester.tap(find.text('Follow'));
+      await tester.pumpAndSettle();
+      expect(find.text('Log in'), findsOneWidget);
+    }
+    await tester.tap(find.text('Log in'));
+    await tester.pumpAndSettle();
+
+    expect(pushes.length, before);
+    expect(logins, 1);
+    verifyNever(() => actions.followChannel(any()));
   });
 
   group('following from a prompt or a link', () {

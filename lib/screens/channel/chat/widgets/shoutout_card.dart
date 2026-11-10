@@ -45,12 +45,13 @@ class _ShoutoutCardState extends State<ShoutoutCard> {
       id: id,
       name: name,
       following: following,
-      onRetry: () => _follow(id: id, name: name, following: following),
+      onChanged: (now) {
+        if (mounted) setState(() => _following = now);
+      },
     );
-    if (!mounted) return;
+    if (now != null || !mounted) return;
     setState(() {
-      _following = now;
-      if (now == null) _profile = widget.load();
+      _profile = widget.load();
     });
   }
 

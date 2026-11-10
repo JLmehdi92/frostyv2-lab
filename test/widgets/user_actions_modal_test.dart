@@ -114,6 +114,22 @@ void main() {
       expect(find.byType(UserActionsModal), findsOneWidget);
     });
 
+    testWidgets('an unknown state is read again before anything is sent', (
+      tester,
+    ) async {
+      final answers = [null, true];
+      when(
+        () => actions.followsChannel('1'),
+      ).thenAnswer((_) async => answers.removeAt(0));
+      await pumpWithActions(tester);
+
+      await tester.tap(find.text('Follow Streamer'));
+      await tester.pumpAndSettle();
+
+      verifyNever(() => actions.followChannel(any()));
+      verify(() => actions.followsChannel('1')).called(2);
+    });
+
     testWidgets('an unknown state still follows from ONSET', (tester) async {
       when(() => actions.followsChannel('1')).thenAnswer((_) async => null);
       when(

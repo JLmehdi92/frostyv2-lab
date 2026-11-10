@@ -199,15 +199,17 @@ class _UserActionsFollowRowState extends State<UserActionsFollowRow> {
     if (mounted) setState(() => _following = following);
   }
 
-  Future<void> _toggle(bool following) async {
+  Future<void> _toggle() async {
     final navigator = Navigator.of(context);
     final now = await FollowFlow.toggle(
       context,
       target: FollowTarget.channel,
       id: widget.userId,
       name: widget.name,
-      following: following,
-      onRetry: () => _toggle(following),
+      following: _following,
+      onChanged: (now) {
+        if (mounted) setState(() => _following = now);
+      },
     );
     if (now != null && mounted) navigator.pop();
   }
@@ -224,7 +226,7 @@ class _UserActionsFollowRowState extends State<UserActionsFollowRow> {
         label: following
             ? l.userActionsUnfollow(name: widget.name)
             : l.userActionsFollow(name: widget.name),
-        onTap: () => _toggle(following),
+        onTap: _toggle,
       ),
     );
   }

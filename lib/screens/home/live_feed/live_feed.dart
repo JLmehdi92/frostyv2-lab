@@ -1318,15 +1318,16 @@ class _LiveFeedFollowButtonState extends State<LiveFeedFollowButton> {
       getReadableName(widget.stream.userName, widget.stream.userLogin);
 
   Future<void> _onPressed() async {
-    final now = await FollowFlow.toggle(
+    await FollowFlow.toggle(
       context,
       target: FollowTarget.channel,
       id: widget.stream.userId,
       name: _name,
-      following: _following ?? false,
-      onRetry: _onPressed,
+      following: _following,
+      onChanged: (now) {
+        if (mounted) setState(() => _following = now);
+      },
     );
-    if (now != null && mounted) setState(() => _following = now);
   }
 
   @override

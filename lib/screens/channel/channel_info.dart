@@ -524,12 +524,10 @@ class FollowButton extends StatelessWidget {
       target: FollowTarget.channel,
       id: info.channelId,
       name: name,
-      following: info.following.value ?? false,
-      onRetry: () => _toggle(context),
+      following: info.following.value,
+      onChanged: (now) => info.following.value = now,
     );
-    if (now == null) return;
-    info.following.value = now;
-    if (now && context.mounted) {
+    if (now == true && context.mounted) {
       await FollowFlow.suggestAfterFollowing(
         context,
         channelId: info.channelId,

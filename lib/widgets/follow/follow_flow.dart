@@ -25,7 +25,7 @@ class FollowFlow {
     } on ProviderNotFoundException {
       return null;
     }
-    return actions != null && actions.canFollowInApp ? actions : null;
+    return actions != null && actions.isSignedIn ? actions : null;
   }
 
   static final pending = ValueNotifier<Set<String>>(const {});
@@ -53,42 +53,76 @@ class FollowFlow {
     required FollowTarget target,
     required String id,
     required String name,
-    required bool following,
-    Future<void> Function()? onRetry,
+    required bool? following,
+    ValueChanged<bool>? onChanged,
   }) async {
     if (isPending(id)) return null;
+    final root = Navigator.maybeOf(context, rootNavigator: true);
     final actions = _providedActions(context);
     if (actions == null || !actions.isSignedIn) {
       _showSignInNeeded(context);
       return null;
     }
-    if (following && !await _confirmUnfollow(context, name)) return null;
+    final unfollow = following == true;
+    if (unfollow && !await _confirmUnfollow(context, name)) return null;
     if (isPending(id)) return null;
     pending.value = {...pending.value, id};
     final FollowResult result;
     try {
-      result = await actions.connectWebSession()
-          ? await switch ((target, following)) {
-              (FollowTarget.channel, false) => actions.followChannel(id),
-              (FollowTarget.channel, true) => actions.unfollowChannel(id),
-              (FollowTarget.category, false) => actions.followCategory(id),
-              (FollowTarget.category, true) => actions.unfollowCategory(id),
-            }
-          : FollowResult.noWebSession;
+      result = await _send(actions, target, id, following, unfollow);
     } finally {
       pending.value = {...pending.value}..remove(id);
     }
-    if (!context.mounted) return null;
+    final shownFrom = context.mounted ? context : root?.context;
+    if (shownFrom == null || !shownFrom.mounted) return null;
     showResult(
-      context,
+      shownFrom,
       result,
       name: name,
-      followed: !following,
-      onRetry: onRetry,
+      followed: !unfollow,
+      retry: () {
+        final again = root?.context;
+        if (again == null || !again.mounted) return;
+        unawaited(
+          toggle(
+            again,
+            target: target,
+            id: id,
+            name: name,
+            following: unfollow,
+            onChanged: onChanged,
+          ),
+        );
+      },
     );
     if (!result.succeeded) return null;
     unawaited(HapticFeedback.lightImpact());
-    return !following;
+    onChanged?.call(!unfollow);
+    return !unfollow;
+  }
+
+  static Future<FollowResult> _send(
+    FollowActions actions,
+    FollowTarget target,
+    String id,
+    bool? following,
+    bool unfollow,
+  ) async {
+    final hadSession = actions.canFollowInApp;
+    if (!await actions.connectWebSession()) return FollowResult.noWebSession;
+    if (!hadSession || following == null) {
+      final current = await switch (target) {
+        FollowTarget.channel => actions.followsChannel(id),
+        FollowTarget.category => actions.followsCategory(id),
+      };
+      if (current == !unfollow) return FollowResult.done;
+    }
+    return switch ((target, unfollow)) {
+      (FollowTarget.channel, false) => actions.followChannel(id),
+      (FollowTarget.channel, true) => actions.unfollowChannel(id),
+      (FollowTarget.category, false) => actions.followCategory(id),
+      (FollowTarget.category, true) => actions.unfollowCategory(id),
+    };
   }
 
   static Future<bool?> followFromPrompt(
@@ -108,16 +142,8 @@ class FollowFlow {
       id: id,
       name: name,
       following: false,
-      onRetry: () => followFromPrompt(
-        context,
-        id: id,
-        name: name,
-        following: false,
-        confirm: false,
-        onChanged: onChanged,
-      ),
+      onChanged: onChanged,
     );
-    if (now != null) onChanged?.call(now);
     if (now == true && context.mounted) {
       await suggestAfterFollowing(context, channelId: id, name: name);
     }
@@ -203,7 +229,7 @@ class FollowFlow {
     FollowResult result, {
     required String name,
     required bool followed,
-    Future<void> Function()? onRetry,
+    VoidCallback? retry,
   }) {
     final l = context.l10n;
     if (result.succeeded) {
@@ -216,23 +242,18 @@ class FollowFlow {
     _showSnackBar(
       context,
       l.followError(status: result.name),
-      _failureAction(context, result, onRetry),
+      _failureAction(context, result, retry),
     );
   }
 
   static SnackBarAction? _failureAction(
     BuildContext context,
     FollowResult result,
-    Future<void> Function()? onRetry,
+    VoidCallback? retry,
   ) {
     if (result.needsWebSession) return _logInAction(context);
-    if (onRetry == null || !result.canRetry) return null;
-    return SnackBarAction(
-      label: context.l10n.commonRetry,
-      onPressed: () {
-        if (context.mounted) unawaited(onRetry());
-      },
-    );
+    if (retry == null || !result.canRetry) return null;
+    return SnackBarAction(label: context.l10n.commonRetry, onPressed: retry);
   }
 
   static Future<void> suggestAfterFollowing(

@@ -823,19 +823,17 @@ class _EntryFollowState extends State<_EntryFollow> {
     final id = _channelId;
     if (id == null || _busy) return;
     setState(() => _busy = true);
-    final now = await FollowFlow.toggle(
+    await FollowFlow.toggle(
       context,
       target: FollowTarget.channel,
       id: id,
       name: widget.name,
       following: false,
-      onRetry: _follow,
+      onChanged: (now) {
+        if (mounted) setState(() => _following = now);
+      },
     );
-    if (!mounted) return;
-    setState(() {
-      _busy = false;
-      if (now != null) _following = now;
-    });
+    if (mounted) setState(() => _busy = false);
   }
 
   @override

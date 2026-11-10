@@ -5,6 +5,7 @@ import 'package:onset/apis/twitch_followed_categories_service.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/models/followed_category.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/models/user.dart';
 import 'package:onset/widgets/follow/follow_actions.dart';
 
 class _MockService extends Mock implements TwitchViewerActionsService {}
@@ -27,9 +28,11 @@ void main() {
   late FollowActions actions;
   late int connects;
   late String? Function() connectedToken;
+  late DateTime clock;
 
   setUp(() {
     connects = 0;
+    clock = DateTime.utc(2026, 11, 10);
     connectedToken = () => token;
     api = _MockApi();
     categories = _MockCategories();
@@ -41,6 +44,7 @@ void main() {
       categories: categories,
       webToken: () => token,
       viewerId: () => viewer,
+      now: () => clock,
       connectWebSession: () async {
         connects++;
         token = connectedToken();
@@ -90,9 +94,47 @@ void main() {
       () => api.isFollowing(userId: '77', broadcasterId: '6'),
     ).thenThrow(Exception('down'));
     expect(await actions.followsChannel('6'), isNull);
-    token = '';
+    viewer = null;
     expect(await actions.followsChannel('5'), isNull);
   });
+
+  test('the channel follow state never needs the web session', () async {
+    token = null;
+    when(
+      () => api.isFollowing(userId: '77', broadcasterId: '5'),
+    ).thenAnswer((_) async => true);
+    when(
+      () => api.getUser(userLogin: 'five'),
+    ).thenAnswer((_) async => const UserTwitch('5', 'five', 'Five', ''));
+    expect(await actions.followsChannel('5'), isTrue);
+    expect(await actions.channelFollowState('five'), (
+      id: '5',
+      following: true,
+    ));
+  });
+
+  test('without a web session the category state is unknown', () async {
+    token = null;
+    expect(await actions.followsCategory('509658'), isNull);
+    verifyNever(
+      () =>
+          categories.getFollowedCategories(authToken: any(named: 'authToken')),
+    );
+  });
+
+  test(
+    'a failed connect waits a minute before loading twitch.tv again',
+    () async {
+      token = null;
+      connectedToken = () => null;
+      expect(await actions.connectWebSession(), isFalse);
+      expect(await actions.connectWebSession(), isFalse);
+      expect(connects, 1);
+      clock = clock.add(const Duration(seconds: 61));
+      expect(await actions.connectWebSession(), isFalse);
+      expect(connects, 2);
+    },
+  );
 
   test('a category is followed when Twitch lists it', () async {
     when(() => categories.getFollowedCategories(authToken: 'tok')).thenAnswer(

@@ -13,7 +13,9 @@ class FollowActions {
     required String? Function() webToken,
     required String? Function() viewerId,
     required Future<bool> Function() connectWebSession,
-  }) : _service = service,
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now,
+       _service = service,
        _api = api,
        _categories = categories,
        _webToken = webToken,
@@ -21,6 +23,7 @@ class FollowActions {
        _connectWebSession = connectWebSession;
 
   static const suggestionLimit = 5;
+  static const connectCooldown = Duration(minutes: 1);
 
   final TwitchViewerActionsService _service;
   final TwitchApi _api;
@@ -28,6 +31,8 @@ class FollowActions {
   final String? Function() _webToken;
   final String? Function() _viewerId;
   final Future<bool> Function() _connectWebSession;
+  final DateTime Function() _now;
+  DateTime? _lastFailedConnect;
 
   String get _token => _webToken() ?? '';
 
@@ -38,12 +43,19 @@ class FollowActions {
   Future<bool> connectWebSession() async {
     if (canFollowInApp) return true;
     if (!isSignedIn) return false;
+    final lastFailure = _lastFailedConnect;
+    if (lastFailure != null &&
+        _now().difference(lastFailure) < connectCooldown) {
+      return false;
+    }
     try {
       await _connectWebSession();
     } catch (e) {
       debugPrint('Connecting the Twitch web session failed: ${e.runtimeType}');
     }
-    return canFollowInApp;
+    final connected = canFollowInApp;
+    _lastFailedConnect = connected ? null : _now();
+    return connected;
   }
 
   Future<FollowResult> followChannel(String channelId) =>
@@ -59,6 +71,7 @@ class FollowActions {
       _service.unfollowCategory(categoryId: categoryId, authToken: _token);
 
   Future<bool?> followsCategory(String categoryId) async {
+    if (!canFollowInApp) return null;
     final followed = await _categories.getFollowedCategories(authToken: _token);
     if (followed == null) return null;
     return followed.any((category) => category.id == categoryId);
@@ -66,7 +79,7 @@ class FollowActions {
 
   Future<bool?> followsChannel(String channelId) async {
     final viewer = _viewerId();
-    if (viewer == null || !canFollowInApp) return null;
+    if (viewer == null) return null;
     try {
       return await _api.isFollowing(userId: viewer, broadcasterId: channelId);
     } catch (e) {
@@ -79,7 +92,7 @@ class FollowActions {
     String login,
   ) async {
     final viewer = _viewerId();
-    if (viewer == null || !canFollowInApp) return null;
+    if (viewer == null) return null;
     try {
       final user = await _api.getUser(userLogin: login);
       final following = await _api.isFollowing(

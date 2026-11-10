@@ -103,8 +103,17 @@ void main() {
     verifyNever(() => actions.channelFollowState('streamer'));
 
     await store.addAll([_entry('r', ActivityKind.reminder)]);
-    when(() => actions.canFollowInApp).thenReturn(false);
+    when(() => actions.isSignedIn).thenReturn(false);
     await pump(tester, follow: actions);
     expect(find.widgetWithText(FilledButton, 'Follow'), findsNothing);
+  });
+
+  testWidgets('without a web session the Follow button still shows', (
+    tester,
+  ) async {
+    when(() => actions.canFollowInApp).thenReturn(false);
+    await store.addAll([_entry('r', ActivityKind.reminder)]);
+    await pump(tester, follow: actions);
+    expect(find.widgetWithText(FilledButton, 'Follow'), findsOneWidget);
   });
 }

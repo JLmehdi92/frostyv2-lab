@@ -234,8 +234,6 @@ class _CategoryViewState extends State<CategoryView> {
     loadStreams: false,
   );
 
-  /// Opens the category on twitch.tv, where the viewer can follow or
-  /// unfollow it.
   bool? _followsCategory;
 
   @override
@@ -252,15 +250,16 @@ class _CategoryViewState extends State<CategoryView> {
   }
 
   Future<void> _follow(String name) async {
-    final now = await FollowFlow.toggle(
+    await FollowFlow.toggle(
       context,
       target: FollowTarget.category,
       id: widget.categoryId,
       name: name,
-      following: _followsCategory ?? false,
-      onRetry: () => _follow(name),
+      following: _followsCategory,
+      onChanged: (now) {
+        if (mounted) setState(() => _followsCategory = now);
+      },
     );
-    if (now != null && mounted) setState(() => _followsCategory = now);
   }
 
   /// The header that leads every section's list (it scrolls with it).
