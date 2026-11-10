@@ -97,4 +97,41 @@ void main() {
       expect(calls, isEmpty);
     });
   });
+
+  group('the page fallback off Android', () {
+    const service = TwitchWebTokenService(isAndroid: false);
+
+    test('reads the session from the page cookies', () async {
+      expect(
+        await service.readAuthTokenFromPage(
+          Future.value('unique_id=abc; auth-token=sess1on; theme=dark'),
+        ),
+        'sess1on',
+      );
+    });
+
+    test('reads a JSON-quoted page result', () async {
+      expect(
+        await service.readAuthTokenFromPage(
+          Future.value('"unique_id=abc; auth-token=quoted"'),
+        ),
+        'quoted',
+      );
+    });
+
+    test(
+      'a page without the cookie, or a failed script, gives nothing',
+      () async {
+        expect(
+          await service.readAuthTokenFromPage(Future.value('unique_id=abc')),
+          isNull,
+        );
+        expect(
+          await service.readAuthTokenFromPage(Future.error(StateError('gone'))),
+          isNull,
+        );
+        expect(await service.readAuthTokenFromPage(Future.value(3)), isNull);
+      },
+    );
+  });
 }

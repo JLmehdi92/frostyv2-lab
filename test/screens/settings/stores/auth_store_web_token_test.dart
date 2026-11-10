@@ -19,6 +19,7 @@ const _storage = FlutterSecureStorage();
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() => registerFallbackValue(Future<Object?>.value()));
 
   late MockTwitchApi api;
   late MockWebTokenService cookies;
@@ -1119,6 +1120,40 @@ void main() {
     for (final url in refused) {
       expect(TwitchWebTokenService.isTwitchPageUrl(url), isFalse, reason: url);
     }
+  });
+
+  group('off Android', () {
+    test('the login page cookies give the session', () async {
+      when(
+        () => cookies.readAuthTokenFromPage(any()),
+      ).thenAnswer((_) async => 'ios_token');
+      final store = build(isAndroid: false);
+      await store.login(token: 'user');
+
+      expect(
+        await store.harvestTwitchWebToken(
+          pageCookies: Future.value('auth-token=ios_token'),
+        ),
+        isTrue,
+      );
+      expect(store.twitchWebToken, 'ios_token');
+    });
+
+    test('another account’s page cookie is not kept', () async {
+      when(
+        () => cookies.readAuthTokenFromPage(any()),
+      ).thenAnswer((_) async => 'ios_token_2');
+      final store = build(isAndroid: false);
+      await store.login(token: 'user');
+
+      expect(
+        await store.harvestTwitchWebToken(
+          pageCookies: Future.value('auth-token=ios_token_2'),
+        ),
+        isFalse,
+      );
+      expect(store.twitchWebToken, isNull);
+    });
   });
 }
 

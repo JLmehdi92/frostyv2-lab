@@ -431,7 +431,11 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
   /// store's account check).
   void _closeAfterHarvest() {
     _auth
-        .harvestTwitchWebToken()
+        .harvestTwitchWebToken(
+          pageCookies: _controller
+              .runJavaScriptReturningResult('document.cookie')
+              .catchError((Object _) => ''),
+        )
         .timeout(const Duration(seconds: 5), onTimeout: () => false)
         .catchError((Object _) => false)
         .whenComplete(_finish)

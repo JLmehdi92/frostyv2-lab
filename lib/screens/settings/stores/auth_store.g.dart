@@ -149,9 +149,9 @@ mixin _$AuthStore on AuthBase, Store {
   );
 
   @override
-  Future<bool> harvestTwitchWebToken() {
+  Future<bool> harvestTwitchWebToken({Future<Object?>? pageCookies}) {
     return _$harvestTwitchWebTokenAsyncAction.run(
-      () => super.harvestTwitchWebToken(),
+      () => super.harvestTwitchWebToken(pageCookies: pageCookies),
     );
   }
 

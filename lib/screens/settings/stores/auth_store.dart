@@ -217,10 +217,12 @@ abstract class AuthBase with Store {
   /// miss: the user may have pasted one by hand, and a transient read failure
   /// must not throw away a working credential.
   @action
-  Future<bool> harvestTwitchWebToken() async {
+  Future<bool> harvestTwitchWebToken({Future<Object?>? pageCookies}) async {
     final epoch = _authEpoch;
     final webEpoch = _webSessionEpoch;
-    final harvested = await _webTokenService.readAuthToken();
+    final harvested = pageCookies != null && !_isAndroid
+        ? await _webTokenService.readAuthTokenFromPage(pageCookies)
+        : await _webTokenService.readAuthToken();
 
     // Signed out while reading: the jar it read belonged to the session that
     // just ended, and storing it would hand the next account its token.
@@ -516,6 +518,7 @@ abstract class AuthBase with Store {
     VoidCallback? onSignedIn,
     VoidCallback? onNotSignedIn,
     LoginAttempt? attempt,
+    Future<Object?> Function()? pageCookies,
   }) {
     // The redirect URI, exactly, and only for the page itself: a frame
     // inside it, another path or host, or a token without the state of the
@@ -548,10 +551,11 @@ abstract class AuthBase with Store {
                 .whereType<Future<bool>>()
                 .firstOrNull;
       if (outcome != null) {
+        final cookies = _isAndroid ? null : _readPageCookies(pageCookies);
         unawaited(
           outcome
               .then((worked) async {
-                if (worked) return harvestTwitchWebToken();
+                if (worked) return harvestTwitchWebToken(pageCookies: cookies);
                 // The page may have signed the shared jar in as an account
                 // that is not the session's: then its twitch.tv session goes.
                 await _clearJarIfForeign();
@@ -581,6 +585,19 @@ abstract class AuthBase with Store {
 
     // Always allow navigation to the next URL.
     return NavigationDecision.navigate;
+  }
+
+  Future<Object?>? _readPageCookies(Future<Object?> Function()? read) {
+    if (read == null) return null;
+    try {
+      return read().catchError((Object e) {
+        debugPrint('Reading the page cookies failed: ${e.runtimeType}');
+        return null;
+      });
+    } catch (e) {
+      debugPrint('Reading the page cookies failed: ${e.runtimeType}');
+      return null;
+    }
   }
 
   /// The token the last successful [login] signed in with (in memory only),
@@ -757,6 +774,9 @@ abstract class AuthBase with Store {
             onSignedIn: onSignedIn,
             onNotSignedIn: onNotSignedIn,
             attempt: attempt,
+            pageCookies: () => webViewController.runJavaScriptReturningResult(
+              'document.cookie',
+            ),
           ),
           onPageStarted: page,
           onUrlChange: (change) => page(change.url),

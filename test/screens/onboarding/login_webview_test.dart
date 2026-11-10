@@ -23,6 +23,7 @@ void main() {
   VoidCallback? onNotSignedIn;
 
   setUpAll(() {
+    registerFallbackValue(Future<Object?>.value());
     registerFallbackValue(Uri());
     registerFallbackValue(MockWebViewController());
   });
@@ -35,10 +36,15 @@ void main() {
     onTokenCaptured = null;
     onSignedIn = null;
     onNotSignedIn = null;
+    when(
+      () => controller.runJavaScriptReturningResult(any()),
+    ).thenAnswer((_) async => '');
     when(() => auth.retryLogin(any())).thenAnswer((_) async {});
     when(() => auth.closeLogin(any())).thenReturn(null);
     when(() => auth.isLoggedIn).thenReturn(false);
-    when(() => auth.harvestTwitchWebToken()).thenAnswer((_) async => true);
+    when(
+      () => auth.harvestTwitchWebToken(pageCookies: any(named: 'pageCookies')),
+    ).thenAnswer((_) async => true);
     when(
       () => auth.createAuthWebViewController(
         routeAfter: any(named: 'routeAfter'),
@@ -193,9 +199,13 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 19));
     expect(find.text('Log in with Twitch'), findsOneWidget);
-    verifyNever(() => auth.harvestTwitchWebToken());
+    verifyNever(
+      () => auth.harvestTwitchWebToken(pageCookies: any(named: 'pageCookies')),
+    );
     await tester.pump(const Duration(seconds: 2));
-    verify(() => auth.harvestTwitchWebToken()).called(1);
+    verify(
+      () => auth.harvestTwitchWebToken(pageCookies: any(named: 'pageCookies')),
+    ).called(1);
     await tester.pumpAndSettle();
     expect(find.text('open'), findsOneWidget);
   });
@@ -204,7 +214,7 @@ void main() {
       '5 s after the limit', (tester) async {
     await open(tester);
     when(
-      () => auth.harvestTwitchWebToken(),
+      () => auth.harvestTwitchWebToken(pageCookies: any(named: 'pageCookies')),
     ).thenAnswer((_) => Completer<bool>().future);
     onTokenCaptured!(Future.value(true));
     await tester.pump();

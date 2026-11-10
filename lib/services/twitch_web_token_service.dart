@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -66,6 +67,18 @@ class TwitchWebTokenService {
       return null;
     } on MissingPluginException {
       // Older build without the native side; fall back to the manual field.
+      return null;
+    }
+  }
+
+  Future<String?> readAuthTokenFromPage(Future<Object?> pageCookies) async {
+    try {
+      final raw = await pageCookies;
+      if (raw is! String) return null;
+      final cookies = raw.startsWith('"') ? jsonDecode(raw) : raw;
+      return cookies is String ? parseAuthToken(cookies) : null;
+    } catch (e) {
+      debugPrint('Could not read the page cookies: ${e.runtimeType}');
       return null;
     }
   }
