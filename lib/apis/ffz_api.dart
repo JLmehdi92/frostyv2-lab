@@ -43,6 +43,8 @@ class FFZApi extends BaseApiClient {
   }
 
   /// Returns a map of badges user IDs to a list of their FFZ badges.
+  Map<String, ChatBadge>? badgeDefinitions;
+
   Future<Map<String, List<ChatBadge>>> getBadges() async {
     final data = await get<JsonMap>('/badges/ids');
 
@@ -50,6 +52,11 @@ class FFZApi extends BaseApiClient {
     final badgeObjects = badges
         .map((badge) => BadgeInfoFFZ.fromJson(badge))
         .toList();
+
+    badgeDefinitions = {
+      for (final badge in badgeObjects)
+        badge.id.toString(): ChatBadge.fromFFZ(badge),
+    };
 
     final result = <String, List<ChatBadge>>{};
     for (final badge in badgeObjects.reversed) {

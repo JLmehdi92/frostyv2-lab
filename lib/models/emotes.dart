@@ -65,8 +65,20 @@ class RoomFFZ {
   final int set;
   final ImagesFFZ? vipBadge;
   final ImagesFFZ? modUrls;
+  final Map<String, List<dynamic>>? userBadgeIds;
 
-  const RoomFFZ(this.set, this.vipBadge, this.modUrls);
+  const RoomFFZ(this.set, this.vipBadge, this.modUrls, {this.userBadgeIds});
+
+  Map<String, List<String>> get badgeIdsByUser {
+    final byUser = <String, List<String>>{};
+    for (final MapEntry(key: badgeId, value: users)
+        in (userBadgeIds ?? const <String, List<dynamic>>{}).entries) {
+      for (final user in users) {
+        (byUser[user.toString()] ??= []).add(badgeId);
+      }
+    }
+    return byUser;
+  }
 
   factory RoomFFZ.fromJson(Map<String, dynamic> json) =>
       _$RoomFFZFromJson(json);

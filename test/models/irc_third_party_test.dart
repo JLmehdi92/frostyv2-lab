@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/badges.dart';
 import 'package:onset/models/cheermote.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
@@ -210,5 +211,35 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets('room FFZ badges are added to the user’s FFZ badges, once', (
+    tester,
+  ) async {
+    const global = ChatBadge(
+      name: 'FFZ Developer',
+      url: 'https://cdn.ffz.net/badge/4x.png',
+      color: '#FF0000',
+      type: BadgeType.ffz,
+    );
+    const room = ChatBadge(
+      name: 'Channel helper',
+      url: 'https://cdn.ffz.net/badge3/4x.png',
+      color: '#0000FF',
+      type: BadgeType.ffz,
+    );
+    when(() => assets.userToFFZBadges).thenReturn({
+      '42': [global],
+    });
+    when(() => assets.ffzRoomBadgesFor('42')).thenReturn([global, room]);
+
+    await render(tester, 'hello');
+
+    final urls = tester
+        .widgetList<OnsetCachedNetworkImage>(
+          find.byType(OnsetCachedNetworkImage),
+        )
+        .map((image) => image.imageUrl);
+    expect(urls, [global.url, room.url]);
   });
 }

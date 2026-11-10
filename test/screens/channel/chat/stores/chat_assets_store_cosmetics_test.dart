@@ -314,4 +314,29 @@ void main() {
     expect(store.personalEmotesFor('6'), isNull);
     expect(store.personalEmotesFor('7'), isNotNull);
   });
+
+  test('the room’s FFZ user badges come from the badge catalog', () {
+    const supporter = ChatBadge(
+      name: 'FFZ Supporter',
+      url: 'https://cdn.ffz.net/badge2/4x.png',
+      color: '#00FF00',
+      type: BadgeType.ffz,
+    );
+    when(() => global.ffzBadgeDefinitions).thenReturn({'2': supporter});
+    store.ffzRoomInfo = const RoomFFZ(
+      1,
+      null,
+      null,
+      userBadgeIds: {
+        '2': [42],
+        '9': [42],
+      },
+    );
+
+    expect(store.ffzRoomBadgesFor('42'), [supporter]);
+    expect(store.ffzRoomBadgesFor('7'), isNull);
+
+    configure(ffzRoom: false);
+    expect(store.ffzRoomBadgesFor('42'), isNull);
+  });
 }

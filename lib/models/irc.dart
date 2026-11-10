@@ -512,7 +512,10 @@ class IRCMessage {
     final bttvUserToBadge = assetsStore.userToBTTVBadges;
     final ffzRoomInfo = assetsStore.ffzRoomBadges;
 
-    final ffzUserBadges = ffzUserToBadges[tags['user-id']];
+    final ffzUserBadges = _mergeBadges(
+      ffzUserToBadges[tags['user-id']],
+      assetsStore.ffzRoomBadgesFor(tags['user-id']),
+    );
     final twitchBadges = tags['badges']?.split(',');
 
     // Add Twitch badges
@@ -1153,6 +1156,19 @@ class IRCMessage {
     localSpan.add(const TextSpan(text: ' '));
 
     return index - 1;
+  }
+
+  static List<ChatBadge>? _mergeBadges(
+    List<ChatBadge>? global,
+    List<ChatBadge>? room,
+  ) {
+    if (room == null) return global;
+    final shown = {for (final badge in global ?? const <ChatBadge>[]) badge.url};
+    return [
+      ...?global,
+      for (final badge in room)
+        if (shown.add(badge.url)) badge,
+    ];
   }
 
   static Widget _modifiedEmote({

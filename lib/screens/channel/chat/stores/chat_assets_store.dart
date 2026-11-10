@@ -40,7 +40,25 @@ abstract class ChatAssetsStoreBase with Store {
   final GlobalAssetsStore globalAssetsStore;
 
   /// Contains any custom FFZ mod and vip badges for the channel.
-  RoomFFZ? ffzRoomInfo;
+  RoomFFZ? get ffzRoomInfo => _ffzRoomInfo;
+  set ffzRoomInfo(RoomFFZ? room) {
+    _ffzRoomInfo = room;
+    _ffzRoomBadgeIdsByUser = room?.badgeIdsByUser ?? const {};
+  }
+
+  RoomFFZ? _ffzRoomInfo;
+  var _ffzRoomBadgeIdsByUser = const <String, List<String>>{};
+
+  List<ChatBadge>? ffzRoomBadgesFor(String? userId) {
+    if (!showFfzRoomBadges || userId == null) return null;
+    final badgeIds = _ffzRoomBadgeIdsByUser[userId];
+    final definitions = globalAssetsStore.ffzBadgeDefinitions;
+    if (badgeIds == null || definitions == null) return null;
+    final badges = [
+      for (final id in badgeIds) ?definitions[id],
+    ];
+    return badges.isEmpty ? null : badges;
+  }
 
   String? sevenTvEmoteSetId;
 

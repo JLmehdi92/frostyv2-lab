@@ -189,4 +189,43 @@ void main() {
       expect(badges, isEmpty);
     });
   });
+
+  group('room user badges', () {
+    test('the room names which users wear which FFZ badge', () async {
+      dioAdapter.onGet(
+        'https://api.frankerfacez.com/v1/room/id/777',
+        (server) => server.reply(200, {
+          ...ffzRoomInfoResponse,
+          'room': {
+            'set': 123,
+            'vip_badge': null,
+            'mod_urls': null,
+            'user_badge_ids': {
+              '2': [11111, 22222],
+              '3': ['22222'],
+            },
+          },
+        }),
+      );
+
+      final (room, _) = await api.getRoomInfo(id: '777');
+
+      expect(room.badgeIdsByUser, {
+        '11111': ['2'],
+        '22222': ['2', '3'],
+      });
+    });
+
+    test('loading the badges keeps each badge by id', () async {
+      dioAdapter.onGet(
+        'https://api.frankerfacez.com/v1/badges/ids',
+        (server) => server.reply(200, ffzBadgesResponse),
+      );
+
+      await api.getBadges();
+
+      expect(api.badgeDefinitions!['2']!.name, 'FFZ Supporter');
+      expect(api.badgeDefinitions!['1']!.color, '#FF0000');
+    });
+  });
 }

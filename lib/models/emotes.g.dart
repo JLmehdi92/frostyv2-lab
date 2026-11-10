@@ -39,6 +39,9 @@ RoomFFZ _$RoomFFZFromJson(Map<String, dynamic> json) => RoomFFZ(
   json['mod_urls'] == null
       ? null
       : ImagesFFZ.fromJson(json['mod_urls'] as Map<String, dynamic>),
+  userBadgeIds: (json['user_badge_ids'] as Map<String, dynamic>?)?.map(
+    (k, e) => MapEntry(k, e as List<dynamic>),
+  ),
 );
 
 ImagesFFZ _$ImagesFFZFromJson(Map<String, dynamic> json) =>

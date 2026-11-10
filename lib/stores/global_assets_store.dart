@@ -28,6 +28,8 @@ abstract class GlobalAssetsStoreBase with Store {
     required this.sevenTVApi,
   });
 
+  Map<String, ChatBadge>? get ffzBadgeDefinitions => ffzApi.badgeDefinitions;
+
   late final sevenTvCosmetics = SevenTvCosmeticsCache(sevenTVApi);
 
   // ============= Loading State =============
