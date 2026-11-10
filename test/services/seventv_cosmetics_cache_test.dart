@@ -47,6 +47,7 @@ void main() {
 
       subject.lookup('2').then(results.add);
       async.flushMicrotasks();
+      expect(results, hasLength(5));
       expect(results.last.badge, _badge);
       verifyNoMoreInteractions(api);
     });
@@ -74,7 +75,10 @@ void main() {
       async.elapse(const Duration(seconds: 1));
       expect(result!.badge, isNull);
 
-      subject.lookup('2');
+      SevenTvUserCosmetics? paused;
+      subject.lookup('2').then((value) => paused = value);
+      async.flushMicrotasks();
+      expect(paused, isNotNull, reason: 'answered at once while paused');
       async.elapse(const Duration(seconds: 1));
       verify(() => api.getUsersCosmetics(any())).called(1);
 

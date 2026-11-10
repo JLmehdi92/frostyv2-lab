@@ -1692,7 +1692,6 @@ abstract class ChatStoreBase with Store {
       },
       onDone: () {
         if (generation != _sevenTvGeneration ||
-            _thirdPartyClosed ||
             !settings.show7TVEmotes) {
           return;
         }
@@ -1736,7 +1735,6 @@ abstract class ChatStoreBase with Store {
   @visibleForTesting
   math.Random thirdPartyJitter = math.Random();
 
-  var _thirdPartyClosed = false;
   var _sevenTvGeneration = 0;
   var _sevenTvRetries = 0;
   Timer? _sevenTvRetryTimer;
@@ -1906,7 +1904,6 @@ abstract class ChatStoreBase with Store {
       onError: (error) => debugPrint('BTTV events error: $error'),
       onDone: () {
         if (generation != _bttvGeneration ||
-            _thirdPartyClosed ||
             !settings.showBTTVEmotes) {
           return;
         }
@@ -2761,7 +2758,6 @@ abstract class ChatStoreBase with Store {
 
     // Close WebSocket channels
     _channel?.sink.close(1000);
-    _thirdPartyClosed = true;
     _closeSevenTvChannel();
     _closeBttvChannel();
 
