@@ -12891,12 +12891,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{You have 1 unopened chest.} other{You have {count} unopened chests.}}'**
   String hypeChestsUnopened({required int count});
 
-  /// Why the card has no Open button.
-  ///
-  /// In en, this message translates to:
-  /// **'ONSET can’t open chests yet. Open them on Twitch to reveal your emotes.'**
-  String get hypeChestsOpenElsewhere;
-
   /// Button that opens the full emote collection.
   ///
   /// In en, this message translates to:
@@ -13781,6 +13775,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick a PNG, JPG, or GIF image of up to 10 MB.'**
   String get editProfileImageInvalid;
+
+  /// Button that opens the viewer’s unopened emote chests in ONSET.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Open the chest} other{Open {count} chests}}'**
+  String hypeChestsOpen({required int count});
+
+  /// Button label while chests are opening.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening…'**
+  String get hypeChestsOpening;
+
+  /// Title of the reveal after opening chests. count is how many emotes the viewer did not own before.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No new emote this time} =1{A new emote} other{{count} new emotes}}'**
+  String hypeChestRevealTitle({required int count});
+
+  /// Reveal text when the chests gave nothing new.
+  ///
+  /// In en, this message translates to:
+  /// **'Your chests held emotes you already own.'**
+  String get hypeChestRevealEmpty;
+
+  /// Button that closes the chest reveal.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get hypeChestRevealDone;
+
+  /// Snack bar when opening chests fails. status is ViewerActionOutcome.name.
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, refused{Twitch didn’t open the chests.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to open chests from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  String hypeChestsOpenFailed({required String status});
+
+  /// Screen-reader text of the animation after the bonus chest was collected. points is how many points it gave.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus collected: +{points}'**
+  String pointsBonusCollected({required String points});
 }
 
 class _AppLocalizationsDelegate

@@ -9966,10 +9966,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get hypeChestsOpenElsewhere =>
-      'ONSET ne peut pas encore ouvrir les coffres. Ouvrez-les sur Twitch pour découvrir vos emotes.';
-
-  @override
   String get hypeChestsSeeCollection => 'Voir la collection';
 
   @override
@@ -10681,4 +10677,54 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get editProfileImageInvalid =>
       'Choisissez une image PNG, JPG ou GIF de 10 Mo au plus.';
+
+  @override
+  String hypeChestsOpen({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ouvrir les $count coffres',
+      one: 'Ouvrir le coffre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hypeChestsOpening => 'Ouverture…';
+
+  @override
+  String hypeChestRevealTitle({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nouvelles emotes',
+      one: 'Une nouvelle emote',
+      zero: 'Aucune nouvelle emote cette fois',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hypeChestRevealEmpty =>
+      'Vos coffres contenaient des emotes que vous possédez déjà.';
+
+  @override
+  String get hypeChestRevealDone => 'Terminé';
+
+  @override
+  String hypeChestsOpenFailed({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'refused': 'Twitch n’a pas ouvert les coffres.',
+      'integrityRefused':
+          'Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.',
+      'signedOut': 'Reconnectez-vous pour ouvrir les coffres depuis ONSET.',
+      'other': 'Impossible de joindre Twitch. Réessayez.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String pointsBonusCollected({required String points}) {
+    return 'Bonus récupéré : +$points';
+  }
 }

@@ -18,6 +18,7 @@ import 'package:onset/screens/channel/chat/widgets/leaderboards_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/points_intro.dart';
 import 'package:onset/screens/channel/chat/widgets/prediction_dialogs.dart';
 import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
+import 'package:onset/screens/channel/chat/widgets/reward_celebration.dart';
 import 'package:onset/screens/channel/chat/widgets/viewer_rewards.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -137,6 +138,33 @@ class _PanelState extends State<_Panel> {
       ..showSnackBar(
         SnackBar(content: Text(l.dropClaimResult(status: result.name))),
       );
+  }
+
+  Future<void> _openChests(
+    BuildContext context,
+    ChannelEventsStore events,
+  ) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l = context.l10n;
+    final opening = await events.openChests();
+    if (opening == null || !mounted) return;
+    if (opening.outcome != ViewerActionOutcome.done) {
+      if (messenger == null || !messenger.mounted) return;
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(l.hypeChestsOpenFailed(status: opening.outcome.name)),
+          ),
+        );
+      return;
+    }
+    unawaited(HapticFeedback.heavyImpact());
+    await showOnsetSheet<void>(
+      context: this.context,
+      constraints: const BoxConstraints(maxWidth: 560),
+      builder: (_) => ChestRevealSheet(revealed: opening.revealed),
+    );
   }
 
   Future<void> _claimMoment(ChannelEventsStore events) async {
@@ -501,6 +529,10 @@ class _PanelState extends State<_Panel> {
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                         child: HypeChestsCard(
                           collection: collection,
+                          opening: events.openingChests,
+                          onOpen: events.canOpenChests
+                              ? () => unawaited(_openChests(context, events))
+                              : null,
                           onSeeCollection: () => showOnsetSheet<void>(
                             context: context,
                             panel: true,
@@ -1063,8 +1095,40 @@ class _ClaimButton extends StatelessWidget {
 
   Future<void> _claim(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
+    final overlay = Overlay.maybeOf(context);
+    final box = context.findRenderObject();
+    final before = store.points.balance;
     final result = await store.claimBonus();
     _report(messenger, result);
+    final after = store.points.balance;
+    if (!result.isSuccess || before == null || after == null) return;
+    final gained = after - before;
+    if (gained <= 0 || overlay == null || box is! RenderBox) return;
+    if (!box.attached) return;
+    _celebrate(overlay, box, gained);
+  }
+
+  static void _celebrate(OverlayState overlay, RenderBox anchor, int points) {
+    final origin = anchor.localToGlobal(
+      anchor.size.topCenter(Offset.zero),
+      ancestor: overlay.context.findRenderObject(),
+    );
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => Positioned(
+        left: origin.dx - 60,
+        top: origin.dy - 72,
+        child: IgnorePointer(
+          child: PointsBurst(
+            points: points,
+            onDone: () {
+              if (entry.mounted) entry.remove();
+            },
+          ),
+        ),
+      ),
+    );
+    overlay.insert(entry);
   }
 }
 

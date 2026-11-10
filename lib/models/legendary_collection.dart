@@ -43,12 +43,29 @@ class LegendaryCollection {
     this.imageUrl,
     this.emotes = const [],
     this.unopenedChests = 0,
+    this.freeChests = 0,
   });
 
   final String campaignName;
   final String? imageUrl;
   final List<LegendaryEmote> emotes;
   final int unopenedChests;
+  final int freeChests;
+
+  int get paidChests => unopenedChests - freeChests;
+
+  Set<String> get ownedIds => {
+    for (final emote in emotes)
+      if (emote.isOwned) emote.id,
+  };
+
+  List<LegendaryEmote> newlyOwnedSince(LegendaryCollection before) {
+    final owned = before.ownedIds;
+    return [
+      for (final emote in emotes)
+        if (emote.isOwned && !owned.contains(emote.id)) emote,
+    ];
+  }
 
   static const tierOrder = ['LEGENDARY', 'EPIC', 'RARE', 'UNCOMMON', 'COMMON'];
 
@@ -84,10 +101,13 @@ class LegendaryCollection {
     final progress = season['userProgress'];
     final inventory = progress is Map ? progress['chestInventory'] : null;
     var unopened = 0;
+    var free = 0;
     if (inventory is List) {
       for (final entry in inventory) {
         final count = entry is Map ? entry['unopenedCount'] : null;
-        if (count is num && count > 0) unopened += count.toInt();
+        if (count is! num || count <= 0) continue;
+        unopened += count.toInt();
+        if (entry is Map && entry['chestType'] == 'FREE') free += count.toInt();
       }
     }
     return LegendaryCollection(
@@ -95,6 +115,7 @@ class LegendaryCollection {
       imageUrl: image is String && image.startsWith('https://') ? image : null,
       emotes: emotes,
       unopenedChests: unopened,
+      freeChests: free,
     );
   }
 }

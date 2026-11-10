@@ -12481,10 +12481,6 @@
       }
     }
   },
-  "hypeChestsOpenElsewhere": "ONSET can’t open chests yet. Open them on Twitch to reveal your emotes.",
-  "@hypeChestsOpenElsewhere": {
-    "description": "Why the card has no Open button."
-  },
   "hypeChestsSeeCollection": "See the collection",
   "@hypeChestsSeeCollection": {
     "description": "Button that opens the full emote collection."
@@ -13311,5 +13307,57 @@
   "editProfileImageInvalid": "Pick a PNG, JPG, or GIF image of up to 10 MB.",
   "@editProfileImageInvalid": {
     "description": "Snack bar when the chosen image has another format or is too large."
+  },
+  "hypeChestsOpen": "{count, plural, =1{Open the chest} other{Open {count} chests}}",
+  "@hypeChestsOpen": {
+    "description": "Button that opens the viewer’s unopened emote chests in ONSET.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "hypeChestsOpening": "Opening…",
+  "@hypeChestsOpening": {
+    "description": "Button label while chests are opening."
+  },
+  "hypeChestRevealTitle": "{count, plural, =0{No new emote this time} =1{A new emote} other{{count} new emotes}}",
+  "@hypeChestRevealTitle": {
+    "description": "Title of the reveal after opening chests. count is how many emotes the viewer did not own before.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "hypeChestRevealEmpty": "Your chests held emotes you already own.",
+  "@hypeChestRevealEmpty": {
+    "description": "Reveal text when the chests gave nothing new."
+  },
+  "hypeChestRevealDone": "Done",
+  "@hypeChestRevealDone": {
+    "description": "Button that closes the chest reveal."
+  },
+  "hypeChestsOpenFailed": "{status, select, refused{Twitch didn’t open the chests.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to open chests from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "@hypeChestsOpenFailed": {
+    "description": "Snack bar when opening chests fails. status is ViewerActionOutcome.name.",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "refused"
+      }
+    }
+  },
+  "pointsBonusCollected": "Bonus collected: +{points}",
+  "@pointsBonusCollected": {
+    "description": "Screen-reader text of the animation after the bonus chest was collected. points is how many points it gave.",
+    "placeholders": {
+      "points": {
+        "type": "String",
+        "example": "50"
+      }
+    }
   }
 }

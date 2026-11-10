@@ -445,12 +445,17 @@ class HypeChestsCard extends StatelessWidget {
     super.key,
     required this.collection,
     required this.onSeeCollection,
+    this.onOpen,
+    this.opening = false,
   });
 
   final LegendaryCollection collection;
   final VoidCallback onSeeCollection;
+  final VoidCallback? onOpen;
+  final bool opening;
 
   static const seeKey = ValueKey('hype-chests-see');
+  static const openKey = ValueKey('hype-chests-open');
 
   @override
   Widget build(BuildContext context) {
@@ -477,10 +482,14 @@ class HypeChestsCard extends StatelessWidget {
             l.hypeChestsUnopened(count: collection.unopenedChests),
             style: rewardText(colors.text, 13, FontWeight.w600),
           ),
-          Text(
-            l.hypeChestsOpenElsewhere,
-            style: rewardText(colors.secondary, 12, FontWeight.w400),
-          ),
+          if (onOpen case final open?)
+            RewardPillButton(
+              buttonKey: openKey,
+              label: opening
+                  ? l.hypeChestsOpening
+                  : l.hypeChestsOpen(count: collection.unopenedChests),
+              onPressed: opening ? null : open,
+            ),
         ],
         RewardPillButton(
           buttonKey: seeKey,

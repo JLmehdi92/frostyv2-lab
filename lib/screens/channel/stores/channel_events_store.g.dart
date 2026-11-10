@@ -169,6 +169,26 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     );
   }
 
+  late final _$_openingChestsAtom = Atom(
+    name: 'ChannelEventsStoreBase._openingChests',
+    context: context,
+  );
+
+  bool get openingChests {
+    _$_openingChestsAtom.reportRead();
+    return super._openingChests;
+  }
+
+  @override
+  bool get _openingChests => openingChests;
+
+  @override
+  set _openingChests(bool value) {
+    _$_openingChestsAtom.reportWrite(value, super._openingChests, () {
+      super._openingChests = value;
+    });
+  }
+
   late final _$_momentAtom = Atom(
     name: 'ChannelEventsStoreBase._moment',
     context: context,
@@ -431,6 +451,16 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
   @override
   Future<DropClaimResult?> claimDrop(TimedDrop drop) {
     return _$claimDropAsyncAction.run(() => super.claimDrop(drop));
+  }
+
+  late final _$openChestsAsyncAction = AsyncAction(
+    'ChannelEventsStoreBase.openChests',
+    context: context,
+  );
+
+  @override
+  Future<ChestOpening?> openChests() {
+    return _$openChestsAsyncAction.run(() => super.openChests());
   }
 
   late final _$claimMomentAsyncAction = AsyncAction(

@@ -9820,10 +9820,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get hypeChestsOpenElsewhere =>
-      'ONSET can’t open chests yet. Open them on Twitch to reveal your emotes.';
-
-  @override
   String get hypeChestsSeeCollection => 'See the collection';
 
   @override
@@ -10521,4 +10517,53 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get editProfileImageInvalid =>
       'Pick a PNG, JPG, or GIF image of up to 10 MB.';
+
+  @override
+  String hypeChestsOpen({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Open $count chests',
+      one: 'Open the chest',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hypeChestsOpening => 'Opening…';
+
+  @override
+  String hypeChestRevealTitle({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new emotes',
+      one: 'A new emote',
+      zero: 'No new emote this time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hypeChestRevealEmpty => 'Your chests held emotes you already own.';
+
+  @override
+  String get hypeChestRevealDone => 'Done';
+
+  @override
+  String hypeChestsOpenFailed({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'refused': 'Twitch didn’t open the chests.',
+      'integrityRefused':
+          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+      'signedOut': 'Log in again to open chests from ONSET.',
+      'other': 'Couldn’t reach Twitch. Try again.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String pointsBonusCollected({required String points}) {
+    return 'Bonus collected: +$points';
+  }
 }

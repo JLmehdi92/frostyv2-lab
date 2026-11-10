@@ -2103,7 +2103,6 @@
   "hypeChestsTitle": "Coffres d’emotes",
   "hypeChestsCollected": "{owned, plural, one{{owned} emote obtenue sur {total}} other{{owned} emotes obtenues sur {total}}}",
   "hypeChestsUnopened": "{count, plural, one{Vous avez {count} coffre non ouvert.} other{Vous avez {count} coffres non ouverts.}}",
-  "hypeChestsOpenElsewhere": "ONSET ne peut pas encore ouvrir les coffres. Ouvrez-les sur Twitch pour découvrir vos emotes.",
   "hypeChestsSeeCollection": "Voir la collection",
   "hypeChestsTier": "{tier, select, LEGENDARY{Légendaire} EPIC{Épique} RARE{Rare} UNCOMMON{Peu commune} COMMON{Commune} other{Autre}}",
   "hypeChestsOwned": "{name}, obtenue",
@@ -2250,5 +2249,12 @@
   "editProfileImageHelp": "PNG, JPG ou GIF, 10\u00a0Mo au plus",
   "editProfileImageUploading": "Envoi…",
   "editProfileImageSaved": "Enregistré. Twitch peut mettre une minute à l’afficher.",
-  "editProfileImageInvalid": "Choisissez une image PNG, JPG ou GIF de 10\u00a0Mo au plus."
+  "editProfileImageInvalid": "Choisissez une image PNG, JPG ou GIF de 10\u00a0Mo au plus.",
+  "hypeChestsOpen": "{count, plural, one{Ouvrir le coffre} other{Ouvrir les {count} coffres}}",
+  "hypeChestsOpening": "Ouverture…",
+  "hypeChestRevealTitle": "{count, plural, =0{Aucune nouvelle emote cette fois} one{Une nouvelle emote} other{{count} nouvelles emotes}}",
+  "hypeChestRevealEmpty": "Vos coffres contenaient des emotes que vous possédez déjà.",
+  "hypeChestRevealDone": "Terminé",
+  "hypeChestsOpenFailed": "{status, select, refused{Twitch n’a pas ouvert les coffres.} integrityRefused{Le contrôle anti-robot de Twitch a de nouveau refusé cette action. Réessayez dans quelques minutes.} signedOut{Reconnectez-vous pour ouvrir les coffres depuis ONSET.} other{Impossible de joindre Twitch. Réessayez.}}",
+  "pointsBonusCollected": "Bonus récupéré\u00a0: +{points}"
 }

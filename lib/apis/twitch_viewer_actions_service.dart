@@ -518,6 +518,41 @@ class TwitchViewerActionsService extends BaseApiClient {
     }
   }
 
+  static const _openChestsDocument =
+      'mutation OpenChests(\$input: OpenChestsInput!) { openChests(input: '
+      '\$input) { txnID error { code message } } }';
+
+  Future<ViewerActionOutcome> openChests({
+    required String channelId,
+    required int freeCount,
+    required int paidCount,
+    required String authToken,
+  }) {
+    if (!_numericId.hasMatch(channelId) ||
+        freeCount < 0 ||
+        paidCount < 0 ||
+        freeCount + paidCount == 0) {
+      return Future.value(
+        authToken.isEmpty
+            ? ViewerActionOutcome.signedOut
+            : ViewerActionOutcome.failed,
+      );
+    }
+    return _send(
+      operation: 'OpenChests',
+      document: _openChestsDocument,
+      field: 'openChests',
+      authToken: authToken,
+      input: {
+        'channelID': channelId,
+        'freeCount': freeCount,
+        'paidCount': paidCount,
+        'shouldOpenFtue': false,
+      },
+      succeeded: (payload) => payload['txnID'] is String,
+    );
+  }
+
   static const _claimMomentDocument =
       'mutation ClaimMomentMutation(\$momentID: ID!) { claimCommunityMoment('
       'input: { momentID: \$momentID } ) { moment { id } error } }';

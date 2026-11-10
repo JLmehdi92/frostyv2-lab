@@ -293,6 +293,45 @@ abstract class ChannelEventsStoreBase with Store {
   }
 
   @readonly
+  var _openingChests = false;
+
+  bool get canOpenChests => _viewerActionsService != null;
+
+  @action
+  Future<ChestOpening?> openChests() async {
+    final service = _viewerActionsService;
+    final before = _legendaryCollection;
+    if (service == null ||
+        before == null ||
+        before.unopenedChests == 0 ||
+        _openingChests) {
+      return null;
+    }
+    _openingChests = true;
+    try {
+      final token = await _tokenProvider?.call();
+      if (token == null || token.isEmpty) {
+        return const ChestOpening(ViewerActionOutcome.signedOut);
+      }
+      final outcome = await service.openChests(
+        channelId: channelId,
+        freeCount: before.freeChests,
+        paidCount: before.paidChests,
+        authToken: token,
+      );
+      if (outcome != ViewerActionOutcome.done) return ChestOpening(outcome);
+      await refreshLegendaryCollection();
+      final after = _legendaryCollection;
+      return ChestOpening(
+        outcome,
+        revealed: after == null ? const [] : after.newlyOwnedSince(before),
+      );
+    } finally {
+      runInAction(() => _openingChests = false);
+    }
+  }
+
+  @readonly
   CommunityMoment? _moment;
 
   @readonly
@@ -1092,4 +1131,11 @@ abstract class ChannelEventsStoreBase with Store {
     _subscription = null;
     _client.dispose();
   }
+}
+
+class ChestOpening {
+  const ChestOpening(this.outcome, {this.revealed = const []});
+
+  final ViewerActionOutcome outcome;
+  final List<LegendaryEmote> revealed;
 }
