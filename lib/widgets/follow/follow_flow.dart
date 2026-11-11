@@ -132,14 +132,15 @@ class FollowFlow {
 
   static Future<void> offerTvSession(
     BuildContext context,
-    TwitchTvSessionStore store,
-  ) async {
+    TwitchTvSessionStore store, {
+    String? message,
+  }) async {
     final l = context.l10n;
     final connect = await showDialog<bool>(
       context: context,
       builder: (context) => OnsetDialog(
         title: l.twitchTvPromptTitle,
-        message: l.twitchTvPromptBody,
+        message: message ?? l.twitchTvPromptBody,
         actions: [
           SheetButton(
             label: l.twitchTvPromptLater,

@@ -3461,6 +3461,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get twitchTvPromptLater => 'Not now';
 
   @override
+  String get twitchTvLoginOfferBody =>
+      'With a Twitch session, ONSET can follow, claim points, open chests, and make predictions without going through Twitch’s anti-bot check. It only takes a code.';
+
+  @override
   String unfollowConfirmTitle({required String name}) {
     return 'Unfollow $name?';
   }

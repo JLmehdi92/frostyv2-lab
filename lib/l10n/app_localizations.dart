@@ -5345,6 +5345,12 @@ abstract class AppLocalizations {
   /// **'Not now'**
   String get twitchTvPromptLater;
 
+  /// Text of the dialog shown right after logging in, offering to connect a Twitch session.
+  ///
+  /// In en, this message translates to:
+  /// **'With a Twitch session, ONSET can follow, claim points, open chests, and make predictions without going through Twitch’s anti-bot check. It only takes a code.'**
+  String get twitchTvLoginOfferBody;
+
   /// Dialog title before unfollowing a channel or a category.
   ///
   /// In en, this message translates to:

@@ -872,6 +872,7 @@
   "twitchTvPromptTitle": "Connecter une session Twitch\u202f?",
   "twitchTvPromptBody": "Le contrôle anti-robot de Twitch a refusé cette action. Avec une session Twitch, ONSET peut suivre, récupérer des points et faire des prédictions sans passer par ce contrôle.",
   "twitchTvPromptLater": "Plus tard",
+  "twitchTvLoginOfferBody": "Avec une session Twitch, ONSET peut suivre, récupérer des points, ouvrir des coffres et faire des prédictions sans passer par le contrôle anti-robot de Twitch. Il suffit d’un code.",
   "unfollowConfirmTitle": "Ne plus suivre {name}\u202f?",
   "unfollowConfirmBody": "Cela modifie ce que suit votre compte Twitch.",
   "unfollowAction": "Ne plus suivre",

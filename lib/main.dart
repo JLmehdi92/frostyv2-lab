@@ -49,6 +49,7 @@ import 'package:onset/screens/home/shell/onset_shell.dart';
 import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/screens/onboarding/onboarding_flow.dart';
+import 'package:onset/screens/settings/account/twitch_tv_login_offer.dart';
 import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -271,15 +272,13 @@ void main() async {
         authStore.isLoggedIn ? authStore.user.details?.id : null);
 
   await authStore.init();
+  final twitchTvLoginOffer = TwitchTvLoginOffer(
+    store: twitchTvSession,
+    context: () => navigatorKey.currentContext,
+  );
   reaction<String?>(
     (_) => authStore.isLoggedIn ? authStore.user.details?.id : null,
-    (id) {
-      if (id == null) {
-        twitchTvSession.detach();
-      } else {
-        unawaited(twitchTvSession.attach(id));
-      }
-    },
+    (id) => unawaited(twitchTvLoginOffer.accountChanged(id)),
     fireImmediately: true,
   );
 

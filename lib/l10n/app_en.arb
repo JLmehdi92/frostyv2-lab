@@ -4381,6 +4381,10 @@
   "@twitchTvPromptLater": {
     "description": "Dismiss button of the one-time Twitch session dialog."
   },
+  "twitchTvLoginOfferBody": "With a Twitch session, ONSET can follow, claim points, open chests, and make predictions without going through Twitch’s anti-bot check. It only takes a code.",
+  "@twitchTvLoginOfferBody": {
+    "description": "Text of the dialog shown right after logging in, offering to connect a Twitch session."
+  },
   "unfollowConfirmTitle": "Unfollow {name}?",
   "@unfollowConfirmTitle": {
     "description": "Dialog title before unfollowing a channel or a category.",

@@ -3517,6 +3517,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get twitchTvPromptLater => 'Plus tard';
 
   @override
+  String get twitchTvLoginOfferBody =>
+      'Avec une session Twitch, ONSET peut suivre, récupérer des points, ouvrir des coffres et faire des prédictions sans passer par le contrôle anti-robot de Twitch. Il suffit d’un code.';
+
+  @override
   String unfollowConfirmTitle({required String name}) {
     return 'Ne plus suivre $name ?';
   }
