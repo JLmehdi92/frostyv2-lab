@@ -21,6 +21,7 @@ import 'package:onset/screens/channel/chat/widgets/resub_share_card.dart';
 import 'package:onset/screens/channel/chat/widgets/reward_celebration.dart';
 import 'package:onset/screens/channel/chat/widgets/viewer_rewards.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
+import 'package:onset/screens/settings/account/twitch_tv_connect_sheet.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/settings_lookup.dart';
@@ -155,6 +156,9 @@ class _PanelState extends State<_Panel> {
         ..showSnackBar(
           SnackBar(
             content: Text(l.hypeChestsOpenFailed(status: opening.outcome.name)),
+            action: opening.outcome == ViewerActionOutcome.integrityRefused
+                ? twitchTvConnectSnackAction(messenger.context)
+                : null,
           ),
         );
       return;
@@ -1015,6 +1019,9 @@ void _report(ScaffoldMessengerState messenger, PointsActionResult result) {
     messenger,
     result.text(messenger.context.l10n),
     success: result.isSuccess,
+    action: result.status == PointsActionStatus.integrityRefused
+        ? twitchTvConnectSnackAction(messenger.context)
+        : null,
   );
 }
 
@@ -1022,12 +1029,14 @@ void _say(
   ScaffoldMessengerState messenger,
   String text, {
   required bool success,
+  SnackBarAction? action,
 }) => messenger
   ..hideCurrentSnackBar()
   ..showSnackBar(
     SnackBar(
       content: Text(text),
       duration: Duration(seconds: success ? 2 : 6),
+      action: action,
     ),
   );
 

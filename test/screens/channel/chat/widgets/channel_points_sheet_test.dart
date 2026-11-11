@@ -4,12 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_points_service.dart';
+import 'package:onset/apis/twitch_tv_auth_service.dart';
+import 'package:onset/main.dart';
 import 'package:onset/models/community_points.dart';
 import 'package:onset/screens/channel/chat/widgets/channel_points_sheet.dart';
 import 'package:onset/screens/channel/chat/widgets/prediction_dialogs.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
+import 'package:onset/screens/settings/stores/twitch_tv_session_store.dart';
 import 'package:onset/services/hermes_client.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:provider/provider.dart';
 
 class MockPointsService extends Mock implements TwitchPointsService {}
 
@@ -51,6 +55,8 @@ Prediction _prediction({String status = 'ACTIVE'}) => Prediction(
     ),
   ],
 );
+
+class _MockTvAuth extends Mock implements TwitchTvAuthService {}
 
 void main() {
   setUpAll(() => registerFallbackValue(_hydrate));
@@ -115,7 +121,11 @@ void main() {
   });
 
   /// Shows the sheet for [points], loaded into the store as Twitch would.
-  Future<void> pump(WidgetTester tester, CommunityPointsContext points) async {
+  Future<void> pump(
+    WidgetTester tester,
+    CommunityPointsContext points, {
+    TwitchTvSessionStore? tvSession,
+  }) async {
     context = points;
     await store.refreshPoints();
     tester.view
@@ -123,9 +133,13 @@ void main() {
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ChannelPointsSheet(points: points, store: store),
+      Provider<TwitchTvSessionStore?>.value(
+        value: tvSession,
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          home: Scaffold(
+            body: ChannelPointsSheet(points: points, store: store),
+          ),
         ),
       ),
     );
@@ -295,6 +309,34 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('anti-bot check'), findsOneWidget);
+    });
+
+    testWidgets('an integrity refusal offers to connect a Twitch session', (
+      tester,
+    ) async {
+      when(
+        () => service.redeemReward(
+          channelId: any(named: 'channelId'),
+          reward: any(named: 'reward'),
+          authToken: any(named: 'authToken'),
+          userInput: any(named: 'userInput'),
+        ),
+      ).thenAnswer((_) async => 'failed integrity check');
+      await pump(
+        tester,
+        const CommunityPointsContext(balance: 1000, rewards: [_hydrate]),
+        tvSession: TwitchTvSessionStore(
+          auth: _MockTvAuth(),
+          viewerId: () => '77',
+        ),
+      );
+
+      await tester.tap(find.text('Hydrate'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Redeem'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(SnackBarAction, 'Connect'), findsOneWidget);
     });
 
     testWidgets('a channel without rewards says so', (tester) async {
