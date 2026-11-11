@@ -80,7 +80,8 @@ query OnsetCommunityPoints(\$login: String!) {
 
   /// A client of its own with timeouts: a hung mutation keeps the sheet's
   /// controls disabled until it ends, so it has to end.
-  TwitchPointsService.withDefaults() : this(Dio(defaultOptions));
+  TwitchPointsService.withDefaults({List<Interceptor> interceptors = const []})
+    : this(Dio(defaultOptions)..interceptors.addAll(interceptors));
 
   @visibleForTesting
   static BaseOptions get defaultOptions => BaseOptions(

@@ -9,6 +9,7 @@ import 'package:onset/apis/twitch_channel_profile_service.dart';
 import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
 import 'package:onset/apis/twitch_community_service.dart';
+import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
@@ -170,6 +171,7 @@ class _VideoChatState extends State<VideoChat>
     viewerId: context.authStore.user.details?.id,
     tokenProvider: () async => context.authStore.twitchWebToken,
     // The viewer's watch streak, atop the points panel like Twitch.
+    pointsService: context.read<TwitchPointsService?>(),
     watchStreakService: context.read<TwitchWatchStreakService?>(),
     viewerActionsService: context.read<TwitchViewerActionsService?>(),
     communityService: context.read<TwitchCommunityService?>(),

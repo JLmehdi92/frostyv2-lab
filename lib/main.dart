@@ -26,6 +26,7 @@ import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/apis/twitch_followed_categories_service.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/apis/twitch_report_service.dart';
 import 'package:onset/apis/twitch_social_service.dart';
 import 'package:onset/apis/twitch_tv_auth_service.dart';
@@ -250,11 +251,13 @@ void main() async {
   final twitchTvSession = TwitchTvSessionStore(
     auth: TwitchTvAuthService(anonymousGqlDio),
   );
-  anonymousGqlDio.interceptors.add(
-    TwitchTvSessionInterceptor(
-      credentials: () => twitchTvSession.credentials,
-      onRejected: twitchTvSession.markRejected,
-    ),
+  final twitchTvInterceptor = TwitchTvSessionInterceptor(
+    credentials: () => twitchTvSession.credentials,
+    onRejected: twitchTvSession.markRejected,
+  );
+  anonymousGqlDio.interceptors.add(twitchTvInterceptor);
+  final twitchPointsService = TwitchPointsService.withDefaults(
+    interceptors: [twitchTvInterceptor],
   );
   authStore.addSessionEndListener(twitchTvSession.endAccountSession);
 
@@ -393,6 +396,7 @@ void main() async {
       providers: [
         Provider<AuthStore>.value(value: authStore),
         Provider<TwitchTvSessionStore>.value(value: twitchTvSession),
+        Provider<TwitchPointsService>.value(value: twitchPointsService),
         Provider<SettingsStore>.value(value: settingsStore),
         Provider<TwitchApi>.value(value: twitchApiService),
         Provider<BTTVApi>.value(value: bttvApiService),
