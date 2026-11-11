@@ -1070,7 +1070,7 @@ abstract class AppLocalizations {
   /// Phone settings account card, logged in: the line under the name (what the account page holds).
   ///
   /// In en, this message translates to:
-  /// **'Blocked users, twitch.tv, log out'**
+  /// **'Twitch session, blocked users, twitch.tv, log out'**
   String get settingsAccountCardDetail;
 
   /// Phone settings account card and Profile, logged out: the title in place of a name.
@@ -5234,7 +5234,7 @@ abstract class AppLocalizations {
   /// Second line of the Twitch session row in account settings: what connecting it does.
   ///
   /// In en, this message translates to:
-  /// **'Lets ONSET follow, claim points and make predictions without Twitch’s anti-bot check.'**
+  /// **'Follow, claim points and make predictions without Twitch’s anti-bot check.'**
   String get twitchTvSessionDetail;
 
   /// Value of the Twitch session row in account settings. state is connected, expired or disconnected. In French it agrees with « session » (feminine).
@@ -5336,7 +5336,7 @@ abstract class AppLocalizations {
   /// Text of the one-time dialog that offers to connect a Twitch session.
   ///
   /// In en, this message translates to:
-  /// **'Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without it.'**
+  /// **'Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without going through that check.'**
   String get twitchTvPromptBody;
 
   /// Dismiss button of the one-time Twitch session dialog.

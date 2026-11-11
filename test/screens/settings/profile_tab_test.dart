@@ -206,7 +206,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(Settings), findsOneWidget);
       expect(find.text('Customize'.toUpperCase()), findsOneWidget);
-      expect(find.text('Blocked users, twitch.tv, log out'), findsOneWidget);
+      expect(find.text('Twitch session, blocked users, twitch.tv, log out'), findsOneWidget);
     });
 
     for (final mode in [ThemeMode.light, ThemeMode.dark]) {

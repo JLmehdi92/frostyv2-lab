@@ -610,7 +610,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsReconnect => 'Reconnect';
 
   @override
-  String get settingsAccountCardDetail => 'Blocked users, twitch.tv, log out';
+  String get settingsAccountCardDetail =>
+      'Twitch session, blocked users, twitch.tv, log out';
 
   @override
   String get settingsAnonymous => 'Anonymous';
@@ -3382,7 +3383,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get twitchTvSessionDetail =>
-      'Lets ONSET follow, claim points and make predictions without Twitch’s anti-bot check.';
+      'Follow, claim points and make predictions without Twitch’s anti-bot check.';
 
   @override
   String twitchTvSessionState({required String state}) {
@@ -3454,7 +3455,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get twitchTvPromptBody =>
-      'Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without it.';
+      'Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without going through that check.';
 
   @override
   String get twitchTvPromptLater => 'Not now';

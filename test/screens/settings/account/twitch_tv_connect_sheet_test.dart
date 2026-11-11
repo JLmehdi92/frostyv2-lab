@@ -10,6 +10,8 @@ import 'package:onset/models/twitch_tv_session.dart';
 import 'package:onset/screens/settings/account/twitch_tv_connect_sheet.dart';
 import 'package:onset/screens/settings/stores/twitch_tv_session_store.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 
 import '../../../helpers/l10n.dart';
@@ -133,6 +135,12 @@ void main() {
       findsOneWidget,
     );
     expect(store.status, TwitchTvSessionStatus.connected);
+    final check = tester.widget<SheetGlyph>(
+      find.byWidgetPredicate(
+        (widget) => widget is SheetGlyph && widget.kind == SheetGlyphKind.check,
+      ),
+    );
+    expect(check.color, OnsetTokens.accent);
     await tester.tap(find.byKey(TwitchTvConnectSheet.doneKey));
     await tester.pumpAndSettle();
     expect(find.byType(TwitchTvConnectSheet), findsNothing);

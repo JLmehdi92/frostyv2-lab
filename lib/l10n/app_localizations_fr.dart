@@ -621,7 +621,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsAccountCardDetail =>
-      'Utilisateurs bloqués, twitch.tv, déconnexion';
+      'Session Twitch, utilisateurs bloqués, twitch.tv, déconnexion';
 
   @override
   String get settingsAnonymous => 'Anonyme';
@@ -3437,7 +3437,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get twitchTvSessionDetail =>
-      'Permet à ONSET de suivre, de récupérer des points et de faire des prédictions sans le contrôle anti-robot de Twitch.';
+      'Suivre, récupérer des points et faire des prédictions sans contrôle anti-robot.';
 
   @override
   String twitchTvSessionState({required String state}) {
@@ -3464,7 +3464,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get twitchTvConnectBody =>
-      'Ouvrez la page d’activation, vérifiez qu’elle affiche le code ci-dessous, puis autorisez avec le compte Twitch que vous utilisez dans ONSET.';
+      'Ouvrez la page d’activation, vérifiez qu’elle affiche le code ci-dessous, puis autorisez l’accès avec le compte Twitch que vous utilisez dans ONSET.';
 
   @override
   String get twitchTvConnectCodeLabel => 'Votre code';
@@ -3511,7 +3511,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get twitchTvPromptBody =>
-      'Le contrôle anti-robot de Twitch a refusé cette action. Avec une session Twitch, ONSET peut suivre, récupérer des points et faire des prédictions sans lui.';
+      'Le contrôle anti-robot de Twitch a refusé cette action. Avec une session Twitch, ONSET peut suivre, récupérer des points et faire des prédictions sans passer par ce contrôle.';
 
   @override
   String get twitchTvPromptLater => 'Plus tard';

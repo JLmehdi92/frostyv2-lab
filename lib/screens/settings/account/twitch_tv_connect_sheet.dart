@@ -186,6 +186,7 @@ class _TwitchTvConnectSheetState extends State<TwitchTvConnectSheet> {
       return SheetStatusLine(
         busy: false,
         ok: _connected,
+        okGlyphColor: OnsetTokens.accent,
         padding: EdgeInsets.zero,
         message: l.twitchTvConnectResult(status: outcome.name),
       );

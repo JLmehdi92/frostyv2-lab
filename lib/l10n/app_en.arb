@@ -816,7 +816,7 @@
   "@settingsReconnect": {
     "description": "Button that tries to reach Twitch again (phone settings account card, Profile)."
   },
-  "settingsAccountCardDetail": "Blocked users, twitch.tv, log out",
+  "settingsAccountCardDetail": "Twitch session, blocked users, twitch.tv, log out",
   "@settingsAccountCardDetail": {
     "description": "Phone settings account card, logged in: the line under the name (what the account page holds)."
   },
@@ -4293,7 +4293,7 @@
   "@twitchTvSessionTitle": {
     "description": "Account settings row that connects a Twitch session (a TV sign-in) which ONSET uses for account actions such as follows, point claims and predictions."
   },
-  "twitchTvSessionDetail": "Lets ONSET follow, claim points and make predictions without Twitch’s anti-bot check.",
+  "twitchTvSessionDetail": "Follow, claim points and make predictions without Twitch’s anti-bot check.",
   "@twitchTvSessionDetail": {
     "description": "Second line of the Twitch session row in account settings: what connecting it does."
   },
@@ -4373,7 +4373,7 @@
   "@twitchTvPromptTitle": {
     "description": "Dialog shown once, the first time an account action needs a Twitch session."
   },
-  "twitchTvPromptBody": "Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without it.",
+  "twitchTvPromptBody": "Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without going through that check.",
   "@twitchTvPromptBody": {
     "description": "Text of the one-time dialog that offers to connect a Twitch session."
   },

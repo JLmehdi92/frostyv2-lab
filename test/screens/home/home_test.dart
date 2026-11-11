@@ -274,7 +274,7 @@ void main() {
     await tester.tap(find.byTooltip('Settings'));
     await tester.pumpAndSettle();
     expect(find.byType(Settings), findsOneWidget);
-    expect(find.text('Blocked users, twitch.tv, log out'), findsOneWidget);
+    expect(find.text('Twitch session, blocked users, twitch.tv, log out'), findsOneWidget);
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(find.byType(Settings), findsNothing);

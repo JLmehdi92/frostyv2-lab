@@ -660,11 +660,13 @@ class SheetStatusLine extends StatelessWidget {
     this.ok = true,
     this.padding = const EdgeInsets.fromLTRB(16, 6, 16, 0),
     this.minHeight = 30,
+    this.okGlyphColor,
   });
 
   final bool busy;
   final String? message;
   final bool ok;
+  final Color? okGlyphColor;
   final EdgeInsetsGeometry padding;
   final double minHeight;
 
@@ -696,7 +698,7 @@ class SheetStatusLine extends StatelessWidget {
                 ok ? SheetGlyphKind.check : SheetGlyphKind.warn,
                 size: 14,
                 strokeWidth: 2.2,
-                color: color,
+                color: ok ? okGlyphColor ?? color : color,
               ),
             ),
             Flexible(
