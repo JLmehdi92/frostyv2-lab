@@ -5207,10 +5207,10 @@ abstract class AppLocalizations {
   /// **'You no longer follow {name}.'**
   String unfollowDone({required String name});
 
-  /// Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name: Twitch’s error codes, or the failing step (noWebSession: no Twitch web session stored; signedOut: Twitch rejected it; mintTimeout and mintFailed: the anti-bot token couldn’t be obtained; integrityRefused: refused again after the retry; gqlError: another GraphQL error; other: network). Each step has its own text, so the owner can tell them apart on a device.
+  /// Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name: Twitch’s error codes, or the failing step (noWebSession: no Twitch web session stored; signedOut: Twitch rejected it; needsTvSession: the anti-bot check refused it and no Twitch session is connected; tvSessionExpired: Twitch rejected the connected Twitch session; integrityRefused: refused even through the Twitch session, with Twitch’s own error code; gqlError: another GraphQL error; other: network). Each step has its own text, so the owner can tell them apart on a device.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} noWebSession{ONSET isn’t connected to your Twitch web session. Log in to connect it.} signedOut{Twitch rejected ONSET’s web session. Log in again to restore it.} mintTimeout{Twitch’s anti-bot check took too long to answer. Try again.} mintFailed{ONSET couldn’t complete Twitch’s anti-bot check. Try again.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} gqlError{Twitch answered with an error. Try again.} other{Couldn’t reach Twitch. Try again.}}'**
+  /// **'{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} noWebSession{ONSET isn’t connected to your Twitch web session. Log in to connect it.} signedOut{Twitch rejected ONSET’s web session. Log in again to restore it.} needsTvSession{Twitch’s anti-bot check refused this follow. Connect a Twitch session to follow from ONSET.} tvSessionExpired{Your Twitch session expired. Reconnect it, then try again.} integrityRefused{Twitch refused this follow with the error “failed integrity check”. Try again in a few minutes.} gqlError{Twitch answered with an error. Try again.} other{Couldn’t reach Twitch. Try again.}}'**
   String followError({required String status});
 
   /// Snack bar when a logged-out viewer taps Follow or Unfollow. Its action, followLogInAction, opens ONSET’s login page.
@@ -5224,6 +5224,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log in'**
   String get followLogInAction;
+
+  /// Account settings row that connects a Twitch session (a TV sign-in) which ONSET uses for account actions such as follows, point claims and predictions.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch session'**
+  String get twitchTvSessionTitle;
+
+  /// Second line of the Twitch session row in account settings: what connecting it does.
+  ///
+  /// In en, this message translates to:
+  /// **'Lets ONSET follow, claim points and make predictions without Twitch’s anti-bot check.'**
+  String get twitchTvSessionDetail;
+
+  /// Value of the Twitch session row in account settings. state is connected, expired or disconnected. In French it agrees with « session » (feminine).
+  ///
+  /// In en, this message translates to:
+  /// **'{state, select, connected{Connected} expired{Expired} other{Not connected}}'**
+  String twitchTvSessionState({required String state});
+
+  /// Dialog title before disconnecting the Twitch session from account settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect the Twitch session?'**
+  String get twitchTvDisconnectTitle;
+
+  /// Dialog text before disconnecting the Twitch session.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows, point claims, predictions and other account actions may stop working until you connect it again.'**
+  String get twitchTvDisconnectBody;
+
+  /// Confirm button of the disconnect dialog, and the button in the connect sheet when a session is already connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get twitchTvDisconnect;
+
+  /// Title of the sheet that connects a Twitch session with a code.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your Twitch session'**
+  String get twitchTvConnectTitle;
+
+  /// Instructions in the connect sheet. The activation page is twitch.tv/activate, opened inside ONSET with the code filled in.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the activation page, check that it shows the code below, then approve with the Twitch account you use in ONSET.'**
+  String get twitchTvConnectBody;
+
+  /// Small label above the big activation code in the connect sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Your code'**
+  String get twitchTvConnectCodeLabel;
+
+  /// Button in the connect sheet that copies the activation code.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get twitchTvConnectCopy;
+
+  /// Snack bar after the activation code was copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied.'**
+  String get twitchTvConnectCopied;
+
+  /// Primary button in the connect sheet: opens twitch.tv/activate inside ONSET with the code filled in.
+  ///
+  /// In en, this message translates to:
+  /// **'Open activation page'**
+  String get twitchTvConnectOpen;
+
+  /// Status line in the connect sheet while the code is being requested.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting a code from Twitch…'**
+  String get twitchTvConnectRequesting;
+
+  /// Status line in the connect sheet while ONSET checks whether the code was approved.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your approval on Twitch…'**
+  String get twitchTvConnectWaiting;
+
+  /// Status line in the connect sheet when the attempt ends. status is TwitchTvConnectOutcome.name (connected, expired, denied, wrongAccount; other: network or Twitch error).
+  ///
+  /// In en, this message translates to:
+  /// **'{status, select, connected{Twitch session connected. Account actions now go through it.} expired{This code expired. Get a new one to try again.} denied{The request was declined on Twitch.} wrongAccount{You approved with another Twitch account. Use the account you’re logged in to in ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  String twitchTvConnectResult({required String status});
+
+  /// Button in the connect sheet after a code expired or the attempt failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a new code'**
+  String get twitchTvConnectNewCode;
+
+  /// Snack bar action after an account action failed for lack of a Twitch session: opens the connect sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get twitchTvConnectAction;
+
+  /// Dialog shown once, the first time an account action needs a Twitch session.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a Twitch session?'**
+  String get twitchTvPromptTitle;
+
+  /// Text of the one-time dialog that offers to connect a Twitch session.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without it.'**
+  String get twitchTvPromptBody;
+
+  /// Dismiss button of the one-time Twitch session dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get twitchTvPromptLater;
 
   /// Dialog title before unfollowing a channel or a category.
   ///
@@ -9578,7 +9698,7 @@ abstract class AppLocalizations {
   /// Snackbar when a GIF couldn’t be sent: a cooldown with the seconds to wait, or why it failed.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, cooldown{{seconds, plural, =1{You can send another GIF in 1 second.} other{You can send another GIF in {seconds} seconds.}}} refused{Twitch declined this GIF.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to send GIFs from ONSET.} other{Couldn’t send the GIF. Try again.}}'**
+  /// **'{status, select, cooldown{{seconds, plural, =1{You can send another GIF in 1 second.} other{You can send another GIF in {seconds} seconds.}}} refused{Twitch declined this GIF.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to send GIFs from ONSET.} other{Couldn’t send the GIF. Try again.}}'**
   String gifSendResult({required String status, required int seconds});
 
   /// Emote menu › GIFs: the channel has GIFs off, or Twitch’s GIF settings couldn’t be read.
@@ -10052,7 +10172,7 @@ abstract class AppLocalizations {
   /// Error message. The channel points sheet when Twitch refuses the bonus to the app.
   ///
   /// In en, this message translates to:
-  /// **'Twitch’s anti-bot check refused the bonus again after a second try. Reopen the channel in a few minutes to try again.'**
+  /// **'Twitch’s anti-bot check refused the bonus. Connect a Twitch session in Settings › Account, then reopen the channel.'**
   String get pointsBonusBlocked;
 
   /// The channel points sheet's button that collects the bonus chest.
@@ -10172,7 +10292,7 @@ abstract class AppLocalizations {
   /// Snackbar after spending channel points (a reward, a bet, the bonus). status is PointsActionStatus.name; reason is Twitch's own code for an unknown refusal (never translated), or pointsNoReason.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, success{Done.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} notAuthenticated{Twitch rejected the login. Log in again to spend points.} network{Couldn’t reach Twitch. Try again.} other{Twitch refused: {reason}}}'**
+  /// **'{status, select, success{Done.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} notAuthenticated{Twitch rejected the login. Log in again to spend points.} network{Couldn’t reach Twitch. Try again.} other{Twitch refused: {reason}}}'**
   String pointsResult({required String status, required String reason});
 
   /// Snackbar when the viewer spends channel points while the last spend still runs.
@@ -12377,7 +12497,7 @@ abstract class AppLocalizations {
   /// Snack bar after a viewer action sent to Twitch from ONSET (a poll vote, leaving or joining a raid, sharing a watch streak, acknowledging a warning).
   ///
   /// In en, this message translates to:
-  /// **'{status, select, done{Done.} refused{Twitch declined this.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to do this from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  /// **'{status, select, done{Done.} refused{Twitch declined this.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to do this from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
   String viewerActionResult({required String status});
 
   /// The watch streak card's button, shown when Twitch lets the viewer share a milestone they just reached: posts it in the channel's chat.
@@ -12593,7 +12713,7 @@ abstract class AppLocalizations {
   /// Snack bar after claiming a Drop reward from the Drops card.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, claimed{Reward claimed.} alreadyClaimed{You already claimed this reward.} needsAccountLink{Link your game account first, then claim again.} expired{This Drop has expired.} limitReached{You’ve reached this reward’s limit.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to claim from ONSET.} refused{Twitch declined this claim.} other{Couldn’t reach Twitch. Try again.}}'**
+  /// **'{status, select, claimed{Reward claimed.} alreadyClaimed{You already claimed this reward.} needsAccountLink{Link your game account first, then claim again.} expired{This Drop has expired.} limitReached{You’ve reached this reward’s limit.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to claim from ONSET.} refused{Twitch declined this claim.} other{Couldn’t reach Twitch. Try again.}}'**
   String dropClaimResult({required String status});
 
   /// ONSET’s own chat line when the channel offers a Drop earned by watch time.
@@ -12695,7 +12815,7 @@ abstract class AppLocalizations {
   /// Snack bar after giving channel points to a community goal.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, contributed{Thank you! Your points went to the goal.} notEnoughPoints{You don’t have enough points for this.} maxPerStream{You’ve given the most allowed for this stream. Try again next stream.} notOpen{This goal isn’t taking points right now.} refused{Twitch declined this contribution.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to contribute from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  /// **'{status, select, contributed{Thank you! Your points went to the goal.} notEnoughPoints{You don’t have enough points for this.} maxPerStream{You’ve given the most allowed for this stream. Try again next stream.} notOpen{This goal isn’t taking points right now.} refused{Twitch declined this contribution.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to contribute from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
   String goalContributionResult({required String status});
 
   /// Title of the channel’s Community sheet (challenges, goals, and top supporters), opened from the points panel.
@@ -12901,7 +13021,7 @@ abstract class AppLocalizations {
   /// Snackbar after claiming a community moment. status is MomentClaimResult.name.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, claimed{Moment claimed. It can take a few minutes to show on your moments badge.} alreadyClaimed{You already claimed this moment.} expired{This moment can’t be claimed anymore.} invalid{Twitch doesn’t know this moment.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to claim from ONSET.} other{Couldn’t claim this moment. Try again.}}'**
+  /// **'{status, select, claimed{Moment claimed. It can take a few minutes to show on your moments badge.} alreadyClaimed{You already claimed this moment.} expired{This moment can’t be claimed anymore.} invalid{Twitch doesn’t know this moment.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to claim from ONSET.} other{Couldn’t claim this moment. Try again.}}'**
   String momentClaimResult({required String status});
 
   /// Local chat line when a community moment can be claimed. channel is the channel's name.
@@ -13792,7 +13912,7 @@ abstract class AppLocalizations {
   /// Snack bar when renaming or deleting a clip fails. status is AccountEditOutcome.name.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, refused{Twitch declined this change.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to edit your clips from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  /// **'{status, select, refused{Twitch declined this change.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to edit your clips from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
   String clipActionFailed({required String status});
 
   /// Second line of the Rename row on a clip that was just made.
@@ -13882,7 +14002,7 @@ abstract class AppLocalizations {
   /// Snack bar when opening chests fails. status is ViewerActionOutcome.name.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, refused{Twitch didn’t open the chests.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to open chests from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
+  /// **'{status, select, refused{Twitch didn’t open the chests.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to open chests from ONSET.} other{Couldn’t reach Twitch. Try again.}}'**
   String hypeChestsOpenFailed({required String status});
 
   /// Screen-reader text of the animation after the bonus chest was collected. points is how many points it gave.

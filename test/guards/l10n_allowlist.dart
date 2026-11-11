@@ -32,10 +32,10 @@ const l10nAllowlist = <String, Map<String, String>>{
         'The HTTP User-Agent header sent to the APIs: the app\'s name, '
         'never shown.',
   },
-  'lib/apis/integrity_retry_interceptor.dart': {
+  'lib/apis/twitch_tv_session_interceptor.dart': {
     'failed integrity check':
         'The exact error text Twitch\'s GQL answers when its anti-bot check '
-        'refuses a request (IntegrityRetryInterceptor.refusalText), '
+        'refuses a request (TwitchTvSessionInterceptor.refusalText), '
         'compared, never shown.',
   },
   'lib/apis/twitch_api.dart': {'Clip failed': _apiLog},

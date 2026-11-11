@@ -11,8 +11,10 @@ import 'package:onset/screens/onboarding/login_webview.dart';
 import 'package:onset/screens/settings/account/blocked_users.dart';
 import 'package:onset/screens/settings/account/edit_profile.dart';
 import 'package:onset/screens/settings/account/gift_settings.dart';
+import 'package:onset/screens/settings/account/twitch_tv_connect_sheet.dart';
 import 'package:onset/screens/settings/account/whisper_privacy_settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/twitch_tv_session_store.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
@@ -142,6 +144,8 @@ class AccountSettings extends StatelessWidget {
                 ),
               ],
             ),
+            if (context.read<TwitchTvSessionStore?>() case final tvSession?)
+              TwitchTvSessionGroup(store: tvSession),
             if (context.read<TwitchViewerActionsService?>() case final service?)
               GiftSettingsGroup(
                 load: () => service.giftSettings(

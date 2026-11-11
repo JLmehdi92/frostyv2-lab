@@ -11,6 +11,7 @@ class FollowActions {
     required TwitchApi api,
     required TwitchFollowedCategoriesService categories,
     required String? Function() webToken,
+    String? Function()? tvToken,
     required String? Function() viewerId,
     required Future<bool> Function() connectWebSession,
     DateTime Function()? now,
@@ -19,6 +20,7 @@ class FollowActions {
        _api = api,
        _categories = categories,
        _webToken = webToken,
+       _tvToken = tvToken ?? _none,
        _viewerId = viewerId,
        _connectWebSession = connectWebSession;
 
@@ -29,12 +31,20 @@ class FollowActions {
   final TwitchApi _api;
   final TwitchFollowedCategoriesService _categories;
   final String? Function() _webToken;
+  final String? Function() _tvToken;
   final String? Function() _viewerId;
   final Future<bool> Function() _connectWebSession;
   final DateTime Function() _now;
   DateTime? _lastFailedConnect;
 
-  String get _token => _webToken() ?? '';
+  static String? _none() => null;
+
+  String get _webSession => _webToken() ?? '';
+
+  String get _token {
+    final tv = _tvToken();
+    return tv != null && tv.isNotEmpty ? tv : _webSession;
+  }
 
   bool get isSignedIn => _viewerId() != null;
 
@@ -71,8 +81,10 @@ class FollowActions {
       _service.unfollowCategory(categoryId: categoryId, authToken: _token);
 
   Future<bool?> followsCategory(String categoryId) async {
-    if (!canFollowInApp) return null;
-    final followed = await _categories.getFollowedCategories(authToken: _token);
+    if (!isSignedIn || _webSession.isEmpty) return null;
+    final followed = await _categories.getFollowedCategories(
+      authToken: _webSession,
+    );
     if (followed == null) return null;
     return followed.any((category) => category.id == categoryId);
   }

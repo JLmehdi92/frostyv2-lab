@@ -1280,8 +1280,24 @@ abstract class AuthBase with Store {
     await _exclusive(_endSession);
   }
 
+  final _sessionEndListeners = <Future<void> Function()>[];
+
+  void addSessionEndListener(Future<void> Function() listener) =>
+      _sessionEndListeners.add(listener);
+
+  Future<void> _notifySessionEnd() async {
+    for (final listener in List.of(_sessionEndListeners)) {
+      try {
+        await listener();
+      } catch (e) {
+        debugPrint('A session end step failed: ${e.runtimeType}');
+      }
+    }
+  }
+
   Future<void> _endSession() async {
     await _forgetWebSession();
+    await _notifySessionEnd();
 
     try {
       // Revoke the user token so it stops working everywhere; logging out

@@ -1,4 +1,4 @@
-import 'package:onset/apis/integrity_retry_interceptor.dart';
+import 'package:onset/apis/twitch_tv_session_interceptor.dart';
 
 enum FollowResult {
   done,
@@ -10,8 +10,8 @@ enum FollowResult {
   refused,
   noWebSession,
   signedOut,
-  mintTimeout,
-  mintFailed,
+  needsTvSession,
+  tvSessionExpired,
   integrityRefused,
   gqlError,
   failed;
@@ -20,26 +20,26 @@ enum FollowResult {
 
   bool get needsWebSession => this == noWebSession || this == signedOut;
 
+  bool get needsTvConnect => this == needsTvSession || this == tvSessionExpired;
+
   bool get canRetry => switch (this) {
-    refused || mintTimeout || mintFailed || gqlError || failed => true,
+    refused || gqlError || failed => true,
     _ => false,
   };
 
   static FollowResult fromBody(
     Object? body,
     String field, {
-    IntegrityStage? stage,
+    TwitchTvTrace? trace,
   }) {
+    if (trace != null && trace.tvSessionRejected) return tvSessionExpired;
     if (body is! Map) return failed;
     final errors = body['errors'];
     if (errors is List && errors.isNotEmpty) {
-      if (!IntegrityRetryInterceptor.isIntegrityRefusal(body)) return gqlError;
-      return switch (stage) {
-        IntegrityStage.mintTimedOut => mintTimeout,
-        IntegrityStage.mintFailed => mintFailed,
-        IntegrityStage.sessionChanged => noWebSession,
-        _ => integrityRefused,
-      };
+      if (!TwitchTvSessionInterceptor.isIntegrityRefusal(body)) return gqlError;
+      return trace != null && trace.usedTvSession
+          ? integrityRefused
+          : needsTvSession;
     }
     final data = body['data'];
     final payload = data is Map ? data[field] : null;

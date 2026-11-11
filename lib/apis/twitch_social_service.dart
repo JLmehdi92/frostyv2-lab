@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
-import 'package:onset/apis/integrity_retry_interceptor.dart';
+import 'package:onset/apis/twitch_tv_session_interceptor.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/onsite_notification.dart';
@@ -416,7 +416,7 @@ class TwitchSocialService extends BaseApiClient {
     try {
       final Object? body = await post<dynamic>(
         _gqlUrl,
-        extra: IntegrityRetryInterceptor.userAction,
+        extra: TwitchTvSessionInterceptor.userAction,
         headers: _headers(authToken),
         data: {
           'operationName': operation,

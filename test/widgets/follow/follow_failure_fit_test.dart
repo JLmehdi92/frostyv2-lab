@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_tv_auth_service.dart';
 import 'package:onset/models/follow_result.dart';
+import 'package:onset/screens/settings/stores/twitch_tv_session_store.dart';
 import 'package:onset/widgets/follow/follow_actions.dart';
 import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:provider/provider.dart';
@@ -10,12 +13,14 @@ import '../../helpers/l10n.dart';
 
 class _MockActions extends Mock implements FollowActions {}
 
+class _MockAuth extends Mock implements TwitchTvAuthService {}
+
 void main() {
   const failures = [
     FollowResult.noWebSession,
     FollowResult.signedOut,
-    FollowResult.mintTimeout,
-    FollowResult.mintFailed,
+    FollowResult.needsTvSession,
+    FollowResult.tvSessionExpired,
     FollowResult.integrityRefused,
     FollowResult.gqlError,
     FollowResult.failed,
@@ -34,6 +39,10 @@ void main() {
           '${locale.languageCode} $name ×$scale: every follow failure reads '
           'whole, with its action',
           (tester) async {
+            FlutterSecureStorage.setMockInitialValues({
+              TwitchTvSessionBase.promptedKey: 'true',
+            });
+            final tvSession = TwitchTvSessionStore(auth: _MockAuth());
             final actions = _MockActions();
             var signedIn = true;
             var failure = failures.first;
@@ -66,8 +75,13 @@ void main() {
               locale: locale,
               size: size,
               textScale: scale,
-              wrap: (app) =>
-                  Provider<FollowActions?>.value(value: actions, child: app),
+              wrap: (app) => MultiProvider(
+                providers: [
+                  Provider<FollowActions?>.value(value: actions),
+                  Provider<TwitchTvSessionStore?>.value(value: tvSession),
+                ],
+                child: app,
+              ),
             );
 
             Future<void> check(String what) async {

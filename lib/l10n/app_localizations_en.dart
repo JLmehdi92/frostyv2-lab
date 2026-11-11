@@ -3358,12 +3358,12 @@ class AppLocalizationsEn extends AppLocalizations {
           'ONSET isn’t connected to your Twitch web session. Log in to connect it.',
       'signedOut':
           'Twitch rejected ONSET’s web session. Log in again to restore it.',
-      'mintTimeout':
-          'Twitch’s anti-bot check took too long to answer. Try again.',
-      'mintFailed':
-          'ONSET couldn’t complete Twitch’s anti-bot check. Try again.',
+      'needsTvSession':
+          'Twitch’s anti-bot check refused this follow. Connect a Twitch session to follow from ONSET.',
+      'tvSessionExpired':
+          'Your Twitch session expired. Reconnect it, then try again.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+          'Twitch refused this follow with the error “failed integrity check”. Try again in a few minutes.',
       'gqlError': 'Twitch answered with an error. Try again.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
@@ -3376,6 +3376,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get followLogInAction => 'Log in';
+
+  @override
+  String get twitchTvSessionTitle => 'Twitch session';
+
+  @override
+  String get twitchTvSessionDetail =>
+      'Lets ONSET follow, claim points and make predictions without Twitch’s anti-bot check.';
+
+  @override
+  String twitchTvSessionState({required String state}) {
+    String _temp0 = intl.Intl.selectLogic(state, {
+      'connected': 'Connected',
+      'expired': 'Expired',
+      'other': 'Not connected',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get twitchTvDisconnectTitle => 'Disconnect the Twitch session?';
+
+  @override
+  String get twitchTvDisconnectBody =>
+      'Follows, point claims, predictions and other account actions may stop working until you connect it again.';
+
+  @override
+  String get twitchTvDisconnect => 'Disconnect';
+
+  @override
+  String get twitchTvConnectTitle => 'Connect your Twitch session';
+
+  @override
+  String get twitchTvConnectBody =>
+      'Open the activation page, check that it shows the code below, then approve with the Twitch account you use in ONSET.';
+
+  @override
+  String get twitchTvConnectCodeLabel => 'Your code';
+
+  @override
+  String get twitchTvConnectCopy => 'Copy code';
+
+  @override
+  String get twitchTvConnectCopied => 'Code copied.';
+
+  @override
+  String get twitchTvConnectOpen => 'Open activation page';
+
+  @override
+  String get twitchTvConnectRequesting => 'Getting a code from Twitch…';
+
+  @override
+  String get twitchTvConnectWaiting => 'Waiting for your approval on Twitch…';
+
+  @override
+  String twitchTvConnectResult({required String status}) {
+    String _temp0 = intl.Intl.selectLogic(status, {
+      'connected':
+          'Twitch session connected. Account actions now go through it.',
+      'expired': 'This code expired. Get a new one to try again.',
+      'denied': 'The request was declined on Twitch.',
+      'wrongAccount':
+          'You approved with another Twitch account. Use the account you’re logged in to in ONSET.',
+      'other': 'Couldn’t reach Twitch. Try again.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get twitchTvConnectNewCode => 'Get a new code';
+
+  @override
+  String get twitchTvConnectAction => 'Connect';
+
+  @override
+  String get twitchTvPromptTitle => 'Connect a Twitch session?';
+
+  @override
+  String get twitchTvPromptBody =>
+      'Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without it.';
+
+  @override
+  String get twitchTvPromptLater => 'Not now';
 
   @override
   String unfollowConfirmTitle({required String name}) {
@@ -7189,7 +7271,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'cooldown': '$_temp0',
       'refused': 'Twitch declined this GIF.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.',
       'signedOut': 'Log in again to send GIFs from ONSET.',
       'other': 'Couldn’t send the GIF. Try again.',
     });
@@ -7509,7 +7591,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pointsBonusBlocked =>
-      'Twitch’s anti-bot check refused the bonus again after a second try. Reopen the channel in a few minutes to try again.';
+      'Twitch’s anti-bot check refused the bonus. Connect a Twitch session in Settings › Account, then reopen the channel.';
 
   @override
   String get pointsCollectBonus => 'Collect bonus';
@@ -7603,7 +7685,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(status, {
       'success': 'Done.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.',
       'notAuthenticated':
           'Twitch rejected the login. Log in again to spend points.',
       'network': 'Couldn’t reach Twitch. Try again.',
@@ -9303,7 +9385,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'done': 'Done.',
       'refused': 'Twitch declined this.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.',
       'signedOut': 'Log in again to do this from ONSET.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
@@ -9498,7 +9580,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'expired': 'This Drop has expired.',
       'limitReached': 'You’ve reached this reward’s limit.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.',
       'signedOut': 'Log in again to claim from ONSET.',
       'refused': 'Twitch declined this claim.',
       'other': 'Couldn’t reach Twitch. Try again.',
@@ -9596,7 +9678,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'notOpen': 'This goal isn’t taking points right now.',
       'refused': 'Twitch declined this contribution.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.',
       'signedOut': 'Log in again to contribute from ONSET.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
@@ -9803,7 +9885,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'expired': 'This moment can’t be claimed anymore.',
       'invalid': 'Twitch doesn’t know this moment.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.',
       'signedOut': 'Log in again to claim from ONSET.',
       'other': 'Couldn’t claim this moment. Try again.',
     });
@@ -10534,7 +10616,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(status, {
       'refused': 'Twitch declined this change.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.',
       'signedOut': 'Log in again to edit your clips from ONSET.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });
@@ -10608,7 +10690,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(status, {
       'refused': 'Twitch didn’t open the chests.',
       'integrityRefused':
-          'Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.',
+          'Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.',
       'signedOut': 'Log in again to open chests from ONSET.',
       'other': 'Couldn’t reach Twitch. Try again.',
     });

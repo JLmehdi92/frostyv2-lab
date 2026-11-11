@@ -1,13 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_tv_auth_service.dart';
 import 'package:onset/models/follow_result.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/models/twitch_tv_session.dart';
 import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
+import 'package:onset/screens/settings/account/twitch_tv_connect_sheet.dart';
+import 'package:onset/screens/settings/stores/twitch_tv_session_store.dart';
 import 'package:onset/widgets/follow/follow_actions.dart';
 import 'package:onset/widgets/follow/follow_flow.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
@@ -18,6 +23,8 @@ import '../../helpers/l10n.dart';
 class _MockActions extends Mock implements FollowActions {}
 
 class _MockApi extends Mock implements TwitchApi {}
+
+class _MockAuth extends Mock implements TwitchTvAuthService {}
 
 class _PushObserver extends NavigatorObserver {
   _PushObserver(this.pushes);
@@ -68,7 +75,11 @@ void main() {
     TwitchWebPage.debugBody = null;
   });
 
-  Future<void> pump(WidgetTester tester, {bool? following = false}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    bool? following = false,
+    TwitchTvSessionStore? tvSession,
+  }) async {
     info.following.value = following;
     await pumpLocalized(
       tester,
@@ -83,9 +94,135 @@ void main() {
         ),
       ),
       locale: en,
-      wrap: (app) => Provider<FollowActions?>.value(value: actions, child: app),
+      wrap: (app) => MultiProvider(
+        providers: [
+          Provider<FollowActions?>.value(value: actions),
+          Provider<TwitchTvSessionStore?>.value(value: tvSession),
+        ],
+        child: app,
+      ),
     );
   }
+
+  TwitchTvSessionStore tvStore({bool prompted = false}) {
+    FlutterSecureStorage.setMockInitialValues({
+      if (prompted) TwitchTvSessionBase.promptedKey: 'true',
+    });
+    final auth = _MockAuth();
+    when(auth.requestDeviceCode).thenAnswer((_) async => null);
+    return TwitchTvSessionStore(auth: auth);
+  }
+
+  testWidgets('the button flips at once and rolls back on a failure', (
+    tester,
+  ) async {
+    final answer = Completer<FollowResult>();
+    when(() => actions.followChannel('1000')).thenAnswer((_) => answer.future);
+    await pump(tester);
+
+    await tester.tap(find.text('Follow'));
+    await tester.pump();
+    expect(info.following.value, isTrue);
+    expect(find.text('Following'), findsOneWidget);
+
+    answer.complete(FollowResult.failed);
+    await tester.pumpAndSettle();
+    expect(info.following.value, isFalse);
+    expect(find.text('Follow'), findsOneWidget);
+  });
+
+  testWidgets('a first anti-bot refusal offers a Twitch session once', (
+    tester,
+  ) async {
+    when(
+      () => actions.followChannel('1000'),
+    ).thenAnswer((_) async => FollowResult.needsTvSession);
+    await pump(tester, tvSession: tvStore());
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+    expect(find.text('Connect a Twitch session?'), findsOneWidget);
+    await tester.tap(find.text('Not now'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TwitchTvConnectSheet), findsNothing);
+    expect(info.following.value, isFalse);
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+    expect(find.text('Connect a Twitch session?'), findsNothing);
+    expect(
+      find.text(
+        'Twitch’s anti-bot check refused this follow. Connect a Twitch '
+        'session to follow from ONSET.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.widgetWithText(SnackBarAction, 'Connect'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TwitchTvConnectSheet), findsOneWidget);
+  });
+
+  testWidgets('Connect in the one-time offer opens the connect sheet', (
+    tester,
+  ) async {
+    when(
+      () => actions.followChannel('1000'),
+    ).thenAnswer((_) async => FollowResult.needsTvSession);
+    await pump(tester, tvSession: tvStore());
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(FollowFlow.tvConnectKey));
+    await tester.pumpAndSettle();
+    expect(find.byType(TwitchTvConnectSheet), findsOneWidget);
+  });
+
+  testWidgets('a refusal after the Twitch session expired says expired', (
+    tester,
+  ) async {
+    FlutterSecureStorage.setMockInitialValues({
+      TwitchTvSessionBase.promptedKey: 'true',
+      TwitchTvSessionBase.sessionKey: const TwitchTvSession(
+        accessToken: 'tv',
+        userId: '77',
+        deviceId: 'device00device00',
+      ).encode(),
+    });
+    final auth = _MockAuth();
+    when(
+      () => auth.validate(any()),
+    ).thenAnswer((_) async => const TwitchTvValidation.invalid());
+    final store = TwitchTvSessionStore(auth: auth);
+    await store.attach('77');
+    expect(store.status, TwitchTvSessionStatus.expired);
+    when(
+      () => actions.followChannel('1000'),
+    ).thenAnswer((_) async => FollowResult.needsTvSession);
+    await pump(tester, tvSession: store);
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+    expect(find.text('Connect a Twitch session?'), findsNothing);
+    expect(
+      find.text('Your Twitch session expired. Reconnect it, then try again.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('an expired Twitch session asks to reconnect it', (tester) async {
+    when(
+      () => actions.followChannel('1000'),
+    ).thenAnswer((_) async => FollowResult.tvSessionExpired);
+    await pump(tester, tvSession: tvStore(prompted: true));
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Your Twitch session expired. Reconnect it, then try again.'),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(SnackBarAction, 'Connect'), findsOneWidget);
+  });
 
   testWidgets('a tap follows from ONSET and says so', (tester) async {
     when(
@@ -145,7 +282,7 @@ void main() {
     expect(info.following.value, isFalse);
   });
 
-  testWidgets('an anti-bot refusal stays in ONSET and asks to wait', (
+  testWidgets('a refusal through the TV session shows Twitch’s code', (
     tester,
   ) async {
     when(
@@ -159,7 +296,7 @@ void main() {
     expect(find.byKey(const ValueKey('web')), findsNothing);
     expect(
       find.text(
-        'Twitch’s anti-bot check refused this again after a second try. '
+        'Twitch refused this follow with the error “failed integrity check”. '
         'Try again in a few minutes.',
       ),
       findsOneWidget,
@@ -187,14 +324,6 @@ void main() {
   });
 
   for (final (result, text) in const [
-    (
-      FollowResult.mintTimeout,
-      'Twitch’s anti-bot check took too long to answer. Try again.',
-    ),
-    (
-      FollowResult.mintFailed,
-      'ONSET couldn’t complete Twitch’s anti-bot check. Try again.',
-    ),
     (FollowResult.gqlError, 'Twitch answered with an error. Try again.'),
     (FollowResult.failed, 'Couldn’t reach Twitch. Try again.'),
   ]) {
@@ -301,7 +430,7 @@ void main() {
           .absorbing,
       isTrue,
     );
-    await tester.tap(find.text('Follow'), warnIfMissed: false);
+    await tester.tap(find.text('Following'), warnIfMissed: false);
     await tester.pump();
 
     answer.complete(FollowResult.done);

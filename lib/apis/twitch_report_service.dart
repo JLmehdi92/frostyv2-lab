@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
-import 'package:onset/apis/integrity_retry_interceptor.dart';
+import 'package:onset/apis/twitch_tv_session_interceptor.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/models/report.dart';
@@ -39,7 +39,7 @@ class TwitchReportService extends BaseApiClient {
     try {
       final Object? body = await post<dynamic>(
         _gqlUrl,
-        extra: IntegrityRetryInterceptor.userAction,
+        extra: TwitchTvSessionInterceptor.userAction,
         headers: {
           'Client-ID': kTwitchWebClientId,
           'Authorization': 'OAuth $authToken',
@@ -72,7 +72,7 @@ class TwitchReportService extends BaseApiClient {
     if (body is! Map) return ViewerActionOutcome.failed;
     final errors = body['errors'];
     if (errors is List && errors.isNotEmpty) {
-      return IntegrityRetryInterceptor.isIntegrityRefusal(body)
+      return TwitchTvSessionInterceptor.isIntegrityRefusal(body)
           ? ViewerActionOutcome.integrityRefused
           : ViewerActionOutcome.refused;
     }

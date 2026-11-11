@@ -3,6 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_followed_categories_service.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
+import 'package:onset/models/follow_result.dart';
 import 'package:onset/models/followed_category.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
@@ -26,6 +27,8 @@ void main() {
   String? token;
   String? viewer;
   late FollowActions actions;
+  late _MockService service;
+  String? tvToken;
   late int connects;
   late String? Function() connectedToken;
   late DateTime clock;
@@ -38,8 +41,11 @@ void main() {
     categories = _MockCategories();
     token = 'tok';
     viewer = '77';
+    tvToken = null;
+    service = _MockService();
     actions = FollowActions(
-      service: _MockService(),
+      service: service,
+      tvToken: () => tvToken,
       api: api,
       categories: categories,
       webToken: () => token,
@@ -60,6 +66,28 @@ void main() {
     expect(connects, 1);
     expect(await actions.connectWebSession(), isTrue);
     expect(connects, 1);
+  });
+
+  test('a Twitch session follows without the web session', () async {
+    token = null;
+    tvToken = 'tv-access';
+    when(
+      () => service.followChannel(channelId: '5', authToken: 'tv-access'),
+    ).thenAnswer((_) async => FollowResult.done);
+    expect(actions.canFollowInApp, isTrue);
+    expect(await actions.connectWebSession(), isTrue);
+    expect(connects, 0);
+    expect(await actions.followChannel('5'), FollowResult.done);
+  });
+
+  test('the category state still reads with the web session only', () async {
+    token = null;
+    tvToken = 'tv-access';
+    expect(await actions.followsCategory('509658'), isNull);
+    verifyNever(
+      () =>
+          categories.getFollowedCategories(authToken: any(named: 'authToken')),
+    );
   });
 
   test('connecting reports a session it could not get', () async {

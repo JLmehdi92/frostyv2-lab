@@ -13,7 +13,6 @@ import 'package:onset/apis/bttv_api.dart';
 import 'package:onset/apis/dio_client.dart';
 import 'package:onset/apis/ffz_api.dart';
 import 'package:onset/apis/giphy_service.dart';
-import 'package:onset/apis/integrity_retry_interceptor.dart';
 import 'package:onset/apis/seventv_api.dart';
 import 'package:onset/apis/twitch_account_gql_service.dart';
 import 'package:onset/apis/twitch_api.dart';
@@ -29,6 +28,8 @@ import 'package:onset/apis/twitch_followed_categories_service.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/apis/twitch_report_service.dart';
 import 'package:onset/apis/twitch_social_service.dart';
+import 'package:onset/apis/twitch_tv_auth_service.dart';
+import 'package:onset/apis/twitch_tv_session_interceptor.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
@@ -50,6 +51,7 @@ import 'package:onset/screens/onboarding/onboarding_flow.dart';
 import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/stores/twitch_tv_session_store.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/vod/channel_videos.dart';
 import 'package:onset/screens/vod/vod_screen.dart';
@@ -59,8 +61,6 @@ import 'package:onset/services/font_licenses.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/go_live/go_live_poller.dart';
 import 'package:onset/services/go_live/go_live_worker.dart';
-import 'package:onset/services/integrity/integrity_token_provider.dart';
-import 'package:onset/services/integrity/webview_integrity_minter.dart';
 import 'package:onset/services/launch_info.dart';
 import 'package:onset/services/locale_bridge.dart';
 import 'package:onset/services/notification_settings_link.dart';
@@ -247,22 +247,16 @@ void main() async {
   // Add the unauthorized interceptor to catch 401 errors
   dioClient.interceptors.add(UnauthorizedInterceptor(authStore));
 
-  final integrityMinter = WebViewIntegrityMinter(
-    overlay: () => navigatorKey.currentState?.overlay,
-  );
-  final integrityTokens = IntegrityTokenProvider(
-    mint: integrityMinter.call,
-    cancelMint: integrityMinter.cancel,
-    webSession: () => authStore.twitchWebToken,
+  final twitchTvSession = TwitchTvSessionStore(
+    auth: TwitchTvAuthService(anonymousGqlDio),
   );
   anonymousGqlDio.interceptors.add(
-    IntegrityRetryInterceptor(dio: anonymousGqlDio, tokens: integrityTokens),
+    TwitchTvSessionInterceptor(
+      credentials: () => twitchTvSession.credentials,
+      onRejected: twitchTvSession.markRejected,
+    ),
   );
-  AppLifecycleListener(onPause: integrityTokens.cancel);
-  reaction<String?>(
-    (_) => authStore.twitchWebToken,
-    (_) => integrityTokens.cancel(),
-  );
+  authStore.addSessionEndListener(twitchTvSession.endAccountSession);
 
   // VODs restricted to subscribers play for subscribers, like live 2K, and
   // watch positions are kept on the viewer's Twitch account.
@@ -273,6 +267,13 @@ void main() async {
         authStore.isLoggedIn ? authStore.user.details?.id : null);
 
   await authStore.init();
+  reaction<String?>(
+    (_) => authStore.isLoggedIn ? authStore.user.details?.id : null,
+    (id) {
+      if (id != null) unawaited(twitchTvSession.attach(id));
+    },
+    fireImmediately: true,
+  );
 
   // The logged-in user's events (whispers) over one EventSub websocket,
   // subscribed through Helix. Connects only while something listens and
@@ -391,6 +392,7 @@ void main() async {
     MultiProvider(
       providers: [
         Provider<AuthStore>.value(value: authStore),
+        Provider<TwitchTvSessionStore>.value(value: twitchTvSession),
         Provider<SettingsStore>.value(value: settingsStore),
         Provider<TwitchApi>.value(value: twitchApiService),
         Provider<BTTVApi>.value(value: bttvApiService),
@@ -426,6 +428,7 @@ void main() async {
             api: twitchApiService,
             categories: twitchFollowedCategoriesService,
             webToken: () => authStore.twitchWebToken,
+            tvToken: () => twitchTvSession.accessToken,
             viewerId: () =>
                 authStore.isLoggedIn ? authStore.user.details?.id : null,
             connectWebSession: authStore.ensureTwitchWebToken,

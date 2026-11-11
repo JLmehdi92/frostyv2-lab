@@ -4271,9 +4271,9 @@
       }
     }
   },
-  "followError": "{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} noWebSession{ONSET isn’t connected to your Twitch web session. Log in to connect it.} signedOut{Twitch rejected ONSET’s web session. Log in again to restore it.} mintTimeout{Twitch’s anti-bot check took too long to answer. Try again.} mintFailed{ONSET couldn’t complete Twitch’s anti-bot check. Try again.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} gqlError{Twitch answered with an error. Try again.} other{Couldn’t reach Twitch. Try again.}}",
+  "followError": "{status, select, tooManyFollows{You follow too many channels. Unfollow one, then try again.} unverifiedEmail{Verify your email address on Twitch to follow.} unverifiedPhone{Verify your phone number on Twitch to follow.} unverifiedPhoneAndEmail{Verify your email address and phone number on Twitch to follow.} forbidden{Twitch doesn’t allow this follow.} refused{Twitch declined this follow.} noWebSession{ONSET isn’t connected to your Twitch web session. Log in to connect it.} signedOut{Twitch rejected ONSET’s web session. Log in again to restore it.} needsTvSession{Twitch’s anti-bot check refused this follow. Connect a Twitch session to follow from ONSET.} tvSessionExpired{Your Twitch session expired. Reconnect it, then try again.} integrityRefused{Twitch refused this follow with the error “failed integrity check”. Try again in a few minutes.} gqlError{Twitch answered with an error. Try again.} other{Couldn’t reach Twitch. Try again.}}",
   "@followError": {
-    "description": "Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name: Twitch’s error codes, or the failing step (noWebSession: no Twitch web session stored; signedOut: Twitch rejected it; mintTimeout and mintFailed: the anti-bot token couldn’t be obtained; integrityRefused: refused again after the retry; gqlError: another GraphQL error; other: network). Each step has its own text, so the owner can tell them apart on a device.",
+    "description": "Snack bar when a follow or an unfollow sent from ONSET fails. status is FollowResult.name: Twitch’s error codes, or the failing step (noWebSession: no Twitch web session stored; signedOut: Twitch rejected it; needsTvSession: the anti-bot check refused it and no Twitch session is connected; tvSessionExpired: Twitch rejected the connected Twitch session; integrityRefused: refused even through the Twitch session, with Twitch’s own error code; gqlError: another GraphQL error; other: network). Each step has its own text, so the owner can tell them apart on a device.",
     "placeholders": {
       "status": {
         "type": "String",
@@ -4288,6 +4288,98 @@
   "followLogInAction": "Log in",
   "@followLogInAction": {
     "description": "Snack bar action under followSignInNeeded, or under followError when ONSET has no usable Twitch web session. It opens ONSET’s own login page; nothing opens twitch.tv."
+  },
+  "twitchTvSessionTitle": "Twitch session",
+  "@twitchTvSessionTitle": {
+    "description": "Account settings row that connects a Twitch session (a TV sign-in) which ONSET uses for account actions such as follows, point claims and predictions."
+  },
+  "twitchTvSessionDetail": "Lets ONSET follow, claim points and make predictions without Twitch’s anti-bot check.",
+  "@twitchTvSessionDetail": {
+    "description": "Second line of the Twitch session row in account settings: what connecting it does."
+  },
+  "twitchTvSessionState": "{state, select, connected{Connected} expired{Expired} other{Not connected}}",
+  "@twitchTvSessionState": {
+    "description": "Value of the Twitch session row in account settings. state is connected, expired or disconnected. In French it agrees with « session » (feminine).",
+    "placeholders": {
+      "state": {
+        "type": "String",
+        "example": "connected"
+      }
+    }
+  },
+  "twitchTvDisconnectTitle": "Disconnect the Twitch session?",
+  "@twitchTvDisconnectTitle": {
+    "description": "Dialog title before disconnecting the Twitch session from account settings."
+  },
+  "twitchTvDisconnectBody": "Follows, point claims, predictions and other account actions may stop working until you connect it again.",
+  "@twitchTvDisconnectBody": {
+    "description": "Dialog text before disconnecting the Twitch session."
+  },
+  "twitchTvDisconnect": "Disconnect",
+  "@twitchTvDisconnect": {
+    "description": "Confirm button of the disconnect dialog, and the button in the connect sheet when a session is already connected."
+  },
+  "twitchTvConnectTitle": "Connect your Twitch session",
+  "@twitchTvConnectTitle": {
+    "description": "Title of the sheet that connects a Twitch session with a code."
+  },
+  "twitchTvConnectBody": "Open the activation page, check that it shows the code below, then approve with the Twitch account you use in ONSET.",
+  "@twitchTvConnectBody": {
+    "description": "Instructions in the connect sheet. The activation page is twitch.tv/activate, opened inside ONSET with the code filled in."
+  },
+  "twitchTvConnectCodeLabel": "Your code",
+  "@twitchTvConnectCodeLabel": {
+    "description": "Small label above the big activation code in the connect sheet."
+  },
+  "twitchTvConnectCopy": "Copy code",
+  "@twitchTvConnectCopy": {
+    "description": "Button in the connect sheet that copies the activation code."
+  },
+  "twitchTvConnectCopied": "Code copied.",
+  "@twitchTvConnectCopied": {
+    "description": "Snack bar after the activation code was copied."
+  },
+  "twitchTvConnectOpen": "Open activation page",
+  "@twitchTvConnectOpen": {
+    "description": "Primary button in the connect sheet: opens twitch.tv/activate inside ONSET with the code filled in."
+  },
+  "twitchTvConnectRequesting": "Getting a code from Twitch…",
+  "@twitchTvConnectRequesting": {
+    "description": "Status line in the connect sheet while the code is being requested."
+  },
+  "twitchTvConnectWaiting": "Waiting for your approval on Twitch…",
+  "@twitchTvConnectWaiting": {
+    "description": "Status line in the connect sheet while ONSET checks whether the code was approved."
+  },
+  "twitchTvConnectResult": "{status, select, connected{Twitch session connected. Account actions now go through it.} expired{This code expired. Get a new one to try again.} denied{The request was declined on Twitch.} wrongAccount{You approved with another Twitch account. Use the account you’re logged in to in ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "@twitchTvConnectResult": {
+    "description": "Status line in the connect sheet when the attempt ends. status is TwitchTvConnectOutcome.name (connected, expired, denied, wrongAccount; other: network or Twitch error).",
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "expired"
+      }
+    }
+  },
+  "twitchTvConnectNewCode": "Get a new code",
+  "@twitchTvConnectNewCode": {
+    "description": "Button in the connect sheet after a code expired or the attempt failed."
+  },
+  "twitchTvConnectAction": "Connect",
+  "@twitchTvConnectAction": {
+    "description": "Snack bar action after an account action failed for lack of a Twitch session: opens the connect sheet."
+  },
+  "twitchTvPromptTitle": "Connect a Twitch session?",
+  "@twitchTvPromptTitle": {
+    "description": "Dialog shown once, the first time an account action needs a Twitch session."
+  },
+  "twitchTvPromptBody": "Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without it.",
+  "@twitchTvPromptBody": {
+    "description": "Text of the one-time dialog that offers to connect a Twitch session."
+  },
+  "twitchTvPromptLater": "Not now",
+  "@twitchTvPromptLater": {
+    "description": "Dismiss button of the one-time Twitch session dialog."
   },
   "unfollowConfirmTitle": "Unfollow {name}?",
   "@unfollowConfirmTitle": {
@@ -9078,7 +9170,7 @@
   "@gifSend": {
     "description": "The button that sends the GIF to the chat."
   },
-  "gifSendResult": "{status, select, cooldown{{seconds, plural, =1{You can send another GIF in 1 second.} other{You can send another GIF in {seconds} seconds.}}} refused{Twitch declined this GIF.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to send GIFs from ONSET.} other{Couldn’t send the GIF. Try again.}}",
+  "gifSendResult": "{status, select, cooldown{{seconds, plural, =1{You can send another GIF in 1 second.} other{You can send another GIF in {seconds} seconds.}}} refused{Twitch declined this GIF.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to send GIFs from ONSET.} other{Couldn’t send the GIF. Try again.}}",
   "@gifSendResult": {
     "description": "Snackbar when a GIF couldn’t be sent: a cooldown with the seconds to wait, or why it failed.",
     "placeholders": {
@@ -9522,7 +9614,7 @@
   "@streakHelpBody": {
     "description": "The explanation shown when the viewer opens “Where’s my streak?”."
   },
-  "pointsBonusBlocked": "Twitch’s anti-bot check refused the bonus again after a second try. Reopen the channel in a few minutes to try again.",
+  "pointsBonusBlocked": "Twitch’s anti-bot check refused the bonus. Connect a Twitch session in Settings › Account, then reopen the channel.",
   "@pointsBonusBlocked": {
     "description": "Error message. The channel points sheet when Twitch refuses the bonus to the app."
   },
@@ -9668,7 +9760,7 @@
   "@pointsRedeem": {
     "description": "The button that redeems a reward."
   },
-  "pointsResult": "{status, select, success{Done.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} notAuthenticated{Twitch rejected the login. Log in again to spend points.} network{Couldn’t reach Twitch. Try again.} other{Twitch refused: {reason}}}",
+  "pointsResult": "{status, select, success{Done.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} notAuthenticated{Twitch rejected the login. Log in again to spend points.} network{Couldn’t reach Twitch. Try again.} other{Twitch refused: {reason}}}",
   "@pointsResult": {
     "description": "Snackbar after spending channel points (a reward, a bet, the bonus). status is PointsActionStatus.name; reason is Twitch's own code for an unknown refusal (never translated), or pointsNoReason.",
     "placeholders": {
@@ -11863,7 +11955,7 @@
       }
     }
   },
-  "viewerActionResult": "{status, select, done{Done.} refused{Twitch declined this.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to do this from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "viewerActionResult": "{status, select, done{Done.} refused{Twitch declined this.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to do this from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
   "@viewerActionResult": {
     "description": "Snack bar after a viewer action sent to Twitch from ONSET (a poll vote, leaving or joining a raid, sharing a watch streak, acknowledging a warning).",
     "placeholders": {
@@ -12091,7 +12183,7 @@
   "@dropsLinkAccount": {
     "description": "Button in the Drops card that opens the publisher’s page to link a game account, needed before claiming."
   },
-  "dropClaimResult": "{status, select, claimed{Reward claimed.} alreadyClaimed{You already claimed this reward.} needsAccountLink{Link your game account first, then claim again.} expired{This Drop has expired.} limitReached{You’ve reached this reward’s limit.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to claim from ONSET.} refused{Twitch declined this claim.} other{Couldn’t reach Twitch. Try again.}}",
+  "dropClaimResult": "{status, select, claimed{Reward claimed.} alreadyClaimed{You already claimed this reward.} needsAccountLink{Link your game account first, then claim again.} expired{This Drop has expired.} limitReached{You’ve reached this reward’s limit.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to claim from ONSET.} refused{Twitch declined this claim.} other{Couldn’t reach Twitch. Try again.}}",
   "@dropClaimResult": {
     "description": "Snack bar after claiming a Drop reward from the Drops card.",
     "placeholders": {
@@ -12225,7 +12317,7 @@
   "@communityGoalLogIn": {
     "description": "Line in the community goals sheet for a logged-out viewer."
   },
-  "goalContributionResult": "{status, select, contributed{Thank you! Your points went to the goal.} notEnoughPoints{You don’t have enough points for this.} maxPerStream{You’ve given the most allowed for this stream. Try again next stream.} notOpen{This goal isn’t taking points right now.} refused{Twitch declined this contribution.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to contribute from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "goalContributionResult": "{status, select, contributed{Thank you! Your points went to the goal.} notEnoughPoints{You don’t have enough points for this.} maxPerStream{You’ve given the most allowed for this stream. Try again next stream.} notOpen{This goal isn’t taking points right now.} refused{Twitch declined this contribution.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to contribute from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
   "@goalContributionResult": {
     "description": "Snack bar after giving channel points to a community goal.",
     "placeholders": {
@@ -12471,7 +12563,7 @@
   "@momentClaim": {
     "description": "Button that claims a community moment."
   },
-  "momentClaimResult": "{status, select, claimed{Moment claimed. It can take a few minutes to show on your moments badge.} alreadyClaimed{You already claimed this moment.} expired{This moment can’t be claimed anymore.} invalid{Twitch doesn’t know this moment.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to claim from ONSET.} other{Couldn’t claim this moment. Try again.}}",
+  "momentClaimResult": "{status, select, claimed{Moment claimed. It can take a few minutes to show on your moments badge.} alreadyClaimed{You already claimed this moment.} expired{This moment can’t be claimed anymore.} invalid{Twitch doesn’t know this moment.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to claim from ONSET.} other{Couldn’t claim this moment. Try again.}}",
   "@momentClaimResult": {
     "description": "Snackbar after claiming a community moment. status is MomentClaimResult.name.",
     "placeholders": {
@@ -13340,7 +13432,7 @@
   "@clipDeleted": {
     "description": "Snack bar after Twitch deleted a clip."
   },
-  "clipActionFailed": "{status, select, refused{Twitch declined this change.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to edit your clips from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "clipActionFailed": "{status, select, refused{Twitch declined this change.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to edit your clips from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
   "@clipActionFailed": {
     "description": "Snack bar when renaming or deleting a clip fails. status is AccountEditOutcome.name.",
     "placeholders": {
@@ -13418,7 +13510,7 @@
   "@hypeChestRevealDone": {
     "description": "Button that closes the chest reveal."
   },
-  "hypeChestsOpenFailed": "{status, select, refused{Twitch didn’t open the chests.} integrityRefused{Twitch’s anti-bot check refused this again after a second try. Try again in a few minutes.} signedOut{Log in again to open chests from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
+  "hypeChestsOpenFailed": "{status, select, refused{Twitch didn’t open the chests.} integrityRefused{Twitch’s anti-bot check refused this. Connect a Twitch session in Settings › Account, then try again.} signedOut{Log in again to open chests from ONSET.} other{Couldn’t reach Twitch. Try again.}}",
   "@hypeChestsOpenFailed": {
     "description": "Snack bar when opening chests fails. status is ViewerActionOutcome.name.",
     "placeholders": {

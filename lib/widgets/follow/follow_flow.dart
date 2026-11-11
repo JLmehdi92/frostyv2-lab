@@ -6,6 +6,8 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/follow_result.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/onboarding/login_webview.dart';
+import 'package:onset/screens/settings/account/twitch_tv_connect_sheet.dart';
+import 'package:onset/screens/settings/stores/twitch_tv_session_store.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/widgets/follow/follow_actions.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
@@ -17,6 +19,7 @@ class FollowFlow {
   const FollowFlow._();
 
   static const confirmKey = ValueKey('follow-confirm');
+  static const tvConnectKey = ValueKey('follow-tv-connect');
 
   static FollowActions? actionsOf(BuildContext context) {
     final FollowActions? actions;
@@ -59,6 +62,7 @@ class FollowFlow {
     if (isPending(id)) return null;
     final root = Navigator.maybeOf(context, rootNavigator: true);
     final actions = _providedActions(context);
+    final tvSession = _tvSessionOf(context);
     if (actions == null || !actions.isSignedIn) {
       _showSignInNeeded(context);
       return null;
@@ -67,14 +71,31 @@ class FollowFlow {
     if (unfollow && !await _confirmUnfollow(context, name)) return null;
     if (isPending(id)) return null;
     pending.value = {...pending.value, id};
-    final FollowResult result;
+    onChanged?.call(!unfollow);
+    final FollowResult sent;
     try {
-      result = await _send(actions, target, id, following, unfollow);
+      sent = await _send(actions, target, id, following, unfollow);
     } finally {
       pending.value = {...pending.value}..remove(id);
     }
+    final result =
+        sent == FollowResult.needsTvSession &&
+            tvSession?.status == TwitchTvSessionStatus.expired
+        ? FollowResult.tvSessionExpired
+        : sent;
+    if (!result.succeeded) onChanged?.call(following == true);
     final shownFrom = context.mounted ? context : root?.context;
     if (shownFrom == null || !shownFrom.mounted) return null;
+    if (result == FollowResult.needsTvSession &&
+        tvSession != null &&
+        await tvSession.takePrompt()) {
+      final promptFrom = root?.context;
+      if (promptFrom != null && promptFrom.mounted) {
+        await offerTvSession(promptFrom, tvSession);
+      }
+      return null;
+    }
+    if (!shownFrom.mounted) return null;
     showResult(
       shownFrom,
       result,
@@ -97,8 +118,58 @@ class FollowFlow {
     );
     if (!result.succeeded) return null;
     unawaited(HapticFeedback.lightImpact());
-    onChanged?.call(!unfollow);
     return !unfollow;
+  }
+
+  static TwitchTvSessionStore? _tvSessionOf(BuildContext context) {
+    try {
+      return context.read<TwitchTvSessionStore?>();
+    } on ProviderNotFoundException {
+      return null;
+    }
+  }
+
+  static Future<void> offerTvSession(
+    BuildContext context,
+    TwitchTvSessionStore store,
+  ) async {
+    final l = context.l10n;
+    final connect = await showDialog<bool>(
+      context: context,
+      builder: (context) => OnsetDialog(
+        title: l.twitchTvPromptTitle,
+        message: l.twitchTvPromptBody,
+        actions: [
+          SheetButton(
+            label: l.twitchTvPromptLater,
+            tone: SheetButtonTone.text,
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          SheetButton(
+            key: tvConnectKey,
+            label: l.twitchTvConnectAction,
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+    if (connect == true && context.mounted) {
+      await showTwitchTvConnectSheet(context, store);
+    }
+  }
+
+  static SnackBarAction? _tvConnectAction(BuildContext context) {
+    final store = _tvSessionOf(context);
+    final navigator = Navigator.maybeOf(context, rootNavigator: true);
+    if (store == null || navigator == null) return null;
+    return SnackBarAction(
+      label: context.l10n.twitchTvConnectAction,
+      onPressed: () {
+        if (navigator.mounted) {
+          unawaited(showTwitchTvConnectSheet(navigator.context, store));
+        }
+      },
+    );
   }
 
   static Future<FollowResult> _send(
@@ -251,6 +322,7 @@ class FollowFlow {
     FollowResult result,
     VoidCallback? retry,
   ) {
+    if (result.needsTvConnect) return _tvConnectAction(context);
     if (result.needsWebSession) return _logInAction(context);
     if (retry == null || !result.canRetry) return null;
     return SnackBarAction(label: context.l10n.commonRetry, onPressed: retry);

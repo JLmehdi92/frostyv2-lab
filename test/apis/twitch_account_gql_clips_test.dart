@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
-import 'package:onset/apis/integrity_retry_interceptor.dart';
 import 'package:onset/apis/twitch_account_gql_service.dart';
+import 'package:onset/apis/twitch_tv_session_interceptor.dart';
 import 'package:onset/models/profile_edit.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
@@ -59,7 +59,7 @@ void main() {
         'slugs': [_slug],
       });
       expect(
-        sent.single.extra[IntegrityRetryInterceptor.userActionKey],
+        sent.single.extra[TwitchTvSessionInterceptor.userActionKey],
         isTrue,
       );
     });

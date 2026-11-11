@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
-import 'package:onset/apis/integrity_retry_interceptor.dart';
 import 'package:onset/apis/twitch_report_service.dart';
+import 'package:onset/apis/twitch_tv_session_interceptor.dart';
 import 'package:onset/apis/twitch_viewer_actions_service.dart';
 import 'package:onset/models/report.dart';
 
@@ -68,7 +68,7 @@ void main() {
       'extra': '',
     });
     expect(sent.single.headers['Authorization'], 'OAuth t');
-    expect(sent.single.extra[IntegrityRetryInterceptor.userActionKey], isTrue);
+    expect(sent.single.extra[TwitchTvSessionInterceptor.userActionKey], isTrue);
   });
 
   test('a message report names the message, its sender and channel', () async {

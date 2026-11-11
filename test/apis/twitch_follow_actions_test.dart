@@ -86,15 +86,19 @@ void main() {
       });
     }
 
-    test('an integrity refusal is reported, never as a web page', () async {
-      reply(integrityRefusedResponse);
-      final result = await service.followChannel(
-        channelId: '1000',
-        authToken: 'tok',
-      );
-      expect(result, FollowResult.integrityRefused);
-      expect(result.canRetry, isFalse);
-    });
+    test(
+      'an integrity refusal without a Twitch session asks for one',
+      () async {
+        reply(integrityRefusedResponse);
+        final result = await service.followChannel(
+          channelId: '1000',
+          authToken: 'tok',
+        );
+        expect(result, FollowResult.needsTvSession);
+        expect(result.needsTvConnect, isTrue);
+        expect(result.canRetry, isFalse);
+      },
+    );
 
     test('another GraphQL error is a GraphQL error', () async {
       reply({

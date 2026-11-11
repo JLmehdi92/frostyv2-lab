@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
-import 'package:onset/apis/integrity_retry_interceptor.dart';
+import 'package:onset/apis/twitch_tv_session_interceptor.dart';
 import 'package:onset/models/community_points.dart';
 
 /// Reads channel points and predictions from Twitch's private GQL endpoint.
@@ -286,7 +286,7 @@ query OnsetCommunityPoints(\$login: String!) {
     try {
       final data = await post<JsonMap>(
         _gqlUrl,
-        extra: IntegrityRetryInterceptor.userAction,
+        extra: TwitchTvSessionInterceptor.userAction,
         headers: {
           'Client-ID': _gqlClientId,
           'Authorization': 'OAuth $authToken',
