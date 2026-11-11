@@ -5336,7 +5336,7 @@ abstract class AppLocalizations {
   /// Text of the one-time dialog that offers to connect a Twitch session.
   ///
   /// In en, this message translates to:
-  /// **'Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without going through that check.'**
+  /// **'Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points, and make predictions without going through that check.'**
   String get twitchTvPromptBody;
 
   /// Dismiss button of the one-time Twitch session dialog.
@@ -5348,7 +5348,7 @@ abstract class AppLocalizations {
   /// Text of the dialog shown right after logging in, offering to connect a Twitch session.
   ///
   /// In en, this message translates to:
-  /// **'With a Twitch session, ONSET can follow, claim points, open chests, and make predictions without going through Twitch’s anti-bot check. It only takes a code.'**
+  /// **'With a Twitch session, ONSET can follow, claim points, open chests, and make predictions without going through Twitch’s anti-bot check. It only takes a code from Twitch.'**
   String get twitchTvLoginOfferBody;
 
   /// Dialog title before unfollowing a channel or a category.

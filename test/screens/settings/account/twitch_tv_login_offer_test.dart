@@ -18,7 +18,7 @@ const _storage = FlutterSecureStorage();
 const _offerBody =
     'With a Twitch session, ONSET can follow, claim points, open chests, and '
     'make predictions without going through Twitch’s anti-bot check. It only '
-    'takes a code.';
+    'takes a code from Twitch.';
 
 void main() {
   late _MockAuth auth;

@@ -3455,14 +3455,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get twitchTvPromptBody =>
-      'Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without going through that check.';
+      'Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points, and make predictions without going through that check.';
 
   @override
   String get twitchTvPromptLater => 'Not now';
 
   @override
   String get twitchTvLoginOfferBody =>
-      'With a Twitch session, ONSET can follow, claim points, open chests, and make predictions without going through Twitch’s anti-bot check. It only takes a code.';
+      'With a Twitch session, ONSET can follow, claim points, open chests, and make predictions without going through Twitch’s anti-bot check. It only takes a code from Twitch.';
 
   @override
   String unfollowConfirmTitle({required String name}) {

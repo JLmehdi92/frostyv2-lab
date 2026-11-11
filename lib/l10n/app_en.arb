@@ -4373,7 +4373,7 @@
   "@twitchTvPromptTitle": {
     "description": "Dialog shown once, the first time an account action needs a Twitch session."
   },
-  "twitchTvPromptBody": "Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points and make predictions without going through that check.",
+  "twitchTvPromptBody": "Twitch’s anti-bot check refused this action. With a Twitch session, ONSET can follow, claim points, and make predictions without going through that check.",
   "@twitchTvPromptBody": {
     "description": "Text of the one-time dialog that offers to connect a Twitch session."
   },
@@ -4381,7 +4381,7 @@
   "@twitchTvPromptLater": {
     "description": "Dismiss button of the one-time Twitch session dialog."
   },
-  "twitchTvLoginOfferBody": "With a Twitch session, ONSET can follow, claim points, open chests, and make predictions without going through Twitch’s anti-bot check. It only takes a code.",
+  "twitchTvLoginOfferBody": "With a Twitch session, ONSET can follow, claim points, open chests, and make predictions without going through Twitch’s anti-bot check. It only takes a code from Twitch.",
   "@twitchTvLoginOfferBody": {
     "description": "Text of the dialog shown right after logging in, offering to connect a Twitch session."
   },
