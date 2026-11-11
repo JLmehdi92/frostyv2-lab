@@ -134,28 +134,32 @@ class FollowFlow {
     BuildContext context,
     TwitchTvSessionStore store, {
     String? message,
+    ValueSetter<BuildContext>? onShown,
   }) async {
     final l = context.l10n;
     final connect = await showDialog<bool>(
       context: context,
-      builder: (context) => OnsetDialog(
-        title: l.twitchTvPromptTitle,
-        message: message ?? l.twitchTvPromptBody,
-        actions: [
-          SheetButton(
-            label: l.twitchTvPromptLater,
-            tone: SheetButtonTone.text,
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          SheetButton(
-            key: tvConnectKey,
-            label: l.twitchTvConnectAction,
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
+      builder: (context) {
+        onShown?.call(context);
+        return OnsetDialog(
+          title: l.twitchTvPromptTitle,
+          message: message ?? l.twitchTvPromptBody,
+          actions: [
+            SheetButton(
+              label: l.twitchTvPromptLater,
+              tone: SheetButtonTone.text,
+              onPressed: () => Navigator.pop(context, false),
+            ),
+            SheetButton(
+              key: tvConnectKey,
+              label: l.twitchTvConnectAction,
+              onPressed: () => Navigator.pop(context, true),
+            ),
+          ],
+        );
+      },
     );
-    if (connect == true && context.mounted) {
+    if (connect == true && context.mounted && store.hasAccount) {
       await showTwitchTvConnectSheet(context, store);
     }
   }

@@ -1240,6 +1240,7 @@ abstract class AuthBase with Store {
         _tokenClientId = foreignClient;
         _tokenIsValid = true;
         await user.init(details: details);
+        _interactiveLogins++;
         _isLoggedIn = true;
         _signedInWith = token;
         _error = null;
@@ -1279,6 +1280,10 @@ abstract class AuthBase with Store {
     _stopReconnectLoop();
     await _exclusive(_endSession);
   }
+
+  var _interactiveLogins = 0;
+
+  int get interactiveLogins => _interactiveLogins;
 
   final _sessionEndListeners = <Future<void> Function()>[];
 

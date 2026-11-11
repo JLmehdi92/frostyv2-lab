@@ -25,6 +25,7 @@ void main() {
   late String? viewer;
   late TwitchTvSessionStore store;
   late TwitchTvLoginOffer offer;
+  late int logins;
   BuildContext? navigatorContext;
 
   setUp(() {
@@ -32,13 +33,18 @@ void main() {
     auth = _MockAuth();
     viewer = null;
     navigatorContext = null;
+    logins = 0;
     when(
       () => auth.validate(any()),
     ).thenAnswer((_) async => TwitchTvValidation.valid(viewer ?? ''));
     when(() => auth.revoke(any())).thenAnswer((_) async {});
     when(auth.requestDeviceCode).thenAnswer((_) async => null);
     store = TwitchTvSessionStore(auth: auth, viewerId: () => viewer);
-    offer = TwitchTvLoginOffer(store: store, context: () => navigatorContext);
+    offer = TwitchTvLoginOffer(
+      store: store,
+      context: () => navigatorContext,
+      logins: () => logins,
+    );
   });
 
   Future<void> pump(WidgetTester tester) async {
@@ -64,6 +70,11 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> login(WidgetTester tester, String id) async {
+    logins++;
+    await account(tester, id);
+  }
+
   testWidgets('a restored account at launch is not offered a session', (
     tester,
   ) async {
@@ -77,7 +88,7 @@ void main() {
       'sheet', (tester) async {
     await pump(tester);
     await account(tester, null);
-    await account(tester, '77');
+    await login(tester, '77');
     expect(find.text('Connect a Twitch session?'), findsOneWidget);
     expect(find.text(_offerBody), findsOneWidget);
     expect(find.text('Not now'), findsOneWidget);
@@ -95,7 +106,7 @@ void main() {
   ) async {
     await pump(tester);
     await account(tester, null);
-    await account(tester, '77');
+    await login(tester, '77');
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
     expect(find.text(_offerBody), findsNothing);
@@ -109,7 +120,7 @@ void main() {
     await pump(tester);
     await account(tester, null);
     await storeSession('77');
-    await account(tester, '77');
+    await login(tester, '77');
     expect(store.status, TwitchTvSessionStatus.connected);
     expect(find.text(_offerBody), findsNothing);
   });
@@ -118,11 +129,11 @@ void main() {
       'offered again', (tester) async {
     await pump(tester);
     await account(tester, null);
-    await account(tester, '77');
+    await login(tester, '77');
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
     await account(tester, null);
-    await account(tester, '77');
+    await login(tester, '77');
     expect(find.text(_offerBody), findsNothing);
   });
 
@@ -131,12 +142,12 @@ void main() {
   ) async {
     await pump(tester);
     await account(tester, null);
-    await account(tester, '77');
+    await login(tester, '77');
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
     await tester.runAsync(store.endAccountSession);
     await account(tester, null);
-    await account(tester, '77');
+    await login(tester, '77');
     expect(find.text(_offerBody), findsOneWidget);
   });
 
@@ -146,7 +157,7 @@ void main() {
     await pump(tester);
     await account(tester, '77');
     await tester.runAsync(store.markPrompted);
-    await account(tester, '99');
+    await login(tester, '99');
     expect(find.text(_offerBody), findsOneWidget);
   });
 
@@ -155,7 +166,7 @@ void main() {
     await pump(tester);
     await account(tester, '77');
     await storeSession('99');
-    await account(tester, '99');
+    await login(tester, '99');
     expect(store.status, TwitchTvSessionStatus.connected);
     expect(find.text(_offerBody), findsNothing);
   });
@@ -175,10 +186,69 @@ void main() {
   testWidgets('no offer without a navigator', (tester) async {
     await pump(tester);
     navigatorContext = null;
+    logins = 0;
     await account(tester, null);
-    await account(tester, '77');
+    await login(tester, '77');
     expect(find.text(_offerBody), findsNothing);
     expect(await store.shouldPrompt(), isTrue);
+  });
+
+  testWidgets('a reconnect after a logged-out launch is not a login', (
+    tester,
+  ) async {
+    await pump(tester);
+    await account(tester, null);
+    await account(tester, '1');
+    expect(find.text(_offerBody), findsNothing);
+    expect(await store.shouldPrompt(), isTrue);
+  });
+
+  testWidgets('a fast logout and login never stack two offers', (tester) async {
+    await pump(tester);
+    await account(tester, null);
+    logins += 2;
+    viewer = '77';
+    await tester.runAsync(
+      () => Future.wait([
+        offer.accountChanged('77'),
+        offer.accountChanged(null),
+        offer.accountChanged('77'),
+      ]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(_offerBody), findsOneWidget);
+  });
+
+  testWidgets('a logout closes the open offer', (tester) async {
+    await pump(tester);
+    await account(tester, null);
+    await login(tester, '77');
+    expect(find.text(_offerBody), findsOneWidget);
+    await account(tester, null);
+    expect(find.text(_offerBody), findsNothing);
+  });
+
+  testWidgets('another account closes the open offer', (tester) async {
+    await pump(tester);
+    await account(tester, null);
+    await login(tester, '77');
+    await storeSession('99');
+    await account(tester, '99');
+    expect(find.text(_offerBody), findsNothing);
+  });
+
+  testWidgets('Connect opens nothing once the store has no account', (
+    tester,
+  ) async {
+    await pump(tester);
+    await account(tester, null);
+    await login(tester, '77');
+    store.detach();
+    await tester.tap(find.byKey(FollowFlow.tvConnectKey));
+    await tester.pump();
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+    expect(find.byType(TwitchTvConnectSheet), findsNothing);
   });
 
   for (final locale in sweepLocales) {
@@ -194,11 +264,11 @@ void main() {
               size: size,
               textScale: scale,
             );
-            navigatorContext = tester.state<NavigatorState>(
-              find.byType(Navigator),
-            ).context;
+            navigatorContext = tester
+                .state<NavigatorState>(find.byType(Navigator))
+                .context;
             await account(tester, null);
-            await account(tester, '77');
+            await login(tester, '77');
             expect(find.byKey(FollowFlow.tvConnectKey), findsOneWidget);
             await expectFrenchThroughout(tester, 'login offer $name ×$scale');
           },

@@ -168,7 +168,9 @@ void main() {
     when(
       () => actions.followChannel('1000'),
     ).thenAnswer((_) async => FollowResult.needsTvSession);
-    await pump(tester, tvSession: tvStore());
+    final store = tvStore();
+    await tester.runAsync(() => store.attach('77'));
+    await pump(tester, tvSession: store);
 
     await tester.tap(find.text('Follow'));
     await tester.pumpAndSettle();

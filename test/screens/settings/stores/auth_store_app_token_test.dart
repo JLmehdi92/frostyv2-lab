@@ -404,6 +404,15 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  test('only an interactive login is counted', () async {
+    proxyHands(appToken);
+    await store.init();
+    expect(store.interactiveLogins, 0);
+    await store.login(token: userToken);
+    expect(store.isLoggedIn, isTrue);
+    expect(store.interactiveLogins, 1);
+  });
+
   test('a token the proxy hands out while a login is under way never '
       "replaces the user's", () async {
     var now = DateTime(2026, 10, 30, 12);

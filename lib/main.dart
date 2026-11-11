@@ -275,6 +275,7 @@ void main() async {
   final twitchTvLoginOffer = TwitchTvLoginOffer(
     store: twitchTvSession,
     context: () => navigatorKey.currentContext,
+    logins: () => authStore.interactiveLogins,
   );
   reaction<String?>(
     (_) => authStore.isLoggedIn ? authStore.user.details?.id : null,

@@ -64,6 +64,8 @@ abstract class TwitchTvSessionBase with Store {
   Future<void>? _refreshing;
   final _forgottenTokens = <String>{};
 
+  bool get hasAccount => _accountId != null;
+
   bool get isConnected => _status == TwitchTvSessionStatus.connected;
 
   String? get accessToken => credentials?.session.accessToken;
