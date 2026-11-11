@@ -29,7 +29,7 @@ void main() {
               ),
               clientSessionId: 'session000000001',
             ),
-            onRejected: () {},
+            onRejected: (_) {},
           ),
           InterceptorsWrapper(
             onRequest: (options, handler) {

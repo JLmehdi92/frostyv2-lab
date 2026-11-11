@@ -20,12 +20,12 @@ class TwitchTvCredentials {
 class TwitchTvSessionInterceptor extends Interceptor {
   TwitchTvSessionInterceptor({
     required TwitchTvCredentials? Function() credentials,
-    required void Function() onRejected,
+    required void Function(String rejectedToken) onRejected,
   }) : _credentials = credentials,
        _onRejected = onRejected;
 
   final TwitchTvCredentials? Function() _credentials;
-  final void Function() _onRejected;
+  final void Function(String rejectedToken) _onRejected;
 
   static const userActionKey = 'onsetUserAction';
   static const traceKey = 'onsetTvTrace';
@@ -88,7 +88,10 @@ class TwitchTvSessionInterceptor extends Interceptor {
 
   void _reject(RequestOptions request) {
     _traceOf(request)?.tvSessionRejected = true;
-    _onRejected();
+    final authorization = request.headers['Authorization'];
+    if (authorization is String && authorization.startsWith('OAuth ')) {
+      _onRejected(authorization.substring('OAuth '.length));
+    }
   }
 
   static Map<String, String> headersFor(TwitchTvCredentials credentials) => {

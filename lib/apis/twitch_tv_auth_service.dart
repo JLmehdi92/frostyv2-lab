@@ -14,6 +14,7 @@ class TwitchTvAuthService extends BaseApiClient {
   static const deviceUrl = 'https://id.twitch.tv/oauth2/device';
   static const tokenUrl = 'https://id.twitch.tv/oauth2/token';
   static const validateUrl = 'https://id.twitch.tv/oauth2/validate';
+  static const revokeUrl = 'https://id.twitch.tv/oauth2/revoke';
 
   static const scopes = [
     'channel_read',
@@ -74,18 +75,37 @@ class TwitchTvAuthService extends BaseApiClient {
     return const TwitchTvPollFailed();
   }
 
-  Future<TwitchTvGrant?> refresh(String refreshToken) async {
+  Future<TwitchTvRefresh> refresh(String refreshToken) async {
     try {
       final response = await _form(tokenUrl, {
         'client_id': kTwitchTvClientId,
         'grant_type': 'refresh_token',
         'refresh_token': refreshToken,
       });
-      if (response.statusCode != 200) return null;
-      return TwitchTvGrant.fromJson(response.data);
+      final status = response.statusCode ?? 0;
+      if (status == 200) {
+        final grant = TwitchTvGrant.fromJson(response.data);
+        return grant == null
+            ? const TwitchTvRefresh.unreachable()
+            : TwitchTvRefresh.granted(grant);
+      }
+      return status >= 400 && status < 500
+          ? const TwitchTvRefresh.rejected()
+          : const TwitchTvRefresh.unreachable();
     } catch (e) {
       debugPrint('Twitch session refresh failed: ${e.runtimeType}');
-      return null;
+      return const TwitchTvRefresh.unreachable();
+    }
+  }
+
+  Future<void> revoke(String accessToken) async {
+    try {
+      await _form(revokeUrl, {
+        'client_id': kTwitchTvClientId,
+        'token': accessToken,
+      });
+    } catch (e) {
+      debugPrint('Revoking the Twitch session failed: ${e.runtimeType}');
     }
   }
 
@@ -140,4 +160,22 @@ class TwitchTvValidation {
 
   final TwitchTvValidity validity;
   final String? userId;
+}
+
+enum TwitchTvRefreshOutcome { granted, rejected, unreachable }
+
+class TwitchTvRefresh {
+  const TwitchTvRefresh.granted(TwitchTvGrant this.grant)
+    : outcome = TwitchTvRefreshOutcome.granted;
+
+  const TwitchTvRefresh.rejected()
+    : outcome = TwitchTvRefreshOutcome.rejected,
+      grant = null;
+
+  const TwitchTvRefresh.unreachable()
+    : outcome = TwitchTvRefreshOutcome.unreachable,
+      grant = null;
+
+  final TwitchTvRefreshOutcome outcome;
+  final TwitchTvGrant? grant;
 }

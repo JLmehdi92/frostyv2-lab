@@ -95,12 +95,12 @@ mixin _$TwitchTvSessionStore on TwitchTvSessionBase, Store {
   );
 
   @override
-  void markRejected() {
+  void detach() {
     final _$actionInfo = _$TwitchTvSessionBaseActionController.startAction(
-      name: 'TwitchTvSessionBase.markRejected',
+      name: 'TwitchTvSessionBase.detach',
     );
     try {
-      return super.markRejected();
+      return super.detach();
     } finally {
       _$TwitchTvSessionBaseActionController.endAction(_$actionInfo);
     }

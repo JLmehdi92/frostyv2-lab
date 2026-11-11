@@ -110,7 +110,7 @@ void main() {
     });
     final auth = _MockAuth();
     when(auth.requestDeviceCode).thenAnswer((_) async => null);
-    return TwitchTvSessionStore(auth: auth);
+    return TwitchTvSessionStore(auth: auth, viewerId: () => '77');
   }
 
   testWidgets('the button flips at once and rolls back on a failure', (
@@ -192,7 +192,7 @@ void main() {
     when(
       () => auth.validate(any()),
     ).thenAnswer((_) async => const TwitchTvValidation.invalid());
-    final store = TwitchTvSessionStore(auth: auth);
+    final store = TwitchTvSessionStore(auth: auth, viewerId: () => '77');
     await store.attach('77');
     expect(store.status, TwitchTvSessionStatus.expired);
     when(

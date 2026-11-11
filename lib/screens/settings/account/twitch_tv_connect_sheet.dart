@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/main.dart';
 import 'package:onset/models/twitch_tv_session.dart';
 import 'package:onset/screens/settings/stores/twitch_tv_session_store.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
@@ -12,6 +13,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
+import 'package:provider/provider.dart';
 
 Future<bool> showTwitchTvConnectSheet(
   BuildContext context,
@@ -23,6 +25,27 @@ Future<bool> showTwitchTvConnectSheet(
     builder: (_) => TwitchTvConnectSheet(store: store),
   );
   return connected == true;
+}
+
+SnackBarAction? twitchTvConnectSnackAction(BuildContext context) {
+  final TwitchTvSessionStore? store;
+  try {
+    store = context.read<TwitchTvSessionStore?>();
+  } on ProviderNotFoundException {
+    return null;
+  }
+  final navigator =
+      Navigator.maybeOf(context, rootNavigator: true) ??
+      navigatorKey.currentState;
+  if (store == null || navigator == null) return null;
+  return SnackBarAction(
+    label: context.l10n.twitchTvConnectAction,
+    onPressed: () {
+      if (navigator.mounted) {
+        unawaited(showTwitchTvConnectSheet(navigator.context, store!));
+      }
+    },
+  );
 }
 
 enum _Phase { requesting, waiting, finished }

@@ -37,11 +37,16 @@ void main() {
     poll = Completer<TwitchTvPoll>();
     clipboard = [];
     when(auth.requestDeviceCode).thenAnswer((_) async => _code);
+    when(() => auth.revoke(any())).thenAnswer((_) async {});
     when(() => auth.pollToken(any())).thenAnswer((_) => poll.future);
     when(
       () => auth.validate(any()),
     ).thenAnswer((_) async => const TwitchTvValidation.valid('77'));
-    store = TwitchTvSessionStore(auth: auth, wait: (_) async {});
+    store = TwitchTvSessionStore(
+      auth: auth,
+      viewerId: () => '77',
+      wait: (_) async {},
+    );
     await store.attach('77');
     TwitchWebPage.debugBody = () => const SizedBox(key: ValueKey('web'));
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -200,7 +205,11 @@ void main() {
           deviceId: 'device00device00',
         ).encode(),
       );
-      store = TwitchTvSessionStore(auth: auth, wait: (_) async {});
+      store = TwitchTvSessionStore(
+        auth: auth,
+        viewerId: () => '77',
+        wait: (_) async {},
+      );
       await store.attach('77');
       await pumpRow(tester);
       expect(find.text('Connected'), findsOneWidget);

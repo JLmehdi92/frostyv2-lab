@@ -88,12 +88,13 @@ class FollowFlow {
     if (shownFrom == null || !shownFrom.mounted) return null;
     if (result == FollowResult.needsTvSession &&
         tvSession != null &&
-        await tvSession.takePrompt()) {
+        await tvSession.shouldPrompt()) {
       final promptFrom = root?.context;
       if (promptFrom != null && promptFrom.mounted) {
-        await offerTvSession(promptFrom, tvSession);
+        await tvSession.markPrompted();
+        if (promptFrom.mounted) await offerTvSession(promptFrom, tvSession);
+        return null;
       }
-      return null;
     }
     if (!shownFrom.mounted) return null;
     showResult(
@@ -156,20 +157,6 @@ class FollowFlow {
     if (connect == true && context.mounted) {
       await showTwitchTvConnectSheet(context, store);
     }
-  }
-
-  static SnackBarAction? _tvConnectAction(BuildContext context) {
-    final store = _tvSessionOf(context);
-    final navigator = Navigator.maybeOf(context, rootNavigator: true);
-    if (store == null || navigator == null) return null;
-    return SnackBarAction(
-      label: context.l10n.twitchTvConnectAction,
-      onPressed: () {
-        if (navigator.mounted) {
-          unawaited(showTwitchTvConnectSheet(navigator.context, store));
-        }
-      },
-    );
   }
 
   static Future<FollowResult> _send(
@@ -322,7 +309,7 @@ class FollowFlow {
     FollowResult result,
     VoidCallback? retry,
   ) {
-    if (result.needsTvConnect) return _tvConnectAction(context);
+    if (result.needsTvConnect) return twitchTvConnectSnackAction(context);
     if (result.needsWebSession) return _logInAction(context);
     if (retry == null || !result.canRetry) return null;
     return SnackBarAction(label: context.l10n.commonRetry, onPressed: retry);

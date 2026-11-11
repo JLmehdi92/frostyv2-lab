@@ -27,6 +27,7 @@ void main() {
   late List<RequestOptions> sent;
   late TwitchTvCredentials? credentials;
   late int rejections;
+  late List<String> rejectedTokens;
 
   setUp(() {
     dio = Dio();
@@ -34,11 +35,15 @@ void main() {
     sent = [];
     credentials = _credentials;
     rejections = 0;
+    rejectedTokens = [];
     dio.interceptors
       ..add(
         TwitchTvSessionInterceptor(
           credentials: () => credentials,
-          onRejected: () => rejections++,
+          onRejected: (token) {
+            rejections++;
+            rejectedTokens.add(token);
+          },
         ),
       )
       ..add(
@@ -218,6 +223,7 @@ void main() {
         throwsA(isA<DioException>()),
       );
       expect(rejections, 1);
+      expect(rejectedTokens, ['tv-access']);
     });
 
     test('a GraphQL error about permissions is not a rejection', () async {

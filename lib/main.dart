@@ -250,6 +250,7 @@ void main() async {
 
   final twitchTvSession = TwitchTvSessionStore(
     auth: TwitchTvAuthService(anonymousGqlDio),
+    viewerId: () => authStore.isLoggedIn ? authStore.user.details?.id : null,
   );
   final twitchTvInterceptor = TwitchTvSessionInterceptor(
     credentials: () => twitchTvSession.credentials,
@@ -273,7 +274,11 @@ void main() async {
   reaction<String?>(
     (_) => authStore.isLoggedIn ? authStore.user.details?.id : null,
     (id) {
-      if (id != null) unawaited(twitchTvSession.attach(id));
+      if (id == null) {
+        twitchTvSession.detach();
+      } else {
+        unawaited(twitchTvSession.attach(id));
+      }
     },
     fireImmediately: true,
   );

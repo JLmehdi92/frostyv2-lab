@@ -178,17 +178,78 @@ void main() {
   group('refresh', () {
     test('sends the refresh grant with the TV client id', () async {
       replyToken(200, {'access_token': 'new', 'refresh_token': 'next'});
-      final grant = await service.refresh('old-refresh');
-      expect(grant!.accessToken, 'new');
+      final refresh = await service.refresh('old-refresh');
+      expect(refresh.outcome, TwitchTvRefreshOutcome.granted);
+      expect(refresh.grant!.accessToken, 'new');
       final fields = sent.single.data as Map;
       expect(fields['grant_type'], 'refresh_token');
       expect(fields['refresh_token'], 'old-refresh');
       expect(fields['client_id'], kTwitchTvClientId);
     });
 
-    test('is null when refused', () async {
+    test('a refusal by Twitch is a rejection', () async {
       replyToken(400, {'message': 'Invalid refresh token'});
-      expect(await service.refresh('old-refresh'), isNull);
+      expect(
+        (await service.refresh('old-refresh')).outcome,
+        TwitchTvRefreshOutcome.rejected,
+      );
+      replyToken(401, {'message': 'Unauthorized'});
+      expect(
+        (await service.refresh('old-refresh')).outcome,
+        TwitchTvRefreshOutcome.rejected,
+      );
+    });
+
+    test('a server error or no network is unreachable', () async {
+      replyToken(503, {'message': 'down'});
+      expect(
+        (await service.refresh('old-refresh')).outcome,
+        TwitchTvRefreshOutcome.unreachable,
+      );
+      adapter.onPost(
+        TwitchTvAuthService.tokenUrl,
+        (server) => server.throws(
+          0,
+          DioException.connectionError(
+            requestOptions: RequestOptions(),
+            reason: 'offline',
+          ),
+        ),
+        data: Matchers.any,
+      );
+      expect(
+        (await service.refresh('old-refresh')).outcome,
+        TwitchTvRefreshOutcome.unreachable,
+      );
+    });
+  });
+
+  group('revoke', () {
+    test('posts the token with the TV client id', () async {
+      adapter.onPost(
+        TwitchTvAuthService.revokeUrl,
+        (server) => server.reply(200, null),
+        data: Matchers.any,
+      );
+      await service.revoke('tv-access');
+      final fields = sent.single.data as Map;
+      expect(fields['client_id'], kTwitchTvClientId);
+      expect(fields['token'], 'tv-access');
+    });
+
+    test('never throws', () async {
+      adapter.onPost(
+        TwitchTvAuthService.revokeUrl,
+        (server) => server.throws(
+          0,
+          DioException.connectionError(
+            requestOptions: RequestOptions(),
+            reason: 'offline',
+          ),
+        ),
+        data: Matchers.any,
+      );
+      await service.revoke('tv-access');
     });
   });
 

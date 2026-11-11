@@ -42,7 +42,10 @@ void main() {
             FlutterSecureStorage.setMockInitialValues({
               TwitchTvSessionBase.promptedKey: 'true',
             });
-            final tvSession = TwitchTvSessionStore(auth: _MockAuth());
+            final tvSession = TwitchTvSessionStore(
+              auth: _MockAuth(),
+              viewerId: () => '77',
+            );
             final actions = _MockActions();
             var signedIn = true;
             var failure = failures.first;
