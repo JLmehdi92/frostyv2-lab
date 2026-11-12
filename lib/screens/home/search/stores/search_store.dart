@@ -216,10 +216,15 @@ abstract class SearchStoreBase with Store {
     _searchHistory.insert(0, query);
 
     // Fetch the matching channels, sort it by live status, and then set it.
-    _channelFuture = twitchApi.searchChannels(query: query).then((channels) {
-      channels.sort((c1, c2) => c2.isLive ? 1 : -1);
-      return channels;
-    }).asObservable();
+    _channelFuture = twitchApi
+        .searchChannels(query: query)
+        .then(
+          (channels) => [
+            ...channels.where((c) => c.isLive),
+            ...channels.where((c) => !c.isLive),
+          ],
+        )
+        .asObservable();
 
     // Fetch and set the categories that match the query.
     _categoryFuture = twitchApi.searchCategories(query: query).then((

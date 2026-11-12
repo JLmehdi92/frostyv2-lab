@@ -218,4 +218,43 @@ void main() {
     expect(store.relatedLives, isEmpty);
     store.dispose();
   });
+
+  test('live channels come first, each group in Twitch order', () async {
+    ChannelQuery channel(String login, {required bool live}) => ChannelQuery(
+      broadcasterLogin: login,
+      displayName: login,
+      id: login,
+      isLive: live,
+      startedAt: '',
+    );
+    final api = MockTwitchApi();
+    when(() => api.searchChannels(query: any(named: 'query'))).thenAnswer(
+      (_) async => [
+        channel('a', live: false),
+        channel('b', live: true),
+        channel('c', live: false),
+        channel('d', live: true),
+        channel('e', live: false),
+        channel('f', live: true),
+      ],
+    );
+    when(
+      () => api.searchCategories(query: any(named: 'query')),
+    ).thenAnswer((_) async => const CategoriesTwitch([], null));
+    final store = SearchStore(authStore: MockAuthStore(), twitchApi: api);
+    await pumpEventQueue();
+
+    store.handleQuery('x');
+    final channels = await store.channelFuture!;
+
+    expect(channels.map((c) => c.broadcasterLogin), [
+      'b',
+      'd',
+      'f',
+      'a',
+      'c',
+      'e',
+    ]);
+    store.dispose();
+  });
 }
