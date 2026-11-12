@@ -31,6 +31,7 @@ import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/audio_focus.dart';
 import 'package:onset/services/background_audio.dart';
 import 'package:onset/services/network_metering.dart';
+import 'package:onset/services/playback_preloader.dart';
 import 'package:onset/services/playback_token_cache.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/services/telemetry.dart';
@@ -60,7 +61,6 @@ abstract class IvsVideoStoreBase
   final SettingsStore settingsStore;
 
   final TwitchStreamService _streamService;
-  final bool _ownsStreamService;
 
   /// Android picture-in-picture controller.
   final pip = SimplePip();
@@ -348,8 +348,7 @@ abstract class IvsVideoStoreBase
     @visibleForTesting DateTime Function()? now,
     @visibleForTesting BufferFallback? bufferFallback,
     @visibleForTesting Future<bool?> Function()? isMetered,
-  }) : _ownsStreamService = streamService == null,
-       _isMetered = isMetered ?? NetworkMetering.shared.isMetered,
+  }) : _isMetered = isMetered ?? NetworkMetering.shared.isMetered,
        _now = now ?? clock.now,
        _liveEdge = LiveEdgeGuard(now: now),
        _backgroundAudio = backgroundAudio ?? BackgroundAudio.shared,
@@ -366,12 +365,7 @@ abstract class IvsVideoStoreBase
            streamService ??
            TwitchStreamService(
              tokenCache: PlaybackTokenCache.shared,
-             Dio(
-               BaseOptions(
-                 connectTimeout: const Duration(seconds: 5),
-                 receiveTimeout: const Duration(seconds: 8),
-               ),
-             ),
+             PlaybackPreloader.http,
            ) {
     // Let a refused web token renew itself rather than costing the viewer the
     // 2K rendition for the rest of the session.
@@ -1813,7 +1807,6 @@ abstract class IvsVideoStoreBase
       _textureId = null;
     }
     _channel?.setMethodCallHandler(null);
-    if (_ownsStreamService) _streamService.close();
   }
 }
 

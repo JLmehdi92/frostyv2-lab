@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
 import 'package:onset/screens/channel/video/player_engine_resolver.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -18,16 +19,22 @@ class PlaybackPreloader {
   /// The app-wide preloader, sharing [PlaybackTokenCache.shared] with the
   /// players (replaced in tests).
   static PlaybackPreloader instance = PlaybackPreloader(
-    TwitchStreamService(
-      tokenCache: PlaybackTokenCache.shared,
-      Dio(
-        BaseOptions(
-          connectTimeout: const Duration(seconds: 5),
-          receiveTimeout: const Duration(seconds: 8),
-        ),
-      ),
-    ),
+    TwitchStreamService(tokenCache: PlaybackTokenCache.shared, http),
   );
+
+  static final Dio http =
+      Dio(
+          BaseOptions(
+            connectTimeout: const Duration(seconds: 5),
+            receiveTimeout: const Duration(seconds: 8),
+          ),
+        )
+        ..httpClientAdapter = IOHttpClientAdapter(
+          createHttpClient: playbackHttpClient,
+        );
+
+  static HttpClient playbackHttpClient() =>
+      HttpClient()..idleTimeout = const Duration(seconds: 60);
 
   final TwitchStreamService _service;
   final bool _isAndroid;

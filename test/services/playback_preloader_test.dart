@@ -1,3 +1,4 @@
+import 'package:dio/io.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
@@ -40,4 +41,21 @@ void main() {
 
     verify(() => service.preload('streamer', authToken: 'web-token')).called(1);
   });
+
+  test(
+    'playback requests share one client that keeps idle sockets a minute',
+    () {
+      expect(
+        PlaybackPreloader.http.httpClientAdapter,
+        isA<IOHttpClientAdapter>(),
+      );
+      final adapter =
+          PlaybackPreloader.http.httpClientAdapter as IOHttpClientAdapter;
+      expect(
+        adapter.createHttpClient!().idleTimeout,
+        const Duration(seconds: 60),
+      );
+      expect(identical(PlaybackPreloader.http, PlaybackPreloader.http), isTrue);
+    },
+  );
 }

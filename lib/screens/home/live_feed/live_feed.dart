@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -24,6 +23,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/vod/up_next.dart';
 import 'package:onset/services/network_metering.dart';
+import 'package:onset/services/playback_preloader.dart';
 import 'package:onset/services/playback_token_cache.dart';
 import 'package:onset/stores/mini_player_store.dart';
 import 'package:onset/theme.dart';
@@ -119,7 +119,7 @@ class _LiveFeedState extends State<LiveFeed> {
   late final _auth = context.read<AuthStore>();
   late final _mini = context.read<MiniPlayerStore?>();
 
-  /// The usher service of the previews: its own client, the players'
+  /// The usher service of the previews: the shared playback client, the players'
   /// token cache (a preview's token is the channel's, ready when it opens).
   TwitchStreamService? _service;
 
@@ -129,12 +129,7 @@ class _LiveFeedState extends State<LiveFeed> {
         startMuted: () => _settings.mutePreviews,
         resolveUrl: (login, cancel) async {
           final service = _service ??= TwitchStreamService(
-            Dio(
-              BaseOptions(
-                connectTimeout: const Duration(seconds: 5),
-                receiveTimeout: const Duration(seconds: 8),
-              ),
-            ),
+            PlaybackPreloader.http,
             tokenCache: PlaybackTokenCache.shared,
           )..onWebTokenRejected = _auth.renewTwitchWebToken;
           final variants = await service.getStreamVariants(
@@ -482,7 +477,6 @@ class _LiveFeedState extends State<LiveFeed> {
       dispose();
     }
     if (widget.preview == null) _preview.dispose();
-    _service?.close();
     _asking.dispose();
     super.dispose();
   }

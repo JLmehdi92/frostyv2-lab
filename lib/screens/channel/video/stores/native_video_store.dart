@@ -17,6 +17,7 @@ import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/quality_selection.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/services/playback_preloader.dart';
 import 'package:onset/services/telemetry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,7 +43,6 @@ abstract class NativeVideoStoreBase
 
   /// Whether this store created [_streamService] (and therefore owns its HTTP
   /// client and must close it on dispose).
-  final bool _ownsStreamService;
 
   /// The native player. `bufferSize` is kept small to stay near the live edge.
   final Player player;
@@ -113,8 +113,7 @@ abstract class NativeVideoStoreBase
                bufferSize: 8 * 1024 * 1024,
              ),
            ),
-       _ownsStreamService = streamService == null,
-       _streamService = streamService ?? TwitchStreamService(Dio()) {
+       _streamService = streamService ?? TwitchStreamService(PlaybackPreloader.http) {
     // Same renewal hook as the IVS engine: a refused web token should mint a
     // replacement instead of silently downgrading playback.
     _streamService.onWebTokenRejected = authStore.renewTwitchWebToken;
@@ -450,6 +449,5 @@ abstract class NativeVideoStoreBase
       sub.cancel();
     }
     player.dispose();
-    if (_ownsStreamService) _streamService.close();
   }
 }
