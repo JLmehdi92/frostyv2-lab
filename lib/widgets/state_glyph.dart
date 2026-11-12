@@ -95,10 +95,6 @@ const Map<StateGlyphKind, List<String>> _shapes = {
 
 final Map<StateGlyphKind, Path> _cache = {};
 
-/// The 24 × 24 path of [kind], for tests.
-@visibleForTesting
-Path stateGlyphPath(StateGlyphKind kind) => _pathOf(kind);
-
 Path _pathOf(StateGlyphKind kind) => _cache.putIfAbsent(kind, () {
   final path = Path();
   for (final shape in _shapes[kind]!) {

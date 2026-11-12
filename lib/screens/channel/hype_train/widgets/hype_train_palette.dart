@@ -390,10 +390,6 @@ class HtPalette {
     radius: radius,
   );
 
-  /// The fill as a gradient (flat when there is one colour).
-  Gradient get fillGradient =>
-      LinearGradient(colors: fillColors ?? [fill, fill]);
-
   /// The text style's colour and shadow.
   TextStyle textStyle(TextStyle base) => base.copyWith(
     color: text,

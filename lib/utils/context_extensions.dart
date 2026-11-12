@@ -6,7 +6,6 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_channel_profile_service.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_community_highlights_service.dart';
-import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -85,9 +84,6 @@ extension ContextExtensions on BuildContext {
   /// Gets the scaffold background color
   Color get scaffoldColor => Theme.of(this).scaffoldBackgroundColor;
 
-  /// Gets body small text color (commonly used for secondary text)
-  Color? get bodySmallColor => Theme.of(this).textTheme.bodySmall?.color;
-
   /// Gets the app's custom semantic colors. A theme built without them (a
   /// bare MaterialApp, a test) gets the ONSET palette for its brightness
   /// instead of a crash.
@@ -157,10 +153,6 @@ extension ContextExtensions on BuildContext {
   /// Channel profiles and schedules from anonymous GQL.
   TwitchChannelProfileService get twitchChannelProfileService =>
       read<TwitchChannelProfileService>();
-
-  /// Sorted and tagged directories from anonymous GQL.
-  TwitchDirectoryService get twitchDirectoryService =>
-      read<TwitchDirectoryService>();
 
   /// Polls, predictions and pinned messages from anonymous GQL.
   TwitchCommunityHighlightsService get twitchCommunityHighlightsService =>

@@ -931,16 +931,6 @@ class TwitchApi extends BaseApiClient {
     return CategoriesTwitch.fromJson(data);
   }
 
-  /// Returns the sub count associated with the given [userId].
-  Future<int> getSubscriberCount({required String userId}) async {
-    final data = await get<JsonMap>(
-      '/subscriptions',
-      queryParameters: {'broadcaster_id': userId},
-    );
-
-    return data['total'] as int;
-  }
-
   /// Returns a user's list of blocked users given their id.
   Future<List<UserBlockedTwitch>> getUserBlockedList({
     required String id,

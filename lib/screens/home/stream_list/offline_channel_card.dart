@@ -18,14 +18,12 @@ class OfflineChannelCard extends StatelessWidget {
   final FollowedChannel channelInfo;
   final bool showPinOption;
   final bool? isPinned;
-  final bool showOfflineStatus;
 
   const OfflineChannelCard({
     super.key,
     required this.channelInfo,
     required this.showPinOption,
     this.isPinned,
-    this.showOfflineStatus = false,
   });
 
   @override
@@ -108,7 +106,7 @@ class OfflineChannelCard extends StatelessWidget {
                     ),
                     // Status and follow duration
                     Text(
-                      showOfflineStatus ? l.streamOffline : followedText,
+                      followedText,
                       // followedText porte une duree ("Following for 3 years"),
                       // donc chasse fixe comme tous les autres nombres.
                       style: OnsetType.tabular(

@@ -76,9 +76,6 @@ class VideoCardChip extends StatelessWidget {
   }
 }
 
-/// Text and icon colour over a thumbnail.
-Color videoCardOnImage(BuildContext context) => OverImage.text;
-
 /// What a card shows while Twitch has no picture: a glyph and a word
 /// ("Processing").
 typedef VideoCardFallback = ({VideoGlyphKind glyph, String? label});

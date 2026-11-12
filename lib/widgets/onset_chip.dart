@@ -21,9 +21,6 @@ class OnsetChip extends StatelessWidget {
     this.height = 34,
   });
 
-  /// Sections of a page (Live / Videos / Clips).
-  static const sectionHeight = 34.0;
-
   /// Filters inside a section (a clip period, a clip order).
   static const filterHeight = 30.0;
 

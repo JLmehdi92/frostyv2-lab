@@ -263,6 +263,3 @@ class _AddChatSheetState extends State<AddChatSheet> {
     );
   }
 }
-
-// Keep backward compatibility alias
-typedef AddChatDialog = AddChatSheet;

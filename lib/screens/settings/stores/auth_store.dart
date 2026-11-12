@@ -99,8 +99,6 @@ abstract class AuthBase with Store {
 
   final _extraScopes = <String>{};
 
-  Set<String> get extraScopes => Set.unmodifiable(_extraScopes);
-
   String get requestedScopes =>
       {...loginScopes.split(' '), ..._extraScopes}.join(' ');
 

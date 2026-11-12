@@ -150,17 +150,6 @@ List<_Shape> _shapesOf(VideoGlyphKind kind) => _cache.putIfAbsent(kind, () {
   return shapes;
 });
 
-/// The 24 × 24 path of [kind] (stroked and filled parts together), for
-/// tests and hit checks.
-@visibleForTesting
-Path videoGlyphPath(VideoGlyphKind kind) {
-  final path = Path();
-  for (final shape in _shapesOf(kind)) {
-    path.addPath(shape.path, Offset.zero);
-  }
-  return path;
-}
-
 /// One of the video icons in [color].
 class VideoGlyph extends StatelessWidget {
   const VideoGlyph(

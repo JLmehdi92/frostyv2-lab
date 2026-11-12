@@ -123,8 +123,6 @@ abstract final class HtDims {
   static const lock = 9.0;
 
   static const avatar = 32.0;
-  static const avatarSmall = 24.0;
-  static const avatarTiny = 16.0;
   static const avatarOverlap = 6.0;
   static const aura = 80.0;
 

@@ -304,9 +304,6 @@ class SheetFrame extends StatelessWidget {
   final Widget child;
   final bool showHandle;
 
-  /// The handle's height with its padding (8 above, 4 below).
-  static const handleExtent = 16.0;
-
   @override
   Widget build(BuildContext context) {
     final colors = SheetColors.of(context);

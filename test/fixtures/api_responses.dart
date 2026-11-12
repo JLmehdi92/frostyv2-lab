@@ -304,21 +304,6 @@ const sevenTVEmotesChannelResponse = {
   },
 };
 
-// ── Chatters Response ──
-
-const chattersResponse = {
-  'chatter_count': 5,
-  'chatters': {
-    'broadcaster': ['streamer'],
-    'vips': ['vip1'],
-    'moderators': ['mod1'],
-    'staff': <String>[],
-    'admins': <String>[],
-    'global_mods': <String>[],
-    'viewers': ['viewer1', 'viewer2'],
-  },
-};
-
 // ── 7TV Events ──
 
 const sevenTVEventJson = {
