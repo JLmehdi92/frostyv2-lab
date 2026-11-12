@@ -778,13 +778,26 @@ abstract class CommunityHighlightsStoreBase with Store {
         _changed(urgent: true);
       });
 
+  void handleAppBackground() {
+    _inBackground = true;
+    _updatePolling();
+  }
+
+  void handleAppResume() {
+    if (!_inBackground) return;
+    _inBackground = false;
+    _updatePolling();
+  }
+
+  var _inBackground = false;
+
   /// GQL every 30 s for the kinds whose topic is unavailable.
   void _updatePolling() {
     final topics = {
       for (final topic in _degraded)
         if (topic != HighlightTopic.raid && !_gqlOff.contains(topic)) topic,
     };
-    if (_disposed || topics.isEmpty) {
+    if (_disposed || _inBackground || topics.isEmpty) {
       _pollTimer?.cancel();
       _pollTimer = null;
       return;

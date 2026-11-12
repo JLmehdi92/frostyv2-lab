@@ -1517,7 +1517,7 @@ abstract class ChatStoreBase with Store {
             continue;
         }
 
-        if (!_autoScroll) {
+        if (!_autoScroll || _inBackground) {
           // While autoscroll is disabled, occasionally move messages from the buffer to the messages to prevent a memory leak.
           if (messageBuffer.length >= _messagesToRemove) {
             _messages.addAll(messageBuffer);
@@ -1556,6 +1556,7 @@ abstract class ChatStoreBase with Store {
           const Duration(milliseconds: 200),
           (timer) => addMessages(),
         );
+        if (_inBackground) _messageBufferTimer!.cancel();
 
         // Set up 7TV real-time listener (assets already fetched in connectToChat)
         if (settings.show7TVEmotes) {
@@ -2779,6 +2780,24 @@ abstract class ChatStoreBase with Store {
           .sublist(_messages.length - _messageLimit + _messagesToRemove)
           .asObservable();
     }
+  }
+
+  var _inBackground = false;
+
+  void handleAppBackground() {
+    _inBackground = true;
+    _messageBufferTimer?.cancel();
+  }
+
+  void handleAppResume() {
+    if (!_inBackground) return;
+    _inBackground = false;
+    if (_messageBufferTimer == null || _shouldDisconnect) return;
+    addMessages();
+    _messageBufferTimer = Timer.periodic(
+      const Duration(milliseconds: 200),
+      (timer) => addMessages(),
+    );
   }
 
   /// Closes and disposes all the channels and controllers used by the store.

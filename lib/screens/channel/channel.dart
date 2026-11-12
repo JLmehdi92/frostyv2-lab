@@ -1080,6 +1080,10 @@ class _VideoChatState extends State<VideoChat>
     if (state == AppLifecycleState.resumed) {
       _videoStore.handleAppResume();
       _hypeTrainStore?.handleAppResume();
+      _highlightsStore?.handleAppResume();
+      for (final tab in _chatTabsStore.tabs) {
+        tab.chatStore?.handleAppResume();
+      }
       unawaited(_eventsStore.resume());
     } else if (state == AppLifecycleState.paused) {
       if (_videoStore case final IvsVideoStore store) {
@@ -1087,6 +1091,11 @@ class _VideoChatState extends State<VideoChat>
       }
       // Points and celebrations matter only on screen.
       _eventsStore.pause();
+      _hypeTrainStore?.handleAppBackground();
+      _highlightsStore?.handleAppBackground();
+      for (final tab in _chatTabsStore.tabs) {
+        tab.chatStore?.handleAppBackground();
+      }
       unawaited(_liveProgress.save(report: true));
     }
   }

@@ -883,6 +883,28 @@ void main() {
       });
     });
 
+    test('degraded realtime polling pauses in the background', () {
+      run((async) {
+        snapshot(() => ongoing(running()));
+        final store = build();
+        async.flushMicrotasks();
+        topic.add(const RealtimeUnavailable('reconnecting'));
+        async.flushMicrotasks();
+
+        store.handleAppBackground();
+        final before = fetches;
+        async.elapse(const Duration(minutes: 2));
+        expect(fetches, before);
+
+        store.handleAppResume();
+        async.flushMicrotasks();
+        expect(fetches, before + 1);
+        async.elapse(const Duration(seconds: 21));
+        expect(fetches, before + 2);
+        store.dispose();
+      });
+    });
+
     test('notification times correct the countdown', () {
       run((async) {
         snapshot(() => ongoing(running()));

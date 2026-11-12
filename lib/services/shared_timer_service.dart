@@ -42,7 +42,24 @@ class SharedTimerService extends ChangeNotifier {
     }
   }
 
+  bool _paused = false;
+
+  void pause() {
+    _paused = true;
+    _stopTimer();
+  }
+
+  void resume() {
+    if (!_paused) return;
+    _paused = false;
+    if (_listenerCount == 0) return;
+    _lastTick = DateTime.now();
+    notifyListeners();
+    _startTimer();
+  }
+
   void _startTimer() {
+    if (_paused || _timer != null) return;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _lastTick = DateTime.now();
       notifyListeners();

@@ -73,6 +73,7 @@ import 'package:onset/services/onset_updater.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/services/realtime/twitch_realtime_client.dart';
 import 'package:onset/services/settings_persistence.dart';
+import 'package:onset/services/shared_timer_service.dart';
 import 'package:onset/services/telemetry.dart';
 import 'package:onset/services/telemetry_consent.dart';
 import 'package:onset/stores/global_assets_store.dart';
@@ -230,6 +231,10 @@ void main() async {
   AppLifecycleListener(
     onPause: realtimeClient.onAppPaused,
     onResume: realtimeClient.onAppResumed,
+  );
+  AppLifecycleListener(
+    onPause: SharedTimerService.instance.pause,
+    onResume: SharedTimerService.instance.resume,
   );
 
   // Create global assets store (shared cache for global emotes/badges)

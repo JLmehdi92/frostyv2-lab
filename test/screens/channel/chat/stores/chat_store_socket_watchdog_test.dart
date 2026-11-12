@@ -137,4 +137,27 @@ void main() {
       finish(store, async);
     });
   });
+
+  test('chat lines wait in the background and show at once on resume', () {
+    fakeAsync((async) {
+      final store = open(async);
+      async.elapse(const Duration(seconds: 1));
+      final shown = store.messages.length;
+
+      store.handleAppBackground();
+      irc().last.receive(
+        '@id=m1;display-name=Fan;user-id=5;room-id=12345;'
+        'tmi-sent-ts=1700000000000 :fan!fan@fan.tmi.twitch.tv PRIVMSG '
+        '#channel :hello',
+      );
+      async.elapse(const Duration(seconds: 2));
+      expect(store.messages, hasLength(shown));
+      expect(store.messageBuffer, hasLength(1));
+
+      store.handleAppResume();
+      expect(store.messages, hasLength(shown + 1));
+      expect(store.messageBuffer, isEmpty);
+      finish(store, async);
+    });
+  });
 }

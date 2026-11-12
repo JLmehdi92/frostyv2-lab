@@ -293,7 +293,18 @@ abstract class HypeTrainStoreBase with Store {
   @action
   void setCollapsed(bool value) => collapsed = value;
 
-  void handleAppResume() => unawaited(_refetch());
+  void handleAppBackground() {
+    _inBackground = true;
+    _updatePolling();
+  }
+
+  void handleAppResume() {
+    _inBackground = false;
+    _updatePolling();
+    unawaited(_refetch());
+  }
+
+  var _inBackground = false;
 
   String? _upcomingFor;
   Future<List<(int, List<HtReward>)>>? _upcoming;
@@ -1014,7 +1025,7 @@ abstract class HypeTrainStoreBase with Store {
   /// While realtime is down and something is showing, poll GQL (D12).
   void _updatePolling() {
     final active = _phase == HtPhase.ongoing || _phase == HtPhase.approaching;
-    if (_realtimeDegraded && active && !_disposed) {
+    if (_realtimeDegraded && active && !_disposed && !_inBackground) {
       _pollTimer ??= Timer.periodic(
         _pollInterval,
         (_) => unawaited(_refetch()),
