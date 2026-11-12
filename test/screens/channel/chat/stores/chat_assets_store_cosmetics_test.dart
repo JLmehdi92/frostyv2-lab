@@ -1,7 +1,7 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/painting.dart' show Color;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobx/mobx.dart' show ObservableMap;
+import 'package:mobx/mobx.dart' show ObservableMap, autorun;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/bttv_api.dart';
 import 'package:onset/apis/ffz_api.dart';
@@ -138,6 +138,45 @@ void main() {
 
     expect(store.paintFor('42'), isNull);
     expect(store.userTo7TVBadges['42'], [_badge]);
+  });
+
+  test('granting the same badge and paint again notifies no one', () {
+    store.defineSevenTvCosmetic(
+      const SevenTvCosmeticCreated(id: 'b', badge: _badge),
+    );
+    store.defineSevenTvCosmetic(
+      const SevenTvCosmeticCreated(id: 'p', paint: _paint),
+    );
+    void grant() {
+      for (final (kind, ref) in [
+        (SevenTvEntitlementKind.badge, 'b'),
+        (SevenTvEntitlementKind.paint, 'p'),
+      ]) {
+        store.applySevenTvEntitlement(
+          SevenTvEntitlement(
+            kind: kind,
+            refId: ref,
+            twitchUserId: '42',
+            granted: true,
+          ),
+        );
+      }
+    }
+
+    grant();
+    var runs = 0;
+    final dispose = autorun((_) {
+      store.userTo7TVBadges['42'];
+      store.paintFor('42');
+      runs++;
+    });
+    addTearDown(dispose.call);
+
+    grant();
+
+    expect(runs, 1);
+    expect(store.userTo7TVBadges['42'], [_badge]);
+    expect(store.paintFor('42'), _paint);
   });
 
   test('a revoked entitlement takes the cosmetic away', () {
@@ -285,7 +324,9 @@ void main() {
         BttvProUser(
           '$i',
           pro: true,
-          emotes: [EmoteBTTV.fromJson({'id': 'x$i', 'code': 'e$i'})],
+          emotes: [
+            EmoteBTTV.fromJson({'id': 'x$i', 'code': 'e$i'}),
+          ],
         ),
       );
     }
@@ -300,14 +341,18 @@ void main() {
       BttvProUser(
         '5',
         pro: true,
-        emotes: [EmoteBTTV.fromJson({'id': 'y', 'code': 'again'})],
+        emotes: [
+          EmoteBTTV.fromJson({'id': 'y', 'code': 'again'}),
+        ],
       ),
     );
     store.applyBttvProUser(
       BttvProUser(
         'new',
         pro: true,
-        emotes: [EmoteBTTV.fromJson({'id': 'z', 'code': 'z'})],
+        emotes: [
+          EmoteBTTV.fromJson({'id': 'z', 'code': 'z'}),
+        ],
       ),
     );
     expect(store.personalEmotesFor('5'), isNotNull);

@@ -54,9 +54,7 @@ abstract class ChatAssetsStoreBase with Store {
     final badgeIds = _ffzRoomBadgeIdsByUser[userId];
     final definitions = globalAssetsStore.ffzBadgeDefinitions;
     if (badgeIds == null || definitions == null) return null;
-    final badges = [
-      for (final id in badgeIds) ?definitions[id],
-    ];
+    final badges = [for (final id in badgeIds) ?definitions[id]];
     return badges.isEmpty ? null : badges;
   }
 
@@ -665,13 +663,11 @@ abstract class ChatAssetsStoreBase with Store {
   @action
   void _applySevenTvCosmetics(String userId, SevenTvUserCosmetics cosmetics) {
     if (cosmetics.badge case final badge? when showSevenTvBadges) {
-      _userTo7TVBadges.remove(userId);
-      _userTo7TVBadges[userId] = [badge];
+      _setBadge(userId, badge);
     }
     if (cosmetics.paint case final paint?
         when showSevenTvPaints && paint.isDrawable) {
-      userTo7TVPaint.remove(userId);
-      userTo7TVPaint[userId] = paint;
+      _setPaint(userId, paint);
     }
     _trimPerUserMaps();
     final setId = cosmetics.personalSetId;
@@ -683,6 +679,18 @@ abstract class ChatAssetsStoreBase with Store {
       };
       _refreshPersonalEmotes(userId);
     }
+  }
+
+  void _setBadge(String userId, ChatBadge badge) {
+    if (_userTo7TVBadges[userId]?.singleOrNull == badge) return;
+    _userTo7TVBadges.remove(userId);
+    _userTo7TVBadges[userId] = [badge];
+  }
+
+  void _setPaint(String userId, NamePaint paint) {
+    if (userTo7TVPaint[userId] == paint) return;
+    userTo7TVPaint.remove(userId);
+    userTo7TVPaint[userId] = paint;
   }
 
   void _ownPersonalSet(String userId, String setId) {
@@ -711,8 +719,7 @@ abstract class ChatAssetsStoreBase with Store {
         if (!showSevenTvBadges) return;
         final badge = _sevenTvBadgeDefinitions[entitlement.refId];
         if (entitlement.granted && badge != null) {
-          _userTo7TVBadges.remove(userId);
-          _userTo7TVBadges[userId] = [badge];
+          _setBadge(userId, badge);
           _trimPerUserMaps();
         } else if (!entitlement.granted) {
           _userTo7TVBadges.remove(userId);
@@ -721,8 +728,7 @@ abstract class ChatAssetsStoreBase with Store {
         if (!showSevenTvPaints) return;
         final paint = _sevenTvPaintDefinitions[entitlement.refId];
         if (entitlement.granted && paint != null && paint.isDrawable) {
-          userTo7TVPaint.remove(userId);
-          userTo7TVPaint[userId] = paint;
+          _setPaint(userId, paint);
           _trimPerUserMaps();
         } else if (!entitlement.granted) {
           userTo7TVPaint.remove(userId);
@@ -801,8 +807,13 @@ abstract class ChatAssetsStoreBase with Store {
         if (showBttvPersonalEmotes) ...?_bttvPersonalEmotes[userId],
         if (showSevenTvPersonalEmotes) ...?_sevenTvPersonalEmotes[userId],
       };
-      userToPersonalEmotes.remove(userId);
-      if (merged.isNotEmpty) userToPersonalEmotes[userId] = merged;
+      final current = userToPersonalEmotes[userId];
+      if (merged.isEmpty) {
+        if (current != null) userToPersonalEmotes.remove(userId);
+      } else if (!mapEquals(current, merged)) {
+        userToPersonalEmotes.remove(userId);
+        userToPersonalEmotes[userId] = merged;
+      }
     }
     _trimPerUserMaps();
   }
