@@ -237,6 +237,8 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
         cast = null
         floatingPlayer?.dispose()
         floatingPlayer = null
+        textureManager?.dispose()
+        textureManager = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 

@@ -74,4 +74,10 @@ class IvsTextureManager(
             }
         }
     }
+
+    fun dispose() {
+        channel.setMethodCallHandler(null)
+        players.values.forEach { it.dispose() }
+        players.clear()
+    }
 }
