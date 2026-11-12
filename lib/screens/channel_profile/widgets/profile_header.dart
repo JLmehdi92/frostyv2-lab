@@ -515,7 +515,7 @@ class ProfilePhoneHeader extends SliverPersistentHeaderDelegate {
             right: 0,
             top: -shrinkOffset,
             height: topPadding + bannerHeight,
-            child: banner,
+            child: RepaintBoundary(child: banner),
           ),
           Positioned(
             left: 0,
@@ -526,7 +526,7 @@ class ProfilePhoneHeader extends SliverPersistentHeaderDelegate {
               shown:
                   shrinkOffset <
                   bannerHeight + ProfileHeader.avatarOverhang - barHeight,
-              child: content,
+              child: RepaintBoundary(child: content),
             ),
           ),
           // The bar takes its taps: what slid under it is out of reach.
