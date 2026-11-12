@@ -399,7 +399,7 @@ abstract class ListStoreBase with Store {
       );
     }
 
-    if (listType == ListType.category) {
+    if (listType == ListType.category && !loadStreams) {
       _getCategoryDetails();
     }
 

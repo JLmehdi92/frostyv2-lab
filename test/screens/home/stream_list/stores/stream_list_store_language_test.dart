@@ -147,6 +147,26 @@ void main() {
     store.dispose();
   });
 
+  test('only the header store asks for the category', () async {
+    final list = build(ListType.category, categoryId: '33');
+    await settle();
+    verifyNever(() => api.getCategory(gameId: any(named: 'gameId')));
+
+    final header = ListStore(
+      authStore: auth,
+      settingsStore: settings,
+      twitchApi: api,
+      listType: ListType.category,
+      categoryId: '33',
+      loadStreams: false,
+    );
+    await settle();
+    verify(() => api.getCategory(gameId: '33')).called(1);
+    expect(header.categoryDetails?.name, 'Game');
+    list.dispose();
+    header.dispose();
+  });
+
   test('the followed list ignores the language', () async {
     final store = build(ListType.followed);
     await settle();
