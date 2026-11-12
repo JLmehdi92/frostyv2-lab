@@ -196,4 +196,31 @@ void main() {
     expect(code, contains('if(context.isPortrait)_chatCycle.reset();'));
     expect(code, contains('_chatCycle.dispose();'));
   });
+
+  test('the PiP swipe redraws only the video, never the whole screen', () {
+    final start = code.indexOf('void_handlePipDragStart(');
+    final end = code.indexOf('void_scheduleSystemUiModeSync(');
+    expect(start, greaterThan(0));
+    expect(end, greaterThan(start));
+    expect(code.substring(start, end), isNot(contains('setState(')));
+    expect(code, contains('animation:_pipDrag,'));
+  });
+
+  test('the overlay chat is built in full screen only', () {
+    expect(
+      code,
+      contains('if(settingsStore.showVideo&&settingsStore.fullScreen){'),
+    );
+    expect(
+      code,
+      contains(
+        'builder:(_)=>OverlayChatFrame(width:width,placement:placement,'
+        'showHandles:_videoStore.overlayVisible,',
+      ),
+    );
+  });
+
+  test('the bar height is read under the top overlay only', () {
+    expect(code, contains('Observer(builder:(_)=>ChannelChatTopOverlay('));
+  });
 }

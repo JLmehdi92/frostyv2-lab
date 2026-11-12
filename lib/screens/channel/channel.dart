@@ -252,7 +252,9 @@ class _VideoChatState extends State<VideoChat>
   );
 
   // PiP drag state - essential only
-  double _pipDragDistance = 0;
+  final _pipDrag = ValueNotifier<double>(0);
+  double get _pipDragDistance => _pipDrag.value;
+  set _pipDragDistance(double value) => _pipDrag.value = value;
   bool _isPipDragging = false;
 
   /// Two fingers on the landscape video: the swipe to picture-in-picture
@@ -943,9 +945,7 @@ class _VideoChatState extends State<VideoChat>
     // Attach listener to the controller (not the derived animation) so it
     // survives _springBackAnimation being reassigned in _animateSpringBack.
     _animationController.addListener(() {
-      setState(() {
-        _pipDragDistance = _springBackAnimation.value;
-      });
+      _pipDragDistance = _springBackAnimation.value;
     });
 
     // Register as observer for app lifecycle events
@@ -1127,11 +1127,9 @@ class _VideoChatState extends State<VideoChat>
     }
 
     _animationController.stop(); // Stop any ongoing animation
-    setState(() {
-      _isPipDragging = true;
-      _pipDragDistance = 0;
-      _isInPipTriggerZone = false;
-    });
+    _isPipDragging = true;
+    _pipDragDistance = 0;
+    _isInPipTriggerZone = false;
   }
 
   void _handlePipDragUpdate(DragUpdateDetails details) {
@@ -1140,28 +1138,28 @@ class _VideoChatState extends State<VideoChat>
     }
     // A second finger came down: this is a pinch, not a swipe.
     if (_pinching.value) {
-      setState(() => _isPipDragging = false);
+      _isPipDragging = false;
       _animateSpringBack();
       return;
     }
 
-    setState(() {
-      _pipDragDistance += details.delta.dy;
-      _pipDragDistance = _pipDragDistance.clamp(0, _pipMaxDragDistance);
+    _pipDragDistance = (_pipDragDistance + details.delta.dy).clamp(
+      0,
+      _pipMaxDragDistance,
+    );
 
-      // Check if we've entered or exited the trigger zone for haptic feedback
-      final wasInTriggerZone = _isInPipTriggerZone;
-      _isInPipTriggerZone = _pipDragDistance >= _pipTriggerDistance;
+    // Check if we've entered or exited the trigger zone for haptic feedback
+    final wasInTriggerZone = _isInPipTriggerZone;
+    _isInPipTriggerZone = _pipDragDistance >= _pipTriggerDistance;
 
-      // Provide haptic feedback when entering the trigger zone
-      if (!wasInTriggerZone && _isInPipTriggerZone) {
-        HapticFeedback.mediumImpact(); // Entering trigger zone
-      }
-      // Provide subtle haptic feedback when exiting the trigger zone
-      else if (wasInTriggerZone && !_isInPipTriggerZone) {
-        HapticFeedback.lightImpact(); // Exiting trigger zone
-      }
-    });
+    // Provide haptic feedback when entering the trigger zone
+    if (!wasInTriggerZone && _isInPipTriggerZone) {
+      HapticFeedback.mediumImpact(); // Entering trigger zone
+    }
+    // Provide subtle haptic feedback when exiting the trigger zone
+    else if (wasInTriggerZone && !_isInPipTriggerZone) {
+      HapticFeedback.lightImpact(); // Exiting trigger zone
+    }
   }
 
   void _handlePipDragEnd(DragEndDetails details) {
@@ -1223,11 +1221,9 @@ class _VideoChatState extends State<VideoChat>
   }
 
   void _resetDragState() {
-    setState(() {
-      _isPipDragging = false;
-      _pipDragDistance = 0;
-      _isInPipTriggerZone = false;
-    });
+    _isPipDragging = false;
+    _pipDragDistance = 0;
+    _isInPipTriggerZone = false;
   }
 
   void _animateSpringBack() {
@@ -1271,7 +1267,7 @@ class _VideoChatState extends State<VideoChat>
         : child;
 
     return AnimatedBuilder(
-      animation: _animationController,
+      animation: _pipDrag,
       child: wrappedChild,
       builder: (context, animatedChild) {
         final currentDragDistance = _isPipDragging
@@ -1660,16 +1656,18 @@ class _VideoChatState extends State<VideoChat>
                     : null,
               ),
             ),
-            ChannelChatTopOverlay(
-              hypeTrain: _hypeTrainStore,
-              highlights: _highlightsStore,
-              onWatchRaid: _departToRaid,
-              pinnedMessage: _pinnedMessage,
-              settingsStore: settingsStore,
-              chatTabsStore: _chatTabsStore,
-              chatInputFocus: _chatStore.textFieldFocusNode,
-              bottomBarHeight: _chatStore.bottomBarHeight,
-              goals: () => _eventsStore.goals,
+            Observer(
+              builder: (_) => ChannelChatTopOverlay(
+                hypeTrain: _hypeTrainStore,
+                highlights: _highlightsStore,
+                onWatchRaid: _departToRaid,
+                pinnedMessage: _pinnedMessage,
+                settingsStore: settingsStore,
+                chatTabsStore: _chatTabsStore,
+                chatInputFocus: _chatStore.textFieldFocusNode,
+                bottomBarHeight: _chatStore.bottomBarHeight,
+                goals: () => _eventsStore.goals,
+              ),
             ),
             Observer(
               builder: (_) => AnimatedSwitcher(
@@ -1785,41 +1783,49 @@ class _VideoChatState extends State<VideoChat>
                   child: chat,
                 );
 
-                final overlayChat = Visibility(
-                  visible: settingsStore.fullScreenChatOverlay,
-                  maintainState: true,
-                  child: OverlayChatScope(
-                    child: Theme(
-                      data: OnsetThemes(
-                        colorSchemeSeed: Color(settingsStore.accentColor),
-                      ).dark,
-                      child: DefaultTextStyle(
-                        style: context.defaultTextStyle.copyWith(
-                          color: context.onsetColors.overlayOnSurface,
-                        ),
-                        child: OverlayChatFrame(
-                          width: _chatStore.expandChat
-                              ? context.screenWidth / 2
-                              : context.screenWidth * settingsStore.chatWidth,
-                          placement: OverlayChatPlacement.clamped(
-                            top: settingsStore.overlayChatTop,
-                            height: settingsStore.overlayChatHeight,
+                Widget? overlayChat;
+                if (settingsStore.showVideo && settingsStore.fullScreen) {
+                  final width = _chatStore.expandChat
+                      ? context.screenWidth / 2
+                      : context.screenWidth * settingsStore.chatWidth;
+                  final placement = OverlayChatPlacement.clamped(
+                    top: settingsStore.overlayChatTop,
+                    height: settingsStore.overlayChatHeight,
+                  );
+                  final leftSide = settingsStore.landscapeChatLeftSide;
+                  overlayChat = Visibility(
+                    visible: settingsStore.fullScreenChatOverlay,
+                    maintainState: true,
+                    child: OverlayChatScope(
+                      child: Theme(
+                        data: OnsetThemes(
+                          colorSchemeSeed: Color(settingsStore.accentColor),
+                        ).dark,
+                        child: DefaultTextStyle(
+                          style: context.defaultTextStyle.copyWith(
+                            color: context.onsetColors.overlayOnSurface,
                           ),
-                          showHandles: _videoStore.overlayVisible,
-                          leftSide: settingsStore.landscapeChatLeftSide,
-                          onPlacementChanged: (placement) {
-                            settingsStore
-                              ..overlayChatTop = placement.top
-                              ..overlayChatHeight = placement.height;
-                          },
-                          onLeftSideChanged: (left) =>
-                              settingsStore.landscapeChatLeftSide = left,
-                          child: landscapeChat,
+                          child: Observer(
+                            builder: (_) => OverlayChatFrame(
+                              width: width,
+                              placement: placement,
+                              showHandles: _videoStore.overlayVisible,
+                              leftSide: leftSide,
+                              onPlacementChanged: (placement) {
+                                settingsStore
+                                  ..overlayChatTop = placement.top
+                                  ..overlayChatHeight = placement.height;
+                              },
+                              onLeftSideChanged: (left) =>
+                                  settingsStore.landscapeChatLeftSide = left,
+                              child: landscapeChat,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
+                  );
+                }
 
                 return ColoredBox(
                   color: settingsStore.showVideo
@@ -1887,7 +1893,7 @@ class _VideoChatState extends State<VideoChat>
                                                     settingsStore
                                                         .landscapeChatLeftSide
                                                     ? [
-                                                        overlayChat,
+                                                        overlayChat!,
                                                         Expanded(
                                                           child: Stack(
                                                             fit:
@@ -1910,7 +1916,7 @@ class _VideoChatState extends State<VideoChat>
                                                             ],
                                                           ),
                                                         ),
-                                                        overlayChat,
+                                                        overlayChat!,
                                                       ],
                                               ),
                                               if (settingsStore
@@ -2286,6 +2292,7 @@ class _VideoChatState extends State<VideoChat>
     }
 
     _animationController.dispose();
+    _pipDrag.dispose();
     _pinching.dispose();
     _chatCycle.dispose();
     _portraitDragScale.dispose();
