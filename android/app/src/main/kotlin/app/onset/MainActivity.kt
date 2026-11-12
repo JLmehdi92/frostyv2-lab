@@ -54,7 +54,7 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
             splashScreen.setOnExitAnimationListener { handOverSplash(it) }
         }
         super.onCreate(savedInstanceState)
-        preferSmoothRefreshRate()
+        runCatching { preferSmoothRefreshRate() }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -243,14 +243,13 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
     }
 
     /**
-     * On a large screen (smallest width ≥ 600 dp), asks for a smoother refresh
+     * On every device, asks for the smoothest refresh
      * rate at the current resolution: some OEM skins (HyperOS) keep apps they
      * do not list at 60 Hz. A multiple of 60 Hz (120 Hz) wins over a faster
      * odd rate (144 Hz), so 30 and 60 fps streams keep an even frame cadence.
-     * Never lowers the current rate, and leaves phones to the system.
+     * Never lowers the current rate.
      */
     private fun preferSmoothRefreshRate() {
-        if (resources.configuration.smallestScreenWidthDp < 600) return
         val display: Display = (
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 display
