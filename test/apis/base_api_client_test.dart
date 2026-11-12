@@ -28,61 +28,6 @@ void main() {
     client = TestApiClient(dio);
   });
 
-  group('isSuccessResponse', () {
-    test('returns true for 200', () {
-      final response = Response(
-        requestOptions: RequestOptions(),
-        statusCode: 200,
-      );
-      expect(client.isSuccessResponse(response), isTrue);
-    });
-
-    test('returns true for 201', () {
-      final response = Response(
-        requestOptions: RequestOptions(),
-        statusCode: 201,
-      );
-      expect(client.isSuccessResponse(response), isTrue);
-    });
-
-    test('returns true for 204', () {
-      final response = Response(
-        requestOptions: RequestOptions(),
-        statusCode: 204,
-      );
-      expect(client.isSuccessResponse(response), isTrue);
-    });
-
-    test('returns false for 300', () {
-      final response = Response(
-        requestOptions: RequestOptions(),
-        statusCode: 300,
-      );
-      expect(client.isSuccessResponse(response), isFalse);
-    });
-
-    test('returns false for 400', () {
-      final response = Response(
-        requestOptions: RequestOptions(),
-        statusCode: 400,
-      );
-      expect(client.isSuccessResponse(response), isFalse);
-    });
-
-    test('returns false for 500', () {
-      final response = Response(
-        requestOptions: RequestOptions(),
-        statusCode: 500,
-      );
-      expect(client.isSuccessResponse(response), isFalse);
-    });
-
-    test('returns false for null statusCode', () {
-      final response = Response(requestOptions: RequestOptions());
-      expect(client.isSuccessResponse(response), isFalse);
-    });
-  });
-
   group('error handling through get()', () {
     test('400 throws ApiException', () async {
       dioAdapter.onGet(

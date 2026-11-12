@@ -33,7 +33,6 @@ void main() {
             as HtProgressionEvent;
 
     expect(event.action.raw, 'EXTENSION');
-    expect(event.action.isKnown, isFalse);
   });
 
   test('data.id is the train id, shared by the progression and the end', () {

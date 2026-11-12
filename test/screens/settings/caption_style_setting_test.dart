@@ -10,7 +10,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: ListView(children: [CaptionStyleSetting(settingsStore: store)]),
+          body: ListView(children: captionStyleRows(store)),
         ),
       ),
     );

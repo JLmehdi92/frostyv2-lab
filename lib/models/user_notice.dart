@@ -251,12 +251,6 @@ class UserNotice {
     this.donationCurrency,
   });
 
-  /// Whether this notice is one of the individual gifts belonging to the mass
-  /// gift identified by [communityGiftId].
-  bool get isPartOfMassGift =>
-      (kind == UserNoticeKind.subGift || kind == UserNoticeKind.anonSubGift) &&
-      communityGiftId != null;
-
   bool get isGiftNotice => switch (kind) {
     UserNoticeKind.subGift ||
     UserNoticeKind.anonSubGift ||

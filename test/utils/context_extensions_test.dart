@@ -52,22 +52,19 @@ void main() {
     ('screenWidth', (context) => context.screenWidth),
     ('screenHeight', (context) => context.screenHeight),
     ('isLargeScreen', (context) => context.isLargeScreen),
-    (
-      'OrientationUtils',
-      (context) => OrientationUtils.getCurrentOrientation(context),
-    ),
   ]) {
     testWidgets('$name is not rebuilt by the keyboard', (tester) async {
       expect(await buildsWhileTheKeyboardOpens(tester, read), isEmpty);
     });
   }
 
-  testWidgets('the safe paddings follow the padding only: once, when the '
-      'keyboard covers the navigation bar', (tester) async {
+  testWidgets('the top safe padding follows the padding only', (
+    tester,
+  ) async {
     final builds = await buildsWhileTheKeyboardOpens(
       tester,
-      (context) => (context.safePaddingTop, context.safePaddingBottom),
+      (context) => context.safePaddingTop,
     );
-    expect(builds, [(0.0, 0.0)]);
+    expect(builds, [0.0]);
   });
 }

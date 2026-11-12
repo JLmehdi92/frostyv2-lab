@@ -66,13 +66,6 @@ class WeeklyRewards {
       currentTier!.tier >= tiers.last.tier &&
       hasEarnedThisWeek;
 
-  DateTime? nextResetAfter(DateTime now) {
-    for (final reset in weekResets) {
-      if (reset.isAfter(now)) return reset;
-    }
-    return null;
-  }
-
   static WeeklyRewards? fromBody(Object? body) {
     final data = body is Map ? body['data'] : null;
     final channel = data is Map ? data['channel'] : null;

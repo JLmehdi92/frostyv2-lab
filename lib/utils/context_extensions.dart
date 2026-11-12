@@ -44,30 +44,6 @@ class LargeScreenScope extends InheritedWidget {
       large != oldWidget.large;
 }
 
-/// Static utility class for orientation-related operations.
-///
-/// Every reader below (and the [ContextExtensions] getters) depends on one
-/// aspect of the [MediaQuery] only. `MediaQuery.of` would make the caller
-/// rebuild on every change of the screen's metrics, and the software
-/// keyboard changes the view insets on every frame it slides in: a whole
-/// screen that reads its orientation would be rebuilt each frame of it.
-class OrientationUtils {
-  /// Gets the current orientation from the given context
-  static Orientation getCurrentOrientation(BuildContext context) {
-    return MediaQuery.orientationOf(context);
-  }
-
-  /// Returns true if the current orientation is portrait
-  static bool isPortrait(BuildContext context) {
-    return MediaQuery.orientationOf(context) == Orientation.portrait;
-  }
-
-  /// Returns true if the current orientation is landscape
-  static bool isLandscape(BuildContext context) {
-    return MediaQuery.orientationOf(context) == Orientation.landscape;
-  }
-}
-
 /// Comprehensive context extensions for common Flutter patterns
 extension ContextExtensions on BuildContext {
   // ===== THEME & STYLING =====
@@ -121,9 +97,6 @@ extension ContextExtensions on BuildContext {
   /// Gets the safe area padding top (commonly used)
   double get safePaddingTop => MediaQuery.paddingOf(this).top;
 
-  /// Gets the safe area padding bottom (commonly used)
-  double get safePaddingBottom => MediaQuery.paddingOf(this).bottom;
-
   // ===== PROVIDER ACCESS =====
 
   /// Gets TwitchApi from provider
@@ -174,10 +147,10 @@ extension ContextExtensions on BuildContext {
   // ===== ORIENTATION =====
 
   /// Returns true if currently in portrait orientation
-  bool get isPortrait => OrientationUtils.isPortrait(this);
+  bool get isPortrait => MediaQuery.orientationOf(this) == Orientation.portrait;
 
   /// Returns true if currently in landscape orientation
-  bool get isLandscape => OrientationUtils.isLandscape(this);
+  bool get isLandscape => MediaQuery.orientationOf(this) == Orientation.landscape;
 }
 
 /// TextScaler extensions for common scaling operations

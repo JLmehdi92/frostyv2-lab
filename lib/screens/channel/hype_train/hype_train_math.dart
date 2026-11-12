@@ -77,10 +77,3 @@ HtUnlockState? treasureState(HypeTrainExecution train) {
   if (treasure == null) return null;
   return _unlockState(train.level, treasure.threshold);
 }
-
-/// The community emotes, or null for a train without them.
-HtUnlockState? communityState(HypeTrainExecution train) {
-  final community = train.community;
-  if (community == null) return null;
-  return _unlockState(train.level, community.threshold);
-}

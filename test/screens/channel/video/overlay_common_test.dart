@@ -3,32 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
 
 void main() {
-  group('overlayGradient', () {
-    test('fades from black to transparent with the live stops', () {
-      final gradient =
-          overlayGradient(fromTop: true).gradient! as LinearGradient;
-
-      expect(gradient.begin, Alignment.topCenter);
-      expect(gradient.end, Alignment.bottomCenter);
-      expect(gradient.stops, [0.0, 0.25, 0.5, 0.8, 1.0]);
-      expect(gradient.colors, const [
-        Colors.black,
-        Color.fromRGBO(0, 0, 0, 0.78),
-        Color.fromRGBO(0, 0, 0, 0.48),
-        Color.fromRGBO(0, 0, 0, 0.12),
-        Colors.transparent,
-      ]);
-    });
-
-    test('the bottom gradient starts at the bottom', () {
-      final gradient =
-          overlayGradient(fromTop: false).gradient! as LinearGradient;
-
-      expect(gradient.begin, Alignment.bottomCenter);
-      expect(gradient.end, Alignment.topCenter);
-    });
-  });
-
   group('VolumeRow', () {
     Future<void> pump(
       WidgetTester tester, {

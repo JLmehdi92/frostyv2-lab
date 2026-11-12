@@ -124,11 +124,6 @@ class HtAction {
 
   bool get isGift => raw.endsWith('_GIFTED_SUB');
 
-  bool get isKnown =>
-      isCheer ||
-      subTier != null ||
-      const {'PAID_PINNED_CHAT', 'ADMIN', 'RAID'}.contains(raw);
-
   @override
   bool operator ==(Object other) => other is HtAction && other.raw == raw;
 

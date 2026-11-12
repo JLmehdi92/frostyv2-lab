@@ -13,23 +13,6 @@ const kPlayerChromeShadow = [
   Shadow(offset: Offset(0, 1), blurRadius: 2, color: Color(0x99000000)),
 ];
 
-/// Scrim behind the top or bottom controls of a video overlay (live and
-/// VOD), dark at the edge and clear towards the middle of the video.
-BoxDecoration overlayGradient({required bool fromTop}) => BoxDecoration(
-  gradient: LinearGradient(
-    begin: fromTop ? Alignment.topCenter : Alignment.bottomCenter,
-    end: fromTop ? Alignment.bottomCenter : Alignment.topCenter,
-    colors: const [
-      Colors.black,
-      Color.fromRGBO(0, 0, 0, 0.78),
-      Color.fromRGBO(0, 0, 0, 0.48),
-      Color.fromRGBO(0, 0, 0, 0.12),
-      Colors.transparent,
-    ],
-    stops: const [0.0, 0.25, 0.5, 0.8, 1.0],
-  ),
-);
-
 /// Rotates to landscape, picking the side that matches how the device is
 /// physically tilted (falls back to allowing both).
 Future<void> enterLandscape() async {

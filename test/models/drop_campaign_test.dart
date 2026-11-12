@@ -44,7 +44,6 @@ void main() {
       expect(going.minutesLeft, 90);
       expect(claimed.state, DropState.claimed);
       expect(campaign.offer, const CommunityDropsOffer.several());
-      expect(campaign.claimableCount, 1);
     });
 
     test('a drop waiting on an earlier one is locked', () {

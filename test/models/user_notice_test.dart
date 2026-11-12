@@ -50,7 +50,6 @@ void main() {
       expect(notice.recipientDisplayName, 'Lucky');
       expect(notice.senderCount, 3);
       expect(notice.communityGiftId, isNull);
-      expect(notice.isPartOfMassGift, isFalse);
     });
 
     test('reads the legacy anonymous gift kind', () {
@@ -81,7 +80,6 @@ void main() {
         final notice = _parse(raw);
 
         expect(notice.kind, UserNoticeKind.subGift);
-        expect(notice.isPartOfMassGift, isTrue);
         expect(notice.communityGiftId, '1234567890123456789');
         expect(notice.senderCount, 0);
       }
@@ -318,7 +316,10 @@ void main() {
       expect(notice.sourceRoomId, '99999');
       expect(notice.roomId, '12345');
       expect(notice.isMassGiftHeader, isTrue);
-      expect(_parse(sharedMassGiftRecipient).isPartOfMassGift, isTrue);
+      expect(
+        _parse(sharedMassGiftRecipient).communityGiftId,
+        isNotNull,
+      );
     });
 
     test('a shared notice without source-msg-id is unknown', () {

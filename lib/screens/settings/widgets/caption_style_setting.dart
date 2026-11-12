@@ -10,20 +10,6 @@ import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 /// Closed captions in Settings › Video: Twitch's switch, then the line's
 /// size and background (an ONSET addition; Twitch's line is Medium on
 /// Black), with a sample.
-class CaptionStyleSetting extends StatelessWidget {
-  const CaptionStyleSetting({super.key, required this.settingsStore});
-
-  final SettingsStore settingsStore;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: captionStyleRows(settingsStore),
-  );
-}
-
-/// The rows of [CaptionStyleSetting], for a settings group.
 List<Widget> captionStyleRows(SettingsStore store) => [
   Observer(
     builder: (context) => SettingsListSwitch(

@@ -190,9 +190,6 @@ class DropCampaign {
     this.drops = const [],
   });
 
-  int get claimableCount =>
-      drops.where((drop) => drop.state == DropState.claimable).length;
-
   CommunityDropsOffer get offer {
     if (drops.length != 1) return const CommunityDropsOffer.several();
     final drop = drops.single;

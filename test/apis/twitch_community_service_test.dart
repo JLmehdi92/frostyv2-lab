@@ -188,7 +188,7 @@ void main() {
         authToken: 'tok',
       );
 
-      expect(campaigns!.single.claimableCount, 1);
+      expect(campaigns, hasLength(1));
       expect(sent()['operationName'], 'ViewerDropsCampaignsQuery');
       expect(sent()['variables'], {'channelID': '42'});
       expect(sent()['query'], contains('TimeBasedDropSelfEdgeFragment'));

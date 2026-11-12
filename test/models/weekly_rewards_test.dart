@@ -15,10 +15,6 @@ void main() {
       expect(rewards.tiers.map((tier) => tier.tier), [1, 2]);
       expect(rewards.tiers.last.badgeUrl, isNull);
       expect(rewards.endsAt, DateTime.utc(2026, 12));
-      expect(
-        rewards.nextResetAfter(DateTime.utc(2026, 11, 10)),
-        DateTime.utc(2026, 11, 15),
-      );
       expect(rewards.isComplete, isFalse);
     });
 

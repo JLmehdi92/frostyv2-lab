@@ -128,15 +128,4 @@ void main() {
     expect(state(3), HtUnlockState.unlocked);
     expect(treasureState(train()), isNull);
   });
-
-  test('community threshold defaults to 5', () {
-    final community = HtCommunity.parse(const {});
-    HtUnlockState? state(int level) =>
-        communityState(train(level: level, community: community));
-
-    expect(state(3), HtUnlockState.locked);
-    expect(state(4), HtUnlockState.oneLevelAway);
-    expect(state(5), HtUnlockState.unlockNow);
-    expect(state(6), HtUnlockState.unlocked);
-  });
 }

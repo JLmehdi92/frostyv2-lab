@@ -325,13 +325,6 @@ abstract class BaseApiClient {
     }
   }
 
-  /// Check if response indicates success (useful for status-only operations)
-  bool isSuccessResponse(Response response) {
-    return response.statusCode != null &&
-        response.statusCode! >= 200 &&
-        response.statusCode! < 300;
-  }
-
   /// Converts DioException to appropriate ApiException subtype
   ApiException _handleError(DioException error) {
     final exception = switch (error.type) {
