@@ -337,9 +337,7 @@ void main() {
       tap(store);
       await pumpEventQueue();
 
-      verify(
-        () => api.getStream(userLogin: any(named: 'userLogin')),
-      ).called(1);
+      verify(() => api.getStream(userLogin: any(named: 'userLogin'))).called(1);
       store.dispose();
     });
   });

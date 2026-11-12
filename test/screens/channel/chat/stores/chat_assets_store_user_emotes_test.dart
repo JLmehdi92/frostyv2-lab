@@ -174,12 +174,12 @@ void main() {
   });
 
   test('the fallback emote sets loaded again keep one copy', () async {
-    when(() => api.getEmotesSets(setId: 'g')).thenAnswer(
-      (_) async => [_emote('Kappa', EmoteType.twitchGlobal, '0')],
-    );
-    when(() => api.getEmotesSets(setId: 'u')).thenAnswer(
-      (_) async => [_emote('Prime', EmoteType.twitchUnlocked, '0')],
-    );
+    when(
+      () => api.getEmotesSets(setId: 'g'),
+    ).thenAnswer((_) async => [_emote('Kappa', EmoteType.twitchGlobal, '0')]);
+    when(
+      () => api.getEmotesSets(setId: 'u'),
+    ).thenAnswer((_) async => [_emote('Prime', EmoteType.twitchUnlocked, '0')]);
 
     for (var i = 0; i < 2; i++) {
       await store.userEmotesFuture(
