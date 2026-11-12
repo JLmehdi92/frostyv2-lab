@@ -20,7 +20,6 @@ enum ViewerActionOutcome { done, refused, integrityRefused, signedOut, failed }
 class TwitchViewerActionsService extends BaseApiClient {
   TwitchViewerActionsService(Dio dio) : super(dio, '');
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
   static final _opaqueId = RegExp(r'^[A-Za-z0-9_:\-]{1,128}$');
   static final _random = Random.secure();
@@ -253,7 +252,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     if (authToken.isEmpty || !_numericId.hasMatch(broadcasterId)) return null;
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: _viewerHeaders(authToken),
         data: {
           'operationName': 'CanCreateClipForChannelQuery',
@@ -392,7 +391,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     try {
       return UnbanRequestOutcome.fromBody(
         await post<dynamic>(
-          _gqlUrl,
+          kTwitchGqlUrl,
           extra: TwitchTvSessionInterceptor.userAction,
           headers: {
             'Client-ID': kTwitchWebClientId,
@@ -454,7 +453,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     try {
       return GoalContributionResult.fromBody(
         await post<dynamic>(
-          _gqlUrl,
+          kTwitchGqlUrl,
           extra: TwitchTvSessionInterceptor.userAction,
           headers: {
             'Client-ID': kTwitchWebClientId,
@@ -497,7 +496,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     try {
       return DropClaimResult.fromBody(
         await post<dynamic>(
-          _gqlUrl,
+          kTwitchGqlUrl,
           extra: TwitchTvSessionInterceptor.userAction,
           headers: {
             'Client-ID': kTwitchWebClientId,
@@ -566,7 +565,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     try {
       return MomentClaimResult.fromBody(
         await post<dynamic>(
-          _gqlUrl,
+          kTwitchGqlUrl,
           extra: TwitchTvSessionInterceptor.userAction,
           headers: {
             'Client-ID': kTwitchWebClientId,
@@ -690,7 +689,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     final trace = TwitchTvTrace();
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         extra: TwitchTvSessionInterceptor.tracedUserAction(trace),
         headers: _viewerHeaders(authToken),
         data: {
@@ -714,7 +713,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     if (authToken.isEmpty) return null;
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: _viewerHeaders(authToken),
         data: {
           'operationName': 'UserGiftedSubSettingsQuery',
@@ -758,7 +757,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     if (authToken.isEmpty) return null;
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: _viewerHeaders(authToken),
         data: {
           'operationName': 'ChatUISettingsQuery',
@@ -807,7 +806,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     if (authToken.isEmpty || !_numericId.hasMatch(channelId)) return null;
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: _viewerHeaders(authToken),
         data: {
           'operationName': 'GetGifPickerConfig',
@@ -839,7 +838,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     try {
       return GifSendResult.fromBody(
         await post<dynamic>(
-          _gqlUrl,
+          kTwitchGqlUrl,
           extra: TwitchTvSessionInterceptor.userAction,
           headers: _viewerHeaders(authToken),
           data: {
@@ -887,7 +886,7 @@ class TwitchViewerActionsService extends BaseApiClient {
     if (authToken.isEmpty) return ViewerActionOutcome.signedOut;
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         extra: TwitchTvSessionInterceptor.userAction,
         headers: {
           'Client-ID': kTwitchWebClientId,

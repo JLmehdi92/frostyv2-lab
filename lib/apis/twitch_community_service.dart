@@ -18,7 +18,6 @@ import 'package:onset/models/weekly_rewards.dart';
 class TwitchCommunityService extends BaseApiClient {
   TwitchCommunityService(Dio dio) : super(dio, '');
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
   static final _login = RegExp(r'^[a-z0-9_]{1,25}$');
 
@@ -384,7 +383,7 @@ class TwitchCommunityService extends BaseApiClient {
   }) async {
     try {
       return await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: {
           'Client-ID': kTwitchWebClientId,
           if (authToken != null && authToken.isNotEmpty)

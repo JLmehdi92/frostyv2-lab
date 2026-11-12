@@ -18,7 +18,6 @@ class OnsiteNotificationPage {
 class TwitchSocialService extends BaseApiClient {
   TwitchSocialService(Dio dio) : super(dio, '');
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
   static final _threadId = RegExp(r'^[0-9]{1,20}_[0-9]{1,20}$');
   static final _opaqueId = RegExp(r'^[A-Za-z0-9_:.\-]{1,256}$');
@@ -385,7 +384,7 @@ class TwitchSocialService extends BaseApiClient {
     if (authToken != null && authToken.isEmpty) return null;
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: _headers(authToken),
         data: {
           'operationName': operation,
@@ -415,7 +414,7 @@ class TwitchSocialService extends BaseApiClient {
     if (authToken.isEmpty) return ViewerActionOutcome.signedOut;
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         extra: TwitchTvSessionInterceptor.userAction,
         headers: _headers(authToken),
         data: {

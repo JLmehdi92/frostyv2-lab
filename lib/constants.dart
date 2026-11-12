@@ -117,4 +117,6 @@ const Map<String, Color> chatColorValues = {
 /// Twitch GQL and realtime requests.
 const kTwitchWebClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 
+const kTwitchGqlUrl = 'https://gql.twitch.tv/gql';
+
 const kTwitchTvClientId = 'ue6666qo983tsx6so1t0vnawi233wa';

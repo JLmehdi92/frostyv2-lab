@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/constants.dart';
 import 'package:onset/models/playback_access_token.dart';
 import 'package:onset/models/video_collection.dart';
 import 'package:onset/models/vod.dart';
@@ -61,9 +62,6 @@ class TwitchVodService extends BaseApiClient {
       _tokens = tokenCache ?? PlaybackTokenCache(),
       super(dio, '');
 
-  /// Public web client-id used by twitch.tv itself (not a secret).
-  static const _gqlClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static const _usherVodBase = 'https://usher.ttvnw.net/vod';
 
   static const _videoFields =
@@ -1055,8 +1053,8 @@ class TwitchVodService extends BaseApiClient {
     void Function(List<Object?> errors)? onErrors,
   }) async {
     final body = await post<JsonMap>(
-      _gqlUrl,
-      headers: {'Client-ID': _gqlClientId, ...headers},
+      kTwitchGqlUrl,
+      headers: {'Client-ID': kTwitchWebClientId, ...headers},
       data: {
         'operationName': operationName,
         'query': query,

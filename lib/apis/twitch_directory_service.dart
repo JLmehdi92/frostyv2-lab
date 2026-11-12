@@ -35,8 +35,6 @@ enum StreamSort {
 class TwitchDirectoryService extends BaseApiClient {
   TwitchDirectoryService(Dio dio) : super(dio, '');
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
-
   /// The most streams one answer holds (larger `first` values are refused).
   static const categoryPageSize = 100;
   static const tagPageSize = 30;
@@ -233,7 +231,7 @@ class TwitchDirectoryService extends BaseApiClient {
     Map<String, Object> variables,
   ) async {
     final Object? body = await post<dynamic>(
-      _gqlUrl,
+      kTwitchGqlUrl,
       headers: {'Client-ID': kTwitchWebClientId},
       data: {
         'operationName': operationName,

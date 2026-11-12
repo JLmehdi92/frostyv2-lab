@@ -9,7 +9,6 @@ import 'package:onset/models/report.dart';
 class TwitchReportService extends BaseApiClient {
   TwitchReportService(Dio dio) : super(dio, '');
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static const maxDescriptionLength = 500;
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
   static final _opaqueId = RegExp(r'^[A-Za-z0-9_:\-]{1,128}$');
@@ -38,7 +37,7 @@ class TwitchReportService extends BaseApiClient {
     }
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         extra: TwitchTvSessionInterceptor.userAction,
         headers: {
           'Client-ID': kTwitchWebClientId,

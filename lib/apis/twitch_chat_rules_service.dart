@@ -16,7 +16,6 @@ class ChatRulesApiException extends ApiException {
 class TwitchChatRulesService extends BaseApiClient {
   TwitchChatRulesService(Dio dio) : super(dio, '');
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _channelId = RegExp(r'^[0-9]{1,20}$');
 
   static const _query =
@@ -30,7 +29,7 @@ class TwitchChatRulesService extends BaseApiClient {
       throw ArgumentError.value(channelId, 'channelId', 'Not a channel id');
     }
     final Object? body = await post<dynamic>(
-      _gqlUrl,
+      kTwitchGqlUrl,
       headers: {'Client-ID': kTwitchWebClientId},
       data: {
         'operationName': 'ChatRules',

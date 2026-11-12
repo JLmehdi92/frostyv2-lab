@@ -30,7 +30,6 @@ typedef ChannelPredictions = ({
 class TwitchCommunityHighlightsService extends BaseApiClient {
   TwitchCommunityHighlightsService(Dio dio) : super(dio, '');
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _channelId = RegExp(r'^[0-9]{1,20}$');
 
   static const _pollQuery =
@@ -133,7 +132,7 @@ class TwitchCommunityHighlightsService extends BaseApiClient {
     required Set<String> fields,
   }) async {
     final Object? body = await post<dynamic>(
-      _gqlUrl,
+      kTwitchGqlUrl,
       headers: {'Client-ID': kTwitchWebClientId},
       data: {
         'operationName': operationName,

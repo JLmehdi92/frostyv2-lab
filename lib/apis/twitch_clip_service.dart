@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/constants.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/clip_comment.dart';
 import 'package:onset/models/recap.dart';
@@ -36,10 +37,6 @@ class ClipForbiddenException extends ApiException {
 /// The top clips feed pages with its cursor (verified 2026-10-20).
 class TwitchClipService extends BaseApiClient {
   TwitchClipService(Dio dio) : super(dio, '');
-
-  /// Public web client-id used by twitch.tv itself (not a secret).
-  static const _gqlClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
 
   static const _clipFields =
       'id slug title viewCount createdAt durationSeconds thumbnailURL '
@@ -583,9 +580,9 @@ class TwitchClipService extends BaseApiClient {
     String? authToken,
   }) async {
     final body = await post<JsonMap>(
-      _gqlUrl,
+      kTwitchGqlUrl,
       headers: {
-        'Client-ID': _gqlClientId,
+        'Client-ID': kTwitchWebClientId,
         if (authToken != null && authToken.isNotEmpty)
           'Authorization': 'OAuth $authToken',
       },

@@ -17,7 +17,6 @@ class ChannelProfileApiException extends ApiException {
 class TwitchChannelProfileService extends BaseApiClient {
   TwitchChannelProfileService(Dio dio) : super(dio, '');
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
   // Verified anonymously on 2026-10-13 (the stream's `createdAt` and `game`
@@ -63,7 +62,7 @@ class TwitchChannelProfileService extends BaseApiClient {
     if (!_login.hasMatch(login)) return false;
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: {'Client-ID': kTwitchWebClientId},
         data: {
           'operationName': 'ChannelDjRole',
@@ -84,7 +83,7 @@ class TwitchChannelProfileService extends BaseApiClient {
     if (!_channelId.hasMatch(channelId)) return false;
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: {'Client-ID': kTwitchWebClientId},
         data: {
           'operationName': 'ChannelProfileRestriction',
@@ -157,7 +156,7 @@ class TwitchChannelProfileService extends BaseApiClient {
       throw ArgumentError.value(rawLogin, 'login', 'Not a Twitch login');
     }
     final Object? body = await post<dynamic>(
-      _gqlUrl,
+      kTwitchGqlUrl,
       headers: {'Client-ID': kTwitchWebClientId},
       data: {
         'operationName': operationName,

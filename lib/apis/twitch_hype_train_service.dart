@@ -45,7 +45,6 @@ final class HtOngoingSnapshot extends HypeTrainSnapshot {
 class TwitchHypeTrainService extends BaseApiClient {
   TwitchHypeTrainService(Dio dio) : super(dio, '');
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _channelId = RegExp(r'^[0-9]{1,20}$');
 
   static const _reward =
@@ -254,7 +253,7 @@ class TwitchHypeTrainService extends BaseApiClient {
     JsonMap variables,
   ) async {
     final Object? body = await post<dynamic>(
-      _gqlUrl,
+      kTwitchGqlUrl,
       headers: {'Client-ID': kTwitchWebClientId},
       data: {
         'operationName': operationName,

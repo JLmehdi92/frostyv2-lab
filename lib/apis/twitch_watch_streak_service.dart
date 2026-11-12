@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/constants.dart';
 import 'package:onset/models/watch_streak.dart';
 
 /// Reads the viewer's watch streaks from Twitch's private GQL, with the
@@ -14,10 +15,6 @@ import 'package:onset/models/watch_streak.dart';
 /// longer accepts, the network) answers null once; nothing retries.
 class TwitchWatchStreakService extends BaseApiClient {
   TwitchWatchStreakService(Dio dio) : super(dio, '');
-
-  /// The public web client-id twitch.tv itself uses (not a secret).
-  static const _gqlClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
 
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
 
@@ -64,9 +61,9 @@ class TwitchWatchStreakService extends BaseApiClient {
   ) async {
     try {
       return await post<JsonMap>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: {
-          'Client-ID': _gqlClientId,
+          'Client-ID': kTwitchWebClientId,
           'Authorization': 'OAuth $authToken',
         },
         data: {

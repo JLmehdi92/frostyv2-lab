@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/constants.dart';
 import 'package:onset/models/followed_category.dart';
 
 /// The categories the viewer follows, from Twitch's private GQL with the
@@ -11,10 +12,6 @@ import 'package:onset/models/followed_category.dart';
 /// the section: nothing here retries.
 class TwitchFollowedCategoriesService extends BaseApiClient {
   TwitchFollowedCategoriesService(Dio dio) : super(dio, '');
-
-  /// The public web client-id twitch.tv itself uses (not a secret).
-  static const _gqlClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
 
   // The `FollowedGamesQuery` fields ONSET shows, plus the slug for the
   // twitch.tv link. Validated anonymously on 2026-10-20.
@@ -31,9 +28,9 @@ class TwitchFollowedCategoriesService extends BaseApiClient {
     if (authToken.isEmpty) return null;
     try {
       final body = await post<JsonMap>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: {
-          'Client-ID': _gqlClientId,
+          'Client-ID': kTwitchWebClientId,
           'Authorization': 'OAuth $authToken',
         },
         data: {

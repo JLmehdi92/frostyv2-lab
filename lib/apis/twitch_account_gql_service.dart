@@ -10,7 +10,6 @@ import 'package:onset/models/profile_edit.dart';
 class TwitchAccountGqlService extends BaseApiClient {
   TwitchAccountGqlService(Dio dio) : super(dio, '');
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
   static final _opaqueId = RegExp(r'^[A-Za-z0-9_:\-]{1,128}$');
   static final loginPattern = RegExp(r'^[A-Za-z0-9][A-Za-z0-9_]{2,24}$');
@@ -520,7 +519,7 @@ class TwitchAccountGqlService extends BaseApiClient {
     if (authToken.isEmpty) return null;
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: _headers(authToken),
         data: {
           'operationName': operation,
@@ -548,7 +547,7 @@ class TwitchAccountGqlService extends BaseApiClient {
     if (authToken.isEmpty) return const AccountEditResult.signedOut();
     try {
       final Object? body = await post<dynamic>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         extra: TwitchTvSessionInterceptor.userAction,
         headers: _headers(authToken),
         data: {

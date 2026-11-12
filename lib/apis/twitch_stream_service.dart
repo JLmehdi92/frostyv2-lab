@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/constants.dart';
 import 'package:onset/models/hls_variant.dart';
 import 'package:onset/models/playback_access_token.dart';
 import 'package:onset/models/quality_ladder.dart';
@@ -20,10 +21,6 @@ import 'package:onset/services/playback_token_cache.dart';
 typedef UsherRefusal = ({PlaybackRefusal? refusal, String? reason});
 
 class TwitchStreamService extends BaseApiClient {
-  /// Public web client-id used by twitch.tv itself (not a secret).
-  static const _gqlClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
-
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static const _usherBase = 'https://usher.ttvnw.net/api/channel/hls';
 
   /// The full GQL document for the access token, asking why a stream would
@@ -189,8 +186,8 @@ class TwitchStreamService extends BaseApiClient {
   Future<SubscriberTier?> streamRestrictionTier(String userLogin) async {
     try {
       final data = await post<JsonMap>(
-        _gqlUrl,
-        headers: {'Client-ID': _gqlClientId},
+        kTwitchGqlUrl,
+        headers: {'Client-ID': kTwitchWebClientId},
         data: {
           'operationName': 'StreamRestriction',
           'query': _streamRestrictionQuery,
@@ -396,9 +393,9 @@ class TwitchStreamService extends BaseApiClient {
     String query,
     String? authToken,
   ) => post<JsonMap>(
-    _gqlUrl,
+    kTwitchGqlUrl,
     headers: {
-      'Client-ID': _gqlClientId,
+      'Client-ID': kTwitchWebClientId,
       if (authToken != null) 'Authorization': 'OAuth $authToken',
     },
     data: accessTokenRequest(login, query),

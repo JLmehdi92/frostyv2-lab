@@ -28,7 +28,6 @@ class TwitchChatHistoryService extends BaseApiClient {
   /// The most messages kept (the newest), whatever Twitch sends.
   static const maxMessages = 200;
 
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _channelId = RegExp(r'^[0-9]{1,20}$');
   static final _channelLogin = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
@@ -67,7 +66,7 @@ class TwitchChatHistoryService extends BaseApiClient {
     try {
       final body =
           await post<Object?>(
-            _gqlUrl,
+            kTwitchGqlUrl,
             headers: {
               'Client-ID': kTwitchWebClientId,
               'Authorization': 'OAuth $authToken',

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_tv_session_interceptor.dart';
+import 'package:onset/constants.dart';
 import 'package:onset/models/community_points.dart';
 
 /// Reads channel points and predictions from Twitch's private GQL endpoint.
@@ -13,12 +14,6 @@ import 'package:onset/models/community_points.dart';
 /// Reads use no credential; writes use the viewer's own token, doing what any
 /// official client would do on their behalf.
 class TwitchPointsService extends BaseApiClient {
-  /// The public web client-id twitch.tv itself uses. Not a secret, and already
-  /// used elsewhere in the app for the playback token.
-  static const _gqlClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
-
-  static const _gqlUrl = 'https://gql.twitch.tv/gql';
-
   /// One round trip for everything the panel shows.
   ///
   /// Field names were confirmed against the live endpoint rather than guessed —
@@ -104,9 +99,9 @@ query OnsetCommunityPoints(\$login: String!) {
   }) async {
     try {
       final data = await post<JsonMap>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: {
-          'Client-ID': _gqlClientId,
+          'Client-ID': kTwitchWebClientId,
           if (authToken != null && authToken.isNotEmpty)
             'Authorization': 'OAuth $authToken',
         },
@@ -203,9 +198,9 @@ query OnsetCommunityPoints(\$login: String!) {
     if (authToken.isEmpty || eventId.isEmpty) return null;
     try {
       final data = await post<JsonMap>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         headers: {
-          'Client-ID': _gqlClientId,
+          'Client-ID': kTwitchWebClientId,
           'Authorization': 'OAuth $authToken',
         },
         data: {
@@ -286,10 +281,10 @@ query OnsetCommunityPoints(\$login: String!) {
   }) async {
     try {
       final data = await post<JsonMap>(
-        _gqlUrl,
+        kTwitchGqlUrl,
         extra: TwitchTvSessionInterceptor.userAction,
         headers: {
-          'Client-ID': _gqlClientId,
+          'Client-ID': kTwitchWebClientId,
           'Authorization': 'OAuth $authToken',
         },
         data: {
