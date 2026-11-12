@@ -1012,6 +1012,47 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('resumed off Live: no refresh until Live is shown', (
+    tester,
+  ) async {
+    final active = ValueNotifier(true);
+    await pump(tester, activeNotifier: active);
+    active.value = false;
+    await tester.pump();
+    clearInteractions(api);
+    store.list.lastTimeRefreshed = DateTime.now().subtract(
+      const Duration(minutes: 6),
+    );
+
+    for (final state in [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+    verifyNever(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    );
+
+    active.value = true;
+    await tester.pump(const Duration(milliseconds: 500));
+    verify(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    ).called(1);
+    await close(tester);
+  });
+
   testWidgets('unmuted, the label says so', (tester) async {
     await pump(tester);
     expect(find.text('· Muted preview'), findsOneWidget);

@@ -71,7 +71,7 @@ class _CategoriesState extends State<Categories>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed && TickerMode.of(context)) {
       _store.checkLastTimeRefreshedAndUpdate();
     }
   }
@@ -121,7 +121,7 @@ class _CategoriesState extends State<Categories>
   Widget build(BuildContext context) {
     super.build(context);
 
-    _store.checkLastTimeRefreshedAndUpdate();
+    if (TickerMode.of(context)) _store.checkLastTimeRefreshedAndUpdate();
 
     final padding = MediaQuery.paddingOf(context);
     final large = context.isLargeScreen;

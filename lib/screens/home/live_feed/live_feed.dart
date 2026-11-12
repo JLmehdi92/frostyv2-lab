@@ -227,7 +227,7 @@ class _LiveFeedState extends State<LiveFeed> {
         _foreground = state == AppLifecycleState.resumed;
         if (_foreground) {
           _meterAsked = false;
-          _refreshIfStale();
+          if (widget.active) _refreshIfStale();
         }
         _sync();
       },

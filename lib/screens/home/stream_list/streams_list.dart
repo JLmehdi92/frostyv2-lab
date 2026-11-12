@@ -175,7 +175,7 @@ class _StreamsListState extends State<StreamsList>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed && TickerMode.of(context)) {
       _checkRefresh();
     }
   }
@@ -217,7 +217,7 @@ class _StreamsListState extends State<StreamsList>
   Widget build(BuildContext context) {
     super.build(context);
 
-    _checkRefresh();
+    if (TickerMode.of(context)) _checkRefresh();
 
     final topPadding = MediaQuery.paddingOf(context).top + _extraTopPadding;
 
