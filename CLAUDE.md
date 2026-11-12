@@ -36,6 +36,7 @@ dart run build_runner build --delete-conflicting-outputs   # after MobX/JSON mod
 
 ## Skills to use for this project
 
+- **`ponytail`** (`.claude/skills/ponytail/`) — on every coding task: the smallest complete change, reuse what ONSET, Flutter or an installed package already has. In this repo it never writes `shortcut:` comments (no code comments at all) and never removes an animation.
 - **`dart-flutter-patterns`** — Flutter/Dart/MobX implementation patterns.
 - **`security-review`** + **`code-review`** / **`pr-review-toolkit`** — run before considering any change done.
 - **`superpowers:test-driven-development`**, **`superpowers:systematic-debugging`**, **`superpowers:verification-before-completion`** — process discipline.
