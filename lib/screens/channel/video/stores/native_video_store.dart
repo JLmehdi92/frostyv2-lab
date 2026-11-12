@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
 import 'package:onset/models/channel.dart';
@@ -69,6 +70,8 @@ abstract class NativeVideoStoreBase
 
   @readonly
   var _paused = false;
+  Future<void>? _streamInfoRequest;
+  DateTime? _lastTapRefresh;
 
   @readonly
   var _overlayVisible = true;
@@ -283,7 +286,7 @@ abstract class NativeVideoStoreBase
       _overlayVisible = false;
     } else {
       _overlayVisible = true;
-      unawaited(updateStreamInfo(forceUpdate: true));
+      _refreshStreamInfoForTap();
       _scheduleOverlayHide();
     }
   }
@@ -376,8 +379,30 @@ abstract class NativeVideoStoreBase
     }
   }
 
+  void _refreshStreamInfoForTap() {
+    final now = DateTime.now();
+    final last = _lastTapRefresh;
+    if (last != null && now.difference(last) < const Duration(seconds: 5)) {
+      return;
+    }
+    _lastTapRefresh = now;
+    unawaited(updateStreamInfo());
+  }
+
   @action
   Future<void> updateStreamInfo({bool forceUpdate = false}) async {
+    final pending = _streamInfoRequest;
+    if (pending != null) return pending;
+    final request = _fetchStreamInfo();
+    _streamInfoRequest = request;
+    try {
+      await request;
+    } finally {
+      if (identical(_streamInfoRequest, request)) _streamInfoRequest = null;
+    }
+  }
+
+  Future<void> _fetchStreamInfo() async {
     try {
       final pushesBefore = streamPushState.generation;
       final fetched = await twitchApi.getStream(userLogin: userLogin);
@@ -389,10 +414,9 @@ abstract class NativeVideoStoreBase
       infoUnavailable = false;
       _offlineChannelInfo = null;
     } catch (e) {
-      // Stream is offline (or the request failed): reflect a non-playing state
-      // so gestures gated on `paused` behave like the WebView engine.
+      if (e is! ApiException || e.statusCode != 404) return;
       _streamInfo = null;
-      _paused = true;
+      if (!player.state.playing) _paused = true;
       try {
         _offlineChannelInfo = await twitchApi.getChannel(userId: userId);
         infoUnavailable = false;

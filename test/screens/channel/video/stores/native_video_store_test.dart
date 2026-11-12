@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
 import 'package:onset/models/hls_variant.dart';
@@ -70,8 +71,8 @@ void main() {
 
   tearDown(() => playing.close());
 
-  NativeVideoStore create({StreamTwitch? live}) {
-    final api = MockTwitchApi();
+  NativeVideoStore create({StreamTwitch? live, MockTwitchApi? twitchApi}) {
+    final api = twitchApi ?? MockTwitchApi();
     if (live == null) {
       when(
         () => api.getStream(userLogin: any(named: 'userLogin')),
@@ -270,5 +271,76 @@ void main() {
     verify(player.pause).called(1);
     expect(isPlaying, isFalse);
     store.dispose();
+  });
+
+  group('overlay tap refresh while playing', () {
+    const live = StreamTwitch(
+      '42',
+      'streamer',
+      'Streamer',
+      '1',
+      'Chess',
+      'Title',
+      10,
+      '2026-01-01T00:00:00Z',
+      'thumb',
+    );
+
+    Future<(NativeVideoStore, MockTwitchApi)> playingStore() async {
+      final api = MockTwitchApi();
+      final store = create(live: live, twitchApi: api);
+      variants.complete([variant]);
+      await store.ready;
+      await pumpEventQueue();
+      expect(isPlaying, isTrue);
+      return (store, api);
+    }
+
+    void tap(NativeVideoStore store) {
+      if (store.overlayVisible) store.handleVideoTap();
+      store.handleVideoTap();
+    }
+
+    test('a failed request keeps it playing', () async {
+      final (store, api) = await playingStore();
+      when(
+        () => api.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const NetworkException('timeout'));
+
+      tap(store);
+      await pumpEventQueue();
+
+      expect(store.paused, isFalse);
+      expect(store.streamInfo, same(live));
+      store.dispose();
+    });
+
+    test('an offline answer does not pause it', () async {
+      final (store, api) = await playingStore();
+      when(
+        () => api.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const ApiException('streamer is offline', 404));
+
+      tap(store);
+      await pumpEventQueue();
+
+      expect(store.paused, isFalse);
+      expect(store.streamInfo, isNull);
+      store.dispose();
+    });
+
+    test('quick taps make one request', () async {
+      final (store, api) = await playingStore();
+      clearInteractions(api);
+
+      tap(store);
+      tap(store);
+      await pumpEventQueue();
+
+      verify(
+        () => api.getStream(userLogin: any(named: 'userLogin')),
+      ).called(1);
+      store.dispose();
+    });
   });
 }

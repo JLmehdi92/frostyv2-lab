@@ -165,6 +165,8 @@ abstract class IvsVideoStoreBase
 
   @readonly
   var _paused = false;
+  Future<void>? _streamInfoRequest;
+  DateTime? _lastTapRefresh;
 
   @readonly
   var _overlayVisible = true;
@@ -1649,7 +1651,7 @@ abstract class IvsVideoStoreBase
       _overlayVisible = false;
     } else {
       _overlayVisible = true;
-      unawaited(updateStreamInfo(forceUpdate: true));
+      _refreshStreamInfoForTap();
       _scheduleOverlayHide();
     }
   }
@@ -1724,8 +1726,30 @@ abstract class IvsVideoStoreBase
     }
   }
 
+  void _refreshStreamInfoForTap() {
+    final now = _now();
+    final last = _lastTapRefresh;
+    if (last != null && now.difference(last) < const Duration(seconds: 5)) {
+      return;
+    }
+    _lastTapRefresh = now;
+    unawaited(updateStreamInfo());
+  }
+
   @action
   Future<void> updateStreamInfo({bool forceUpdate = false}) async {
+    final pending = _streamInfoRequest;
+    if (pending != null) return pending;
+    final request = _fetchStreamInfo();
+    _streamInfoRequest = request;
+    try {
+      await request;
+    } finally {
+      if (identical(_streamInfoRequest, request)) _streamInfoRequest = null;
+    }
+  }
+
+  Future<void> _fetchStreamInfo() async {
     try {
       final pushesBefore = streamPushState.generation;
       final fetched = await twitchApi.getStream(userLogin: userLogin);
@@ -1737,8 +1761,9 @@ abstract class IvsVideoStoreBase
       infoUnavailable = false;
       _offlineChannelInfo = null;
     } catch (e) {
+      if (e is! ApiException || e.statusCode != 404) return;
       _streamInfo = null;
-      _paused = true;
+      if (!_isPlaying) _paused = true;
       try {
         _offlineChannelInfo = await twitchApi.getChannel(userId: userId);
         infoUnavailable = false;

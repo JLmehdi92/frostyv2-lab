@@ -3006,4 +3006,67 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 60));
     expect(native.callsNamed('load'), hasLength(1));
   });
+
+  group('overlay tap refresh', () {
+    late DateTime now;
+
+    Future<IvsVideoStore> playingStore() async {
+      now = DateTime(2026, 11, 12, 20);
+      final s = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      clearInteractions(twitchApi);
+      native.playerCalls.clear();
+      return s;
+    }
+
+    Future<void> tap(IvsVideoStore s) async {
+      if (s.overlayVisible) s.handleVideoTap();
+      s.handleVideoTap();
+      for (var i = 0; i < 5; i++) {
+        await settle();
+      }
+    }
+
+    test('a failed request keeps a playing stream playing', () async {
+      store = await playingStore();
+      final info = store.streamInfo;
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const NetworkException('timeout'));
+
+      await tap(store);
+
+      expect(store.paused, isFalse);
+      expect(store.streamInfo, same(info));
+      store.handlePausePlay();
+      expect(native.callsNamed('pause'), hasLength(1));
+      expect(native.callsNamed('play'), isEmpty);
+    });
+
+    test('an offline answer while playing does not pause it', () async {
+      store = await playingStore();
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const ApiException('streamer is offline', 404));
+
+      await tap(store);
+
+      expect(store.paused, isFalse);
+      expect(store.streamInfo, isNull);
+    });
+
+    test('quick taps make one request', () async {
+      store = await playingStore();
+
+      await tap(store);
+      await tap(store);
+      now = now.add(const Duration(seconds: 6));
+      await tap(store);
+
+      verify(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).called(2);
+    });
+  });
 }
