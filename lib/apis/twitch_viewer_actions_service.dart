@@ -17,6 +17,32 @@ import 'package:onset/models/weekly_rewards.dart';
 
 enum ViewerActionOutcome { done, refused, integrityRefused, signedOut, failed }
 
+ViewerActionOutcome viewerActionOutcomeOf(
+  Object? body,
+  String field,
+  bool Function(Map<dynamic, dynamic> payload)? succeeded,
+) {
+  if (body is! Map) return ViewerActionOutcome.failed;
+  final errors = body['errors'];
+  if (errors is List && errors.isNotEmpty) {
+    final text = errors
+        .map((e) => e is Map ? '${e['message']}' : '$e')
+        .join(' ')
+        .toLowerCase();
+    return text.contains('integrity')
+        ? ViewerActionOutcome.integrityRefused
+        : ViewerActionOutcome.failed;
+  }
+  final data = body['data'];
+  final payload = data is Map ? data[field] : null;
+  if (payload is! Map) return ViewerActionOutcome.failed;
+  if (payload['error'] is Map) return ViewerActionOutcome.refused;
+  if (succeeded != null && !succeeded(payload)) {
+    return ViewerActionOutcome.failed;
+  }
+  return ViewerActionOutcome.done;
+}
+
 class TwitchViewerActionsService extends BaseApiClient {
   TwitchViewerActionsService(Dio dio) : super(dio, '');
 
@@ -898,39 +924,13 @@ class TwitchViewerActionsService extends BaseApiClient {
           'variables': variables ?? {'input': input},
         },
       );
-      return _outcomeOf(body, field, succeeded);
+      return viewerActionOutcomeOf(body, field, succeeded);
     } on UnauthorizedException {
       return ViewerActionOutcome.signedOut;
     } catch (e) {
       if (kDebugMode) debugPrint('$operation failed: $e');
       return ViewerActionOutcome.failed;
     }
-  }
-
-  static ViewerActionOutcome _outcomeOf(
-    Object? body,
-    String field,
-    bool Function(Map<dynamic, dynamic> payload)? succeeded,
-  ) {
-    if (body is! Map) return ViewerActionOutcome.failed;
-    final errors = body['errors'];
-    if (errors is List && errors.isNotEmpty) {
-      final text = errors
-          .map((e) => e is Map ? '${e['message']}' : '$e')
-          .join(' ')
-          .toLowerCase();
-      return text.contains('integrity')
-          ? ViewerActionOutcome.integrityRefused
-          : ViewerActionOutcome.failed;
-    }
-    final data = body['data'];
-    final payload = data is Map ? data[field] : null;
-    if (payload is! Map) return ViewerActionOutcome.failed;
-    if (payload['error'] is Map) return ViewerActionOutcome.refused;
-    if (succeeded != null && !succeeded(payload)) {
-      return ViewerActionOutcome.failed;
-    }
-    return ViewerActionOutcome.done;
   }
 
   static String _freshId() {
