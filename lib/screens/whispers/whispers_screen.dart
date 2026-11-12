@@ -308,6 +308,13 @@ class _WhispersScreenState extends State<WhispersScreen>
     final ground = Theme.of(context).scaffoldBackgroundColor;
     final colors = WhisperColors.of(context);
     final reduce = reduceMotionOf(context);
+    final list = _ListPage(
+      store: widget.store,
+      onOpen: _select,
+      onNew: _startNew,
+    );
+    final conversation =
+        selected == null ? null : _conversation(selected, pane: false);
     return AnimatedBuilder(
       animation: _slide,
       builder: (context, _) {
@@ -333,11 +340,7 @@ class _WhispersScreenState extends State<WhispersScreen>
                       opacity: reduce ? 1 - t : 1 - 0.6 * t,
                       child: ColoredBox(
                         color: ground,
-                        child: _ListPage(
-                          store: widget.store,
-                          onOpen: _select,
-                          onNew: _startNew,
-                        ),
+                        child: list,
                       ),
                     ),
                   ),
@@ -362,7 +365,7 @@ class _WhispersScreenState extends State<WhispersScreen>
                               ]
                             : null,
                       ),
-                      child: _conversation(selected, pane: false),
+                      child: conversation,
                     ),
                   ),
                 ),
