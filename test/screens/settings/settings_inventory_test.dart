@@ -169,6 +169,12 @@ void main() {
     await tester.tap(find.text('Random'));
     await tester.pumpAndSettle();
     expect(settings.accentColor, isNot(before));
+    await tester.tap(find.text('Random'));
+    final first = settings.accentColor;
+    await tester.tap(find.text('Random'));
+    expect(settings.accentColor, first);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(settings.accentColor, isNot(first));
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(find.text('Applies everywhere as you pick'), findsNothing);

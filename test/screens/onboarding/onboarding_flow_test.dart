@@ -569,6 +569,36 @@ void main() {
         expect(settings.accentColor, picked);
         expect(find.text('Random'), findsNothing);
       });
+
+      testWidgets('$name: a quick second pick is kept by Done and dropped by '
+          'Cancel', (tester) async {
+        await pump(tester, size: size);
+        await toSetup(tester);
+        for (final (close, kept) in [('Done', true), ('Cancel', false)]) {
+          final before = settings.accentColor;
+          await tester.tap(find.bySemanticsLabel(RegExp('^Accent color')));
+          await settle(tester);
+          await tester.tap(find.text('Random'));
+          await tester.pump();
+          final random = settings.accentColor;
+          expect(random, isNot(before));
+          await tester.tap(find.bySemanticsLabel('Hue 202 degrees'));
+          expect(settings.accentColor, random);
+          await tester.tap(find.text(close));
+          await settle(tester);
+          if (kept) {
+            expect(settings.accentColor, isNot(random));
+            expect(
+              HSVColor.fromColor(Color(settings.accentColor)).hue,
+              closeTo(202, 1),
+            );
+          } else {
+            expect(settings.accentColor, before);
+          }
+          await tester.pump(const Duration(milliseconds: 200));
+          expect(settings.accentColor, kept ? isNot(before) : before);
+        }
+      });
     }
 
     testWidgets('the live pictures are asked quietly (no "Session expired" '

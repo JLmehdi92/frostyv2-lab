@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:onset/l10n/l10n.dart';
 
@@ -202,5 +204,38 @@ class AccentPickerThumb extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class AccentThrottle {
+  AccentThrottle(
+    this.apply, {
+    this.interval = const Duration(milliseconds: 100),
+  });
+
+  final ValueChanged<Color> apply;
+  final Duration interval;
+  Timer? _timer;
+  Color? _latest;
+
+  void call(Color color) {
+    _latest = color;
+    if (_timer != null) return;
+    apply(color);
+    _timer = Timer(interval, () {
+      _timer = null;
+      apply(_latest!);
+    });
+  }
+
+  void flush() {
+    if (_timer == null) return;
+    cancel();
+    apply(_latest!);
+  }
+
+  void cancel() {
+    _timer?.cancel();
+    _timer = null;
   }
 }

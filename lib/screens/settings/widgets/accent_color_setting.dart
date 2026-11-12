@@ -168,10 +168,13 @@ class _AccentPickerState extends State<_AccentPicker> {
     Color(widget.settingsStore.accentColor),
   );
   final _random = Random();
+  late final _apply = AccentThrottle(
+    (color) => widget.settingsStore.accentColor = color.toARGB32(),
+  );
 
   void _set(HSVColor hsv) {
     setState(() => _hsv = hsv);
-    widget.settingsStore.accentColor = hsv.toColor().toARGB32();
+    _apply(hsv.toColor());
   }
 
   void _randomize() {

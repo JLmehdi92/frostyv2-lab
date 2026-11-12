@@ -20,9 +20,10 @@ Future<void> showOnboardingAccentPicker(
   required ValueChanged<Color> onChanged,
 }) async {
   final theme = Theme.of(context);
+  final apply = AccentThrottle(onChanged);
   Widget picker(BuildContext context) => Theme(
     data: theme,
-    child: _AccentPicker(initial: initial, onChanged: onChanged),
+    child: _AccentPicker(initial: initial, onChanged: apply.call),
   );
 
   final bool? done;
@@ -102,7 +103,12 @@ Future<void> showOnboardingAccentPicker(
       ),
     );
   }
-  if (done != true) onChanged(initial);
+  if (done == true) {
+    apply.flush();
+  } else {
+    apply.cancel();
+    onChanged(initial);
+  }
 }
 
 /// "#RRGGBB" of [color].
