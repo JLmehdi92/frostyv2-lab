@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -57,17 +58,12 @@ class RecentEmotesPanel extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(panel ? 6 : 4, 4, panel ? 6 : 4, 10),
             itemBuilder: (context, index) {
               final emote = chatStore.assetsStore.recentEmotes[index];
-              final validEmotes = [
-                ...chatStore.assetsStore.emoteToObject.values,
-                ...chatStore.assetsStore.userEmoteToObject.values,
-              ];
-              final matchingEmotes = validEmotes.where(
-                (existingEmote) =>
-                    existingEmote.name == emote.name &&
-                    existingEmote.type == emote.type,
-              );
+              final match = [
+                chatStore.assetsStore.emoteToObject[emote.name],
+                chatStore.assetsStore.userEmoteToObject[emote.name],
+              ].firstWhereOrNull((e) => e != null && e.type == emote.type);
 
-              final locked = matchingEmotes.isEmpty;
+              final locked = match == null;
               void details() => showEmoteDetails(
                 context,
                 chatStore: chatStore,
@@ -77,7 +73,7 @@ class RecentEmotesPanel extends StatelessWidget {
               );
               return EmoteCell(
                 emote: emote,
-                url: locked ? emote.url : matchingEmotes.first.url,
+                url: match?.url ?? emote.url,
                 locked: locked,
                 onTap: locked ? details : () => chatStore.addEmote(emote),
                 onLongPress: () {
