@@ -431,6 +431,15 @@ class OnsetTextStyles extends ThemeExtension<OnsetTextStyles> {
       label: TextStyle.lerp(label, other.label, t)!,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is OnsetTextStyles &&
+      other.metadata == metadata &&
+      other.label == label;
+
+  @override
+  int get hashCode => Object.hash(metadata, label);
 }
 
 class OnsetThemes {
@@ -438,19 +447,28 @@ class OnsetThemes {
 
   const OnsetThemes({required this.colorSchemeSeed});
 
-  ThemeData get light => createBaseTheme(
-    colorScheme: ColorScheme.fromSeed(seedColor: colorSchemeSeed),
-    backgroundColor: OnsetTokens.backgroundLight,
-    surfaceColor: OnsetTokens.surfaceLight,
+  static final _light = <int, ThemeData>{};
+  static final _dark = <int, ThemeData>{};
+
+  ThemeData get light => _light.putIfAbsent(
+    colorSchemeSeed.toARGB32(),
+    () => createBaseTheme(
+      colorScheme: ColorScheme.fromSeed(seedColor: colorSchemeSeed),
+      backgroundColor: OnsetTokens.backgroundLight,
+      surfaceColor: OnsetTokens.surfaceLight,
+    ),
   );
 
-  ThemeData get dark => createBaseTheme(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: colorSchemeSeed,
-      brightness: Brightness.dark,
+  ThemeData get dark => _dark.putIfAbsent(
+    colorSchemeSeed.toARGB32(),
+    () => createBaseTheme(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: colorSchemeSeed,
+        brightness: Brightness.dark,
+      ),
+      backgroundColor: OnsetTokens.backgroundDark,
+      surfaceColor: OnsetTokens.surfaceDark,
     ),
-    backgroundColor: OnsetTokens.backgroundDark,
-    surfaceColor: OnsetTokens.surfaceDark,
   );
 
   ThemeData createBaseTheme({
