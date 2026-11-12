@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/vod/vod_time.dart';
 
 /// The hype train's words, in [l]'s language (the ARB files' `ht…`
 /// messages): what turns its variants, levels and steps into text.
@@ -35,16 +36,7 @@ final class HtCopy {
   String percent(int value) => l.commonPercent(value: value);
 
   /// `m:ss`, or `h:mm:ss` from an hour (figures only, in every language).
-  static String countdown(Duration remaining) {
-    final total = remaining.isNegative ? 0 : remaining.inSeconds;
-    final hours = total ~/ 3600;
-    final minutes = total % 3600 ~/ 60;
-    final seconds = (total % 60).toString().padLeft(2, '0');
-    if (hours > 0) {
-      return '$hours:${minutes.toString().padLeft(2, '0')}:$seconds';
-    }
-    return '$minutes:$seconds';
-  }
+  static String countdown(Duration remaining) => formatVodTime(remaining);
 
   String get subtitle => l.htSubtitle;
   String get finalLevel => l.htFinalLevel;

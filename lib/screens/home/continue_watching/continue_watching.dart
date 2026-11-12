@@ -6,6 +6,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/continue_watching/stores/continue_watching_store.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/vod_screen.dart';
+import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/screens/vod/widgets/vod_card.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -15,13 +16,8 @@ import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
 /// "2:31:04" (or "31:04" under an hour).
-String formatResumeTime(int seconds) {
-  final d = Duration(seconds: seconds < 0 ? 0 : seconds);
-  final h = d.inHours;
-  final m = d.inMinutes.remainder(60).toString().padLeft(h > 0 ? 2 : 1, '0');
-  final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-  return h > 0 ? '$h:$m:$s' : '$m:$s';
-}
+String formatResumeTime(int seconds) =>
+    formatVodTime(Duration(seconds: seconds));
 
 /// When a position was saved, as the shelf words it in [l]'s language
 /// ("today", "yesterday", "3 days ago"); null when unknown.

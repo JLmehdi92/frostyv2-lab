@@ -1,16 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:onset/screens/vod/vod_time.dart';
 
 /// "1:05" style time left.
-String formatTimeLeft(Duration left) {
-  final seconds = left.isNegative ? 0 : left.inSeconds;
-  final minutes = seconds ~/ 60;
-  final rest = (seconds % 60).toString().padLeft(2, '0');
-  if (minutes < 60) return '$minutes:$rest';
-  final hours = minutes ~/ 60;
-  return '$hours:${(minutes % 60).toString().padLeft(2, '0')}:$rest';
-}
+String formatTimeLeft(Duration left) => formatVodTime(left);
 
 /// Rebuilds [builder] every second with the time left until [deadline]
 /// (Twitch time, from [now]); the ticking stays inside this widget.
