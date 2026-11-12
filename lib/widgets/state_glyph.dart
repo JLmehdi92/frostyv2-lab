@@ -95,18 +95,8 @@ const Map<StateGlyphKind, List<String>> _shapes = {
 
 final Map<StateGlyphKind, Path> _cache = {};
 
-Path _pathOf(StateGlyphKind kind) => _cache.putIfAbsent(kind, () {
-  final path = Path();
-  for (final shape in _shapes[kind]!) {
-    if (shape.startsWith('c:')) {
-      final v = shape.substring(2).split(',').map(double.parse).toList();
-      path.addPath(svgCircle(v[0], v[1], v[2]), Offset.zero);
-    } else {
-      path.addPath(parseSvgPath(shape), Offset.zero);
-    }
-  }
-  return path;
-});
+Path _pathOf(StateGlyphKind kind) =>
+    _cache.putIfAbsent(kind, () => glyphPathOf(_shapes[kind]!));
 
 /// One of the state icons, stroked in [color].
 class StateGlyph extends StatelessWidget {

@@ -171,3 +171,19 @@ Path svgRect(double x, double y, double width, double height, double rx) =>
         Radius.circular(math.max(0, rx)),
       ),
     );
+
+Path glyphPathOf(List<String> shapes) {
+  final path = Path();
+  for (final shape in shapes) {
+    if (shape.startsWith('c:')) {
+      final v = shape.substring(2).split(',').map(double.parse).toList();
+      path.addPath(svgCircle(v[0], v[1], v[2]), Offset.zero);
+    } else if (shape.startsWith('r:')) {
+      final v = shape.substring(2).split(',').map(double.parse).toList();
+      path.addPath(svgRect(v[0], v[1], v[2], v[3], v[4]), Offset.zero);
+    } else {
+      path.addPath(parseSvgPath(shape), Offset.zero);
+    }
+  }
+  return path;
+}

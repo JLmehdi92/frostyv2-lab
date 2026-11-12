@@ -195,21 +195,8 @@ const Map<OnboardingGlyphKind, List<String>> _glyphs = {
 
 final Map<OnboardingGlyphKind, Path> _paths = {};
 
-Path _pathOf(OnboardingGlyphKind kind) => _paths.putIfAbsent(kind, () {
-  final path = Path();
-  for (final shape in _glyphs[kind]!) {
-    if (shape.startsWith('c:')) {
-      final v = shape.substring(2).split(',').map(double.parse).toList();
-      path.addPath(svgCircle(v[0], v[1], v[2]), Offset.zero);
-    } else if (shape.startsWith('r:')) {
-      final v = shape.substring(2).split(',').map(double.parse).toList();
-      path.addPath(svgRect(v[0], v[1], v[2], v[3], v[4]), Offset.zero);
-    } else {
-      path.addPath(parseSvgPath(shape), Offset.zero);
-    }
-  }
-  return path;
-});
+Path _pathOf(OnboardingGlyphKind kind) =>
+    _paths.putIfAbsent(kind, () => glyphPathOf(_glyphs[kind]!));
 
 /// One of the onboarding's icons, stroked in [color] (the surrounding
 /// text colour when null).

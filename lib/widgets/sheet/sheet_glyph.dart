@@ -192,21 +192,8 @@ const Map<SheetGlyphKind, List<String>> _shapes = {
 final Map<SheetGlyphKind, Path> _cache = {};
 
 /// The 24 × 24 path of [kind].
-Path sheetGlyphPath(SheetGlyphKind kind) => _cache.putIfAbsent(kind, () {
-  final path = Path();
-  for (final shape in _shapes[kind]!) {
-    if (shape.startsWith('c:')) {
-      final v = shape.substring(2).split(',').map(double.parse).toList();
-      path.addPath(svgCircle(v[0], v[1], v[2]), Offset.zero);
-    } else if (shape.startsWith('r:')) {
-      final v = shape.substring(2).split(',').map(double.parse).toList();
-      path.addPath(svgRect(v[0], v[1], v[2], v[3], v[4]), Offset.zero);
-    } else {
-      path.addPath(parseSvgPath(shape), Offset.zero);
-    }
-  }
-  return path;
-});
+Path sheetGlyphPath(SheetGlyphKind kind) =>
+    _cache.putIfAbsent(kind, () => glyphPathOf(_shapes[kind]!));
 
 /// One of the sheet icons, stroked in [color].
 class SheetGlyph extends StatelessWidget {
