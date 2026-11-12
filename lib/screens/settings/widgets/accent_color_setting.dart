@@ -70,10 +70,6 @@ class AccentColorSetting extends StatelessWidget {
   }
 }
 
-/// "#RRGGBB" of [color].
-String accentHex(Color color) =>
-    '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
-
 /// The accent picker of Settings: the colour square, the hue slider, the
 /// colour and "Random"; every change goes to [settingsStore] at once, and
 /// "Done" (or the scrim) closes it.

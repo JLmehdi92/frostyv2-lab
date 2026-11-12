@@ -111,10 +111,6 @@ Future<void> showOnboardingAccentPicker(
   }
 }
 
-/// "#RRGGBB" of [color].
-String hexOf(Color color) =>
-    '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
-
 class _AccentPicker extends StatefulWidget {
   const _AccentPicker({required this.initial, required this.onChanged});
 
@@ -170,7 +166,7 @@ class _AccentPickerState extends State<_AccentPicker> {
                 ),
               ),
               Text(
-                hexOf(color),
+                accentHex(color),
                 style: OnsetType.tabular(
                   const TextStyle(
                     fontSize: 13,

@@ -239,3 +239,7 @@ class AccentThrottle {
     _timer = null;
   }
 }
+
+/// "#RRGGBB" of [color].
+String accentHex(Color color) =>
+    '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';

@@ -13,6 +13,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
+import 'package:onset/widgets/accent_picker_controls.dart';
 import 'package:onset/widgets/motion/haptics.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
@@ -735,7 +736,7 @@ class _AccentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hex = hexOf(accent);
+    final hex = accentHex(accent);
     return Semantics(
       button: true,
       label: context.l10n.accentColorSemantics(hex: hex),
