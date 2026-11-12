@@ -332,8 +332,8 @@
       .from('.credit', { opacity: 0, duration: 0.8 }, 0.7)
       .from('.dev-c', { y: 80, opacity: 0, duration: 1.25 }, 0.5)
       .from('.dev-r', { x: -70, y: 50, opacity: 0, duration: 1.3 }, 0.62)
-      .from('.float-live', { y: 22, scale: 0.92, opacity: 0, duration: 0.8, ease: 'back.out(1.5)' }, 1.05)
-      .from(gsap.utils.shuffle(gsap.utils.toArray('.fo')), { scale: 0.4, opacity: 0, duration: 0.9, stagger: 0.05, ease: 'back.out(1.6)' }, 0.65);
+      .from('.float-live', { y: 12, scale: 0.96, opacity: 0, duration: 0.8, ease: 'expo.out' }, 1.05)
+      .from(gsap.utils.shuffle(gsap.utils.toArray('.fo')), { scale: 0.6, opacity: 0, duration: 0.9, stagger: 0.05, ease: 'expo.out' }, 0.65);
   };
 
   var startDrift = function () {
@@ -354,12 +354,12 @@
 
   var reveals = function () {
     gsap.utils.toArray('.rv').forEach(function (el) {
-      gsap.from(el, { y: 20, opacity: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
+      gsap.from(el, { y: 12, opacity: 0, duration: 0.8, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
     });
     gsap.utils.toArray('.rv-group').forEach(function (g) {
       var kids = g.querySelectorAll('.rv-item');
       if (!kids.length) return;
-      gsap.from(kids, { y: 20, opacity: 0, duration: 0.9, ease: 'power3.out', stagger: 0.07, scrollTrigger: { trigger: g, start: 'top 88%', once: true } });
+      gsap.from(kids, { y: 12, opacity: 0, duration: 0.8, ease: 'expo.out', stagger: 0.05, scrollTrigger: { trigger: g, start: 'top 88%', once: true } });
     });
   };
 
@@ -451,10 +451,10 @@
         latBack = gsap.delayedCall(1.6, function () { rollCounter('1.8'); });
       })
       .to(body, { scaleX: 0.94, scaleY: 1.1, duration: 0.14, ease: 'power2.out' })
-      .to(body, { scaleX: 1, scaleY: 1, duration: 0.6, ease: 'back.out(2.2)' })
+      .to(body, { scaleX: 1, scaleY: 1, duration: 0.6, ease: 'expo.out' })
       .to(body, { y: -6, duration: 0.18, ease: 'power2.out' }, '+=2')
       .add(function () { setGiftOpen(false); })
-      .to(body, { y: 0, duration: 0.5, ease: 'back.out(2)' });
+      .to(body, { y: 0, duration: 0.5, ease: 'expo.out' });
   };
   var giftLoop = function () {
     if (S.heroOn && !doc.hidden) giftPop();
