@@ -30,6 +30,9 @@ abstract class SearchStoreBase with Store {
   @readonly
   var _searchText = '';
 
+  @computed
+  bool get hasQuery => _searchText.isNotEmpty;
+
   @readonly
   var _searchHistory = ObservableList<String>();
 

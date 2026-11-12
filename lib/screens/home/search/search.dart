@@ -331,7 +331,7 @@ class _SearchState extends State<Search> {
     final padding = MediaQuery.paddingOf(context);
     return Observer(
       builder: (context) {
-        final hasQuery = _searchStore.searchText.isNotEmpty;
+        final hasQuery = _searchStore.hasQuery;
         final headerHeight =
             padding.top +
             _Metrics.fieldRow(large) +
@@ -482,16 +482,19 @@ class _SearchState extends State<Search> {
     } else {
       phase = 'results-${_searchStore.lastQuery}-${_tab.name}';
       slivers = [
-        if (_searchStore.suggestions.isNotEmpty)
-          SliverToBoxAdapter(
-            child: SearchSuggestionsRow(
-              suggestions: _searchStore.suggestions,
-              gutter: large
-                  ? OnsetSpacing.gutterTablet
-                  : OnsetSpacing.gutterPhone,
-              onUse: _useSuggestion,
-            ),
+        SliverToBoxAdapter(
+          child: Observer(
+            builder: (context) => _searchStore.suggestions.isEmpty
+                ? const SizedBox.shrink()
+                : SearchSuggestionsRow(
+                    suggestions: _searchStore.suggestions,
+                    gutter: large
+                        ? OnsetSpacing.gutterTablet
+                        : OnsetSpacing.gutterPhone,
+                    onUse: _useSuggestion,
+                  ),
           ),
+        ),
         ...large ? _tabletResults(context) : _phoneResults(context),
       ];
     }
@@ -602,33 +605,36 @@ class _SearchState extends State<Search> {
     );
   }
 
+  Widget _tagLink(Widget Function(Widget link) frame) => Observer(
+    builder: (context) {
+      final tag = searchTagOf(_searchStore.searchText);
+      if (tag == null) return const SizedBox.shrink();
+      return frame(
+        SearchTagLink(tag: tag, onOpen: () => TagStreams.open(context, tag)),
+      );
+    },
+  );
+
   List<Widget> _phoneResults(BuildContext context) {
-    final query = _searchStore.searchText;
-    Widget channels({int? limit}) => SearchResultsChannels(
-      searchStore: _searchStore,
-      query: query,
-      limit: limit,
-    );
+    Widget channels({int? limit}) =>
+        SearchResultsChannels(searchStore: _searchStore, limit: limit);
     Widget categories({int? limit}) =>
         SearchResultsCategories(searchStore: _searchStore, limit: limit);
-    final tag = searchTagOf(query);
     return switch (_tab) {
       _SearchTab.top => [
-        if (tag != null)
-          SliverToBoxAdapter(
-            child: Padding(
+        SliverToBoxAdapter(
+          child: _tagLink(
+            (link) => Padding(
               padding: const EdgeInsets.fromLTRB(
                 OnsetSpacing.gutterPhone,
                 12,
                 OnsetSpacing.gutterPhone,
                 0,
               ),
-              child: SearchTagLink(
-                tag: tag,
-                onOpen: () => TagStreams.open(context, tag),
-              ),
+              child: link,
             ),
           ),
+        ),
         SliverToBoxAdapter(
           child: _sectionTitle(
             _SearchTab.channels.label(context.l10n),
@@ -665,7 +671,6 @@ class _SearchState extends State<Search> {
 
   List<Widget> _tabletResults(BuildContext context) {
     const gutter = OnsetSpacing.gutterTablet;
-    final query = _searchStore.searchText;
     final size = MediaQuery.sizeOf(context);
     final insets = MediaQuery.paddingOf(context);
     final width = size.width - insets.horizontal - 2 * gutter;
@@ -700,7 +705,6 @@ class _SearchState extends State<Search> {
             ),
             SearchResultsChannels(
               searchStore: _searchStore,
-              query: query,
               limit: 5,
               large: true,
               gutter: 0,
@@ -766,18 +770,28 @@ class _SearchState extends State<Search> {
                   videos,
                 ],
               );
-        final tag = searchTagOf(query);
         return [
-          if (tag != null)
-            padded(
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: SearchTagLink(
-                  tag: tag,
-                  onOpen: () => TagStreams.open(context, tag),
+          SliverToBoxAdapter(
+            child: _tagLink(
+              (link) => Padding(
+                padding: EdgeInsets.fromLTRB(
+                  gutter + insets.left,
+                  20,
+                  gutter + insets.right,
+                  0,
+                ),
+                child: MediaQuery.removePadding(
+                  context: context,
+                  removeLeft: true,
+                  removeRight: true,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: link,
+                  ),
                 ),
               ),
             ),
+          ),
           padded(top),
           SliverToBoxAdapter(
             child: SearchRelatedLives(
@@ -792,7 +806,6 @@ class _SearchState extends State<Search> {
           padded(
             SearchResultsChannels(
               searchStore: _searchStore,
-              query: query,
               large: true,
               gutter: 0,
               columns: math.max(1, math.min(3, (width + 24) ~/ (320 + 24))),

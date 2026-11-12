@@ -35,7 +35,6 @@ enum GoToStyle { row, pill }
 /// press opens the channel's actions. Blocked channels never show.
 class SearchResultsChannels extends StatefulWidget {
   final SearchStore searchStore;
-  final String query;
 
   /// How many channels besides the exact match (null: all).
   final int? limit;
@@ -55,7 +54,6 @@ class SearchResultsChannels extends StatefulWidget {
   const SearchResultsChannels({
     super.key,
     required this.searchStore,
-    required this.query,
     this.limit,
     this.large = false,
     this.columns = 1,
@@ -206,7 +204,8 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
                 .where((channel) => !blocked.contains(channel.id))
                 .toList();
 
-            final featured = featuredChannel(results, widget.query);
+            final query = widget.searchStore.searchText;
+            final featured = featuredChannel(results, query);
             final others = results.where((channel) => channel != featured);
             final limit = widget.limit;
             final shown = (limit == null ? others : others.take(limit))
@@ -260,11 +259,11 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
                       ? _sides.copyWith(top: 12)
                       : EdgeInsets.zero,
                   child: _GoToChannel(
-                    query: widget.query,
+                    query: query,
                     style: widget.goTo,
                     large: widget.large,
                     padding: _sides,
-                    onTap: () => _handleSearch(context, widget.query),
+                    onTap: () => _handleSearch(context, query),
                   ),
                 ),
               ],

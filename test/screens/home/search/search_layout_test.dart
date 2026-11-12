@@ -416,4 +416,25 @@ void main() {
       await expectFrenchThroughout(tester, 'videos');
     });
   });
+
+  for (final size in [const Size(390, 844), const Size(1280, 854)]) {
+    testWidgets('typing more keeps the page and follows the text '
+        '(${size.width.toInt()}x${size.height.toInt()})', (tester) async {
+      await pump(tester, size: size);
+      await search(tester, 'chess');
+      final page = tester.widget(find.byType(CustomScrollView));
+      expect(find.text('Live channels tagged chess'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'chessb');
+      await tester.pump();
+      expect(
+        identical(tester.widget(find.byType(CustomScrollView)), page),
+        isTrue,
+      );
+      expect(find.text('Live channels tagged chessb'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'chess b');
+      await tester.pump();
+      expect(find.textContaining('Live channels tagged'), findsNothing);
+      await settle(tester);
+    });
+  }
 }
