@@ -126,4 +126,71 @@ void main() {
     );
     expect(store.sharedChatChannelIds, isEmpty);
   });
+
+  test('loading the channel again keeps one copy of its emotes', () async {
+    final global = MockGlobalAssetsStore();
+    store = ChatAssetsStore(
+      twitchApi: api,
+      bttvApi: MockBttvApi(),
+      ffzApi: MockFfzApi(),
+      sevenTVApi: MockSevenTvApi(),
+      globalAssetsStore: global,
+    );
+    when(
+      () => global.ensureLoaded(
+        showTwitchEmotes: any(named: 'showTwitchEmotes'),
+        showTwitchBadges: any(named: 'showTwitchBadges'),
+        show7TVEmotes: any(named: 'show7TVEmotes'),
+        showBTTVEmotes: any(named: 'showBTTVEmotes'),
+        showBTTVBadges: any(named: 'showBTTVBadges'),
+        showFFZEmotes: any(named: 'showFFZEmotes'),
+        showFFZBadges: any(named: 'showFFZBadges'),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => api.getEmotesChannel(id: '42'),
+    ).thenAnswer((_) async => [_emote('pogFollow', EmoteType.twitchSub, '42')]);
+    when(
+      () => api.getCheermotes(broadcasterId: '42'),
+    ).thenAnswer((_) async => throw Exception('none'));
+
+    for (var i = 0; i < 2; i++) {
+      await store.assetsFuture(
+        channelId: '42',
+        headers: const {},
+        onEmoteError: (Object _) => <Emote>[],
+        onBadgeError: (Object _) {},
+        showTwitchBadges: false,
+        show7TVEmotes: false,
+        showBTTVEmotes: false,
+        showFFZEmotes: false,
+      );
+    }
+
+    expect(
+      store.userEmoteSectionToEmotes['Channel Emotes']!.map((e) => e.name),
+      ['pogFollow'],
+    );
+  });
+
+  test('the fallback emote sets loaded again keep one copy', () async {
+    when(() => api.getEmotesSets(setId: 'g')).thenAnswer(
+      (_) async => [_emote('Kappa', EmoteType.twitchGlobal, '0')],
+    );
+    when(() => api.getEmotesSets(setId: 'u')).thenAnswer(
+      (_) async => [_emote('Prime', EmoteType.twitchUnlocked, '0')],
+    );
+
+    for (var i = 0; i < 2; i++) {
+      await store.userEmotesFuture(
+        emoteSets: const ['g', 'u'],
+        headers: const {},
+        onError: (Object _) => <Emote>[],
+      );
+    }
+
+    final sections = store.userEmoteSectionToEmotes;
+    expect(sections['Global Emotes']!.map((e) => e.name), ['Kappa']);
+    expect(sections['Unlocked Emotes']!.map((e) => e.name), ['Prime']);
+  });
 }

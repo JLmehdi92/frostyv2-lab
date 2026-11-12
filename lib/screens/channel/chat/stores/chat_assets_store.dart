@@ -259,11 +259,10 @@ abstract class ChatAssetsStoreBase with Store {
               twitchApi
                   .getEmotesChannel(id: channelId)
                   .then((emotes) {
-                    _userEmoteSectionToEmotes.update(
-                      UserEmoteSection.channel,
-                      (existingEmoteSet) => [...existingEmoteSet, ...emotes],
-                      ifAbsent: () => emotes.toList(),
-                    );
+                    _userEmoteSectionToEmotes = {
+                      ..._userEmoteSectionToEmotes,
+                      UserEmoteSection.channel: emotes.toList(),
+                    };
                     return emotes;
                   })
                   .catchError(onEmoteError),
@@ -562,6 +561,7 @@ abstract class ChatAssetsStoreBase with Store {
       ),
     );
 
+    final sections = <String, List<Emote>>{};
     for (final emoteSet in userEmotes) {
       if (emoteSet.isNotEmpty) {
         if (emoteSet.first.type == EmoteType.twitchSub) {
@@ -569,27 +569,27 @@ abstract class ChatAssetsStoreBase with Store {
 
           // Check for tuurbo emote sets (e.g., monkey set).
           if (ownerId == 'twitch') {
-            _userEmoteSectionToEmotes.update(
+            sections.update(
               UserEmoteSection.global,
               (existingEmoteSet) => [...existingEmoteSet, ...emoteSet],
               ifAbsent: () => emoteSet,
             );
           } else {
             final owner = await twitchApi.getUser(id: ownerId);
-            _userEmoteSectionToEmotes.update(
+            sections.update(
               owner.displayName,
               (existingEmoteSet) => [...existingEmoteSet, ...emoteSet],
               ifAbsent: () => emoteSet,
             );
           }
         } else if (emoteSet.first.type == EmoteType.twitchGlobal) {
-          _userEmoteSectionToEmotes.update(
+          sections.update(
             UserEmoteSection.global,
             (existingEmoteSet) => [...existingEmoteSet, ...emoteSet],
             ifAbsent: () => emoteSet,
           );
         } else if (emoteSet.first.type == EmoteType.twitchUnlocked) {
-          _userEmoteSectionToEmotes.update(
+          sections.update(
             UserEmoteSection.unlocked,
             (existingEmoteSet) => [...existingEmoteSet, ...emoteSet],
             ifAbsent: () => emoteSet,
@@ -601,6 +601,11 @@ abstract class ChatAssetsStoreBase with Store {
         }
       }
     }
+    _userEmoteSectionToEmotes = {
+      UserEmoteSection.channel:
+          ?_userEmoteSectionToEmotes[UserEmoteSection.channel],
+      ...sections,
+    };
   }
 
   @action
