@@ -1020,7 +1020,7 @@ abstract class IvsVideoStoreBase
         // A stall of the stream that played (not of a load under way).
         if (playerConfig.autoLatency && _hasPlayed && !_recovering) {
           _autoLatency.onStall();
-          _applyAutoRate();
+          _publishAutoLatencyStatus();
           if (playerConfig.buffer == BufferProfile.ultra && !_viewerStall) {
             _bufferFallback.onUltraRebuffer();
           }
@@ -1092,6 +1092,7 @@ abstract class IvsVideoStoreBase
   }
 
   void _sendWantedRate(double? nativeRate) {
+    if (!_isPlaying) return;
     final channel = _channel;
     if (channel == null) return;
     final rate = _autoLatency.rate;

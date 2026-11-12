@@ -133,6 +133,7 @@ class IvsPlayerCore(
                 "setPlaybackRate" -> {
                     val raw = call.argument<Number>("rate")?.toFloat() ?: 1f
                     val rate = if (raw.isNaN()) 1f else raw
+                    Log.d(CORE_TAG, "setPlaybackRate $rate state=${player.state}")
                     if (tuning.vod) {
                         player.playbackRate = rate.coerceIn(0.5f, 2f)
                         result.success(null)

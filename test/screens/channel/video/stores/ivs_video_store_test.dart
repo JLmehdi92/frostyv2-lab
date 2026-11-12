@@ -519,15 +519,34 @@ void main() {
       expect(native.callsNamed('setPlaybackRate'), isEmpty);
     });
 
-    test('a rebuffer drops back to 1.0x at once', () async {
+    test('a rebuffer sends 1.0x once playing resumes', () async {
       store = await playing();
       await tick(2200, 8);
+      final before = rates().length;
 
       await native.emit({'type': 'rebuffering'});
+      await native.emit({'type': 'state', 'state': 'BUFFERING'});
       await settle();
 
-      expect(rates().last, 1.0);
+      expect(rates().length, before);
       expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.settling);
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2200, 1);
+
+      expect(rates().sublist(before), [1.0]);
+    });
+
+    test('no rate is sent while buffering', () async {
+      store = await playing();
+      await tick(2200, 8);
+      final before = rates().length;
+
+      await native.emit({'type': 'state', 'state': 'BUFFERING'});
+      await native.emit({'type': 'rebuffering'});
+      await tick(2200, 3);
+
+      expect(rates().length, before);
     });
 
     test('pausing drops back to 1.0x and holds', () async {
