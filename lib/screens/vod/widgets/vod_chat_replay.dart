@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/irc.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
@@ -49,6 +50,8 @@ class VodChatReplay extends StatefulWidget {
 class _VodChatReplayState extends State<VodChatReplay> {
   /// The note about emotes, over the top of the messages.
   var _noteShown = false;
+
+  final _rows = Expando<(Object, VodChatMessage)>();
 
   VodChatReplayStore get _store => widget.store;
 
@@ -113,6 +116,25 @@ class _VodChatReplayState extends State<VodChatReplay> {
         break;
     }
     final messages = store.messages;
+    final assets = store.assetsStore;
+    final stale = (
+      settings.timestampType,
+      settings.emoteScale,
+      settings.badgeScale,
+      settings.animateEmotes,
+      settings.showGifs,
+      settings.animateGifs,
+      settings.nameColorContrast,
+      settings.launchUrlExternal,
+      settings.messageSpacing,
+      settings.showChatMessageDividers,
+      assets.emoteToObject,
+      assets.twitchBadgesToObject,
+      assets.cheermotes,
+      assets.userToFFZBadges.length,
+      assets.userToBTTVBadges.length,
+      assets.userTo7TVBadges.length,
+    );
     return Stack(
       alignment: AlignmentDirectional.bottomCenter,
       children: [
@@ -131,39 +153,55 @@ class _VodChatReplayState extends State<VodChatReplay> {
                 addAutomaticKeepAlives: false,
                 controller: store.scrollController,
                 itemCount: messages.length,
-                itemBuilder: (context, index) => VodChatMessage(
-                  ircMessage: messages[messages.length - 1 - index],
-                  assetsStore: store.assetsStore,
-                  settings: settings,
-                  vodCreatedAt: store.vod.createdAt,
-                ),
+                findChildIndexCallback: (key) {
+                  final index = messages.indexOf(
+                    (key as ObjectKey).value! as IRCMessage,
+                  );
+                  return index < 0 ? null : messages.length - 1 - index;
+                },
+                itemBuilder: (context, index) {
+                  final message = messages[messages.length - 1 - index];
+                  final cached = _rows[message];
+                  if (cached != null && cached.$1 == stale) return cached.$2;
+                  final row = VodChatMessage(
+                    key: ObjectKey(message),
+                    ircMessage: message,
+                    assetsStore: assets,
+                    settings: settings,
+                    vodCreatedAt: store.vod.createdAt,
+                  );
+                  _rows[message] = (stale, row);
+                  return row;
+                },
               ),
             ),
           ),
         ),
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
-          child: AnimatedSwitcher(
-            duration: motionDuration(
-              context,
-              const Duration(milliseconds: 280),
+          child: Observer(
+            builder: (context) => AnimatedSwitcher(
+              duration: motionDuration(
+                context,
+                const Duration(milliseconds: 280),
+              ),
+              switchInCurve: OnsetMotion.standard,
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: reduceMotionOf(context)
+                    ? child
+                    : SlideTransition(
+                        position: Tween(
+                          begin: const Offset(0, 0.15),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+              ),
+              child: store.autoScroll
+                  ? const SizedBox.shrink()
+                  : ResumeScrollPill(onPressed: store.resumeScroll),
             ),
-            switchInCurve: OnsetMotion.standard,
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: reduceMotionOf(context)
-                  ? child
-                  : SlideTransition(
-                      position: Tween(
-                        begin: const Offset(0, 0.15),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
-                    ),
-            ),
-            child: store.autoScroll
-                ? const SizedBox.shrink()
-                : ResumeScrollPill(onPressed: store.resumeScroll),
           ),
         ),
       ],

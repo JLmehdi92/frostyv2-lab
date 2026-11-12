@@ -207,6 +207,7 @@ class _VideoGlyphPainter extends CustomPainter {
   final bool shadow;
 
   static final _shadowColor = kPlayerChromeShadow.first.color;
+  static final _tens = <(Color, bool), TextPainter>{};
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -250,27 +251,28 @@ class _VideoGlyphPainter extends CustomPainter {
     final tenX = _tenAt[kind];
     if (tenX != null) {
       // "10" at 6.6 / 700, its baseline at y 15.2.
-      final painter = TextPainter(
-        text: TextSpan(
-          text: '10',
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 6.6,
-            fontWeight: FontWeight.w700,
-            height: 1,
-            foreground: Paint()
-              ..color = color
-              ..maskFilter = blur,
+      final painter = _tens.putIfAbsent(
+        (color, blur != null),
+        () => TextPainter(
+          text: TextSpan(
+            text: '10',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 6.6,
+              fontWeight: FontWeight.w700,
+              height: 1,
+              foreground: Paint()
+                ..color = color
+                ..maskFilter = blur,
+            ),
           ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
+          textDirection: TextDirection.ltr,
+        )..layout(),
+      );
       final baseline = painter.computeDistanceToActualBaseline(
         TextBaseline.alphabetic,
       );
-      painter
-        ..paint(canvas, Offset(tenX - painter.width / 2, 15.2 - baseline))
-        ..dispose();
+      painter.paint(canvas, Offset(tenX - painter.width / 2, 15.2 - baseline));
     }
   }
 

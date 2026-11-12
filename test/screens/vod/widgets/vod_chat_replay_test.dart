@@ -11,6 +11,7 @@ import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:onset/screens/vod/widgets/video_kit.dart';
+import 'package:onset/screens/vod/widgets/vod_chat_message.dart';
 import 'package:onset/screens/vod/widgets/vod_chat_replay.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
@@ -127,6 +128,53 @@ void main() {
     expect(find.textContaining('hi', findRichText: true), findsWidgets);
     await tester.tap(find.text('Resume scroll'));
     verify(() => store.resumeScroll()).called(1);
+  });
+
+  testWidgets('a new message leaves the rows already shown as they are', (
+    tester,
+  ) async {
+    final messages = ObservableList.of([
+      IRCMessage.fromString(
+        '@display-name=A;id=1 :a!a@a.tmi.twitch.tv PRIVMSG #streamer :hi',
+      ),
+    ]);
+    when(() => store.messages).thenReturn(messages);
+    await pump(tester, ReplayStatus.active);
+    final first = tester.widget(find.byType(VodChatMessage));
+
+    messages.add(
+      IRCMessage.fromString(
+        '@display-name=B;id=2 :b!b@b.tmi.twitch.tv PRIVMSG #streamer :yo',
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(VodChatMessage), findsNWidgets(2));
+    expect(
+      tester.widgetList(find.byType(VodChatMessage)),
+      contains(same(first)),
+    );
+  });
+
+  testWidgets('a setting changed mid-replay redraws the rows already shown', (
+    tester,
+  ) async {
+    final settings = SettingsStore.fromJson({})..messageSpacing = 4;
+    when(() => store.settings).thenReturn(settings);
+    when(() => store.messages).thenReturn(
+      ObservableList.of([
+        IRCMessage.fromString(
+          '@display-name=A;id=1 :a!a@a.tmi.twitch.tv PRIVMSG #streamer :hi',
+        ),
+      ]),
+    );
+    await pump(tester, ReplayStatus.active);
+    final before = tester.getSize(find.byType(VodChatMessage)).height;
+
+    settings.messageSpacing = 20;
+    await tester.pump();
+
+    expect(tester.getSize(find.byType(VodChatMessage)).height, before + 16);
   });
 
   group('header room', () {

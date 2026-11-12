@@ -506,17 +506,19 @@ class _VodOverlayState extends State<VodOverlay> {
           right: m.seekSide,
           // The 40 dp touch band is centred on the 24 dp bar.
           bottom: m.seekBottom - 8,
-          child: Observer(
-            builder: (context) => VodSeekBar(
-              position: _c.position,
-              duration: _c.duration,
-              buffered: _c.buffered,
-              mutedSegments: widget.mutedSegments,
-              chapters: widget.chapters,
-              onSeek: _c.seekTo,
-              onScrubbing: (scrubbing) {
-                if (scrubbing) _c.showOverlay();
-              },
+          child: RepaintBoundary(
+            child: Observer(
+              builder: (context) => VodSeekBar(
+                position: _c.position,
+                duration: _c.duration,
+                buffered: _c.buffered,
+                mutedSegments: widget.mutedSegments,
+                chapters: widget.chapters,
+                onSeek: _c.seekTo,
+                onScrubbing: (scrubbing) {
+                  if (scrubbing) _c.showOverlay();
+                },
+              ),
             ),
           ),
         ),
@@ -776,28 +778,36 @@ class _VodOverlayState extends State<VodOverlay> {
       builder: (context) {
         final rate = _c.playbackRate;
         final silent = _c.muted || _c.volume == 0;
-        final elapsed = formatVodTime(_c.position);
         final total = formatVodTime(_c.duration);
         return Row(
           children: [
             Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  '$elapsed / $total',
-                  semanticsLabel: context.l10n.playerElapsed(
-                    elapsed: elapsed,
-                    total: total,
-                  ),
-                  style: TextStyle(
-                    fontFamily: OnsetTokens.bodyFamily,
-                    color: _Over.text,
-                    fontSize: m.timeSize,
-                    fontWeight: FontWeight.w600,
-                    shadows: kPlayerChromeShadow,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+              child: RepaintBoundary(
+                child: Observer(
+                  builder: (context) {
+                    final elapsed = formatVodTime(
+                      Duration(seconds: _c.positionSeconds),
+                    );
+                    return FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        '$elapsed / $total',
+                        semanticsLabel: context.l10n.playerElapsed(
+                          elapsed: elapsed,
+                          total: total,
+                        ),
+                        style: TextStyle(
+                          fontFamily: OnsetTokens.bodyFamily,
+                          color: _Over.text,
+                          fontSize: m.timeSize,
+                          fontWeight: FontWeight.w600,
+                          shadows: kPlayerChromeShadow,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -1335,7 +1345,9 @@ class VodSettingsSheet extends StatelessWidget {
                     label: media.shareLabel,
                     detail: Observer(
                       builder: (context) {
-                        final link = media.shareLink(controller.position);
+                        final link = media.shareLink(
+                          Duration(seconds: controller.positionSeconds),
+                        );
                         final at = Uri.tryParse(link)?.queryParameters['t'];
                         if (at == null) return const SizedBox.shrink();
                         return Text(
