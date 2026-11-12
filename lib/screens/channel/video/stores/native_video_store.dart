@@ -41,9 +41,6 @@ abstract class NativeVideoStoreBase
 
   final TwitchStreamService _streamService;
 
-  /// Whether this store created [_streamService] (and therefore owns its HTTP
-  /// client and must close it on dispose).
-
   /// The native player. `bufferSize` is kept small to stay near the live edge.
   final Player player;
 

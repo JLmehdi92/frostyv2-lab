@@ -787,6 +787,11 @@ abstract class CommunityHighlightsStoreBase with Store {
     if (!_inBackground) return;
     _inBackground = false;
     _updatePolling();
+    for (final topic in {..._degraded}) {
+      if (topic != HighlightTopic.raid && !_gqlOff.contains(topic)) {
+        unawaited(_fetch(topic));
+      }
+    }
   }
 
   var _inBackground = false;

@@ -274,10 +274,6 @@ class TwitchStreamService extends BaseApiClient {
     return reason.length > 200 ? '${reason.substring(0, 200)}…' : reason;
   }
 
-  /// Releases the underlying HTTP client. Only call when this service owns the
-  /// Dio (i.e. it was not injected from the shared app client).
-  void close() => _http.close(force: true);
-
   /// Asks for [userLogin]'s playback token ahead of the player (a press on
   /// a stream card), so opening the channel finds it cached or on its way.
   /// Never throws: the player asks again if this failed.
