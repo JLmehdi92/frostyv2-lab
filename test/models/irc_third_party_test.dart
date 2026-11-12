@@ -353,4 +353,20 @@ void main() {
     expect(find.byType(OnsetCachedNetworkImage), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets('an emote is decoded at its drawn size, not its file size', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    when(() => assets.emoteToObject).thenReturn({'pet': _emote('pet')});
+
+    await render(tester, 'pet');
+
+    final image = tester.widget<OnsetCachedNetworkImage>(
+      find.byType(OnsetCachedNetworkImage),
+    );
+    expect(image.memCacheHeight, (image.height! * 3).ceil());
+    expect(image.memCacheWidth, isNull);
+  });
 }

@@ -222,6 +222,10 @@ class EmoteCell extends StatelessWidget {
                   imageUrl: url ?? emote.url,
                   height: emote.height?.toDouble() ?? defaultEmoteSize,
                   width: emote.width?.toDouble(),
+                  memCacheHeight:
+                      ((emote.height?.toDouble() ?? defaultEmoteSize) *
+                              MediaQuery.devicePixelRatioOf(context))
+                          .ceil(),
                   color: locked
                       ? const Color.fromRGBO(255, 255, 255, 0.42)
                       : null,

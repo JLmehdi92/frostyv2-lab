@@ -937,6 +937,7 @@ class IRCMessage {
                 child: OnsetCachedNetworkImage(
                   imageUrl: cheer.tier.url(dark: dark, animated: animateEmotes),
                   height: emoteSize,
+                  memCacheHeight: _decodeSize(context, emoteSize),
                   useFade: false,
                   placeholder: (context, url) => const SizedBox(),
                 ),
@@ -1093,6 +1094,10 @@ class IRCMessage {
               fit: !emote.zeroWidth && stackModifiers & FfzModifier.growX != 0
                   ? BoxFit.fill
                   : null,
+              memCacheHeight: _decodeSize(
+                context,
+                emote.height != null ? emote.height! * emoteScale : emoteSize,
+              ),
               useFade: false,
             ),
           ),
@@ -1318,7 +1323,8 @@ class IRCMessage {
     );
   }
 
-  static Widget _createBadgeWidget({
+  static Widget _createBadgeWidget(
+    BuildContext context, {
     required ChatBadge badge,
     double? size,
     Color? backgroundColor,
@@ -1332,6 +1338,7 @@ class IRCMessage {
           imageUrl: badge.url,
           height: size,
           width: size,
+          memCacheHeight: _decodeSize(context, size),
           useFade: false,
           semanticLabel: semanticLabel,
         ),
@@ -1349,6 +1356,7 @@ class IRCMessage {
         imageUrl: badge.url,
         height: size,
         width: size,
+        memCacheHeight: _decodeSize(context, size),
         useFade: false,
         semanticLabel: semanticLabel,
       );
@@ -1371,6 +1379,7 @@ class IRCMessage {
         onTap: () => _showAssetDetailsBottomSheet(
           context,
           leading: _createBadgeWidget(
+            context,
             badge: badge,
             backgroundColor: backgroundColor,
             isSvg: isSvg,
@@ -1387,6 +1396,7 @@ class IRCMessage {
           showCopyName: false,
         ),
         child: _createBadgeWidget(
+          context,
           badge: badge,
           size: size,
           backgroundColor: backgroundColor,
@@ -1417,6 +1427,7 @@ class IRCMessage {
           imageUrl: emote.urlFor(animate: animate),
           height: height,
           width: width,
+          memCacheHeight: _decodeSize(context, height),
           useFade: false,
           placeholder: (context, url) => const SizedBox(),
           semanticLabel: emote.name,
@@ -2140,3 +2151,7 @@ class _EmoteBitsThresholdLineState extends State<EmoteBitsThresholdLine> {
     );
   }
 }
+
+int? _decodeSize(BuildContext context, double? size) => size == null
+    ? null
+    : (size * MediaQuery.devicePixelRatioOf(context)).ceil();
