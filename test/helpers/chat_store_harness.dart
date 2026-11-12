@@ -75,6 +75,7 @@ class _FakeSink implements WebSocketSink {
   @override
   Future<void> close([int? closeCode, String? closeReason]) async {
     socket._closeCode = closeCode ?? 1000;
+    if (!socket.incoming.isClosed) unawaited(socket.incoming.close());
   }
 
   @override

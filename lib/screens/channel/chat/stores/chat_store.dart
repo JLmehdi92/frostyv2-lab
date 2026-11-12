@@ -1671,9 +1671,14 @@ abstract class ChatStoreBase with Store {
     _sevenTVChannel = _connectSocket(Uri.parse('wss://events.7tv.io/v3'));
     _sevenTvActiveSetId = emoteSetId;
 
+    _sevenTvHealthyTimer = Timer(
+      thirdPartyHealthyAfter,
+      () => _sevenTvRetries = 0,
+    );
+    _armSevenTvWatchdog();
     _sevenTVChannelListener = _sevenTVChannel?.stream.listen(
       (data) {
-        _sevenTvRetries = 0;
+        _armSevenTvWatchdog();
         if (!_hasActiveChatDelay) {
           _pendingSevenTVCallbacks.flushAll();
           _onSevenTvEvent(data);
@@ -1696,6 +1701,7 @@ abstract class ChatStoreBase with Store {
         if (generation != _sevenTvGeneration || !settings.show7TVEmotes) {
           return;
         }
+        _stopSevenTvTimers();
         _sevenTVChannel = null;
         _sevenTVChannelListener = null;
         _sevenTvRetryTimer = Timer(
@@ -1739,6 +1745,48 @@ abstract class ChatStoreBase with Store {
   var _sevenTvGeneration = 0;
   var _sevenTvRetries = 0;
   Timer? _sevenTvRetryTimer;
+  Timer? _sevenTvHealthyTimer;
+  Timer? _sevenTvWatchdog;
+
+  @visibleForTesting
+  static const thirdPartyHealthyAfter = Duration(seconds: 60);
+
+  @visibleForTesting
+  static const sevenTvSilenceLimit = Duration(seconds: 75);
+
+  @visibleForTesting
+  static const ircSilenceLimit = Duration(seconds: 90);
+
+  @visibleForTesting
+  static const ircPongLimit = Duration(seconds: 10);
+
+  Timer? _ircWatchdog;
+
+  void _armIrcWatchdog() {
+    _ircWatchdog?.cancel();
+    final channel = _channel;
+    _ircWatchdog = Timer(ircSilenceLimit, () {
+      channel?.sink.add('PING :tmi.twitch.tv');
+      _ircWatchdog = Timer(ircPongLimit, () => channel?.sink.close(4000));
+    });
+  }
+
+  void _armSevenTvWatchdog() {
+    _sevenTvWatchdog?.cancel();
+    final channel = _sevenTVChannel;
+    _sevenTvWatchdog = Timer(
+      sevenTvSilenceLimit,
+      () => channel?.sink.close(4000),
+    );
+  }
+
+  void _stopSevenTvTimers() {
+    _sevenTvHealthyTimer?.cancel();
+    _sevenTvHealthyTimer = null;
+    _sevenTvWatchdog?.cancel();
+    _sevenTvWatchdog = null;
+  }
+
   var _bttvGeneration = 0;
   var _bttvRetries = 0;
   Timer? _bttvRetryTimer;
@@ -1756,6 +1804,7 @@ abstract class ChatStoreBase with Store {
     _sevenTvGeneration++;
     _sevenTvRetryTimer?.cancel();
     _sevenTvRetryTimer = null;
+    _stopSevenTvTimers();
     _sevenTVChannelListener?.cancel();
     _sevenTVChannelListener = null;
     _sevenTVChannel?.sink.close(1000);
@@ -1993,6 +2042,7 @@ abstract class ChatStoreBase with Store {
 
     _channel?.sink.close(1000);
     _channel = _connectSocket(Uri.parse('wss://irc-ws.chat.twitch.tv:443'));
+    _armIrcWatchdog();
 
     // Only show chat delay countdown on initial connection or video toggle, not on reconnects
     if (!isReconnect && _hasActiveChatDelay) {
@@ -2002,6 +2052,7 @@ abstract class ChatStoreBase with Store {
     // Listen for new messages and forward them to the handler.
     _channelListener = _channel?.stream.listen(
       (data) {
+        _armIrcWatchdog();
         final dataStr = data.toString();
 
         // Process immediately if delay is disabled or command should bypass delay
@@ -2028,6 +2079,7 @@ abstract class ChatStoreBase with Store {
         );
       },
       onDone: () async {
+        _ircWatchdog?.cancel();
         // Mark connection as disconnected for UI
         _isConnected = false;
 
@@ -2753,6 +2805,7 @@ abstract class ChatStoreBase with Store {
     chatRules?.dispose();
 
     // Cancel WebSocket subscriptions
+    _ircWatchdog?.cancel();
     _channelListener?.cancel();
 
     // Close WebSocket channels

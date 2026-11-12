@@ -534,7 +534,7 @@ void main() {
     });
   });
 
-  test('an event resets the 7TV backoff', () {
+  test('a healthy minute resets the 7TV backoff', () {
     fakeAsync((async) {
       final store = open(async)..thirdPartyJitter = _FullJitter();
       unawaited(socketFor('events.7tv.io').drop());
@@ -542,7 +542,7 @@ void main() {
       unawaited(socketFor('events.7tv.io').drop());
       async.elapse(const Duration(seconds: 3));
       socketFor('events.7tv.io').receive('{"op":1,"d":{}}');
-      async.flushMicrotasks();
+      async.elapse(ChatStoreBase.thirdPartyHealthyAfter);
       final before = count('events.7tv.io');
       unawaited(socketFor('events.7tv.io').drop());
       async.elapse(const Duration(milliseconds: 1100));

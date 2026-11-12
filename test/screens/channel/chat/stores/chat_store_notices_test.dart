@@ -448,7 +448,8 @@ void main() {
         async.flushMicrotasks();
         store.sendMessage('/disconnect');
         async.flushMicrotasks();
-        expect(sockets.single.closeCode, 1000);
+        expect(sockets.first.closeCode, 1000);
+        expect(sockets, hasLength(2));
         finish(store, async);
       });
     });
