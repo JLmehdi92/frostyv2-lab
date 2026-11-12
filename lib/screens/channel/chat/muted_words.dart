@@ -1,5 +1,6 @@
 final _wordBreak = RegExp(r'[\s.,!?;:"()\[\]{}<>]+');
 final _wordChar = RegExp(r'[a-z0-9_]');
+final _phrases = <String, RegExp>{};
 
 /// Whether [message] contains one of [mutedWords], ignoring case. With
 /// [wholeWord], a muted word must be a whole word of the message (split on
@@ -26,9 +27,11 @@ bool isMuted(
         final after = _wordChar.hasMatch(muted[muted.length - 1])
             ? breaks
             : r'\s';
-        if (RegExp(
-          '(^|$before)${RegExp.escape(muted)}(\$|$after)',
-        ).hasMatch(text)) {
+        final phrase = _phrases.putIfAbsent(
+          muted,
+          () => RegExp('(^|$before)${RegExp.escape(muted)}(\$|$after)'),
+        );
+        if (phrase.hasMatch(text)) {
           return true;
         }
       } else if (words.contains(muted)) {

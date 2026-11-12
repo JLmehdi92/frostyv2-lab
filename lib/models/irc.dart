@@ -65,6 +65,8 @@ const kDeletedUserDisplayName = 'Deleted user';
 
 /// The object representation of a Twitch IRC message.
 class IRCMessage {
+  static final _timeFormats = <(String, bool), DateFormat>{};
+
   final String raw;
   Command command;
   final Map<String, String> tags;
@@ -372,9 +374,12 @@ class IRCMessage {
         tags['tmi-sent-ts'] ?? DateTime.now().millisecondsSinceEpoch.toString();
     final parsedTime = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
 
-    final timeText = timestamp == TimestampType.twentyFour
-        ? '${DateFormat.Hm().format(parsedTime)} '
-        : '${DateFormat('h:mm').format(parsedTime)} ';
+    final twentyFour = timestamp == TimestampType.twentyFour;
+    final format = _timeFormats.putIfAbsent((
+      Intl.getCurrentLocale(),
+      twentyFour,
+    ), () => twentyFour ? DateFormat.Hm() : DateFormat('h:mm'));
+    final timeText = '${format.format(parsedTime)} ';
 
     span.add(
       TextSpan(

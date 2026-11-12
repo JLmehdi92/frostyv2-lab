@@ -152,6 +152,8 @@ abstract class ChatStoreBase with Store {
   /// What a message id may look like in a reply the viewer sends: anything
   /// else could carry its own IRC command into the viewer's connection.
   static final _replyId = RegExp(r'^[A-Za-z0-9-]{1,64}$');
+  static final _secondsLeft = RegExp(r'(\d+) (?:more )?seconds?');
+  static final _meAction = RegExp(r'^[/.]me\s', caseSensitive: false);
 
   /// Listens to the viewer's EventSub topics, to say what moderators
   /// decided about held messages (null in tests and when not given).
@@ -987,7 +989,7 @@ abstract class ChatStoreBase with Store {
       return;
     }
     final seconds = int.tryParse(
-      RegExp(r'(\d+) (?:more )?seconds?').firstMatch(message ?? '')?[1] ?? '',
+      _secondsLeft.firstMatch(message ?? '')?[1] ?? '',
     );
     final now = DateTime.now();
     switch (msgId) {
@@ -1691,8 +1693,7 @@ abstract class ChatStoreBase with Store {
         );
       },
       onDone: () {
-        if (generation != _sevenTvGeneration ||
-            !settings.show7TVEmotes) {
+        if (generation != _sevenTvGeneration || !settings.show7TVEmotes) {
           return;
         }
         _sevenTVChannel = null;
@@ -1903,8 +1904,7 @@ abstract class ChatStoreBase with Store {
       },
       onError: (error) => debugPrint('BTTV events error: $error'),
       onDone: () {
-        if (generation != _bttvGeneration ||
-            !settings.showBTTVEmotes) {
+        if (generation != _bttvGeneration || !settings.showBTTVEmotes) {
           return;
         }
         _bttvChannel = null;
@@ -2356,8 +2356,7 @@ abstract class ChatStoreBase with Store {
     // Obtain the logged-in user's appearance in chat with USERSTATE and create the full message to render.
     var userStateString = _userState.raw;
     if (userStateString != null) {
-      final action = RegExp(r'^[/.]me\s', caseSensitive: false);
-      if (action.hasMatch(message)) {
+      if (_meAction.hasMatch(message)) {
         userStateString +=
             ' :\x01ACTION ${message.replaceRange(0, 3, '').trim()}\x01';
       } else {
