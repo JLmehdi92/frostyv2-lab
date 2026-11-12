@@ -74,13 +74,26 @@ class _ClipStoryScreenState extends State<ClipStoryScreen> {
   var _index = 0;
   late VodPlayerController _player;
   ReactionDisposer? _endWatcher;
+  var _hasFocus = true;
 
   @override
   void initState() {
     super.initState();
     context.read<MiniPlayerStore?>()?.close();
     PlaybackFocus.shared
-      ..register(this, onLost: () => _player.pause(), onRegained: () {})
+      ..register(
+        this,
+        onLost: () {
+          _hasFocus = false;
+          _player
+            ..setFocused(false)
+            ..pause();
+        },
+        onRegained: () {
+          _hasFocus = true;
+          _player.setFocused(true);
+        },
+      )
       ..claim(this);
     unawaited(WakelockPlus.enable().onError((_, _) {}));
     _player = _build(widget.clips.first);
@@ -88,6 +101,12 @@ class _ClipStoryScreenState extends State<ClipStoryScreen> {
   }
 
   VodPlayerController _build(Clip clip) {
+    final player = _create(clip);
+    if (!_hasFocus) player.setFocused(false);
+    return player;
+  }
+
+  VodPlayerController _create(Clip clip) {
     final factory = widget.playerFactory;
     if (factory != null) return factory(clip, portrait: widget.portrait);
     return ClipPlayerStore(

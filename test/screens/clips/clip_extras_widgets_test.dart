@@ -7,6 +7,7 @@ import 'package:onset/screens/clips/clip_story_screen.dart';
 import 'package:onset/screens/clips/widgets/clip_comments_sheet.dart';
 import 'package:onset/screens/clips/widgets/clip_info_panel.dart';
 import 'package:onset/screens/vod/vod_player_controller.dart';
+import 'package:onset/services/playback_focus.dart';
 
 import '../../helpers/fake_vod_controller.dart';
 import '../../helpers/l10n.dart';
@@ -353,6 +354,35 @@ void main() {
       await tester.pump();
       expect(find.text('First'), findsOneWidget);
       expect(portraits, everyElement(isTrue));
+    });
+
+    testWidgets('a story under another player stays silent', (tester) async {
+      final created = <FakeVodController>[];
+      await pumpLocalized(
+        tester,
+        ClipStoryScreen(
+          clips: [clipFixture('One'), clipFixture('Two')],
+          title: 'Caster',
+          playerFactory: (clip, {required portrait}) {
+            final player = FakeVodController();
+            created.add(player);
+            return player;
+          },
+        ),
+        locale: en,
+      );
+      final other = Object();
+      PlaybackFocus.shared
+        ..register(other, onLost: () {}, onRegained: () {})
+        ..claim(other);
+      expect(created.first.calls, containsAll(['focused false', 'pause']));
+
+      created.first.status = VodPlaybackStatus.ended;
+      await tester.pump();
+      expect(created.last.calls, contains('focused false'));
+
+      PlaybackFocus.shared.release(other);
+      expect(created.last.calls.last, 'focused true');
     });
 
     testWidgets('a clip that cannot play offers a retry', (tester) async {
