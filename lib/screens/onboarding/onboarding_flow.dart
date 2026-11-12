@@ -490,25 +490,22 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     );
     Widget content(OnboardingStep step) {
       final view = _stepContent(step, geometry, stepLayout, accent);
-      if (step == OnboardingStep.intro && _introFresh) {
-        return _reduce
-            ? view
-            : StepEntrance(
-                animation: _hand,
-                delays: tablet ? _tabletIntroDelays : _phoneIntroDelays,
-                total: OnboardingFlow.handDuration,
-                child: view,
-              );
-      }
-      if (step == _step && _rising) {
+      if (step == OnboardingStep.intro && _introFresh && !_reduce) {
         return StepEntrance(
-          animation: _switch,
-          delays: StepEntrance.stepDelays,
-          total: OnboardingFlow.stepDuration,
+          animation: _hand,
+          delays: tablet ? _tabletIntroDelays : _phoneIntroDelays,
+          total: OnboardingFlow.handDuration,
           child: view,
         );
       }
-      return view;
+      return StepEntrance(
+        animation: step == _step && _rising
+            ? _switch
+            : kAlwaysCompleteAnimation,
+        delays: StepEntrance.stepDelays,
+        total: OnboardingFlow.stepDuration,
+        child: view,
+      );
     }
 
     final current = content(_step);
@@ -629,8 +626,8 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         Widget stepView(OnboardingStep step, Widget view) {
           final (opacity, shift) = _stepMotion(step);
           final leaving = step != _step;
-          if (step == OnboardingStep.intro && _introFresh && _reduce) {
-            view = Opacity(opacity: _hand.value, child: view);
+          if (step == OnboardingStep.intro && _reduce) {
+            view = Opacity(opacity: _introFresh ? _hand.value : 1, child: view);
           }
           return KeyedSubtree(
             key: ValueKey(step),
@@ -771,18 +768,22 @@ class _OnboardingFlowState extends State<OnboardingFlow>
             );
         // The page shrinks above the keyboard, so the Twitch fields stay
         // in view.
-        final keyboard = MediaQuery.viewInsetsOf(context).bottom;
         return Padding(
           padding: EdgeInsets.only(top: geometry.webTop),
           child: ColoredBox(
             color: OnboardingColors.web,
-            child: Padding(
-              padding: EdgeInsets.only(
-                bottom: keyboard > geometry.bottomInset
-                    ? keyboard
-                    : geometry.bottomInset,
-              ),
-              child: panel,
+            child: Builder(
+              builder: (context) {
+                final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: keyboard > geometry.bottomInset
+                        ? keyboard
+                        : geometry.bottomInset,
+                  ),
+                  child: panel,
+                );
+              },
             ),
           ),
         );

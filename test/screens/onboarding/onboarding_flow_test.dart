@@ -75,6 +75,8 @@ void main() {
     orientations = [];
     signIn = null;
     tokenBack = null;
+    panelBuilds = 0;
+    panelStates = 0;
   });
 
   tearDown(() {
@@ -90,10 +92,8 @@ void main() {
     loginPanelBuilder: (context, onSignedIn, onTokenCaptured) {
       signIn = onSignedIn;
       tokenBack = onTokenCaptured;
-      return const ColoredBox(
-        key: Key('twitch-page'),
-        color: Color(0xFF111111),
-      );
+      panelBuilds++;
+      return const _TwitchPage(key: Key('twitch-page'));
     },
     homeBuilder: home ?? (_) => const Scaffold(body: Text('home')),
   );
@@ -480,6 +480,35 @@ void main() {
       );
     });
 
+    testWidgets('the keyboard moves only the Twitch page\'s padding', (
+      tester,
+    ) async {
+      await pump(tester);
+      await settle(tester);
+      await tapText(tester, 'Next');
+      await tapText(tester, 'Log in with Twitch');
+      final builds = panelBuilds;
+      for (final bottom in [100.0, 200.0, 300.0]) {
+        tester.view.viewInsets = FakeViewPadding(bottom: bottom);
+        await tester.pump();
+      }
+      expect(panelBuilds, builds);
+    });
+
+    testWidgets('leaving the Twitch page keeps it while it fades out', (
+      tester,
+    ) async {
+      await pump(tester);
+      await settle(tester);
+      await tapText(tester, 'Next');
+      await tapText(tester, 'Log in with Twitch');
+      expect(panelStates, 1);
+      signIn!();
+      await settle(tester);
+      expect(find.text('Setup'), findsOneWidget);
+      expect(panelStates, 1);
+    });
+
     testWidgets('Twitch done without a token (the user said no): on to '
         'Setup, not logged in', (tester) async {
       await pump(tester);
@@ -837,4 +866,26 @@ class _FreesOrientationState extends State<_FreesOrientation> {
 
   @override
   Widget build(BuildContext context) => const Scaffold(body: Text('player'));
+}
+
+var panelBuilds = 0;
+var panelStates = 0;
+
+class _TwitchPage extends StatefulWidget {
+  const _TwitchPage({super.key});
+
+  @override
+  State<_TwitchPage> createState() => _TwitchPageState();
+}
+
+class _TwitchPageState extends State<_TwitchPage> {
+  @override
+  void initState() {
+    super.initState();
+    panelStates++;
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      const ColoredBox(color: Color(0xFF111111));
 }
