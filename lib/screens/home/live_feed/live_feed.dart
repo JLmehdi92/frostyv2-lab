@@ -924,6 +924,61 @@ class _PreviewGate {
 /// A channel's picture, then its preview over it once the first frame is
 /// on screen (only the channel the preview plays); for a labelled channel,
 /// its content warning instead (see [_PreviewGate]).
+class _PreviewTapTarget extends StatelessWidget {
+  const _PreviewTapTarget({
+    required this.name,
+    required this.stream,
+    required this.preview,
+    required this.gate,
+    required this.showThumbnail,
+    required this.onPreload,
+    required this.onOpen,
+    required this.onEnlarge,
+  });
+
+  final String name;
+  final StreamTwitch stream;
+  final LivePreviewController preview;
+  final _PreviewGate gate;
+  final bool showThumbnail;
+  final VoidCallback onPreload;
+  final VoidCallback onOpen;
+  final VoidCallback onEnlarge;
+
+  @override
+  Widget build(BuildContext context) => AspectRatio(
+    aspectRatio: 16 / 9,
+    child: Semantics(
+      label: context.l10n.liveFeedPreviewSemantics(name: name),
+      button: true,
+      // The node alone takes the actions (a finger's tap preloads on
+      // touch-down, a screen reader's does both at once): a detector in
+      // semantics too would split off as a second, unlabelled node.
+      onTap: () {
+        onPreload();
+        onOpen();
+      },
+      onLongPress: onEnlarge,
+      onLongPressHint: showThumbnail
+          ? context.l10n.streamEnlargeHint
+          : context.l10n.liveFeedChannelActions,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        excludeFromSemantics: true,
+        onTapDown: (_) => onPreload(),
+        onTap: onOpen,
+        onLongPress: onEnlarge,
+        child: _PreviewSurface(
+          stream: stream,
+          preview: preview,
+          gate: gate,
+          showThumbnail: showThumbnail,
+        ),
+      ),
+    ),
+  );
+}
+
 class _PreviewSurface extends StatelessWidget {
   const _PreviewSurface({
     required this.stream,
@@ -1449,36 +1504,15 @@ class _PhonePage extends StatelessWidget {
           right: 0,
           bottom: padding.bottom + 230,
           child: Center(
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Semantics(
-                label: context.l10n.liveFeedPreviewSemantics(name: name),
-                button: true,
-                // The node alone takes the actions (a finger's tap preloads on
-                // touch-down, a screen reader's does both at once): a detector in
-                // semantics too would split off as a second, unlabelled node.
-                onTap: () {
-                  onPreload();
-                  onOpen();
-                },
-                onLongPress: onEnlarge,
-                onLongPressHint: showThumbnail
-                    ? context.l10n.streamEnlargeHint
-                    : context.l10n.liveFeedChannelActions,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  excludeFromSemantics: true,
-                  onTapDown: (_) => onPreload(),
-                  onTap: onOpen,
-                  onLongPress: onEnlarge,
-                  child: _PreviewSurface(
-                    stream: stream,
-                    preview: preview,
-                    gate: gate,
-                    showThumbnail: showThumbnail,
-                  ),
-                ),
-              ),
+            child: _PreviewTapTarget(
+              name: name,
+              stream: stream,
+              preview: preview,
+              gate: gate,
+              showThumbnail: showThumbnail,
+              onPreload: onPreload,
+              onOpen: onOpen,
+              onEnlarge: onEnlarge,
             ),
           ),
         ),
@@ -1747,36 +1781,15 @@ class _TabletPage extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         Center(
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Semantics(
-              label: context.l10n.liveFeedPreviewSemantics(name: name),
-              button: true,
-              // The node alone takes the actions (a finger's tap preloads on
-              // touch-down, a screen reader's does both at once): a detector in
-              // semantics too would split off as a second, unlabelled node.
-              onTap: () {
-                onPreload();
-                onOpen();
-              },
-              onLongPress: onEnlarge,
-              onLongPressHint: showThumbnail
-                  ? context.l10n.streamEnlargeHint
-                  : context.l10n.liveFeedChannelActions,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                excludeFromSemantics: true,
-                onTapDown: (_) => onPreload(),
-                onTap: onOpen,
-                onLongPress: onEnlarge,
-                child: _PreviewSurface(
-                  stream: stream,
-                  preview: preview,
-                  gate: gate,
-                  showThumbnail: showThumbnail,
-                ),
-              ),
-            ),
+          child: _PreviewTapTarget(
+            name: name,
+            stream: stream,
+            preview: preview,
+            gate: gate,
+            showThumbnail: showThumbnail,
+            onPreload: onPreload,
+            onOpen: onOpen,
+            onEnlarge: onEnlarge,
           ),
         ),
         const IgnorePointer(
