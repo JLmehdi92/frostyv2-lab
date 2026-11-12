@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_community_service.dart';
 import 'package:onset/l10n/l10n.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/user.dart';
 import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
 import 'package:onset/screens/channel/chat/mod_tools/mod_events.dart';
 import 'package:onset/screens/channel/chat/mod_tools/stores/mod_tools_store.dart';
@@ -136,6 +139,9 @@ class _ChatState extends State<Chat> {
   ChatTabsStore? get chatTabsStore => widget.chatTabsStore;
 
   bool get _isMerged => chatTabsStore != null;
+
+  final _rows = Expando<(Object, ChatMessage)>();
+  Map<String, UserTwitch>? _mergedProfiles;
 
   StreamSubscription<ChatUserCardRequest>? _userCards;
   StreamSubscription<ShoutoutNotice>? _shoutoutCards;
@@ -444,8 +450,55 @@ class _ChatState extends State<Chat> {
     );
   }
 
+  Object _rowInputs(ChatStore store) {
+    final settings = store.settings;
+    final assets = store.assetsStore;
+    return (
+      settings.timestampType,
+      settings.emoteScale,
+      settings.badgeScale,
+      settings.animateEmotes,
+      settings.showGifs,
+      settings.animateGifs,
+      settings.nameColorContrast,
+      settings.launchUrlExternal,
+      settings.showDeletedMessages,
+      settings.chatFiltersEnabled,
+      assets.emoteToObject,
+      assets.twitchBadgesToObject,
+      assets.cheermotes,
+    );
+  }
+
+  ChatMessage _cachedRow(
+    IRCMessage message,
+    Object inputs,
+    ChatMessage Function() build,
+  ) {
+    final stale = (
+      inputs,
+      chatStore,
+      message.command,
+      message.tags['ban-duration'],
+    );
+    final cached = _rows[message];
+    if (cached != null && cached.$1 == stale) return cached.$2;
+    final row = build();
+    _rows[message] = (stale, row);
+    return row;
+  }
+
+  int? _indexOfKey(Key key, int length, int Function(IRCMessage) lastIndexOf) {
+    if (key is! ObjectKey) return null;
+    final value = key.value;
+    if (value is! IRCMessage) return null;
+    final index = lastIndexOf(value);
+    return index < 0 ? null : length - 1 - index;
+  }
+
   Widget _buildNormalList(ScrollController scrollController, bool safeBottom) {
     final messages = chatStore.renderMessages;
+    final inputs = _rowInputs(chatStore);
     return _ChatListView(
       controller: scrollController,
       padding: listPadding,
@@ -453,10 +506,20 @@ class _ChatState extends State<Chat> {
       safeBottom: safeBottom,
       count: messages.length,
       delegate: SliverChildBuilderDelegate(
-        (context, index) => ChatMessage(
-          ircMessage: messages[messages.length - 1 - index],
-          chatStore: chatStore,
-        ),
+        (context, index) {
+          final message = messages[messages.length - 1 - index];
+          return _cachedRow(
+            message,
+            inputs,
+            () => ChatMessage(
+              key: ObjectKey(message),
+              ircMessage: message,
+              chatStore: chatStore,
+            ),
+          );
+        },
+        findChildIndexCallback: (key) =>
+            _indexOfKey(key, messages.length, messages.lastIndexOf),
         childCount: messages.length,
         addAutomaticKeepAlives: false,
       ),
@@ -465,8 +528,11 @@ class _ChatState extends State<Chat> {
 
   Widget _buildMergedList(ScrollController scrollController, bool safeBottom) {
     final mergedMessages = chatTabsStore!.mergedMessages;
-    final channelIdToUserTwitch = chatTabsStore!.mergedChannelIdToUserTwitch;
+    final fresh = chatTabsStore!.mergedChannelIdToUserTwitch;
+    final channelIdToUserTwitch = _mergedProfiles =
+        mapEquals(_mergedProfiles, fresh) ? _mergedProfiles! : fresh;
     final currentChannelId = chatTabsStore!.activeTab.channelId;
+    final inputs = <ChatStore, Object>{};
 
     return _ChatListView(
       controller: scrollController,
@@ -477,23 +543,43 @@ class _ChatState extends State<Chat> {
       delegate: SliverChildBuilderDelegate(
         (context, index) {
           final merged = mergedMessages[mergedMessages.length - 1 - index];
-          return ChatMessage(
-            ircMessage: merged.ircMessage,
-            chatStore: merged.chatStore,
-            inputChatStore: chatStore,
-            onActivateSourceTab: () {
-              final tabs = chatTabsStore!.tabs;
-              final idx = tabs.indexWhere(
-                (t) => t.channelId == merged.chatStore.channelId,
-              );
-              if (idx != -1 && idx != chatTabsStore!.activeTabIndex) {
-                chatTabsStore!.setActiveTab(idx, silent: true);
-              }
-            },
-            overrideChannelIdToUserTwitch: channelIdToUserTwitch,
-            overrideCurrentChannelId: currentChannelId,
+          final message = merged.ircMessage;
+          return _cachedRow(
+            message,
+            (
+              inputs.putIfAbsent(
+                merged.chatStore,
+                () => _rowInputs(merged.chatStore),
+              ),
+              merged.chatStore,
+              channelIdToUserTwitch,
+              currentChannelId,
+            ),
+            () => ChatMessage(
+              key: ObjectKey(message),
+              ircMessage: message,
+              chatStore: merged.chatStore,
+              inputChatStore: chatStore,
+              onActivateSourceTab: () {
+                final tabs = chatTabsStore!.tabs;
+                final idx = tabs.indexWhere(
+                  (t) => t.channelId == merged.chatStore.channelId,
+                );
+                if (idx != -1 && idx != chatTabsStore!.activeTabIndex) {
+                  chatTabsStore!.setActiveTab(idx, silent: true);
+                }
+              },
+              overrideChannelIdToUserTwitch: channelIdToUserTwitch,
+              overrideCurrentChannelId: currentChannelId,
+            ),
           );
         },
+        findChildIndexCallback: (key) => _indexOfKey(
+          key,
+          mergedMessages.length,
+          (message) =>
+              mergedMessages.lastIndexWhere((m) => m.ircMessage == message),
+        ),
         childCount: mergedMessages.length,
         addAutomaticKeepAlives: false,
       ),
