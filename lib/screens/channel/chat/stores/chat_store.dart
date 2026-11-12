@@ -1763,11 +1763,13 @@ abstract class ChatStoreBase with Store {
 
   Timer? _ircWatchdog;
 
+  static const _ircPing = 'PING :tmi.twitch.tv';
+
   void _armIrcWatchdog() {
     _ircWatchdog?.cancel();
     final channel = _channel;
     _ircWatchdog = Timer(ircSilenceLimit, () {
-      channel?.sink.add('PING :tmi.twitch.tv');
+      channel?.sink.add(_ircPing);
       _ircWatchdog = Timer(ircPongLimit, () => channel?.sink.close(4000));
     });
   }

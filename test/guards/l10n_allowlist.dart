@@ -189,6 +189,7 @@ const l10nAllowlist = <String, Map<String, String>>{
   },
   'lib/screens/channel/chat/stores/chat_store.dart': {
     'PONG :tmi.twitch.tv': _ircLine,
+    'PING :tmi.twitch.tv': _ircLine,
     'CAP REQ :twitch.tv/tags twitch.tv/commands': _ircLine,
     'PASS oauth:{}': _ircLine,
   },
