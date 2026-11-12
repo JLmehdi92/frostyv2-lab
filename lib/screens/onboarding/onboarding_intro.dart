@@ -668,7 +668,7 @@ class _OnboardingMosaicState extends State<OnboardingMosaic>
                           angle: -8 * math.pi / 180,
                           child: AnimatedBuilder(
                             animation: _drift,
-                            child: grid,
+                            child: RepaintBoundary(child: grid),
                             builder: (context, child) => Transform.translate(
                               offset: Offset(
                                 0,
