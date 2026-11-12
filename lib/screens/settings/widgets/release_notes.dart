@@ -365,11 +365,7 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
     final padding = MediaQuery.paddingOf(context);
     final to = widget.updatedTo;
     final entries = data?.entries ?? const <ReleaseEntry>[];
-    final themed =
-        theme.appBarTheme.systemOverlayStyle ??
-        (theme.brightness == Brightness.dark
-            ? SystemUiOverlayStyle.light
-            : SystemUiOverlayStyle.dark);
+    final themed = theme.systemOverlayStyle;
 
     final header = Padding(
       padding: EdgeInsets.fromLTRB(

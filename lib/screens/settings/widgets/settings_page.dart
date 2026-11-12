@@ -456,11 +456,7 @@ class SettingsScaffold extends StatelessWidget {
     final media = MediaQuery.of(context);
     final colors = SettingsColors.of(context);
     final ground = theme.scaffoldBackgroundColor;
-    final themed =
-        theme.appBarTheme.systemOverlayStyle ??
-        (theme.brightness == Brightness.dark
-            ? SystemUiOverlayStyle.light
-            : SystemUiOverlayStyle.dark);
+    final themed = theme.systemOverlayStyle;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themed,
       child: Scaffold(

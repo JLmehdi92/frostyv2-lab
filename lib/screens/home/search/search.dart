@@ -133,11 +133,7 @@ class _SearchScreenState extends State<SearchScreen> {
     // No app bar to set the system bars: the theme's, as on every page.
     final theme = Theme.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value:
-          theme.appBarTheme.systemOverlayStyle ??
-          (theme.brightness == Brightness.dark
-              ? SystemUiOverlayStyle.light
-              : SystemUiOverlayStyle.dark),
+      value: theme.systemOverlayStyle,
       child: Scaffold(
         body: Search(
           scrollController: _scrollController,

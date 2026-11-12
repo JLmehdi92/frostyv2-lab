@@ -86,11 +86,7 @@ class CategoryStreams extends StatelessWidget {
     final padding = MediaQuery.paddingOf(context);
     // No app bar to set the system bars: the theme's, as on every page.
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value:
-          theme.appBarTheme.systemOverlayStyle ??
-          (theme.brightness == Brightness.dark
-              ? SystemUiOverlayStyle.light
-              : SystemUiOverlayStyle.dark),
+      value: theme.systemOverlayStyle,
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         body: Stack(

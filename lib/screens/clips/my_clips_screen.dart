@@ -191,11 +191,7 @@ class _MyClipsScreenState extends State<MyClipsScreen> {
       ),
     );
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value:
-          theme.appBarTheme.systemOverlayStyle ??
-          (theme.brightness == Brightness.dark
-              ? SystemUiOverlayStyle.light
-              : SystemUiOverlayStyle.dark),
+      value: theme.systemOverlayStyle,
       child: Scaffold(
         backgroundColor: ground,
         body: Column(

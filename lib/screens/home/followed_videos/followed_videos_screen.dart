@@ -137,11 +137,7 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen>
     final theme = Theme.of(context);
     final tablet = context.isLargeScreen;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value:
-          theme.appBarTheme.systemOverlayStyle ??
-          (theme.brightness == Brightness.dark
-              ? SystemUiOverlayStyle.light
-              : SystemUiOverlayStyle.dark),
+      value: theme.systemOverlayStyle,
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         body: Column(

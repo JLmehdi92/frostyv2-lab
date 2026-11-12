@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:onset/apis/bttv_api.dart';
 import 'package:onset/apis/ffz_api.dart';
 import 'package:onset/apis/seventv_api.dart';
@@ -150,11 +151,20 @@ extension ContextExtensions on BuildContext {
   bool get isPortrait => MediaQuery.orientationOf(this) == Orientation.portrait;
 
   /// Returns true if currently in landscape orientation
-  bool get isLandscape => MediaQuery.orientationOf(this) == Orientation.landscape;
+  bool get isLandscape =>
+      MediaQuery.orientationOf(this) == Orientation.landscape;
 }
 
 /// TextScaler extensions for common scaling operations
 extension TextScalerExtensions on double {
   /// Creates a linear text scaler with this scale factor
   TextScaler get textScaler => TextScaler.linear(this);
+}
+
+extension ThemeSystemOverlay on ThemeData {
+  SystemUiOverlayStyle get systemOverlayStyle =>
+      appBarTheme.systemOverlayStyle ??
+      (brightness == Brightness.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark);
 }

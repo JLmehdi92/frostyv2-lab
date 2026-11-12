@@ -275,11 +275,7 @@ class _WhispersScreenState extends State<WhispersScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final large = context.isLargeScreen;
-    final bars =
-        theme.appBarTheme.systemOverlayStyle ??
-        (theme.brightness == Brightness.dark
-            ? SystemUiOverlayStyle.light
-            : SystemUiOverlayStyle.dark);
+    final bars = theme.systemOverlayStyle;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: bars,
       child: PopScope(
@@ -313,8 +309,9 @@ class _WhispersScreenState extends State<WhispersScreen>
       onOpen: _select,
       onNew: _startNew,
     );
-    final conversation =
-        selected == null ? null : _conversation(selected, pane: false);
+    final conversation = selected == null
+        ? null
+        : _conversation(selected, pane: false);
     return AnimatedBuilder(
       animation: _slide,
       builder: (context, _) {
@@ -338,10 +335,7 @@ class _WhispersScreenState extends State<WhispersScreen>
                     ),
                     child: Opacity(
                       opacity: reduce ? 1 - t : 1 - 0.6 * t,
-                      child: ColoredBox(
-                        color: ground,
-                        child: list,
-                      ),
+                      child: ColoredBox(color: ground, child: list),
                     ),
                   ),
                 ),

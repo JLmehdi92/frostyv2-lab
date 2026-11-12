@@ -1015,12 +1015,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     // No app bar to set the system bars: the theme's in portrait, light
     // icons over the black of landscape.
     final page = AnnotatedRegion<SystemUiOverlayStyle>(
-      value: landscape
-          ? SystemUiOverlayStyle.light
-          : theme.appBarTheme.systemOverlayStyle ??
-                (theme.brightness == Brightness.dark
-                    ? SystemUiOverlayStyle.light
-                    : SystemUiOverlayStyle.dark),
+      value: landscape ? SystemUiOverlayStyle.light : theme.systemOverlayStyle,
       child: Scaffold(
         backgroundColor: landscape ? Colors.black : null,
         body: landscape ? _buildLandscape() : _buildPortrait(),

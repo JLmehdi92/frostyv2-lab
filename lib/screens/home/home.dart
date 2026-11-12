@@ -743,11 +743,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   /// opaque in the theme's colours).
   SystemUiOverlayStyle _systemBars(BuildContext context, ShellHeader header) {
     final theme = Theme.of(context);
-    final themed =
-        theme.appBarTheme.systemOverlayStyle ??
-        (theme.brightness == Brightness.dark
-            ? SystemUiOverlayStyle.light
-            : SystemUiOverlayStyle.dark);
+    final themed = theme.systemOverlayStyle;
     if (!header.overVideo || _clipsInPip) return themed;
     final overClip = themed.copyWith(
       systemNavigationBarColor: OnsetTokens.backgroundDark,
