@@ -11,6 +11,7 @@ import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel/video/overlay_common.dart';
 import 'package:onset/screens/clips/clip_download.dart';
 import 'package:onset/screens/clips/clip_story_screen.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
@@ -389,14 +390,7 @@ class _ClipScreenState extends State<ClipScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _immersive == immersive) return;
       _immersive = immersive;
-      if (immersive) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      } else {
-        SystemChrome.setEnabledSystemUIMode(
-          SystemUiMode.manual,
-          overlays: SystemUiOverlay.values,
-        );
-      }
+      setImmersiveSystemUi(immersive);
     });
   }
 

@@ -13,6 +13,17 @@ const kPlayerChromeShadow = [
   Shadow(offset: Offset(0, 1), blurRadius: 2, color: Color(0x99000000)),
 ];
 
+void setImmersiveSystemUi(bool immersive) {
+  if (immersive) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  } else {
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+  }
+}
+
 /// Rotates to landscape, picking the side that matches how the device is
 /// physically tilted (falls back to allowing both).
 Future<void> enterLandscape() async {

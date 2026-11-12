@@ -14,6 +14,7 @@ import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/channel/video/audience_labels.dart';
 import 'package:onset/screens/channel/video/content_warning_gate.dart';
 import 'package:onset/screens/channel/video/live_progress.dart';
+import 'package:onset/screens/channel/video/overlay_common.dart';
 import 'package:onset/screens/channel/video/player_engine_resolver.dart';
 import 'package:onset/screens/channel/video/web_content_gate.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
@@ -622,14 +623,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _immersive == immersive) return;
       _immersive = immersive;
-      if (immersive) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      } else {
-        SystemChrome.setEnabledSystemUIMode(
-          SystemUiMode.manual,
-          overlays: SystemUiOverlay.values,
-        );
-      }
+      setImmersiveSystemUi(immersive);
     });
   }
 

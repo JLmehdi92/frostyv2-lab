@@ -1255,14 +1255,7 @@ class _VideoChatState extends State<VideoChat>
 
       _isImmersiveSystemUiEnabled = immersive;
 
-      if (immersive) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      } else {
-        SystemChrome.setEnabledSystemUIMode(
-          SystemUiMode.manual,
-          overlays: SystemUiOverlay.values,
-        );
-      }
+      setImmersiveSystemUi(immersive);
     });
   }
 
