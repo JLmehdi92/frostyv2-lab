@@ -67,59 +67,71 @@ class _ChatSettingsState extends State<ChatSettings> {
               title: l.settingsMessageSizing,
               children: [
                 _ChatPreview(settingsStore: settingsStore),
-                SettingsListSlider(
-                  title: l.settingsBadgeScale,
-                  trailing: l.settingsScaleValue(
-                    scale: settingsStore.badgeScale,
+                Observer(
+                  builder: (_) => SettingsListSlider(
+                    title: l.settingsBadgeScale,
+                    trailing: l.settingsScaleValue(
+                      scale: settingsStore.badgeScale,
+                    ),
+                    value: settingsStore.badgeScale,
+                    min: 0.25,
+                    max: 3.0,
+                    divisions: 11,
+                    onChanged: (newValue) =>
+                        settingsStore.badgeScale = newValue,
                   ),
-                  value: settingsStore.badgeScale,
-                  min: 0.25,
-                  max: 3.0,
-                  divisions: 11,
-                  onChanged: (newValue) => settingsStore.badgeScale = newValue,
                 ),
-                SettingsListSlider(
-                  title: l.settingsEmoteScale,
-                  trailing: l.settingsScaleValue(
-                    scale: settingsStore.emoteScale,
+                Observer(
+                  builder: (_) => SettingsListSlider(
+                    title: l.settingsEmoteScale,
+                    trailing: l.settingsScaleValue(
+                      scale: settingsStore.emoteScale,
+                    ),
+                    value: settingsStore.emoteScale,
+                    min: 0.25,
+                    max: 3.0,
+                    divisions: 11,
+                    onChanged: (newValue) =>
+                        settingsStore.emoteScale = newValue,
                   ),
-                  value: settingsStore.emoteScale,
-                  min: 0.25,
-                  max: 3.0,
-                  divisions: 11,
-                  onChanged: (newValue) => settingsStore.emoteScale = newValue,
                 ),
-                SettingsListSlider(
-                  title: l.settingsMessageScale,
-                  trailing: l.settingsScaleValue(
-                    scale: settingsStore.messageScale,
+                Observer(
+                  builder: (_) => SettingsListSlider(
+                    title: l.settingsMessageScale,
+                    trailing: l.settingsScaleValue(
+                      scale: settingsStore.messageScale,
+                    ),
+                    value: settingsStore.messageScale,
+                    min: 0.5,
+                    max: 2.0,
+                    divisions: 6,
+                    onChanged: (newValue) =>
+                        settingsStore.messageScale = newValue,
                   ),
-                  value: settingsStore.messageScale,
-                  min: 0.5,
-                  max: 2.0,
-                  divisions: 6,
-                  onChanged: (newValue) =>
-                      settingsStore.messageScale = newValue,
                 ),
-                SettingsListSlider(
-                  title: l.settingsMessageSpacing,
-                  trailing: l.settingsSpacingValue(
-                    pixels: settingsStore.messageSpacing.round(),
+                Observer(
+                  builder: (_) => SettingsListSlider(
+                    title: l.settingsMessageSpacing,
+                    trailing: l.settingsSpacingValue(
+                      pixels: settingsStore.messageSpacing.round(),
+                    ),
+                    value: settingsStore.messageSpacing,
+                    max: 30.0,
+                    divisions: 15,
+                    onChanged: (newValue) =>
+                        settingsStore.messageSpacing = newValue,
                   ),
-                  value: settingsStore.messageSpacing,
-                  max: 30.0,
-                  divisions: 15,
-                  onChanged: (newValue) =>
-                      settingsStore.messageSpacing = newValue,
                 ),
-                SettingsListSlider(
-                  title: l.settingsFontSize,
-                  trailing: settingsStore.fontSize.toInt().toString(),
-                  value: settingsStore.fontSize,
-                  min: 5,
-                  max: 20,
-                  divisions: 15,
-                  onChanged: (newValue) => settingsStore.fontSize = newValue,
+                Observer(
+                  builder: (_) => SettingsListSlider(
+                    title: l.settingsFontSize,
+                    trailing: settingsStore.fontSize.toInt().toString(),
+                    value: settingsStore.fontSize,
+                    min: 5,
+                    max: 20,
+                    divisions: 15,
+                    onChanged: (newValue) => settingsStore.fontSize = newValue,
+                  ),
                 ),
               ],
             ),
@@ -226,18 +238,21 @@ class _ChatSettingsState extends State<ChatSettings> {
                       settingsStore.autoSyncChatDelay = newValue,
                 ),
                 if (!settingsStore.autoSyncChatDelay)
-                  SettingsListSlider(
-                    title: l.settingsMessageDelay,
-                    trailing: l.settingsMessageDelayValue(
-                      seconds: settingsStore.chatDelay.toInt(),
+                  Observer(
+                    builder: (_) => SettingsListSlider(
+                      title: l.settingsMessageDelay,
+                      trailing: l.settingsMessageDelayValue(
+                        seconds: settingsStore.chatDelay.toInt(),
+                      ),
+                      subtitle: Platform.isIOS
+                          ? l.settingsMessageDelayDetailIos
+                          : l.settingsMessageDelayDetail,
+                      value: settingsStore.chatDelay,
+                      max: 30.0,
+                      divisions: 30,
+                      onChanged: (newValue) =>
+                          settingsStore.chatDelay = newValue,
                     ),
-                    subtitle: Platform.isIOS
-                        ? l.settingsMessageDelayDetailIos
-                        : l.settingsMessageDelayDetail,
-                    value: settingsStore.chatDelay,
-                    max: 30.0,
-                    divisions: 30,
-                    onChanged: (newValue) => settingsStore.chatDelay = newValue,
                   ),
               ],
             ),
@@ -413,17 +428,20 @@ class _ChatSettingsState extends State<ChatSettings> {
                   labelOf: (side) => side.label(l),
                   onChanged: (side) => settingsStore.landscapeCutout = side,
                 ),
-                SettingsListSlider(
-                  title: l.settingsOverlayOpacity,
-                  trailing: l.settingsOverlayOpacityValue(
-                    percent: (settingsStore.fullScreenChatOverlayOpacity * 100)
-                        .round(),
+                Observer(
+                  builder: (_) => SettingsListSlider(
+                    title: l.settingsOverlayOpacity,
+                    trailing: l.settingsOverlayOpacityValue(
+                      percent:
+                          (settingsStore.fullScreenChatOverlayOpacity * 100)
+                              .round(),
+                    ),
+                    subtitle: l.settingsOverlayOpacityDetail,
+                    value: settingsStore.fullScreenChatOverlayOpacity,
+                    divisions: 10,
+                    onChanged: (newValue) =>
+                        settingsStore.fullScreenChatOverlayOpacity = newValue,
                   ),
-                  subtitle: l.settingsOverlayOpacityDetail,
-                  value: settingsStore.fullScreenChatOverlayOpacity,
-                  divisions: 10,
-                  onChanged: (newValue) =>
-                      settingsStore.fullScreenChatOverlayOpacity = newValue,
                 ),
                 SettingsListSwitch(
                   title: l.settingsTapToCloseOverlay,
@@ -439,7 +457,9 @@ class _ChatSettingsState extends State<ChatSettings> {
               children: [
                 SettingsNote(l.settingsChatSwitchingDetail),
                 for (final mode in LandscapeChatMode.values)
-                  _chatSwitchingRow(l, settingsStore, mode),
+                  Observer(
+                    builder: (_) => _chatSwitchingRow(l, settingsStore, mode),
+                  ),
               ],
             ),
             SettingsGroup(

@@ -4,6 +4,7 @@ import 'package:onset/screens/settings/chat_settings.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
 
 void main() {
   late SettingsStore store;
@@ -113,5 +114,19 @@ void main() {
     await tester.pump();
     expect(row(tester, 'Readable name colors').value, isFalse);
     expect(row(tester, 'Readable name colors').onChanged, isNotNull);
+  });
+
+  testWidgets('a slider step redraws its own row, not the page', (
+    tester,
+  ) async {
+    await pump(tester);
+    final page = tester.widget(find.byType(SettingsGroupsView));
+    store.fontSize = 18;
+    await tester.pump();
+    expect(find.text('18'), findsOneWidget);
+    expect(
+      identical(tester.widget(find.byType(SettingsGroupsView)), page),
+      isTrue,
+    );
   });
 }
