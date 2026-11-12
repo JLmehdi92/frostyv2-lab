@@ -80,6 +80,8 @@ void main() {
     scroll.dispose();
   });
 
+  final shown = ValueNotifier(true);
+
   Future<void> pump(WidgetTester tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -91,7 +93,12 @@ void main() {
         child: MaterialApp(
           theme: themes.dark,
           home: Scaffold(
-            body: Chat(chatStore: chat, onAddChat: () {}),
+            body: ValueListenableBuilder<bool>(
+              valueListenable: shown,
+              builder: (context, enabled, child) =>
+                  TickerMode(enabled: enabled, child: child!),
+              child: Chat(chatStore: chat, onAddChat: () {}),
+            ),
           ),
         ),
       ),
@@ -174,5 +181,24 @@ void main() {
     await tester.pump();
 
     expect(row(tester, first), isNot(same(before)));
+  });
+
+  testWidgets('a hidden tab builds no new rows until it is shown', (
+    tester,
+  ) async {
+    shown.value = true;
+    messages.add(_line(1));
+    await pump(tester);
+
+    shown.value = false;
+    await tester.pump();
+    final second = _line(2);
+    runInAction(() => messages.add(second));
+    await tester.pump();
+    expect(find.byKey(ObjectKey(second)), findsNothing);
+
+    shown.value = true;
+    await tester.pump();
+    expect(find.byKey(ObjectKey(second)), findsOneWidget);
   });
 }

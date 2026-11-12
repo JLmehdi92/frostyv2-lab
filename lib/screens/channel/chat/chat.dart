@@ -142,6 +142,7 @@ class _ChatState extends State<Chat> {
 
   final _rows = Expando<(Object, ChatMessage)>();
   Map<String, UserTwitch>? _mergedProfiles;
+  Widget? _shownList;
 
   StreamSubscription<ChatUserCardRequest>? _userCards;
   StreamSubscription<ShoutoutNotice>? _shoutoutCards;
@@ -362,8 +363,13 @@ class _ChatState extends State<Chat> {
                                   : chatStore.scrollController;
 
                               final list = Observer(
+                                warnWhenNoObservables: false,
                                 builder: (context) {
-                                  return _isMerged
+                                  if (!TickerMode.of(context) &&
+                                      _shownList != null) {
+                                    return _shownList!;
+                                  }
+                                  return _shownList = _isMerged
                                       ? _buildMergedList(
                                           scrollController,
                                           safeBottom,

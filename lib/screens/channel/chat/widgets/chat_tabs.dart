@@ -78,18 +78,21 @@ class ChatTabs extends StatelessWidget {
                       )
                     : IndexedStack(
                         index: activeIndex,
-                        children: tabs.map((tabInfo) {
-                          // Show placeholder for non-activated tabs
-                          if (tabInfo.chatStore == null) {
-                            return const SizedBox.shrink();
-                          }
-                          return Chat(
-                            key: ValueKey(tabInfo.channelId),
-                            chatStore: tabInfo.chatStore!,
-                            listPadding: adjustedPadding,
-                            onAddChat: () => _handleAddChat(context),
-                          );
-                        }).toList(),
+                        children: [
+                          for (final (index, tabInfo) in tabs.indexed)
+                            if (tabInfo.chatStore == null)
+                              const SizedBox.shrink()
+                            else
+                              TickerMode(
+                                key: ValueKey(tabInfo.channelId),
+                                enabled: index == activeIndex,
+                                child: Chat(
+                                  chatStore: tabInfo.chatStore!,
+                                  listPadding: adjustedPadding,
+                                  onAddChat: () => _handleAddChat(context),
+                                ),
+                              ),
+                        ],
                       ),
               ),
               // Tab bar (only visible when more than 1 tab)
