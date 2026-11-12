@@ -359,27 +359,29 @@ class OnsetShell extends StatelessWidget {
         : padding.top + ShellMetrics.tabletHeader(header);
     return ColoredBox(
       color: palette.ground,
-      child: Stack(
-        children: [
-          Positioned(
-            key: const ValueKey('shell-body'),
-            top: bodyTop,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: body,
-          ),
-          if (!chromeHidden)
-            if (large)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: _buildTablet(context, palette),
-              )
-            else
-              ..._buildPhone(context, palette),
-        ],
+      child: BackdropGroup(
+        child: Stack(
+          children: [
+            Positioned(
+              key: const ValueKey('shell-body'),
+              top: bodyTop,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: body,
+            ),
+            if (!chromeHidden)
+              if (large)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: _buildTablet(context, palette),
+                )
+              else
+                ..._buildPhone(context, palette),
+          ],
+        ),
       ),
     );
   }
@@ -860,7 +862,7 @@ class _PhoneHeader extends StatelessWidget {
     );
 
     return ClipRect(
-      child: BackdropFilter(
+      child: BackdropFilter.grouped(
         filter: _glass(22),
         child: DecoratedBox(
           decoration: BoxDecoration(
@@ -1168,7 +1170,7 @@ class _PhoneNav extends StatelessWidget {
       ),
     );
     if (blur) {
-      surface = BackdropFilter(filter: _glass(26), child: surface);
+      surface = BackdropFilter.grouped(filter: _glass(26), child: surface);
     }
     return Semantics(
       container: true,
