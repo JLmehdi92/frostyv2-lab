@@ -61,6 +61,7 @@ class _PaintedNameState extends State<PaintedName> {
   ImageStream? _stream;
   ImageStreamListener? _listener;
   ui.Image? _image;
+  ImageInfo? _info;
 
   @override
   void initState() {
@@ -73,7 +74,7 @@ class _PaintedNameState extends State<PaintedName> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.paint.imageUrl != widget.paint.imageUrl) {
       _stopListening();
-      _image = null;
+      _releaseImage();
       _resolveImage();
     }
   }
@@ -91,7 +92,15 @@ class _PaintedNameState extends State<PaintedName> {
     final stream = provider.resolve(ImageConfiguration.empty);
     final listener = ImageStreamListener(
       (info, _) {
-        if (mounted) setState(() => _image = info.image);
+        if (!mounted) {
+          info.dispose();
+          return;
+        }
+        setState(() {
+          _info?.dispose();
+          _info = info;
+          _image = info.image;
+        });
       },
       onError: (error, stackTrace) =>
           debugPrint('7TV paint image unavailable: $error'),
@@ -99,6 +108,12 @@ class _PaintedNameState extends State<PaintedName> {
     stream.addListener(listener);
     _stream = stream;
     _listener = listener;
+  }
+
+  void _releaseImage() {
+    _info?.dispose();
+    _info = null;
+    _image = null;
   }
 
   void _stopListening() {
@@ -111,6 +126,7 @@ class _PaintedNameState extends State<PaintedName> {
   @override
   void dispose() {
     _stopListening();
+    _releaseImage();
     super.dispose();
   }
 
