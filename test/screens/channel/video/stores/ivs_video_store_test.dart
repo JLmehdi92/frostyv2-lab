@@ -563,6 +563,49 @@ void main() {
       expect(store.autoLatencyStatus?.reason, AutoLatencyReason.paused);
     });
 
+    test('a pause during a stall sends 1.0x once playing again', () async {
+      store = await playing();
+      await tick(2200, 8);
+      final before = rates().length;
+
+      await native.emit({'type': 'state', 'state': 'BUFFERING'});
+      store.handlePausePlay();
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await tick(2200, 3);
+      expect(rates().length, before);
+
+      store.handlePausePlay();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(1250, 1);
+
+      expect(rates().sublist(before), [1.0]);
+    });
+
+    test('a refresh during a stall sends 1.0x once playing again', () async {
+      store = await playing();
+      await tick(2200, 8);
+      final before = rates().length;
+      await native.emit({'type': 'state', 'state': 'BUFFERING'});
+      await native.emit({'type': 'rebuffering'});
+      final url = Completer<String>();
+      when(
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenAnswer((_) => url.future);
+
+      final refresh = store.handleRefresh();
+      await settle();
+      expect(rates().length, before);
+      url.complete(_usherUrl);
+      await refresh;
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(1250, 1);
+
+      expect(rates().sublist(before), [1.0]);
+    });
+
     // A 1.05× rate is invisible and inaudible: picture-in-picture and the
     // mini player keep correcting (the SDK speed-up it replaces did too).
     test('picture-in-picture keeps correcting', () async {
@@ -3054,6 +3097,37 @@ void main() {
 
       expect(store.paused, isFalse);
       expect(store.streamInfo, isNull);
+    });
+
+    test('a forced refresh during a pending one fetches again', () async {
+      store = await playingStore();
+      final first = Completer<StreamTwitch>();
+      final live = store.streamInfo!;
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenAnswer((_) => first.future);
+
+      await tap(store);
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const ApiException('streamer is offline', 404));
+      final forced = store.updateStreamInfo(forceUpdate: true);
+      first.complete(live);
+      await forced;
+
+      expect(store.streamInfo, isNull);
+    });
+
+    test('a failed first load offers a retry', () async {
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const NetworkException('timeout'));
+      now = DateTime(2026, 11, 12, 20);
+      store = await createStore(now: () => now);
+      await settle();
+
+      expect(store.streamInfo, isNull);
+      expect(store.infoUnavailable, isTrue);
     });
 
     test('quick taps make one request', () async {

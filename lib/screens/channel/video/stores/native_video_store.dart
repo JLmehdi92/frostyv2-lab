@@ -17,6 +17,7 @@ import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/quality_selection.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 part 'native_video_store.g.dart';
@@ -71,6 +72,7 @@ abstract class NativeVideoStoreBase
   @readonly
   var _paused = false;
   Future<void>? _streamInfoRequest;
+  var _streamInfoErrorReported = false;
   DateTime? _lastTapRefresh;
 
   @readonly
@@ -392,8 +394,10 @@ abstract class NativeVideoStoreBase
   @action
   Future<void> updateStreamInfo({bool forceUpdate = false}) async {
     final pending = _streamInfoRequest;
-    if (pending != null) return pending;
-    final request = _fetchStreamInfo();
+    if (pending != null && !forceUpdate) return pending;
+    final request = pending == null
+        ? _fetchStreamInfo()
+        : pending.then((_) => _fetchStreamInfo());
     _streamInfoRequest = request;
     try {
       await request;
@@ -413,8 +417,18 @@ abstract class NativeVideoStoreBase
       );
       infoUnavailable = false;
       _offlineChannelInfo = null;
-    } catch (e) {
-      if (e is! ApiException || e.statusCode != 404) return;
+    } catch (e, stack) {
+      if (e is! ApiException || e.statusCode != 404) {
+        debugPrint('NativeVideoStore stream info refresh failed: $e');
+        if (e is! ApiException &&
+            e is! DioException &&
+            !_streamInfoErrorReported) {
+          _streamInfoErrorReported = true;
+          Telemetry.recordError(e, stack, reason: 'stream info refresh');
+        }
+        if (_streamInfo == null) infoUnavailable = true;
+        return;
+      }
       _streamInfo = null;
       if (!player.state.playing) _paused = true;
       try {

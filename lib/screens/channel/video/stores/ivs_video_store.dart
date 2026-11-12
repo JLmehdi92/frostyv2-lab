@@ -166,6 +166,7 @@ abstract class IvsVideoStoreBase
   @readonly
   var _paused = false;
   Future<void>? _streamInfoRequest;
+  var _streamInfoErrorReported = false;
   DateTime? _lastTapRefresh;
 
   @readonly
@@ -1739,8 +1740,10 @@ abstract class IvsVideoStoreBase
   @action
   Future<void> updateStreamInfo({bool forceUpdate = false}) async {
     final pending = _streamInfoRequest;
-    if (pending != null) return pending;
-    final request = _fetchStreamInfo();
+    if (pending != null && !forceUpdate) return pending;
+    final request = pending == null
+        ? _fetchStreamInfo()
+        : pending.then((_) => _fetchStreamInfo());
     _streamInfoRequest = request;
     try {
       await request;
@@ -1760,8 +1763,18 @@ abstract class IvsVideoStoreBase
       );
       infoUnavailable = false;
       _offlineChannelInfo = null;
-    } catch (e) {
-      if (e is! ApiException || e.statusCode != 404) return;
+    } catch (e, stack) {
+      if (e is! ApiException || e.statusCode != 404) {
+        debugPrint('IvsVideoStore stream info refresh failed: $e');
+        if (e is! ApiException &&
+            e is! DioException &&
+            !_streamInfoErrorReported) {
+          _streamInfoErrorReported = true;
+          Telemetry.recordError(e, stack, reason: 'stream info refresh');
+        }
+        if (_streamInfo == null) infoUnavailable = true;
+        return;
+      }
       _streamInfo = null;
       if (!_isPlaying) _paused = true;
       try {

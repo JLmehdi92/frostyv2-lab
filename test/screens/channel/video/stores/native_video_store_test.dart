@@ -71,12 +71,16 @@ void main() {
 
   tearDown(() => playing.close());
 
-  NativeVideoStore create({StreamTwitch? live, MockTwitchApi? twitchApi}) {
+  NativeVideoStore create({
+    StreamTwitch? live,
+    MockTwitchApi? twitchApi,
+    Object streamError = const ApiException('streamer is offline', 404),
+  }) {
     final api = twitchApi ?? MockTwitchApi();
     if (live == null) {
       when(
         () => api.getStream(userLogin: any(named: 'userLogin')),
-      ).thenThrow(Exception('offline'));
+      ).thenThrow(streamError);
     } else {
       when(
         () => api.getStream(userLogin: any(named: 'userLogin')),
@@ -326,6 +330,15 @@ void main() {
 
       expect(store.paused, isFalse);
       expect(store.streamInfo, isNull);
+      store.dispose();
+    });
+
+    test('a failed first load offers a retry', () async {
+      final store = create(streamError: const NetworkException('timeout'));
+      await pumpEventQueue();
+
+      expect(store.streamInfo, isNull);
+      expect(store.infoUnavailable, isTrue);
       store.dispose();
     });
 
