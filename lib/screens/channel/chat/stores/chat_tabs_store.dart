@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
@@ -165,6 +166,8 @@ abstract class ChatTabsStoreBase with Store {
   @readonly
   var _mergedRenderedMessages = <MergedMessage>[];
 
+  var _mergedRenderedStates = <(Command, String?)>[];
+
   /// Timer that drives merged message rendering at a fixed cadence.
   Timer? _mergedRenderTimer;
 
@@ -273,7 +276,26 @@ abstract class ChatTabsStoreBase with Store {
   @action
   void _refreshMergedMessages() {
     if (!_mergedAutoScroll) return;
-    _mergedRenderedMessages = _computeRecentMergedMessages();
+    final next = _computeRecentMergedMessages();
+    final states = [
+      for (final m in next)
+        (m.ircMessage.command, m.ircMessage.tags['ban-duration']),
+    ];
+    final previous = _mergedRenderedMessages;
+    if (next.length == previous.length &&
+        listEquals(states, _mergedRenderedStates)) {
+      var same = true;
+      for (var i = 0; i < next.length; i++) {
+        if (!identical(next[i].ircMessage, previous[i].ircMessage) ||
+            !identical(next[i].chatStore, previous[i].chatStore)) {
+          same = false;
+          break;
+        }
+      }
+      if (same) return;
+    }
+    _mergedRenderedStates = states;
+    _mergedRenderedMessages = next;
   }
 
   /// Count of new messages since the user scrolled up (for "N new messages").
