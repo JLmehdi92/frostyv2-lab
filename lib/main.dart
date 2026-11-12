@@ -111,14 +111,16 @@ void main() async {
   // Initialize the native media_kit player (low-latency video engine).
   MediaKit.ensureInitialized();
 
-  CustomCacheManager.removeOrphanedCacheFiles();
+  CustomCacheManager.scheduleOrphanSweep();
 
   // Firebase only when the build carries its config (see Telemetry); it
   // then reports uncaught framework and platform errors as fatal, once the
   // setting below lets it collect (nothing is handed to it before).
-  await Telemetry.initialize();
-
-  final prefs = await SharedPreferences.getInstance();
+  final (_, prefs, _) = await (
+    Telemetry.initialize(),
+    SharedPreferences.getInstance(),
+    initUtils(),
+  ).wait;
 
   final firstRun = prefs.getBool('first_run') ?? true;
 
@@ -137,8 +139,6 @@ void main() async {
       }),
     );
   }
-
-  await initUtils();
 
   // With the shared preferences instance, obtain the existing user settings if it exists.
   // If default settings don't exist, use an empty JSON string to use the default values.

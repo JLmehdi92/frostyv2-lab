@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -15,30 +17,56 @@ class CustomCacheManager {
     ),
   );
 
-  static Future<void> removeOrphanedCacheFiles() async {
-    final tempDir = await getTemporaryDirectory();
-    final cacheDir = Directory('${tempDir.path}/$key');
+  static const sweepDelay = Duration(seconds: 10);
+  static const sweepMinAge = Duration(hours: 1);
 
-    if (!await cacheDir.exists()) {
-      return;
-    }
+  static void scheduleOrphanSweep({
+    @visibleForTesting Future<void> Function()? sweep,
+  }) {
+    final run = sweep ?? () => removeOrphanedCacheFiles(minAge: sweepMinAge);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => Timer(sweepDelay, () => unawaited(run())),
+    );
+  }
 
-    final allFiles = cacheDir.listSync(recursive: true).toList();
-
-    await _repo.open();
-    final cachedObjects = await _repo.getAllObjects();
-    final dbFiles = cachedObjects.map((e) => e.relativePath).toSet();
-
-    final orphanedFiles = allFiles.where((file) {
-      final relativePath = file.path.split('$key/').last;
-      return !dbFiles.contains(relativePath);
-    }).toList();
-
-    final deletions = orphanedFiles.map((file) => file.delete()).toList();
-
+  static Future<void> removeOrphanedCacheFiles({
+    Duration minAge = Duration.zero,
+  }) async {
     try {
-      await Future.wait(deletions);
-      // ignore: empty_catches
-    } catch (e) {}
+      final tempDir = await getTemporaryDirectory();
+      final cacheDir = Directory('${tempDir.path}/$key');
+      if (!await cacheDir.exists()) return;
+      await _repo.open();
+      final cachedObjects = await _repo.getAllObjects();
+      await deleteOrphans(
+        cacheDir,
+        cachedObjects.map((e) => e.relativePath).toSet(),
+        olderThan: DateTime.now().subtract(minAge),
+      );
+    } catch (e) {
+      debugPrint('Cache sweep failed: ${e.runtimeType}');
+    }
+  }
+
+  @visibleForTesting
+  static Future<void> deleteOrphans(
+    Directory cacheDir,
+    Set<String> known, {
+    required DateTime olderThan,
+  }) async {
+    final files = await cacheDir
+        .list(recursive: true)
+        .where((entry) => entry is File)
+        .cast<File>()
+        .toList();
+    for (final file in files) {
+      if (known.contains(file.path.split('$key/').last)) continue;
+      try {
+        if ((await file.lastModified()).isAfter(olderThan)) continue;
+        await file.delete();
+      } on FileSystemException catch (e) {
+        debugPrint('Cache file not swept: ${e.runtimeType}');
+      }
+    }
   }
 }
