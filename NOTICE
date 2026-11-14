@@ -2,7 +2,7 @@ ONSET — Copyright (C) 2026 ONSET contributors.
 Licensed under the GNU AGPL-3.0-or-later; see LICENSE.
 
 Portions of this software are derived from Frosty, Copyright (C) the Frosty
-authors (AGPL-3.0), and have been modified from 2026 onward; see the git
+authors (AGPL-3.0-or-later), and have been modified from 2026 onward; see the git
 history for dates.
 
 ONSET's dependencies keep their own licences: the Amazon IVS Player SDK
