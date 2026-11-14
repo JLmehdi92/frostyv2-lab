@@ -55,6 +55,8 @@ const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147
 const LIME = '#C8FF3D';
 const TILE_LIME = ICON.bg;
 const BG = '#0A0A0A';
+const LIGHT = Q.get('theme') === 'light';
+const PAPER = LIGHT ? '#0A0A0A' : '#FFFFFF';
 const S = 340;
 let F, CAP;
 const GAP = S * 10 / 32;
@@ -172,8 +174,8 @@ function init() {
   }
   st.flash = el('circle', { cx: C.x, cy: YG, r: 0, fill: 'url(#flash)', opacity: 0 }, svg);
 
-  st.capGlow = el('rect', { fill: '#FFFFFF', filter: 'url(#capglow)', opacity: 0 }, svg);
-  st.cap = el('rect', { fill: '#FFFFFF', opacity: 0 }, svg);
+  st.capGlow = el('rect', { fill: PAPER, filter: 'url(#capglow)', opacity: 0 }, svg);
+  st.cap = el('rect', { fill: PAPER, opacity: 0 }, svg);
 
   st.burst = [];
   for (let k = 0; k < 12; k++) {
@@ -217,7 +219,8 @@ function buildLayer(color) {
   L.root = el('g', {}, st.face);
   L.tile = el('g', {}, L.root);
   const inner = el('g', { transform: `scale(${S / 1024}) translate(-512 -512)` }, L.tile);
-  L.bg = el('rect', { width: 1024, height: 1024, rx: ICON.rx, fill: color ? TILE_LIME : '#FFFFFF' }, inner);
+  L.bg = el('rect', { width: 1024, height: 1024, rx: ICON.rx, fill: color ? TILE_LIME : PAPER }, inner);
+  const ink = !color && LIGHT ? '#FFFFFF' : '#000000';
   L.dots = [];
   if (color) {
     const cg = el('clipPath', { id: 'tclip' }, defs);
@@ -229,17 +232,17 @@ function buildLayer(color) {
   }
   L.rays = ICON.rays.map(r => {
     const len = Math.hypot(r.x2 - r.x1, r.y2 - r.y1);
-    return { len, e: el('line', { x1: r.x1, y1: r.y1, x2: r.x2, y2: r.y2, stroke: '#000000', 'stroke-width': r.w, 'stroke-linecap': 'round', 'stroke-dasharray': `${len} ${len * 2}`, 'stroke-dashoffset': len, fill: 'none' }, inner) };
+    return { len, e: el('line', { x1: r.x1, y1: r.y1, x2: r.x2, y2: r.y2, stroke: ink, 'stroke-width': r.w, 'stroke-linecap': 'round', 'stroke-dasharray': `${len} ${len * 2}`, 'stroke-dashoffset': len, fill: 'none' }, inner) };
   });
   L.letters = ICON.letters.map(d => {
     const g = el('g', {}, inner);
-    const p = el('path', { d, fill: '#000000' }, g);
+    const p = el('path', { d, fill: ink }, g);
     const b = p.getBBox();
     return { g, ox: b.x + b.width / 2, oy: b.y + b.height };
   });
   L.dotG = el('g', {}, inner);
-  el('circle', { cx: ICON.dot[0], cy: ICON.dot[1], r: ICON.dot[2], fill: '#000000' }, L.dotG);
-  L.word = el('g', { fill: color ? LIME : '#FFFFFF' }, L.root);
+  el('circle', { cx: ICON.dot[0], cy: ICON.dot[1], r: ICON.dot[2], fill: ink }, L.dotG);
+  L.word = el('g', { fill: color ? LIME : PAPER }, L.root);
   L.full = el('use', { href: '#wordShape', opacity: 0 }, L.word);
   L.slices = st.slices.map(({ i, j }) => {
     const g = el('g', {}, L.word);

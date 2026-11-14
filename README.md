@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src=".github/assets/onset-logo.gif" width="400" alt="ONSET logo reveal: lime streaks gather, a white capsule lands and turns into the ON tile, rays burst out, the ONSET wordmark slides in and everything lights up lime">
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset=".github/assets/onset-logo-light.webp">
+  <img src=".github/assets/onset-logo-dark.webp" width="400" alt="ONSET logo reveal: lime streaks gather, a capsule lands and turns into the ON tile, rays burst out, the ONSET wordmark slides in and everything lights up lime">
+</picture>
 
 <h1>ONSET</h1>
 
@@ -297,8 +300,8 @@ dart run build_runner build --delete-conflicting-outputs   # after changing a st
 - README media live in `.github/assets/`. `python3 tool/readme_logo.py`
   rebuilds the animated vector logo and the static PNG from the app icon
   (`assets/icons/icon_onset.png`), `bash tool/readme_logo_anim/render.sh`
-  renders the logo reveal GIF the README shows (Playwright Chromium and
-  ffmpeg), and `python3 tool/readme_shots/render.py` renders the
+  renders the logo reveal the README shows, as transparent animated WebP
+  for the light and dark themes (Playwright Chromium and ffmpeg), and `python3 tool/readme_shots/render.py` renders the
   screenshots.
 
 ### Contributing

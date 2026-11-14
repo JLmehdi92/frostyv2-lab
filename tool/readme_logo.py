@@ -5,7 +5,7 @@ Reads assets/icons/icon_onset.png and writes, in .github/assets:
                   external resource)
   onset-logo.png  the static logo, the animation's resting frame
 
-The README GIF is the logo reveal from tool/readme_logo_anim/, not this
+The README hero is the logo reveal from tool/readme_logo_anim/, not this
 script's loop.
 
 Nothing is drawn by hand: every shape is measured from the icon.
