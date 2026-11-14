@@ -40,7 +40,8 @@ packages/            simple_pip_mode (vendored plugin)
 assets/              fonts, celebration art, launcher icons, the ONSET mark, release notes
 docs/                this file and the in-app update setup (MISES_A_JOUR.md)
 tool/                developer scripts outside the app (onset_logo_assets.py,
-                     readme_logo.py, readme_shots/) and token_proxy/, the
+                     readme_logo.py, readme_logo_anim/, readme_shots/) and
+                     token_proxy/, the
                      Cloudflare Worker that hands out logged-out app tokens
 lib/
   main.dart          entry point: services, global stores, providers, routes

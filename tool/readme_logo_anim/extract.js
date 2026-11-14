@@ -1,0 +1,12 @@
+const fs = require('fs');
+const s = fs.readFileSync(process.argv[2], 'utf8');
+const body = s.slice(s.indexOf('</style>'));
+const num = (a, k) => Number((a.match(new RegExp(' ' + k + '="([^"]+)"')) || [])[1]);
+const rings = [];
+const re = /<g class="w(\d+)">([\s\S]*?)<\/g>/g; let m;
+while ((m = re.exec(body))) rings[+m[1]] = [...m[2].matchAll(/<circle([^>]*)\/>/g)].map(c => [num(c[1], 'cx'), num(c[1], 'cy'), num(c[1], 'r')]);
+const rays = [...body.matchAll(/<line class="r\d"([^>]*)\/>/g)].map(l => ({ x1: num(l[1], 'x1'), y1: num(l[1], 'y1'), x2: num(l[1], 'x2'), y2: num(l[1], 'y2'), w: num(l[1], 'stroke-width') }));
+const letters = [...body.matchAll(/<path class="l l\d" d="([^"]+)"/g)].map(p => p[1]);
+const dc = body.match(/<circle class="d"([^>]*)\/>/)[1];
+const out = { bg: body.match(/<rect width="1024" height="1024" fill="([^"]+)"/)[1], dotStops: [...s.matchAll(/<stop offset="([^"]+)" stop-color="([^"]+)"/g)].map(x => [x[1], x[2]]), rings, rays, letters, dot: [num(dc, 'cx'), num(dc, 'cy'), num(dc, 'r')], rx: 228 };
+fs.writeFileSync(process.argv[3], JSON.stringify(out));

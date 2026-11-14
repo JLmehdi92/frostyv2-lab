@@ -1,0 +1,422 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+svg{display:block;width:100vw;height:100vh}
+</style></head>
+<body>
+<svg id="s" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+<script>
+const ICON = __ICON__;
+const Q = new URLSearchParams(location.search);
+const VB = (Q.get('vb') || '0 0 1920 1080');
+const TRANSPARENT = Q.get('bg') === 'none';
+const AMB = Q.has('amb') ? Number(Q.get('amb')) : 1;
+const FONT = { file: 'inter-900i.woff2', weight: '900', style: 'italic', cap: 0.40, ls: -0.02, gap: 0.30 };
+const FACE = new FontFace('WM', `url(fonts/${FONT.file})`, { weight: FONT.weight, style: FONT.style });
+document.fonts.add(FACE);
+window.FONTSPEC = `${FONT.style} ${FONT.weight} 40px WM`;
+window.fontReady = FACE.load().then(() => {
+  const css = document.createElement('style');
+  css.textContent = `text{font-family:WM;font-weight:${FONT.weight};font-style:${FONT.style}}`;
+  document.head.appendChild(css);
+});
+const NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('s');
+svg.setAttribute('viewBox', VB);
+const el = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+const set = (e, attrs) => { for (const k in attrs) e.setAttribute(k, attrs[k]); };
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const eOutCubic = t => 1 - Math.pow(1 - t, 3);
+const eInCubic = t => t * t * t;
+const eInQuad = t => t * t;
+const eOutQuad = t => 1 - (1 - t) * (1 - t);
+const eInOutCubic = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const eInOutSine = t => -(Math.cos(Math.PI * t) - 1) / 2;
+const eOutExpo = t => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+const eOutBack = (t, s = 1.70158) => 1 + (s + 1) * Math.pow(t - 1, 3) + s * Math.pow(t - 1, 2);
+const spring = (tau, w, z) => tau <= 0 ? 0 : 1 - Math.exp(-z * tau) * Math.cos(w * tau);
+const mixHex = (a, b, t) => {
+  const pa = [1, 3, 5].map(i => parseInt(a.slice(i, i + 2), 16));
+  const pb = [1, 3, 5].map(i => parseInt(b.slice(i, i + 2), 16));
+  return '#' + pa.map((v, i) => Math.round(lerp(v, pb[i], t)).toString(16).padStart(2, '0')).join('');
+};
+let seed = 7;
+const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+const LIME = '#C8FF3D';
+const TILE_LIME = ICON.bg;
+const BG = '#0A0A0A';
+const S = 340;
+let F, CAP;
+const GAP = S * 10 / 32;
+const C = { x: 960, y: 540 };
+const S0 = 0.37 * S;
+const YG = C.y + S0 / 2;
+const EXT = { x: 0.5, y: 1 };
+const DEPTH = 15;
+
+const defs = el('defs', {}, svg);
+const st = {};
+
+function init() {
+  const dg = el('radialGradient', { id: 'dotg', cx: '.56', cy: '.58', r: '.62' }, defs);
+  ICON.dotStops.forEach(([o, c]) => el('stop', { offset: o, 'stop-color': c }, dg));
+  const fGlow = el('filter', { id: 'glow', x: '-50%', y: '-80%', width: '200%', height: '260%' }, defs);
+  el('feGaussianBlur', { stdDeviation: 30 }, fGlow);
+  const fCap = el('filter', { id: 'capglow', x: '-300%', y: '-100%', width: '700%', height: '300%' }, defs);
+  el('feGaussianBlur', { stdDeviation: 16 }, fCap);
+  const fSoft = el('filter', { id: 'soft', x: '-100%', y: '-100%', width: '300%', height: '300%' }, defs);
+  el('feGaussianBlur', { stdDeviation: 3 }, fSoft);
+  const amb = el('radialGradient', { id: 'amb', cx: '.5', cy: '.5', r: '.5' }, defs);
+  el('stop', { offset: '0', 'stop-color': LIME, 'stop-opacity': '.55' }, amb);
+  el('stop', { offset: '.45', 'stop-color': LIME, 'stop-opacity': '.16' }, amb);
+  el('stop', { offset: '1', 'stop-color': LIME, 'stop-opacity': '0' }, amb);
+  const fl = el('radialGradient', { id: 'flash', cx: '.5', cy: '.5', r: '.5' }, defs);
+  el('stop', { offset: '0', 'stop-color': '#FFFFFF', 'stop-opacity': '1' }, fl);
+  el('stop', { offset: '.3', 'stop-color': LIME, 'stop-opacity': '.8' }, fl);
+  el('stop', { offset: '1', 'stop-color': LIME, 'stop-opacity': '0' }, fl);
+  const gl = el('linearGradient', { id: 'glintg', x1: '0', x2: '1', y1: '0', y2: '0' }, defs);
+  el('stop', { offset: '0', 'stop-color': '#FFFFFF', 'stop-opacity': '0' }, gl);
+  el('stop', { offset: '.5', 'stop-color': '#FFFFFF', 'stop-opacity': '1' }, gl);
+  el('stop', { offset: '1', 'stop-color': '#FFFFFF', 'stop-opacity': '0' }, gl);
+
+  const word = 'ONSET';
+  const cv = document.createElement('canvas').getContext('2d');
+  const fontAt = sz => `${FONT.style} ${FONT.weight} ${sz}px WM`;
+  cv.font = fontAt(1000);
+  const capRatio = cv.measureText('H').actualBoundingBoxAscent / 1000;
+  CAP = FONT.cap * S;
+  F = CAP / capRatio;
+  cv.font = fontAt(F);
+  cv.letterSpacing = (FONT.ls * F) + 'px';
+  const m = cv.measureText(word);
+  const inkL = -m.actualBoundingBoxLeft, inkR = m.actualBoundingBoxRight;
+  const probe = el('text', { x: 0, y: 0, 'font-size': F, 'letter-spacing': (FONT.ls * F) + 'px' }, svg);
+  probe.textContent = word;
+  const charX = [...word].map((_, i) => probe.getStartPositionOfChar(i).x);
+  const charW = [...word].map((_, i) => probe.getExtentOfChar(i).width);
+  probe.remove();
+  const gapV = FONT.gap * S;
+  const lockW = S + gapV + (inkR - inkL);
+  const left = C.x - lockW / 2;
+  st.TX = left + S / 2;
+  st.TY = C.y;
+  st.textX = left + S + gapV - inkL;
+  st.base = C.y + CAP / 2;
+  st.left = left; st.right = left + lockW;
+  st.metrics = { F, CAP, capRatio, inkL, inkR, lockW, left, right: st.right };
+
+  let vb = VB;
+  if (VB === 'square') { const side = Math.max(1400, lockW + 330); vb = `${C.x - side / 2} ${C.y - side / 2} ${side} ${side}`; }
+  if (VB === '4x3') { const w = Math.max(1440, lockW + 340); vb = `${C.x - w / 2} ${C.y - w * 0.375} ${w} ${w * 0.75}`; }
+  svg.setAttribute('viewBox', vb);
+  st.vb = vb;
+  if (!TRANSPARENT) {
+    const [vx, vy, vw, vh] = vb.split(/\s+/).map(Number);
+    el('rect', { x: vx - 10, y: vy - 10, width: vw + 20, height: vh + 20, fill: BG }, svg);
+  }
+
+  const wordShape = el('g', { id: 'wordShape' }, defs);
+  [...word].forEach((ch, i) => {
+    const t = el('text', { id: 'ch' + i, x: st.textX + charX[i], y: st.base, 'font-size': F }, wordShape);
+    t.textContent = ch;
+  });
+  el('rect', { id: 'tileShape', x: -S / 2, y: -S / 2, width: S, height: S, rx: S * ICON.rx / 1024 }, defs);
+
+  const NSL = 4;
+  const top = st.base - CAP - 0.04 * F, bot = st.base + 0.04 * F;
+  const sh = (bot - top) / NSL;
+  st.slices = [];
+  [...word].forEach((ch, i) => {
+    for (let j = 0; j < NSL; j++) {
+      const cp = el('clipPath', { id: `cp${i}_${j}` }, defs);
+      const h = j === 0 || j === NSL - 1 ? sh + 0.3 * F : sh;
+      const r = el('rect', { x: st.textX + charX[i] - 0.6 * F, y: j === 0 ? top - 0.3 * F : top + j * sh, width: charW[i] + 1.2 * F, height: h }, cp);
+      st.slices.push({ i, j, r, h });
+    }
+  });
+
+  const lc = el('clipPath', { id: 'logoclip' }, defs);
+  el('rect', { x: st.TX - S / 2, y: st.TY - S / 2, width: S, height: S, rx: S * ICON.rx / 1024 }, lc);
+  [...word].forEach((ch, i) => el('use', { href: '#ch' + i }, lc));
+
+  const wipeM = el('mask', { id: 'wipe', maskUnits: 'userSpaceOnUse', x: -3000, y: -3000, width: 8000, height: 8000 }, defs);
+  st.wipePoly = el('polygon', { fill: '#FFFFFF', points: '' }, wipeM);
+
+  st.amb = el('ellipse', { cx: C.x, cy: C.y, rx: lockW * 0.75, ry: S * 1.25, fill: 'url(#amb)', opacity: 0 }, svg);
+
+  st.parts = [];
+  const NP = 26;
+  for (let k = 0; k < NP; k++) {
+    const dot = k >= 18;
+    const a0 = (k / NP) * Math.PI * 2 + (rnd() - .5) * 0.5;
+    const R0 = 720 + rnd() * 420;
+    const s0 = 0.02 + rnd() * 0.30;
+    const d0 = 0.52 + rnd() * 0.26;
+    const p = {
+      a0, R0, s0, d: Math.min(d0, 0.97 - s0), swirl: (rnd() < .5 ? -1 : 1) * (0.35 + rnd() * 0.6) * (dot ? 1.6 : 1),
+      w: dot ? 7 + rnd() * 6 : 6 + rnd() * 7, dot,
+      col: rnd() < .3 ? '#E9FFAE' : LIME, trail: dot ? 0.015 : 0.09 + rnd() * 0.08,
+    };
+    p.e = el('line', { stroke: p.col, 'stroke-linecap': 'round', 'stroke-width': p.w, opacity: 0 }, svg);
+    st.parts.push(p);
+  }
+  st.flash = el('circle', { cx: C.x, cy: YG, r: 0, fill: 'url(#flash)', opacity: 0 }, svg);
+
+  st.capGlow = el('rect', { fill: '#FFFFFF', filter: 'url(#capglow)', opacity: 0 }, svg);
+  st.cap = el('rect', { fill: '#FFFFFF', opacity: 0 }, svg);
+
+  st.burst = [];
+  for (let k = 0; k < 12; k++) {
+    const a = -Math.PI / 2 + k * Math.PI * 2 / 12 + Math.PI / 12;
+    st.burst.push({ a, long: k % 2 === 0, e: el('line', { stroke: LIME, 'stroke-linecap': 'round', 'stroke-width': 12, opacity: 0 }, svg) });
+  }
+
+  st.lock = el('g', {}, svg);
+  st.face = el('g', {}, st.lock);
+  st.glowG = el('g', { filter: 'url(#glow)', opacity: 0 }, st.face);
+  st.glowTile = el('g', {}, st.glowG);
+  el('use', { href: '#tileShape', fill: TILE_LIME }, st.glowTile);
+  el('use', { href: '#wordShape', fill: LIME }, st.glowG);
+
+  st.extG = el('g', { opacity: 0 }, st.face);
+  st.extTile = el('g', {}, st.extG);
+  st.extTileUses = [];
+  st.extWordUses = [];
+  const NE = 24;
+  for (let k = NE; k >= 1; k--) {
+    const f = k / NE;
+    st.extTileUses.push({ f, e: el('use', { href: '#tileShape', fill: mixHex('#8FA70F', '#2E3A05', f) }, st.extTile) });
+  }
+  st.extWord = el('g', {}, st.extG);
+  for (let k = NE; k >= 1; k--) {
+    const f = k / NE;
+    st.extWordUses.push({ f, e: el('use', { href: '#wordShape', fill: mixHex('#7FA300', '#2A3800', f) }, st.extWord) });
+  }
+
+  st.white = buildLayer(false);
+  st.color = buildLayer(true);
+  st.color.root.setAttribute('mask', 'url(#wipe)');
+
+  st.sheenG = el('g', { 'clip-path': 'url(#logoclip)' }, st.face);
+  st.sheen = el('polygon', { fill: '#FFFFFF', opacity: 0 }, st.sheenG);
+  st.glint = el('rect', { x: 0, y: st.TY - 400, width: 120, height: 800, fill: 'url(#glintg)', opacity: 0 }, st.sheenG);
+}
+
+function buildLayer(color) {
+  const L = {};
+  L.root = el('g', {}, st.face);
+  L.tile = el('g', {}, L.root);
+  const inner = el('g', { transform: `scale(${S / 1024}) translate(-512 -512)` }, L.tile);
+  L.bg = el('rect', { width: 1024, height: 1024, rx: ICON.rx, fill: color ? TILE_LIME : '#FFFFFF' }, inner);
+  L.dots = [];
+  if (color) {
+    const cg = el('clipPath', { id: 'tclip' }, defs);
+    el('rect', { width: 1024, height: 1024, rx: ICON.rx }, cg);
+    const dg = el('g', { fill: 'url(#dotg)', 'clip-path': 'url(#tclip)' }, inner);
+    ICON.rings.forEach((ring, k) => ring.forEach(([cx, cy, r]) => {
+      L.dots.push({ k, r, e: el('circle', { cx, cy, r: 0 }, dg) });
+    }));
+  }
+  L.rays = ICON.rays.map(r => {
+    const len = Math.hypot(r.x2 - r.x1, r.y2 - r.y1);
+    return { len, e: el('line', { x1: r.x1, y1: r.y1, x2: r.x2, y2: r.y2, stroke: '#000000', 'stroke-width': r.w, 'stroke-linecap': 'round', 'stroke-dasharray': `${len} ${len * 2}`, 'stroke-dashoffset': len, fill: 'none' }, inner) };
+  });
+  L.letters = ICON.letters.map(d => {
+    const g = el('g', {}, inner);
+    const p = el('path', { d, fill: '#000000' }, g);
+    const b = p.getBBox();
+    return { g, ox: b.x + b.width / 2, oy: b.y + b.height };
+  });
+  L.dotG = el('g', {}, inner);
+  el('circle', { cx: ICON.dot[0], cy: ICON.dot[1], r: ICON.dot[2], fill: '#000000' }, L.dotG);
+  L.word = el('g', { fill: color ? LIME : '#FFFFFF' }, L.root);
+  L.full = el('use', { href: '#wordShape', opacity: 0 }, L.word);
+  L.slices = st.slices.map(({ i, j }) => {
+    const g = el('g', {}, L.word);
+    el('use', { href: '#ch' + i, 'clip-path': `url(#cp${i}_${j})` }, g);
+    return g;
+  });
+  return L;
+}
+
+const T = {
+  capIn: 0.90, capUp: 1.10, capTop: 1.36, capLand: 1.58, capSquash: 1.66, tileOn: 1.94,
+  pop0: 2.10, pop1: 2.20, popEnd: 2.56, slide0: 2.54, slide1: 3.02,
+  word0: 2.74, wipe0: 3.24, wipe1: 3.60, depth0: 3.32, depth1: 3.78, settle0: 3.36,
+  glint0: 4.18, glint1: 4.66, end: 5.2,
+};
+
+function capsule(t) {
+  const W0 = 40, HMAX = 220, LIFT = 190;
+  let w = W0, h = 0, bot = YG, vis = 1;
+  if (t < T.capIn) vis = 0;
+  else if (t < T.capUp) { const u = eOutCubic(seg(t, T.capIn, T.capUp)); h = HMAX * u; w = W0 * (0.6 + 0.4 * u); }
+  else if (t < T.capTop) { const u = seg(t, T.capUp, T.capTop); bot = YG - LIFT * eOutQuad(u); h = lerp(HMAX, 96, eOutCubic(u)); w = lerp(W0, 54, u); }
+  else if (t < T.capLand) { const u = seg(t, T.capTop, T.capLand); bot = YG - LIFT * (1 - eInQuad(u)); h = lerp(96, 146, eInQuad(u)); w = lerp(54, 38, u); }
+  else if (t < T.capSquash) { const u = eOutQuad(seg(t, T.capLand, T.capSquash)); h = lerp(146, 46, u); w = lerp(38, 158, u); }
+  else {
+    const tau = t - T.capSquash;
+    const sp = spring(tau, 15, 9);
+    const sp2 = spring(tau, 17, 10);
+    w = lerp(158, S0, sp); h = lerp(46, S0, sp2);
+  }
+  const rxCap = Math.min(w, h) / 2;
+  const rxTile = S0 * ICON.rx / 1024;
+  const m = t < T.capSquash ? 0 : eInOutCubic(seg(t, T.capSquash, T.tileOn));
+  const rx = lerp(rxCap, rxTile, m);
+  return { w, h, bot, rx, vis };
+}
+
+function tileState(t) {
+  const c = capsule(t);
+  let x = C.x, y = YG - c.h / 2, sx = c.w / S, sy = c.h / S;
+  if (t >= T.pop0) {
+    const a = seg(t, T.pop0, T.pop1);
+    const sq = Math.sin(Math.PI * a) * (t < T.pop1 ? 1 : 0);
+    const u = seg(t, T.pop1, T.popEnd);
+    const sc = lerp(0.37, 1.4, eOutBack(u, 1.9));
+    const yy = lerp(YG - S0 / 2, C.y, eOutCubic(u));
+    sx = (t < T.pop1 ? 0.37 * (1 + 0.10 * sq) : sc);
+    sy = (t < T.pop1 ? 0.37 * (1 - 0.12 * sq) : sc);
+    y = t < T.pop1 ? YG - S0 * (1 - 0.12 * sq) / 2 : yy;
+  }
+  if (t >= T.slide0) {
+    const u = seg(t, T.slide0, T.slide1);
+    const ex = eInOutCubic(u);
+    const sc = lerp(1.4, 1.0, eInOutCubic(u));
+    x = lerp(C.x, st.TX, ex); y = C.y; sx = sy = sc;
+  }
+  return { x, y, sx, sy };
+}
+
+function render(t) {
+  for (const p of st.parts) {
+    const u = (t - p.s0) / p.d;
+    if (u <= 0 || u >= 1) { p.e.setAttribute('opacity', 0); continue; }
+    const pos = q => {
+      const pr = 1 - Math.pow(1 - clamp(q), 2.4);
+      const r = p.R0 * (1 - pr);
+      const a = p.a0 + p.swirl * (1 - pr) * (1 - pr);
+      return [C.x + Math.cos(a) * r, YG + Math.sin(a) * r * 0.82];
+    };
+    const [hx, hy] = pos(u);
+    const [tx, ty] = pos(u - p.trail * (1 - u * 0.7));
+    const op = clamp(u / 0.12) * (1 - clamp((u - 0.86) / 0.14));
+    set(p.e, { x1: tx, y1: ty, x2: hx, y2: hy, opacity: op, 'stroke-width': p.w * (1 - 0.55 * u) });
+  }
+  const fu = seg(t, 0.86, 1.18);
+  set(st.flash, { r: 20 + 120 * eOutCubic(fu), opacity: fu > 0 && fu < 1 ? Math.sin(Math.PI * Math.pow(fu, 0.6)) * 0.85 : 0 });
+
+  const c = capsule(t);
+  const capVis = c.vis && t < T.tileOn;
+  const capAttrs = { x: C.x - c.w / 2, y: c.bot - c.h, width: c.w, height: Math.max(0, c.h), rx: c.rx, opacity: capVis ? 1 : 0 };
+  set(st.cap, capAttrs);
+  const gOp = capVis ? lerp(0.95, 0.35, seg(t, T.capUp, T.capLand)) * (1 - seg(t, T.capSquash, T.tileOn)) : 0;
+  set(st.capGlow, Object.assign({}, capAttrs, { opacity: gOp }));
+
+  const bu = seg(t, T.pop1 + 0.02, T.pop1 + 0.46);
+  const ts = tileState(t);
+  for (const b of st.burst) {
+    if (bu <= 0 || bu >= 1) { b.e.setAttribute('opacity', 0); continue; }
+    const R = S * 1.4 * 0.62;
+    const L = b.long ? 150 : 95;
+    const h = eOutCubic(bu), tl = eInCubic(bu);
+    const r1 = R + 20 + L * 1.05 * tl, r2 = R + 20 + L * 1.05 * h;
+    set(b.e, { x1: C.x + Math.cos(b.a) * r1, y1: C.y + Math.sin(b.a) * r1, x2: C.x + Math.cos(b.a) * r2, y2: C.y + Math.sin(b.a) * r2, opacity: 1, 'stroke-width': (b.long ? 12 : 9) * (1 - 0.5 * bu) });
+  }
+
+  const tileVis = t >= T.tileOn;
+  const tf = `translate(${ts.x} ${ts.y}) scale(${ts.sx} ${ts.sy})`;
+  for (const L of [st.white, st.color]) {
+    L.tile.setAttribute('transform', tf);
+    L.tile.setAttribute('opacity', tileVis ? 1 : 0);
+    L.letters.forEach((l, i) => {
+      const u = seg(t, T.tileOn + 0.02 + i * 0.07, T.tileOn + 0.26 + i * 0.07);
+      const k = u <= 0 ? 0.001 : Math.max(0.001, eOutBack(u, 2.2));
+      const sk = (1 - u) * -12;
+      l.g.setAttribute('transform', `translate(${l.ox} ${l.oy}) scale(${k}) skewX(${sk}) translate(${-l.ox} ${-l.oy})`);
+    });
+    const du = seg(t, T.tileOn + 0.14, T.tileOn + 0.40);
+    const dy = du <= 0 ? -420 : -420 * (1 - eOutBounce(du));
+    L.dotG.setAttribute('transform', `translate(0 ${dy})`);
+    L.dotG.setAttribute('opacity', du > 0 ? 1 : 0);
+    L.rays.forEach((r, i) => {
+      const u = eOutCubic(seg(t, 2.36 + i * 0.07, 2.58 + i * 0.07));
+      r.e.setAttribute('stroke-dashoffset', r.len * (1 - u));
+    });
+    const done = t >= T.word0 + 4 * 0.05 + 3 * 0.025 + 0.31;
+    L.full.setAttribute('opacity', done ? 1 : 0);
+    L.slices.forEach((g, n) => {
+      const { i, j } = st.slices[n];
+      const s0 = T.word0 + i * 0.05 + (3 - j) * 0.025;
+      const u = seg(t, s0, s0 + 0.30);
+      const dir = (i + j) % 2 === 0 ? -1 : 1;
+      const dx = dir * (90 + 30 * j) * (1 - eOutExpo(u));
+      g.setAttribute('transform', `translate(${dx} 0)`);
+      g.setAttribute('opacity', done ? 0 : clamp(u * 3.5));
+      if (L === st.white) st.slices[n].r.setAttribute('height', st.slices[n].h + (u >= 0.97 ? 1.5 : 0));
+    });
+    L.dots.forEach(d => {
+      const s0 = 3.30 + d.k * 0.022;
+      const u = seg(t, s0, s0 + 0.26);
+      d.e.setAttribute('r', u <= 0 ? 0 : d.r * Math.max(0, eOutBack(u, 2.0)));
+    });
+  }
+
+  const wu = eInOutSine(seg(t, T.wipe0, T.wipe1));
+  const k = 0.45;
+  const x0 = lerp(st.left - 260, st.right + 340, wu);
+  const yTop = C.y - 700, yBot = C.y + 700;
+  set(st.wipePoly, { points: `-3000,${yTop} ${x0 + k * 700},${yTop} ${x0 - k * 700},${yBot} -3000,${yBot}` });
+  st.color.root.setAttribute('opacity', t >= T.wipe0 ? 1 : 0);
+  const sw = 36;
+  const sheenOp = wu > 0 && wu < 1 ? 0.9 : 0;
+  set(st.sheen, { points: `${x0 + k * 700},${yTop} ${x0 + k * 700 + sw},${yTop} ${x0 - k * 700 + sw},${yBot} ${x0 - k * 700},${yBot}`, opacity: sheenOp });
+
+  const du = seg(t, T.depth0, T.depth1);
+  const d = DEPTH * Math.max(0, eOutBack(du, 2.4));
+  st.extG.setAttribute('opacity', du > 0 ? 1 : 0);
+  const ox = -EXT.x * d * 0.45, oy = -EXT.y * d * 0.45;
+  st.extTile.setAttribute('transform', `translate(${ts.x} ${ts.y}) scale(${ts.sx} ${ts.sy})`);
+  for (const u of st.extTileUses) set(u.e, { x: EXT.x * d * u.f, y: EXT.y * d * u.f });
+  for (const u of st.extWordUses) set(u.e, { x: EXT.x * d * u.f, y: EXT.y * d * u.f });
+  st.glowTile.setAttribute('transform', `translate(${ts.x} ${ts.y}) scale(${ts.sx} ${ts.sy})`);
+
+  const tau = t - T.settle0;
+  const bump = tau > 0 ? 0.05 * Math.exp(-5.5 * tau) * Math.sin(10 * tau) : 0;
+  const sc = 1 + bump;
+  const cx = (st.left + st.right) / 2;
+  st.face.setAttribute('transform', `translate(${ox} ${oy})`);
+  st.lock.setAttribute('transform', `translate(${cx} ${C.y}) scale(${sc}) translate(${-cx} ${-C.y})`);
+
+  const g = seg(t, 3.42, 4.05);
+  const glowOp = 0.5 * eInOutSine(g);
+  st.glowG.setAttribute('opacity', glowOp);
+  st.amb.setAttribute('opacity', AMB * (0.13 * eInOutSine(g) + (t > T.pop1 && t < 3.42 ? 0.08 * Math.sin(Math.PI * seg(t, T.pop1, 3.42)) : 0)));
+
+  const gu = seg(t, T.glint0, T.glint1);
+  set(st.glint, { x: lerp(st.left - 200, st.right + 80, eInOutSine(gu)), opacity: gu > 0 && gu < 1 ? 0.32 * Math.sin(Math.PI * gu) : 0, transform: `skewX(-24)`, 'transform-origin': `0 ${C.y}` });
+}
+
+function eOutBounce(x) {
+  const n1 = 7.5625, d1 = 2.75;
+  if (x < 1 / d1) return n1 * x * x;
+  if (x < 2 / d1) return n1 * (x -= 1.5 / d1) * x + 0.75;
+  if (x < 2.5 / d1) return n1 * (x -= 2.25 / d1) * x + 0.9375;
+  return n1 * (x -= 2.625 / d1) * x + 0.984375;
+}
+
+window.init = init;
+window.render = render;
+</script>
+</body></html>

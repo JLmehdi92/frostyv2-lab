@@ -1,10 +1,12 @@
-"""Animated ONSET logo for the README, rebuilt from the launcher icon.
+"""Animated ONSET vector logo, rebuilt from the launcher icon.
 
-Reads assets/icons/icon_onset.png and writes, in .github/assets/:
+Reads assets/icons/icon_onset.png and writes, in .github/assets:
   onset-logo.svg  the animated vector logo (CSS animations, no script, no
-                  external resource): the source of the animation
-  onset-logo.gif  the README hero, rendered frame by frame from the SVG
+                  external resource)
   onset-logo.png  the static logo, the animation's resting frame
+
+The README GIF is the logo reveal from tool/readme_logo_anim/, not this
+script's loop.
 
 Nothing is drawn by hand: every shape is measured from the icon.
   - The rays are capsules: each one is fitted with its principal axis, so it
@@ -26,18 +28,8 @@ going ON" sequence, so a reader who scrolls to the logo late still sees it:
               draw out one by one
   hold        the resting logo, with one gentle pulse (the rays ping outward
               and the dot beats); the halftone stays still, since a wave
-              through it repaints the whole tile and would triple the GIF
-The SVG shows the resting logo to viewers who ask for reduced motion; the
-README GIF animates for everyone, by choice.
-
-Why a GIF in the README: an SVG shown through <img> is animated by desktop
-browsers, but not reliably on every GitHub surface (mobile Safari through
-GitHub's image proxy, the GitHub apps). A GIF plays everywhere. The GIF is
-rendered from the SVG in Chromium (Playwright), each frame frozen at its
-time; ffmpeg maps the whole loop to one small palette and write_gif() lays
-the file out for the pickiest decoders (iOS included). GIF
-transparency is 1 bit, so the rounded corners are cut with a hard edge: no
-matte colour to fringe on GitHub's light or dark page.
+              through it repaints the whole tile
+The SVG shows the resting logo to viewers who ask for reduced motion.
 
 Why the SVG is written the way it is (WebKit, i.e. every iOS browser, is the
 strictest engine that still animates SVG-as-image):
@@ -53,19 +45,13 @@ strictest engine that still animates SVG-as-image):
     pathLength, whose effect on dashes WebKit has long applied unevenly;
   - scale(.001) instead of scale(0), so no transform is ever singular.
 
-Usage (needs Pillow, numpy and potracer: pip install pillow numpy potracer;
-the GIF also needs Playwright with Chromium and ffmpeg):
+Usage (needs Pillow, numpy and potracer: pip install pillow numpy potracer):
     python3 tool/readme_logo.py
-    python3 tool/readme_logo.py --no-gif
     python3 tool/readme_logo.py --icon <png> --out <dir>
 """
 import argparse
-import io
 import math
 import os
-import struct
-import subprocess
-import tempfile
 from collections import deque
 
 import numpy as np
@@ -97,14 +83,6 @@ DROP_AT = 0.52       # dot drops in
 PULSE_AT = 3.9       # the hold's pulse (from the loop's start)
 PING = 14            # ray ping distance, in px of the view box
 BEAT = 1.06          # dot size at the pulse's beat
-
-# The README GIF: 1.75x its display width (the README shows it at 160 px),
-# rendered at RENDER_SCALE times that and downsampled for clean edges on the
-# small halftone dots.
-GIF_SIZE = 280
-GIF_FPS = 20         # 5 cs on every frame; 128 frames a loop
-GIF_COLORS = 48      # palette size given to ffmpeg, transparency included
-RENDER_SCALE = 2
 
 # --------------------------------------------------------------- measuring --
 
@@ -552,237 +530,11 @@ def png(m, size):
     return out.resize((size, size), Image.LANCZOS)
 
 
-# Moves every animation of the page to `t` ms and freezes it there: the
-# animated values are written as inline styles and the animations switched
-# off, so Chromium draws the frame as a still SVG. A paused but live
-# animation is rasterised differently (softer edges), and would not match
-# the static logo pixel for pixel.
-FREEZE_JS = """async t => {
-  const freeze = document.getElementById('freeze');
-  freeze.disabled = true;
-  document.querySelectorAll('svg [style]').forEach(e => e.removeAttribute('style'));
-  const all = document.getAnimations();
-  all.forEach(a => { a.pause(); a.currentTime = t; });
-  all.forEach(a => a.commitStyles());
-  freeze.disabled = false;
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-  return all.length;
-}"""
-
-
-def render(svg_text, size, times, background='transparent', clip=True):
-    """Frames of the SVG animation at the given times (seconds), as RGB images.
-
-    The SVG is inlined in a page in Chromium and each frame is frozen at its
-    time (FREEZE_JS), then captured. With clip=False the tile's rounded
-    corners are left uncut, for the caller to cut.
-    """
-    from playwright.sync_api import sync_playwright
-
-    css = f'html,body{{margin:0;background:{background}}}svg{{display:block}}'
-    if not clip:
-        css += 'svg g[clip-path]{clip-path:none}'
-    # Sized by its own attributes, so nothing is resampled.
-    svg_text = svg_text.replace(
-        f'width="{TILE}" height="{TILE}"', f'width="{size}" height="{size}"', 1,
-    )
-    html = (
-        f'<!doctype html><html><head><style>{css}</style>'
-        '<style id="freeze">*{animation:none!important}</style></head>'
-        f'<body>{svg_text}</body></html>'
-    )
-    frames = []
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page(
-            viewport={'width': size, 'height': size}, device_scale_factor=1,
-            reduced_motion='no-preference',
-        )
-        page.set_content(html)
-        # The first frozen capture is drawn slightly differently (the corner
-        # clip's anti-aliasing); take one and drop it, so every frame comes
-        # from the same path.
-        page.evaluate(FREEZE_JS, 0)
-        page.screenshot()
-        for t in times:
-            if page.evaluate(FREEZE_JS, t * 1000) == 0:
-                raise SystemExit('the SVG has no animation to render')
-            png_bytes = page.screenshot(
-                clip={'x': 0, 'y': 0, 'width': size, 'height': size},
-            )
-            frames.append(Image.open(io.BytesIO(png_bytes)).convert('RGB'))
-        browser.close()
-    return frames
-
-
-def corner_mask(size):
-    """The tile's rounded square at `size`, as a hard 1-bit mask.
-
-    GIF transparency is all or nothing, so a pixel belongs to the tile when
-    the tile covers at least half of it (measured on a 4x supersample): an
-    anti-aliased edge would need a matte colour, which fringes on either
-    GitHub's light or dark page.
-    """
-    big = size * SUPERSAMPLE
-    m = Image.new('L', (big, big), 0)
-    ImageDraw.Draw(m).rounded_rectangle(
-        [0, 0, big - 1, big - 1], radius=RADIUS * big / TILE, fill=255,
-    )
-    m = m.resize((size, size), Image.BOX)
-    return m.point(lambda v: 255 if v >= 128 else 0)
-
-
-def lzw(data, min_size):
-    """GIF LZW compression of a run of palette indices (variable-length codes,
-    a clear code when the 4096-entry table is full)."""
-    clear = 1 << min_size
-    out = bytearray()
-    acc = 0
-    nbits = 0
-
-    def emit(code, size):
-        nonlocal acc, nbits
-        acc |= code << nbits
-        nbits += size
-        while nbits >= 8:
-            out.append(acc & 0xFF)
-            acc >>= 8
-            nbits -= 8
-
-    size = min_size + 1
-    table = {}
-    nxt = clear + 2
-    emit(clear, size)
-    prefix = data[0]
-    for b in data[1:]:
-        key = (prefix << 8) | b
-        code = table.get(key)
-        if code is not None:
-            prefix = code
-            continue
-        emit(prefix, size)
-        if nxt < 4096:
-            table[key] = nxt
-            nxt += 1
-            if nxt > (1 << size) and size < 12:
-                size += 1
-        else:
-            emit(clear, size)
-            table = {}
-            nxt = clear + 2
-            size = min_size + 1
-        prefix = b
-    emit(prefix, size)
-    emit(clear + 1, size)
-    if nbits:
-        out.append(acc & 0xFF)
-    return bytes(out)
-
-
-def write_gif(path, frames, palette, clear, delay_cs):
-    """A looping GIF written block by block, in the most widely read layout.
-
-    frames are 2-D arrays of indices into palette; `clear` is the transparent
-    index. The layout, chosen for iOS (Safari, Photos, Quick Look) as much
-    as for browsers:
-      - one global colour table, no local tables;
-      - the NETSCAPE2.0 loop block (0 = forever) right after that table,
-        before any other block;
-      - every frame has the same delay, nothing is merged: a repeated frame
-        is a 1x1 no-op frame, so no decoder sees a long hold to mishandle;
-      - disposal 1 (keep), the first frame whole, then each frame only the
-        rectangle that changed, with its unchanged pixels transparent (what
-        gifsicle -O2 and ImageMagick's OptimizeTransparency write). The
-        rounded corners rely on the same rule: transparent keeps what is
-        under it, which is transparent from the first frame on.
-    """
-    h, w = frames[0].shape
-    bits = max(1, (len(palette) - 1).bit_length())
-    table = list(palette) + [(0, 0, 0)] * ((1 << bits) - len(palette))
-    min_size = max(2, bits)
-    out = bytearray(b'GIF89a')
-    out += struct.pack('<HHBBB', w, h, 0x80 | 0x70 | (bits - 1), clear, 0)
-    out += bytes(c for rgb in table for c in rgb)
-    out += b'\x21\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00'
-    prev = None
-    for f in frames:
-        if prev is None:
-            x0, y0, x1, y1 = 0, 0, w, h
-            rect = f
-        else:
-            ys, xs = np.nonzero(f != prev)
-            if len(xs):
-                x0, y0, x1, y1 = xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
-            else:
-                x0, y0, x1, y1 = 0, 0, 1, 1
-            rect = f[y0:y1, x0:x1].copy()
-            rect[rect == prev[y0:y1, x0:x1]] = clear
-        out += b'\x21\xf9\x04' + struct.pack('<BHBB', (1 << 2) | 1, delay_cs, clear, 0)
-        out += b'\x2c' + struct.pack('<HHHHB', x0, y0, x1 - x0, y1 - y0, 0)
-        data = lzw(rect.tobytes(), min_size)
-        out.append(min_size)
-        for i in range(0, len(data), 255):
-            out.append(len(data[i:i + 255]))
-            out += data[i:i + 255]
-        out.append(0)
-        prev = f
-    out.append(0x3B)
-    with open(path, 'wb') as fh:
-        fh.write(bytes(out))
-
-
-def gif(svg_text, path):
-    """The README GIF: one seamless loop of the SVG animation, looping forever."""
-    frames_n = round(PERIOD * GIF_FPS)
-    if abs(frames_n - PERIOD * GIF_FPS) > 1e-9 or 100 % GIF_FPS:
-        raise SystemExit('PERIOD must be whole frames of a whole number of cs')
-    times = [i / GIF_FPS for i in range(frames_n)]
-    big = render(svg_text, GIF_SIZE * RENDER_SCALE, times, clip=False)
-    mask = corner_mask(GIF_SIZE)
-    with tempfile.TemporaryDirectory() as tmp:
-        for i, frame in enumerate(big):
-            small = frame.resize((GIF_SIZE, GIF_SIZE), Image.LANCZOS).convert('RGBA')
-            small.putalpha(mask)
-            small.save(os.path.join(tmp, f'f{i:04d}.png'))
-        # ffmpeg picks one palette for the whole loop and maps every frame to
-        # it. No dithering: the logo is a few flat colours and their
-        # anti-aliased blends, so a dither would only add noise to the flat
-        # lime, shimmer from frame to frame and defeat the frame differences.
-        subprocess.run([
-            'ffmpeg', '-v', 'error', '-y', '-i', os.path.join(tmp, 'f%04d.png'),
-            '-filter_complex',
-            '[0:v]split[a][b];'
-            f'[a]palettegen=max_colors={GIF_COLORS}:reserve_transparent=1:'
-            'stats_mode=full[p];'
-            '[b][p]paletteuse=dither=none:alpha_threshold=128',
-            '-pix_fmt', 'pal8', '-start_number', '0',
-            os.path.join(tmp, 'q%04d.png'),
-        ], check=True)
-        images = [
-            Image.open(os.path.join(tmp, f'q{i:04d}.png')) for i in range(frames_n)
-        ]
-        clear = images[0].info['transparency']
-        source = images[0].getpalette()
-        frames = [np.asarray(im) for im in images]
-    # Keep only the colours in use, so the colour table is as small as it
-    # can be (smaller codes), with the transparent colour last.
-    used = sorted(set(np.unique(np.stack(frames)).tolist()) - {clear})
-    lut = np.zeros(256, np.uint8)
-    lut[used] = np.arange(len(used))
-    lut[clear] = len(used)
-    palette = [tuple(source[3 * u:3 * u + 3]) for u in used] + [(0, 0, 0)]
-    write_gif(path, [lut[f] for f in frames], palette, len(used), 100 // GIF_FPS)
-
-
 def main():
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--icon', default=os.path.join(root, 'assets/icons/icon_onset.png'))
     ap.add_argument('--out', default=os.path.join(root, '.github/assets'))
-    ap.add_argument(
-        '--no-gif', action='store_true',
-        help='skip the README GIF (needs Playwright with Chromium and ffmpeg)',
-    )
     args = ap.parse_args()
     m = measure(args.icon)
     os.makedirs(args.out, exist_ok=True)
@@ -794,8 +546,6 @@ def main():
     png(m, STATIC_SIZE).quantize(64, method=Image.Quantize.FASTOCTREE).save(
         os.path.join(args.out, 'onset-logo.png'), optimize=True,
     )
-    if not args.no_gif:
-        gif(vector, os.path.join(args.out, 'onset-logo.gif'))
     px, ox, py, oy = m['grid']
     print(f'background {hexcol(m["bg"])}, halftone {hexcol(m["tone"])}, ink {hexcol(m["ink"])}')
     print(f'grid pitch {px:.2f} x {py:.2f}, phase {ox:.1f}, {oy:.1f}; '

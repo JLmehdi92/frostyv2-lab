@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/assets/onset-logo.gif" width="160" alt="ONSET logo: a black italic ON with three rays above it and a dot below it, on a lime halftone tile">
+<img src=".github/assets/onset-logo.gif" width="400" alt="ONSET logo reveal: lime streaks gather, a white capsule lands and turns into the ON tile, rays burst out, the ONSET wordmark slides in and everything lights up lime">
 
 <h1>ONSET</h1>
 
@@ -295,10 +295,11 @@ dart run build_runner build --delete-conflicting-outputs   # after changing a st
 - CI runs `flutter analyze` and `flutter test` on every pull request to
   `main`.
 - README media live in `.github/assets/`. `python3 tool/readme_logo.py`
-  rebuilds the animated logo from the app icon
-  (`assets/icons/icon_onset.png`): the SVG source and the GIF the README
-  shows (rendered with Playwright Chromium and ffmpeg), and
-  `python3 tool/readme_shots/render.py` renders the screenshots.
+  rebuilds the animated vector logo and the static PNG from the app icon
+  (`assets/icons/icon_onset.png`), `bash tool/readme_logo_anim/render.sh`
+  renders the logo reveal GIF the README shows (Playwright Chromium and
+  ffmpeg), and `python3 tool/readme_shots/render.py` renders the
+  screenshots.
 
 ### Contributing
 
