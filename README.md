@@ -326,6 +326,10 @@ sends is described in the [privacy policy](PRIVACY.md)
 
 ONSET — Copyright (C) 2026 ONSET contributors. It is distributed under the
 [AGPL-3.0-or-later](LICENSE); see also [NOTICE](NOTICE).
+ONSET is based on [Frosty](https://github.com/tommyxchow/frosty), an
+open-source Twitch client by the Frosty authors, also licensed under the
+AGPL-3.0-or-later. Much of ONSET's code is derived from Frosty's, with
+modifications.
 `packages/simple_pip_mode` is a vendored copy of the MIT-licensed
 `simple_pip_mode` plugin (see its `LICENSE`).
 

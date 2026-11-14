@@ -334,8 +334,8 @@ html[lang="fr"] .fo-msg2{left:76%;top:4%}
 .faq-ic svg{width:14px;height:14px}
 .faq-item[open] .faq-ic{transform:rotate(45deg)}
 .faq-a{padding:0 56px 24px 0;font-size:15px;line-height:1.6;color:var(--t3)}
-.faq-a a{color:var(--t1);text-decoration:underline;text-decoration-color:var(--hl3);text-underline-offset:3px}
-.faq-a a:hover{text-decoration-color:var(--t1)}
+.faq-a a,.card p a,.foot-cr a{color:var(--t1);text-decoration:underline;text-decoration-color:var(--hl3);text-underline-offset:3px}
+.faq-a a:hover,.card p a:hover,.foot-cr a:hover{text-decoration-color:var(--t1)}
 .faq-steps{margin:0 0 10px;padding:0;list-style:none;counter-reset:st;display:flex;flex-direction:column;gap:8px}
 .faq-steps li{counter-increment:st;display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;align-items:baseline}
 .faq-steps li::before{content:counter(st);display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--s2);border:1px solid var(--hl2);font-size:12px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums}
