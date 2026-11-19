@@ -1,0 +1,195 @@
+# Full transcript, 0:00–8:21
+
+Source video: by Viktor Oddy (@viktoroddy; watermark @n0tisma on X), 8:21, building sites with Claude Fable 5.2. English burned-in subtitles, read frame by frame.
+
+- 0:00–4:15: timestamp = first time the caption appears (sampled at 0.5 s). Identical consecutive captions merged.
+- 4:15–8:21: sampled every second; the range shows how long each caption stays on screen.
+- Captions are fragments of continuous speech, kept exactly as displayed. Quoted text in "…" is a prompt being dictated. Gaps (no caption on screen) are noted in parentheses.
+- Seam: the caption "I don't know, game that was built in like 3 seconds." spans 4:14–4:16 and appears once below.
+
+- [0:00] (no caption)
+- [0:00] This is Fable 5.2
+- [0:02] with one single prompt. All of these designs that you see
+- [0:06] here were one-shotted.
+- [0:07] Gone is the era of static websites,
+- [0:10] grid-based websites built with tools like Figma. Now anyone
+- [0:14] can build websites just like this, animated and interactive,
+- [0:19] using Claude very simply. And I'll share with you the
+- [0:23] prices, the cost of building this website, because
+- [0:27] again, it's very cheap right now. This new model is
+- [0:30] improved in cost and performance for coding, reasoning and vision.
+- [0:34] One of the best things about this model is the quality
+- [0:37] of the 3D websites it creates. People have been building games
+- [0:40] with it. Stuff like this. I'm focusing on web design. That's
+- [0:44] (no EN caption for ~0.5 s)
+- [0:44] what I'm sharing in this video. But all of these 3D
+- [0:47] games are possible with Claude. And I'm also going to be
+- [0:50] sharing a quick workflow for game design today, not just
+- [0:53] websites. But the prompt is already on Motion Sites, so just
+- [0:56] feel free to grab it from here.
+- [0:58] (no EN caption for ~0.5 s)
+- [0:58] It excels at design and coding. And that's exactly what I'm
+- [1:02] focusing on. And that's exactly what I'll be sharing with you
+- [1:05] in this video, how you can do that. I'll show
+- [1:07] you a live demo of building a full website from scratch, and
+- [1:11] then you'll learn how you can do the same for
+- [1:14] your clients. We're going to be using it inside of Claude.
+- [1:17] So if you don't have it, just go to Claude download.
+- [1:20] You'll be able to download it for free. Once it's there,
+- [1:22] you can start working in it directly. Just click on
+- [1:26] new file here. Create a new folder. Make sure that Fable
+- [1:29] 5.2 is selected.
+- [1:31] And let's start by building the first demo, which is a
+- [1:35] real design
+- [1:36] from my work. Let's say I want to build a
+- [1:39] website.
+- [1:41] (no caption ~1.5 s)
+- [1:42] "Build an animated premium landing page for a minimalist electric
+- [1:48] bike brand. Scroll animation, bold type, mobile first."
+- [1:53] (no caption ~1 s; prompt being sent)
+- [1:54] And let's just send that and see what it comes back
+- [1:56] with. And this is the result that we've got. As you
+- [1:59] can see, from one single prompt, we have this beautiful
+- [2:02] animated website, and I'm actually really surprised by the quality of
+- [2:06] this design.
+- [2:07] It doesn't look vibe coded like what we've seen before
+- [2:10] with the previous model, but I still think
+- [2:13] it can be improved. So, let's try that. I'm going
+- [2:16] to say
+- [2:17] "Generate,
+- [2:19] (no caption ~0.5 s)
+- [2:20] instead of having just backgrounds,
+- [2:23] generate some assets to have on the page as well,
+- [2:26] but make it quick."
+- [2:29] (no caption ~1 s)
+- [2:30] And let's just send that.
+- [2:31] "And also make it a little bit more
+- [2:34] premium, similar to Apple style or something."
+- [2:38] And let's just send that and see what it comes back
+- [2:40] with now.
+- [2:42] And this is what we've got from a single prompt. So
+- [2:45] we have this animation here. We have the generated assets
+- [2:48] here. And here we have this beautiful transition as
+- [2:52] well. And then we have the color picker, which actually works,
+- [2:56] (no caption ~0.5 s)
+- [2:56] and the footer.
+- [2:58] Pretty good for one prompt. But now let's try something different.
+- [3:01] You can obviously build things like 3D. You can
+- [3:04] find it at motionsites.ai.
+- [3:06] (no caption ~0.5 s)
+- [3:06] All of the prompts that I create, I upload
+- [3:08] here. So feel free to check that out. But in the
+- [3:11] meantime, let's create a game. I heard that Fable 5.2 is
+- [3:15] really good at games. So I want to turn this website
+- [3:17] into a game. And the way I'm going to do that
+- [3:19] is I'm going to first download the prompt from the Motion
+- [3:23] Sites website and then send it to Claude and ask it
+- [3:26] to create a game. So the way that I'm going to
+- [3:28] do this is I'm going to open it like this and
+- [3:31] click on download code here. Once that's done, I can just
+- [3:35] create a new folder inside of Claude, which is very easy
+- [3:38] (no caption ~0.5 s)
+- [3:38] to do. Just click on new here,
+- [3:40] or we can keep it named
+- [3:43] like this, just paste it here, and I'm going to say: "Based
+- [3:46] on this landing page, I want to do a fun
+- [3:49] experiment. I want to turn this landing page into a 3D
+- [3:52] endless runner, maybe like a flying game,
+- [3:57] in one HTML file using
+- [3:59] 3D or whatever.
+- [4:01] So, just make that and make it quick."
+- [4:05] (no caption ~2.5 s; prompt sent, then cut to result)
+- [4:07] And here we have Fly Living Planet. Let's launch it. And
+- [4:11] just like that, we have this beautiful,
+- [4:14–4:16] I don't know, game that was built in like 3 seconds.
+- [4:17–4:20] Well, not 3 seconds, more like 30 seconds.
+- [4:21–4:22] So, let's preview it
+- [4:23–4:24] in full screen, and we can see that we can
+- [4:25–4:26] grab this stuff.
+- [4:27–4:28] I'm not sure if I can.
+- [4:29–4:32] And yeah, it works exactly as you would expect. For
+- [4:33–4:35] the last test, I'm going to ask it to
+- [4:36–4:38] "invent a startup based on everything you know about me
+- [4:39–4:43] and create a name, logo, color palette, and then build a
+- [4:44–4:45] one-page website
+- [4:46–4:50] with a hero, pricing, sign-up, features, anything that
+- [4:51–4:53] can make money for my startup."
+- [4:54–4:57] And yeah, that would be it.
+- (4:58–5:01 no caption: he pastes the dictated text into the Claude box)
+- [5:02–5:05] "Start from the logo and show me what you created first.
+- (5:06 no caption)
+- [5:07–5:09] Do not ask any follow-up questions."
+- (5:10 no caption)
+- [5:11–5:12] So, let's just send that and see how good it is
+- [5:13–5:15] at actually good stuff.
+- [5:16–5:18] And this is what we've got so far: Drumroll. Paste
+- [5:19–5:21] a URL, get a launch video. We have a few logo
+- [5:22] options,
+- [5:23–5:26] the color palette, and now it's building the landing page. Let's
+- [5:27–5:28] wait and see what it's going to look like.
+- [5:29–5:30] And this is what we've got. As you can see, it
+- [5:31–5:34] is pretty good, but again, it doesn't look that impressive. So,
+- [5:35–5:37] let's try something else. I'm going to say: "Using the Motion Sites
+- [5:38–5:41] MCP, find me a few design options that we
+- (5:42 no caption)
+- [5:43–5:44] can apply to this."
+- (5:45–5:46 no caption)
+- [5:47–5:49] And now we have a few designs that I think might work.
+- [5:50–5:53] So, I think this could work. Let's actually use this
+- [5:54–5:56] one. But I'm gonna say
+- [5:57] "but"
+- (5:58–5:59 no caption)
+- [6:00–6:02] my voice is not working.
+- (6:03 no caption: the VoiceOS dictation window is open)
+- [6:04–6:07] "But make sure to keep our own colors and the background
+- [6:08–6:11] dark. Do not apply the new color style. Just the structure
+- [6:12–6:14] from the website that I selected."
+- (6:15 no caption)
+- [6:16–6:17] And let's just send that too.
+- (6:18–6:19 no caption)
+- [6:20–6:22] And wait and see what it comes back with.
+- [6:23–6:25] And here's the updated result. It does look much better for
+- [6:26–6:28] the hero section. We have this interactive element.
+- [6:29–6:31] But overall, it looks vibe coded in terms of colors and
+- [6:32–6:34] structure. So let's say,
+- [6:35–6:38] "For the typography, the structure of the elements and the fonts,
+- [6:39–6:41] let's use this."
+- (6:42 no caption)
+- [6:43–6:44] I'm going to click use.
+- (6:45–6:50 no caption)
+- [6:51–6:52] Let's try it again.
+- (6:53–6:54 no caption)
+- [6:55–6:56] Oh, yep.
+- [6:57–6:59] And let's just send it and see what it comes back
+- [7:00] with.
+- [7:01–7:03] And now this is what we've got. We have the second
+- [7:04–7:08] section, the third, and then the features, the pricing,
+- [7:09–7:10] the promo codes, which is great.
+- [7:11–7:14] And yeah, we can launch it, run ads, or make social
+- [7:15–7:17] media content for this and start making money just like that.
+- [7:18–7:20] Now, let me share how you can actually go viral on
+- [7:21–7:22] Twitter, because I think this is the best thing that you
+- [7:23–7:24] can do for your business. Just post on Twitter. As you
+- [7:25–7:28] can see, I did it here. I posted this about 16
+- [7:29–7:31] hours ago and it's already at 70K views. Same here.
+- [7:32–7:34] Just post simple designs of what you build. I'll show you
+- [7:35–7:37] how you can do that from scratch. Just look at
+- [7:38–7:42] your viral post, copy the same thing, and then just change
+- [7:43–7:46] Claude to something that's trending, which is Fable 5.2.
+- [7:47–7:50] Just drag the video that you recorded from today's session, paste
+- [7:51–7:54] it here, and you'll still get some likes, some reviews,
+- [7:55–7:57] some views, and then you can sell your product, sell your
+- [7:58–8:00] services, and make money as well.
+- [8:01–8:05] After that, just copy the same thing and go to Threads. Since
+- [8:06–8:07] you're already posting on Twitter, it's better to post it on
+- [8:08–8:11] Threads as well. Just click on new thread. Do the same
+- [8:12] process here.
+- [8:13–8:15] Send it and see how you get followers and likes, and then
+- [8:16–8:17] start making money. So, that's it for this video. If
+- [8:19–8:20] you enjoyed it, please leave a like and subscribe, and I'll
+- [8:21] see you in the next one.
+
+Notes:
+- 3:40: the Spanish caption reads "o le dejamos el nombre" ("or we keep the name"); "or we can keep it named" refers to keeping the downloaded folder/file name (moss-island).
+- 8:18: a short gap sits between "If" and "you enjoyed it" (no new caption).
+- Off-camera messages visible only in the chat history (not spoken): "make the bike lighter color, now it's too black" (seen 2:13), "iamges not displaying" (seen 3:36), the game prompt's second line "Use Higgs field for assets generation for the game but make it quick please." and "no new session i need to dit this site". See prompts.md.
