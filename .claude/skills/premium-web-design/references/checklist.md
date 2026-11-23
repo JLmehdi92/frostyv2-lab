@@ -1,15 +1,18 @@
 # Review checklist
 
-Run the "Does it still look vibe coded?" section on every version; run the Technical section on the version you hand over (complement). Items marked (video) come from the presenter's verdicts or Claude's own checks in the video; items marked (complement) are added.
+Run the "Does it still look vibe coded?" section on every version; run the Technical section on the version you hand over (complement). Items marked (video) come from the presenter's verdicts or Claude's own checks in the video; items marked (complement) are added; items marked (Donadon) come from Tobia Donadon's design article (Nov 2026).
 
 ## Does it still look vibe coded?
 The presenter judged each version by eye (2:07, 5:31, 6:29). Ask the same questions he implicitly answered:
-- [ ] (video) Is there one **signature interactive element** a visitor would remember? ("We have this interactive element" [6:26])
+- [ ] (video) Is there one **signature interactive element** a visitor would remember? ("We have this interactive element" [6:26]) (Donadon) Would someone describe it to a friend? Fade-up on scroll and hover lift do not count.
 - [ ] (video) Are the **colours** distinctive, or a default dark-SaaS / purple-gradient look? ("vibe coded in terms of colors" [6:29])
 - [ ] (video) Is the **structure** more than the standard hero → 3 cards → features grid → pricing → FAQ stack? ("…and structure" [6:31])
 - [ ] (video) Is the **typography** a deliberate system (one loud display face + a utility face), not one default sans? (the v3 fix [6:35])
 - [ ] (video) Are there **real assets** instead of "just backgrounds"? [2:20]
 - [ ] (video) Did you name the weakest, most generic element and cut or fix it? (Claude's critique of the marquee, seen 2:13)
+- [ ] (Donadon) Shares fewer than three features with each default look: paper edition (serif headline, one italic accent word, tiny mono labels), launch page (black, purple glow, tilted screenshot), dashboard (four KPI cards with sparklines), dark dev tool. Not the overcorrection either (off-white studio portfolio: giant headline, numbered mono labels, header clock).
+- [ ] (Donadon) Swap test: with a competitor's logo on the page, something feels off.
+- [ ] (Donadon) No choice (type, palette, layout, motion) left on the default without a reference or a reason.
 - [ ] (complement) Type at poster scale with tight tracking somewhere above the fold.
 - [ ] (complement) Palette = base + one accent; secondary colours only in small doses.
 

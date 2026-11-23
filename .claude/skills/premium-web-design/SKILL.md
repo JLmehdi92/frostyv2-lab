@@ -18,7 +18,7 @@ description: >
 
 # Premium web design
 
-Distilled from a video by Viktor Oddy (@viktoroddy; watermark @n0tisma on X), 8:21, building sites with Claude Fable 5.2. `[m:ss]` = spoken (`references/transcript.md`); `seen m:ss` = on-screen text (`references/prompts.md`, `references/showcase.md`). Lines tagged **(complement)** are not from the video; **(synthesis)** is the analyst's reading of the screens; everything else is from the video.
+Distilled from a video by Viktor Oddy (@viktoroddy; watermark @n0tisma on X), 8:21, building sites with Claude Fable 5.2. `[m:ss]` = spoken (`references/transcript.md`); `seen m:ss` = on-screen text (`references/prompts.md`, `references/showcase.md`). Lines tagged **(complement)** are not from the video; **(synthesis)** is the analyst's reading of the screens; everything else is from the video. **(Donadon)** = from Tobia Donadon's design article (Nov 2026).
 
 Video setup: Claude desktop app, a new session per project folder, Fable 5.2 at Medium effort, fast mode off.
 
@@ -71,6 +71,9 @@ Open a design in a library (MotionSites Studio → "Download code", a single 289
 
 ### 3. Self-critique, then one improvement pass [2:07–2:58]
 Claude closed v1 with its own critique (seen 2:13): what carries the page, what is plain, and "the one thing worth cutting is the sliding type band, which is the most generic element". Do the same after every version: name the weakest, most generic element and fix or cut it.
+- (Donadon) **Default-look test.** Generated pages land in four looks: the paper edition (serif headline with one italic word in the accent colour, tiny mono labels everywhere), the launch page (black, purple glow, tilted screenshot), the dashboard (four KPI cards with sparklines), the dark dev tool. If the page shares three features with one of them, go back to the idea, not the styling.
+- (Donadon) **Swap test.** Put a competitor's logo on the page; if nothing feels off, the idea never made it onto the page.
+- (Donadon) **Do not overcorrect.** "Don't be generic" yields the studio portfolio (off-white, giant headline, numbered mono labels, a clock in the header). Aim for specific; minimal is only one way to get there.
 
 The improvement prompt [2:17–2:37]:
 > Instead of having just backgrounds, just generate some assets to have on the page as well, but make it quick also.
@@ -93,7 +96,7 @@ If the library MCP is configured but its tools are absent, it was added after th
 
 - (complement) **Free route** (no library access or no budget): name two entries from `references/showcase.md`, one for structure and one for typography, say why, and borrow their listed traits (descriptions, not code). With no user to pick, pick yourself and say why.
 
-Let the user pick, or pick and say why. A named reference gives the model concrete structure, type and motion to imitate; "make it premium" does not.
+Let the user pick, or pick and say why. A named reference gives the model concrete structure, type and motion to imitate; "make it premium" does not. (Donadon) Slop is every choice left on the default, and a model defaults when it has nothing to look at: references are what it looks at.
 
 ### 5. Structure from one reference, typography from another, palette from you [6:04–7:17]
 The decisive moves of the video:
@@ -105,7 +108,7 @@ Rule: borrow **layout/structure** and **type** from references, never their colo
 - (complement) When both references are already chosen, both may be applied in one pass; back up before each pass (step 8).
 
 ### 6. One signature interactive element (synthesis from the screens; the presenter only says "We have this interactive element" [6:26])
-Each page shown is built around one: Saffron's cursor-reactive particle field, Vante's 3D ribbon, Leon Vasari's VHS spines that pull out on hover, Mossline's floating island with scroll zoom, Offcut's clothing rail, OHM's self-drawing line bike, Drumroll v2's curved 9:16 card carousel (kept in v3 as "Sample cuts", where the ASCII field became the hero). Pick one that fits the product's story and make it the hero. Patterns and traits: `references/showcase.md`.
+Each page shown is built around one: Saffron's cursor-reactive particle field, Vante's 3D ribbon, Leon Vasari's VHS spines that pull out on hover, Mossline's floating island with scroll zoom, Offcut's clothing rail, OHM's self-drawing line bike, Drumroll v2's curved 9:16 card carousel (kept in v3 as "Sample cuts", where the ASCII field became the hero). Pick one that fits the product's story and make it the hero. (Donadon) It is a signature move: an interaction someone would describe to a friend; fade-up on scroll and hover lift do not count. Patterns and traits: `references/showcase.md`.
 
 ### 7. Generate real assets
 "Instead of having just backgrounds" [2:20]: photoreal product shots, scenes, sprites. In the video: four images for OHM v2 (generator not shown), **Higgsfield** for the game sprites ("Use Higgs field for assets generation…", P3), and **GPT Image 2.6** in his fashion posts.
