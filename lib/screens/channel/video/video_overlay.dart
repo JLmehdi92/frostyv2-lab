@@ -671,7 +671,7 @@ class VideoOverlay extends StatelessWidget {
   void _openSettings(BuildContext context) {
     final screenContext = context;
     videoStore.updateStreamQualities();
-    showOnsetSheet<void>(
+    final sheet = showOnsetSheet<void>(
       context: context,
       isScrollControlled: false,
       builder: (context) {
@@ -811,6 +811,7 @@ class VideoOverlay extends StatelessWidget {
         );
       },
     );
+    videoStore.holdOverlayUntil(sheet);
   }
 }
 

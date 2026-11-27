@@ -71,6 +71,7 @@ class FakePlayer implements PlayerController {
   set stream(StreamTwitch? value) => runInAction(() => _stream.value = value);
   set latencyText(String? value) => runInAction(() => _latency.value = value);
   set inPip(bool value) => runInAction(() => _pip.value = value);
+  set overlay(bool value) => runInAction(() => _overlayVisible.value = value);
 
   @override
   bool get paused => _paused.value;
@@ -107,6 +108,12 @@ class FakePlayer implements PlayerController {
 
   @override
   void handleToggleOverlay() => calls.add('toggleOverlay');
+
+  @override
+  void holdOverlayUntil(Future<void> done) {
+    calls.add('holdOverlay');
+    done.whenComplete(() => calls.add('releaseOverlay')).ignore();
+  }
 
   @override
   void handlePausePlay() => calls.add('pausePlay');

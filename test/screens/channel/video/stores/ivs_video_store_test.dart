@@ -483,7 +483,7 @@ void main() {
     test('catches a drifted stream up without reloading it', () async {
       store = await playing();
 
-      await tick(2200, 8);
+      await tick(2000, 8);
       expect(rates(), [LatencyController.catchUpRate]);
       expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
 
@@ -521,7 +521,7 @@ void main() {
 
     test('a rebuffer sends 1.0x once playing resumes', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
       final before = rates().length;
 
       await native.emit({'type': 'rebuffering'});
@@ -532,26 +532,26 @@ void main() {
       expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.settling);
 
       await native.emit({'type': 'state', 'state': 'PLAYING'});
-      await tick(2200, 1);
+      await tick(2000, 1);
 
       expect(rates().sublist(before), [1.0]);
     });
 
     test('no rate is sent while buffering', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
       final before = rates().length;
 
       await native.emit({'type': 'state', 'state': 'BUFFERING'});
       await native.emit({'type': 'rebuffering'});
-      await tick(2200, 3);
+      await tick(2000, 3);
 
       expect(rates().length, before);
     });
 
     test('pausing drops back to 1.0x and holds', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
 
       store.handlePausePlay();
       await settle();
@@ -565,13 +565,13 @@ void main() {
 
     test('a pause during a stall sends 1.0x once playing again', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
       final before = rates().length;
 
       await native.emit({'type': 'state', 'state': 'BUFFERING'});
       store.handlePausePlay();
       await native.emit({'type': 'state', 'state': 'IDLE'});
-      await tick(2200, 3);
+      await tick(2000, 3);
       expect(rates().length, before);
 
       store.handlePausePlay();
@@ -583,7 +583,7 @@ void main() {
 
     test('a refresh during a stall sends 1.0x once playing again', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
       final before = rates().length;
       await native.emit({'type': 'state', 'state': 'BUFFERING'});
       await native.emit({'type': 'rebuffering'});
@@ -610,10 +610,10 @@ void main() {
     // mini player keep correcting (the SDK speed-up it replaces did too).
     test('picture-in-picture keeps correcting', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
 
       store.onPipEntered();
-      await tick(2200, 3);
+      await tick(2000, 3);
 
       expect(rates(), [LatencyController.catchUpRate]);
       expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
@@ -621,10 +621,10 @@ void main() {
 
     test('the mini player keeps correcting', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
 
       store.setMinimized(true);
-      await tick(2200, 3);
+      await tick(2000, 3);
 
       expect(rates(), [LatencyController.catchUpRate]);
       expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
@@ -645,7 +645,7 @@ void main() {
       native.rateThrows = true;
       store = await playing();
 
-      await tick(2200, 8);
+      await tick(2000, 8);
       expect(rates(), [LatencyController.catchUpRate]);
       expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.stopped);
 
@@ -655,7 +655,7 @@ void main() {
 
     test('a failed return to 1.0x is retried and never latches', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
       expect(rates(), [LatencyController.catchUpRate]);
 
       // 1.05× was accepted; the way back fails (a reload under way...).
@@ -671,27 +671,27 @@ void main() {
 
       // Retried on the next tick while the player still plays fast...
       final before = rates().length;
-      await tick(2200, 1, rate: 1.05);
+      await tick(2000, 1, rate: 1.05);
       expect(rates().length, before + 1);
       expect(rates().last, 1.0);
 
       // ...until it goes through.
       native.rejectRate = null;
-      await tick(2200, 1, rate: 1.05);
+      await tick(2000, 1, rate: 1.05);
       final settled = rates().length;
-      await tick(2200, 5, rate: 1.0);
+      await tick(2000, 5, rate: 1.0);
       expect(rates().length, settled, reason: 'back at 1.0x: nothing more');
 
       // Never latched: a refresh lets it catch up again.
       await store.handleRefresh();
       await native.emit({'type': 'state', 'state': 'PLAYING'});
-      await tick(2200, 8);
+      await tick(2000, 8);
       expect(rates().last, LatencyController.catchUpRate);
     });
 
     test('a player that stays fast is stopped visibly and nudged', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
       await tick(1300, 6);
       expect(rates(), [LatencyController.catchUpRate, 1.0]);
 
@@ -719,7 +719,7 @@ void main() {
 
     test('a refresh drops a catch-up to 1.0x before fetching', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
       final url = Completer<String>();
       when(
         () => streamService.getUsherUrl(
@@ -740,7 +740,7 @@ void main() {
 
     test('a tick without a latency drops back to 1.0x', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
 
       now = now.add(const Duration(seconds: 1));
       await native.emit({'type': 'latency', 'ms': null, 'bufferMs': 1800});
@@ -760,7 +760,7 @@ void main() {
         autoLatencyWatchdog: const Duration(milliseconds: 10),
       );
       await native.emit({'type': 'state', 'state': 'PLAYING'});
-      await tick(2200, 8);
+      await tick(2000, 8);
       expect(rates().last, LatencyController.catchUpRate);
 
       now = now.add(const Duration(seconds: 4));
@@ -768,6 +768,64 @@ void main() {
 
       expect(rates().last, 1.0);
       expect(store.autoLatencyStatus?.reason, AutoLatencyReason.noLatencyTicks);
+    });
+
+    test('a stall then two calm minutes bring the target back', () async {
+      store = await playing();
+      await tick(3000, 8);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
+
+      await native.emit({'type': 'rebuffering'});
+      await settle();
+      expect(
+        store.autoLatencyStatus?.targetMs,
+        1300 + LatencyController.strikeBackoffMs,
+      );
+
+      await tick(1800, 120);
+
+      expect(store.autoLatencyStatus?.targetMs, 1300);
+      expect(native.callsNamed('load'), isEmpty, reason: 'never a reload');
+    });
+
+    test('a long stall is caught up at 1.1x, never reloaded', () async {
+      store = await playing();
+      await tick(1300, 20);
+
+      await native.emit({'type': 'rebuffering'});
+      await tick(5800, 40, bufferMs: 4800);
+
+      expect(rates(), contains(LatencyController.fastCatchUpRate));
+      expect(store.liveJumps, 0);
+      expect(native.callsNamed('load'), isEmpty, reason: 'never a reload');
+    });
+
+    test('a long stall without buffer to spend still reloads', () async {
+      store = await playing();
+      await tick(1300, 20);
+
+      await native.emit({'type': 'rebuffering'});
+      await tick(5800, 20, bufferMs: 800);
+
+      expect(rates(), isEmpty);
+      expect(store.liveJumps, 1);
+    });
+
+    test('switches between the two catch-up rates', () async {
+      store = await playing();
+      await tick(2000, 8);
+      expect(rates(), [LatencyController.catchUpRate]);
+
+      await tick(2300, 4, rate: LatencyController.catchUpRate);
+      expect(rates(), [
+        LatencyController.catchUpRate,
+        LatencyController.fastCatchUpRate,
+      ]);
+
+      await tick(2300, 2, rate: LatencyController.catchUpRate);
+      await tick(2300, 3, rate: LatencyController.fastCatchUpRate);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
+      expect(store.autoLatencyStatus?.rate, LatencyController.fastCatchUpRate);
     });
 
     group('a quality switch', () {
@@ -787,7 +845,7 @@ void main() {
         }
         now = now.add(const Duration(seconds: 10));
         await quality(name);
-        await tick(2200, 8);
+        await tick(2000, 8);
         expect(s.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
         return s;
       }
@@ -895,7 +953,7 @@ void main() {
 
     test('each load starts back at 1.0x', () async {
       store = await playing();
-      await tick(2200, 8);
+      await tick(2000, 8);
 
       await store.handleRefresh();
       await settle();
@@ -1456,14 +1514,102 @@ void main() {
     });
 
     test('a failure leaves the plain names and tries again later', () async {
+      var now = DateTime(2026, 11, 26, 20);
+      when(
+        () => streamService.qualityLadder(any()),
+      ).thenAnswer((_) async => null);
+      store = await createStore(now: () => now);
+      await store.updateStreamQualities();
+      await store.updateStreamQualities();
+      expect(store.qualityLadder.bitrates, isEmpty);
+      verify(() => streamService.qualityLadder(_usherUrl)).called(1);
+
+      now = now.add(const Duration(seconds: 31));
+      await store.updateStreamQualities();
+      verify(() => streamService.qualityLadder(_usherUrl)).called(1);
+    });
+
+    test('fetched as soon as the qualities arrive', () async {
+      const ladder = QualityLadder(bitrates: {'720p60': 3422999});
+      when(
+        () => streamService.qualityLadder(_usherUrl),
+      ).thenAnswer((_) async => ladder);
+      store = await createStore();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['720p60'],
+      });
+      await settle();
+
+      expect(store.qualityLadder.bitrateOf('720p60'), 3422999);
+      await store.updateStreamQualities();
+      verify(() => streamService.qualityLadder(_usherUrl)).called(1);
+    });
+
+    test('opening during the fetch does not fetch again', () async {
+      final pending = Completer<QualityLadder?>();
+      when(
+        () => streamService.qualityLadder(_usherUrl),
+      ).thenAnswer((_) => pending.future);
+      store = await createStore();
+      await native.emit({
+        'type': 'qualities',
+        'list': ['720p60'],
+      });
+
+      unawaited(store.updateStreamQualities());
+      pending.complete(const QualityLadder(bitrates: {'720p60': 1}));
+      await settle();
+
+      verify(() => streamService.qualityLadder(_usherUrl)).called(1);
+    });
+
+    test('a failed fetch waits its cooldown, even across reloads', () async {
+      var now = DateTime(2026, 11, 26, 20);
+      when(
+        () => streamService.qualityLadder(any()),
+      ).thenAnswer((_) async => null);
+      store = await createStore(now: () => now);
+      Future<void> qualities() async {
+        await native.emit({
+          'type': 'qualities',
+          'list': ['720p60'],
+        });
+        await settle();
+      }
+
+      await qualities();
+      verify(() => streamService.qualityLadder(_usherUrl)).called(1);
+
+      await qualities();
+      await store.updateStreamQualities();
+      verifyNever(() => streamService.qualityLadder(_usherUrl));
+
+      now = now.add(const Duration(seconds: 31));
+      await qualities();
+      verify(() => streamService.qualityLadder(_usherUrl)).called(1);
+    });
+
+    test('a manual refresh tries a failed fetch again', () async {
       when(
         () => streamService.qualityLadder(any()),
       ).thenAnswer((_) async => null);
       store = await createStore();
-      await store.updateStreamQualities();
-      await store.updateStreamQualities();
-      expect(store.qualityLadder.bitrates, isEmpty);
-      verify(() => streamService.qualityLadder(_usherUrl)).called(2);
+      await native.emit({
+        'type': 'qualities',
+        'list': ['720p60'],
+      });
+      await settle();
+      verify(() => streamService.qualityLadder(_usherUrl)).called(1);
+
+      await store.handleRefresh();
+      await native.emit({
+        'type': 'qualities',
+        'list': ['720p60'],
+      });
+      await settle();
+      verify(() => streamService.qualityLadder(_usherUrl)).called(1);
     });
   });
 
@@ -3070,6 +3216,22 @@ void main() {
         await settle();
       }
     }
+
+    test('the overlay hides only once the hold ends', () async {
+      store = await playingStore();
+      final sheet = Completer<void>();
+      store.holdOverlayUntil(sheet.future);
+
+      await Future<void>.delayed(const Duration(milliseconds: 5200));
+      expect(store.overlayVisible, isTrue);
+
+      sheet.complete();
+      await settle();
+      expect(store.overlayVisible, isTrue);
+
+      await Future<void>.delayed(const Duration(milliseconds: 5200));
+      expect(store.overlayVisible, isFalse);
+    });
 
     test('a failed request keeps a playing stream playing', () async {
       store = await playingStore();

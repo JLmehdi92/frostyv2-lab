@@ -294,6 +294,19 @@ abstract class NativeVideoStoreBase
     // Native engine always uses the custom overlay; nothing to toggle.
   }
 
+  var _overlayHolds = 0;
+  var _disposed = false;
+
+  @override
+  void holdOverlayUntil(Future<void> done) {
+    _overlayHolds++;
+    _overlayTimer?.cancel();
+    done.whenComplete(() {
+      _overlayHolds--;
+      if (!_disposed && _overlayVisible) _scheduleOverlayHide();
+    }).ignore();
+  }
+
   @override
   void handleAppResume() {
     if (!settingsStore.showVideo) unawaited(updateStreamInfo(forceUpdate: true));
@@ -353,6 +366,7 @@ abstract class NativeVideoStoreBase
 
   void _scheduleOverlayHide([Duration delay = const Duration(seconds: 5)]) {
     _overlayTimer?.cancel();
+    if (_overlayHolds > 0) return;
     _overlayTimer = Timer(
       delay,
       () => runInAction(() => _overlayVisible = false),
@@ -440,6 +454,7 @@ abstract class NativeVideoStoreBase
   @override
   @action
   void dispose() {
+    _disposed = true;
     _overlayTimer?.cancel();
     streamPushState.dispose();
     for (final sub in _subscriptions) {

@@ -199,6 +199,27 @@ void main() {
       await done(tester);
     });
 
+    testWidgets('the overlay stays up while the settings sheet is open', (
+      tester,
+    ) async {
+      final player = FakePlayer(stream: fakeStream());
+      await pump(
+        tester,
+        player,
+        screen: const Size(390, 844),
+        video: const Size(390, 220),
+      );
+      await tester.tap(find.byTooltip('Quality and settings'));
+      await tester.pumpAndSettle();
+      expect(player.calls, containsAll(['qualities', 'holdOverlay']));
+      expect(player.calls, isNot(contains('releaseOverlay')));
+
+      Navigator.of(tester.element(find.text('1080p60'))).pop();
+      await tester.pumpAndSettle();
+      expect(player.calls, contains('releaseOverlay'));
+      await done(tester);
+    });
+
     testWidgets('offline: past broadcasts, videos, refresh', (tester) async {
       final player = FakePlayer(offline: fakeOfflineChannel);
       await pump(

@@ -32,6 +32,7 @@ abstract class PlayerController {
   // Actions
   void handleVideoTap();
   void handleToggleOverlay();
+  void holdOverlayUntil(Future<void> done);
   void handlePausePlay();
   Future<void> handleRefresh();
   void requestPictureInPicture();

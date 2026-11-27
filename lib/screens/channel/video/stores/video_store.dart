@@ -1096,6 +1096,8 @@ $kTwitchWebGateShownJs
       return;
     }
 
+    if (_overlayHolds > 0) return;
+
     _overlayTimer = Timer(delay, () {
       if (_isInPipMode) return;
 
@@ -1220,6 +1222,18 @@ $kTwitchWebGateShownJs
     // Stream info timer is managed automatically by the video mode reaction
   }
 
+  var _overlayHolds = 0;
+  var _disposed = false;
+
+  void holdOverlayUntil(Future<void> done) {
+    _overlayHolds++;
+    _overlayTimer?.cancel();
+    done.whenComplete(() {
+      _overlayHolds--;
+      if (!_disposed && _overlayVisible) _scheduleOverlayHide();
+    }).ignore();
+  }
+
   /// Refreshes the stream webview and updates the stream info.
   @action
   Future<void> handleRefresh() async {
@@ -1308,6 +1322,7 @@ $kTwitchWebGateShownJs
 
   @action
   void dispose() {
+    _disposed = true;
     streamPushState.dispose();
     // Disable auto PiP when leaving so that we don't enter PiP on other screens.
     if (Platform.isAndroid) {

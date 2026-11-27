@@ -912,6 +912,7 @@ abstract class IvsVideoStoreBase
         unawaited(_restoreQuality(list));
         _resendSound();
         captions.onLoad();
+        unawaited(updateStreamQualities());
         break;
       case 'caption' || 'textTracks':
         captions.handleEvent(e);
@@ -981,7 +982,11 @@ abstract class IvsVideoStoreBase
             !_recovering &&
             !_jumping &&
             _status == IvsPlaybackStatus.playing;
-        if (_liveEdge.onSample(ms, playing: judged)) {
+        if (_liveEdge.onSample(
+          ms,
+          playing: judged,
+          catchingUp: _autoLatency.status.phase == AutoLatencyPhase.catchingUp,
+        )) {
           unawaited(_jumpToLive());
         }
         if (playerConfig.autoLatency) {
@@ -1563,11 +1568,18 @@ abstract class IvsVideoStoreBase
 
   final _qualityLadder = Observable(QualityLadder.empty);
   String? _qualityLadderUrl;
+  DateTime? _qualityLadderFailedAt;
+
+  static const qualityLadderRetry = Duration(seconds: 30);
 
   QualityLadder get qualityLadder => _qualityLadder.value;
 
   @override
   Future<void> updateStreamQualities() async {
+    final failedAt = _qualityLadderFailedAt;
+    if (failedAt != null && _now().difference(failedAt) < qualityLadderRetry) {
+      return;
+    }
     final url = _url;
     if (url == null || url == _qualityLadderUrl) return;
     _qualityLadderUrl = url;
@@ -1580,8 +1592,10 @@ abstract class IvsVideoStoreBase
     if (_disposed || url != _url) return;
     if (ladder == null) {
       _qualityLadderUrl = null;
+      _qualityLadderFailedAt = _now();
       return;
     }
+    _qualityLadderFailedAt = null;
     final loaded = ladder;
     runInAction(() => _qualityLadder.value = loaded);
   }
@@ -1593,6 +1607,7 @@ abstract class IvsVideoStoreBase
     // latency may try again after giving up. It plays the old source at
     // 1.0x while the new one is fetched (blind until it plays).
     _liveEdge.reset();
+    _qualityLadderFailedAt = null;
     if (playerConfig.autoLatency && !_rateRefused) _autoLatency.reset();
     _holdAutoLatency(AutoLatencyReason.reconnecting);
     _latency = null;
@@ -1654,6 +1669,18 @@ abstract class IvsVideoStoreBase
   @override
   void handleToggleOverlay() {}
 
+  var _overlayHolds = 0;
+
+  @override
+  void holdOverlayUntil(Future<void> done) {
+    _overlayHolds++;
+    _overlayTimer?.cancel();
+    done.whenComplete(() {
+      _overlayHolds--;
+      if (!_disposed && _overlayVisible) _scheduleOverlayHide();
+    }).ignore();
+  }
+
   Future<void> handleAppBackground() async {
     final trip = ++_backgroundTrip;
     bool stillAway() =>
@@ -1697,6 +1724,7 @@ abstract class IvsVideoStoreBase
 
   void _scheduleOverlayHide([Duration delay = const Duration(seconds: 5)]) {
     _overlayTimer?.cancel();
+    if (_overlayHolds > 0) return;
     _overlayTimer = Timer(
       delay,
       () => runInAction(() => _overlayVisible = false),
