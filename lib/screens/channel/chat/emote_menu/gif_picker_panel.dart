@@ -6,6 +6,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/gif_picker.dart';
 import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
@@ -101,7 +102,15 @@ class _GifPickerPanelState extends State<GifPickerPanel> {
           borderRadius: BorderRadius.circular(OnsetTokens.radiusSmall),
           child: AspectRatio(
             aspectRatio: gif.width / gif.height,
-            child: OnsetCachedNetworkImage(imageUrl: gif.previewUrl),
+            child: LayoutBuilder(
+              builder: (context, constraints) => OnsetCachedNetworkImage(
+                imageUrl: gif.previewUrl,
+                memCacheWidth: imagePixelWidth(
+                  constraints.maxWidth,
+                  MediaQuery.devicePixelRatioOf(context),
+                ),
+              ),
+            ),
           ),
         ),
         actions: [
@@ -228,6 +237,7 @@ class _GifPickerPanelState extends State<GifPickerPanel> {
                         color: colors.well,
                         child: OnsetCachedNetworkImage(
                           imageUrl: gif.previewUrl,
+                          memCacheWidth: decodeSize(context, 140),
                         ),
                       ),
                     ),

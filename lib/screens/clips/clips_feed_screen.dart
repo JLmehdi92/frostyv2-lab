@@ -19,6 +19,7 @@ import 'package:onset/screens/vod/widgets/video_kit.dart';
 import 'package:onset/services/playback_focus.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/utils/pip_callbacks.dart';
 import 'package:onset/widgets/motion/haptics.dart';
 import 'package:onset/widgets/motion/motion.dart';
@@ -365,10 +366,16 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
           return (player as VideoSurfacePlayer).buildVideo(fill: false);
         }
         if (player == null && thumbnail != null) {
-          return OnsetCachedNetworkImage(
-            imageUrl: thumbnail,
-            fit: BoxFit.contain,
-            errorWidget: (context, url, error) => const SizedBox.shrink(),
+          return LayoutBuilder(
+            builder: (context, constraints) => OnsetCachedNetworkImage(
+              imageUrl: thumbnail,
+              fit: BoxFit.contain,
+              memCacheWidth: imagePixelWidth(
+                constraints.maxWidth,
+                MediaQuery.devicePixelRatioOf(context),
+              ),
+              errorWidget: (context, url, error) => const SizedBox.shrink(),
+            ),
           );
         }
         return const SizedBox.expand();
@@ -392,10 +399,16 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         if (thumbnail != null &&
             player != null &&
             player is! VideoSurfacePlayer)
-          OnsetCachedNetworkImage(
-            imageUrl: thumbnail,
-            fit: BoxFit.contain,
-            errorWidget: (context, url, error) => const SizedBox.shrink(),
+          LayoutBuilder(
+            builder: (context, constraints) => OnsetCachedNetworkImage(
+              imageUrl: thumbnail,
+              fit: BoxFit.contain,
+              memCacheWidth: imagePixelWidth(
+                constraints.maxWidth,
+                MediaQuery.devicePixelRatioOf(context),
+              ),
+              errorWidget: (context, url, error) => const SizedBox.shrink(),
+            ),
           ),
         Semantics(
           container: true,

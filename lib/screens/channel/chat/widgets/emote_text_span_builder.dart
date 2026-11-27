@@ -1,6 +1,7 @@
 import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:onset/models/emotes.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// A [SpecialTextSpanBuilder] that renders emote names as inline images.
@@ -99,11 +100,14 @@ class EmoteTextSpanBuilder extends SpecialTextSpanBuilder {
       alignment: PlaceholderAlignment.middle,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 1),
-        child: OnsetCachedNetworkImage(
-          imageUrl: emote.url,
-          height: height,
-          width: width,
-          useFade: false,
+        child: Builder(
+          builder: (context) => OnsetCachedNetworkImage(
+            imageUrl: emote.url,
+            height: height,
+            width: width,
+            memCacheHeight: decodeSize(context, height),
+            useFade: false,
+          ),
         ),
       ),
     );

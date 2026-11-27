@@ -11,6 +11,7 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// Twitch's guide to hype trains.
@@ -374,6 +375,7 @@ class _VariantCard extends StatelessWidget {
                         imageUrl: url.toString(),
                         width: HtDims.reward,
                         height: HtDims.reward,
+                        memCacheHeight: decodeSize(context, HtDims.reward),
                       ),
                     Expanded(
                       child: Text(
@@ -476,7 +478,10 @@ class _ConductorCell extends StatelessWidget {
             key: const ValueKey('ht-conductor-badge'),
             dimension: HtDims.reward,
             child: badgeUrl != null
-                ? OnsetCachedNetworkImage(imageUrl: badgeUrl!)
+                ? OnsetCachedNetworkImage(
+                    imageUrl: badgeUrl!,
+                    memCacheHeight: decodeSize(context, HtDims.reward),
+                  )
                 : Icon(
                     bits ? Icons.diamond_rounded : Icons.star_rounded,
                     size: 20,
@@ -550,6 +555,7 @@ class _RewardRow extends StatelessWidget {
                     imageUrl: reward.emoteUrl.toString(),
                     width: HtDims.reward,
                     height: HtDims.reward,
+                    memCacheHeight: decodeSize(context, HtDims.reward),
                   ),
                   if (locked)
                     PositionedDirectional(

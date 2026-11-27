@@ -7,6 +7,7 @@ import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/onset_photo_view_dialog.dart';
@@ -378,11 +379,17 @@ class _VideoPicture extends StatelessWidget {
                       builder: (context) => OnsetPhotoViewDialog(imageUrl: url),
                     );
                   },
-                  child: OnsetCachedNetworkImage(
-                    imageUrl: url,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        SkeletonLoader(borderRadius: borderRadius),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => OnsetCachedNetworkImage(
+                      imageUrl: url,
+                      fit: BoxFit.cover,
+                      memCacheWidth: imagePixelWidth(
+                        constraints.maxWidth,
+                        MediaQuery.devicePixelRatioOf(context),
+                      ),
+                      placeholder: (context, url) =>
+                          SkeletonLoader(borderRadius: borderRadius),
+                    ),
                   ),
                 ),
               ),

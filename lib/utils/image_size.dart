@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:flutter/widgets.dart';
+
 /// Pixels to request for an image drawn [logicalWidth] dp wide at
 /// [pixelRatio]: rounded up to a multiple of [step] so small layout changes
 /// keep hitting the cache, and capped at [max] (Twitch's largest preview).
@@ -13,3 +15,8 @@ int imagePixelWidth(
   final pixels = (logicalWidth * pixelRatio / step).ceil() * step;
   return math.min(math.max(pixels, step), max);
 }
+
+int? decodeSize(BuildContext context, double? size) =>
+    size == null || !size.isFinite || size <= 0
+    ? null
+    : (size * MediaQuery.devicePixelRatioOf(context)).ceil();

@@ -24,6 +24,7 @@ import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/account/twitch_tv_connect_sheet.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/utils/settings_lookup.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
@@ -431,6 +432,7 @@ class _PanelState extends State<_Panel> {
                     points.pointsImageUrlAt(4)!,
                     width: 20,
                     height: 20,
+                    cacheWidth: decodeSize(context, 20),
                     errorBuilder: (_, _, _) => _PointsRing(size: 20),
                   )
                 else
@@ -1650,6 +1652,7 @@ class RewardRow extends StatelessWidget {
                           : Image.network(
                               reward.imageUrl!,
                               fit: BoxFit.cover,
+                              cacheWidth: decodeSize(context, panel ? 34 : 36),
                               errorBuilder: (_, _, _) =>
                                   const SizedBox.shrink(),
                             ),
@@ -1807,6 +1810,7 @@ class _RedeemDialogState extends State<_RedeemDialog> {
             : Image.network(
                 widget.reward.imageUrl!,
                 fit: BoxFit.cover,
+                cacheWidth: decodeSize(context, 40),
                 errorBuilder: (_, _, _) => const SizedBox.shrink(),
               ),
       ),

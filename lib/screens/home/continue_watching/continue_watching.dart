@@ -10,6 +10,7 @@ import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/screens/vod/widgets/vod_card.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/profile_picture.dart';
@@ -101,11 +102,17 @@ class _ResumeThumbnail extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (url != null && url.isNotEmpty)
-              OnsetCachedNetworkImage(
-                imageUrl: url,
-                fit: BoxFit.cover,
-                placeholder: (context, url) =>
-                    SkeletonLoader(borderRadius: borderRadius),
+              LayoutBuilder(
+                builder: (context, constraints) => OnsetCachedNetworkImage(
+                  imageUrl: url,
+                  fit: BoxFit.cover,
+                  memCacheWidth: imagePixelWidth(
+                    constraints.maxWidth,
+                    MediaQuery.devicePixelRatioOf(context),
+                  ),
+                  placeholder: (context, url) =>
+                      SkeletonLoader(borderRadius: borderRadius),
+                ),
               ),
             if (resumeLabel) ...[
               const DecoratedBox(

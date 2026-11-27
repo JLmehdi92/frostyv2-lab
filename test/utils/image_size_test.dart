@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/utils/image_size.dart';
 
@@ -12,5 +13,27 @@ void main() {
     expect(imagePixelWidth(1600, 2), 1920);
     expect(imagePixelWidth(0, 2), 160);
     expect(imagePixelWidth(double.infinity, 2), 160);
+  });
+
+  testWidgets('decodeSize scales by the device pixel ratio and rounds up', (
+    tester,
+  ) async {
+    late BuildContext captured;
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(devicePixelRatio: 2.625),
+        child: Builder(
+          builder: (context) {
+            captured = context;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    expect(decodeSize(captured, 28), 74);
+    expect(decodeSize(captured, 40), 105);
+    expect(decodeSize(captured, null), isNull);
+    expect(decodeSize(captured, double.infinity), isNull);
+    expect(decodeSize(captured, 0), isNull);
   });
 }

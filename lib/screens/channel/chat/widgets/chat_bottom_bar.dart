@@ -17,6 +17,7 @@ import 'package:onset/screens/channel/chat/widgets/unban_request_sheet.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/widgets/blurred_container.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
@@ -229,6 +230,7 @@ class ChatBottomBar extends StatelessWidget {
                       imageUrl: emote.url,
                       useFade: false,
                       height: 28,
+                      memCacheHeight: decodeSize(context, 28),
                       // Malformed third-party sizes (0, missing) fall
                       // back to the image's own width.
                       width: switch ((emote.width, emote.height)) {

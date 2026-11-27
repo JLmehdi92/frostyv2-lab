@@ -5,6 +5,7 @@ import 'package:onset/models/user_notice_text.dart';
 import 'package:onset/services/cache_manager.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/image_size.dart';
 
 /// A sub, gift or other `USERNOTICE`, drawn as Twitch's Android app draws its
 /// notice rows, in the signal lime where Twitch uses purple.
@@ -319,7 +320,7 @@ class UserNoticeRow extends StatelessWidget {
       NoticeGlyph.raider =>
         avatarUrl == null
             ? glyph(Icons.people_rounded)
-            : _avatar(avatarUrl!, _avatarSlot, tint),
+            : _avatar(context, avatarUrl!, _avatarSlot, tint),
       NoticeGlyph.sharedChat => _sharedChatBadge(context, tint),
     };
   }
@@ -341,7 +342,7 @@ class UserNoticeRow extends StatelessWidget {
             top: 0,
             child: avatarUrl == null
                 ? _placeholder(_avatarSize, tint)
-                : _avatar(avatarUrl!, _avatarSize, tint),
+                : _avatar(context, avatarUrl!, _avatarSize, tint),
           ),
           Positioned(
             left: _gap,
@@ -366,23 +367,28 @@ class UserNoticeRow extends StatelessWidget {
     );
   }
 
-  static Widget _avatar(String url, double size, Color tint) =>
-      CachedNetworkImage(
-        cacheManager: CustomCacheManager.instance,
-        imageUrl: url,
-        width: size,
-        height: size,
-        imageBuilder: (context, image) => Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            image: DecorationImage(image: image, fit: BoxFit.cover),
-          ),
-        ),
-        placeholder: (context, url) => _placeholder(size, tint),
-        errorWidget: (context, url, error) => _placeholder(size, tint),
-      );
+  static Widget _avatar(
+    BuildContext context,
+    String url,
+    double size,
+    Color tint,
+  ) => CachedNetworkImage(
+    cacheManager: CustomCacheManager.instance,
+    imageUrl: url,
+    width: size,
+    height: size,
+    memCacheWidth: decodeSize(context, size),
+    imageBuilder: (context, image) => Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        image: DecorationImage(image: image, fit: BoxFit.cover),
+      ),
+    ),
+    placeholder: (context, url) => _placeholder(size, tint),
+    errorWidget: (context, url, error) => _placeholder(size, tint),
+  );
 
   static Widget _placeholder(double size, Color tint) => Container(
     width: size,

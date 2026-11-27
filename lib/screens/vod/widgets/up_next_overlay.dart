@@ -9,6 +9,7 @@ import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/screens/vod/widgets/vod_card.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
@@ -236,7 +237,11 @@ class _Picture extends StatelessWidget {
           children: [
             const ColoredBox(color: OnsetTokens.surfaceDark),
             if (url != null)
-              OnsetCachedNetworkImage(imageUrl: url, fit: BoxFit.cover),
+              OnsetCachedNetworkImage(
+                imageUrl: url,
+                fit: BoxFit.cover,
+                memCacheWidth: decodeSize(context, 132),
+              ),
             InsetHairline(borderRadius: radius),
             Positioned(
               right: 5,

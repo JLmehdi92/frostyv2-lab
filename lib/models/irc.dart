@@ -32,6 +32,7 @@ import 'package:onset/services/cache_manager.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart' as utils;
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/utils/link_router.dart';
 import 'package:onset/utils/twitch_report.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
@@ -445,6 +446,7 @@ class IRCMessage {
             child: CachedNetworkImage(
               cacheManager: CustomCacheManager.instance,
               imageUrl: sourceChannelUser.profileImageUrl,
+              memCacheWidth: decodeSize(context, badgeSize),
               imageBuilder: (context, imageProvider) => Container(
                 width: badgeSize,
                 height: badgeSize,
@@ -942,7 +944,7 @@ class IRCMessage {
                 child: OnsetCachedNetworkImage(
                   imageUrl: cheer.tier.url(dark: dark, animated: animateEmotes),
                   height: emoteSize,
-                  memCacheHeight: _decodeSize(context, emoteSize),
+                  memCacheHeight: decodeSize(context, emoteSize),
                   useFade: false,
                   placeholder: (context, url) => const SizedBox(),
                 ),
@@ -1099,7 +1101,7 @@ class IRCMessage {
               fit: !emote.zeroWidth && stackModifiers & FfzModifier.growX != 0
                   ? BoxFit.fill
                   : null,
-              memCacheHeight: _decodeSize(
+              memCacheHeight: decodeSize(
                 context,
                 emote.height != null ? emote.height! * emoteScale : emoteSize,
               ),
@@ -1343,7 +1345,7 @@ class IRCMessage {
           imageUrl: badge.url,
           height: size,
           width: size,
-          memCacheHeight: _decodeSize(context, size),
+          memCacheHeight: decodeSize(context, size),
           useFade: false,
           semanticLabel: semanticLabel,
         ),
@@ -1361,7 +1363,7 @@ class IRCMessage {
         imageUrl: badge.url,
         height: size,
         width: size,
-        memCacheHeight: _decodeSize(context, size),
+        memCacheHeight: decodeSize(context, size),
         useFade: false,
         semanticLabel: semanticLabel,
       );
@@ -1432,7 +1434,7 @@ class IRCMessage {
           imageUrl: emote.urlFor(animate: animate),
           height: height,
           width: width,
-          memCacheHeight: _decodeSize(context, height),
+          memCacheHeight: decodeSize(context, height),
           useFade: false,
           placeholder: (context, url) => const SizedBox(),
           semanticLabel: emote.name,
@@ -2156,7 +2158,3 @@ class _EmoteBitsThresholdLineState extends State<EmoteBitsThresholdLine> {
     );
   }
 }
-
-int? _decodeSize(BuildContext context, double? size) => size == null
-    ? null
-    : (size * MediaQuery.devicePixelRatioOf(context)).ceil();
