@@ -6112,6 +6112,12 @@ abstract class AppLocalizations {
   /// **'Jumps to live'**
   String get latencyStatsLiveJumps;
 
+  /// Stats panel: the row of how many app frames took longer than 16 ms to build and draw over the last 10 seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow frames'**
+  String get latencyStatsSlowFrames;
+
   /// Stats panel, Auto latency row: off for this stream (« désactivée » agrees with « latence »). Lower case.
   ///
   /// In en, this message translates to:

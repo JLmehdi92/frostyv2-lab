@@ -998,6 +998,7 @@
   "latencyStatsStartup": "Démarrage",
   "latencyStatsRebuffers": "Blocages",
   "latencyStatsLiveJumps": "Retours au direct",
+  "latencyStatsSlowFrames": "Images lentes",
   "latencyAutoOff": "désactivée",
   "latencyAutoWithTarget": "{status} · cible {latency}",
   "latencyAutoStopped": "arrêtée\u00a0: {reason}",

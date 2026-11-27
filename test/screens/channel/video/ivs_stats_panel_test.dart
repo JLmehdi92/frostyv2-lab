@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -96,5 +98,32 @@ void main() {
     await pump(tester);
 
     expect(rowText(tester, 'Auto latency'), 'Auto latency  off');
+  });
+
+  testWidgets('counts slow frames while shown, and stops listening hidden', (
+    tester,
+  ) async {
+    await pump(tester);
+    expect(rowText(tester, 'Slow frames'), 'Slow frames  0');
+
+    FrameTiming timing(int rasterMs) => FrameTiming(
+      vsyncStart: 0,
+      buildStart: 0,
+      buildFinish: 5000,
+      rasterStart: 5000,
+      rasterFinish: 5000 + rasterMs * 1000,
+      rasterFinishWallTime: 5000 + rasterMs * 1000,
+    );
+    tester.binding.platformDispatcher.onReportTimings!([
+      timing(4),
+      timing(30),
+      timing(12),
+    ]);
+    await tester.pump();
+    expect(rowText(tester, 'Slow frames'), 'Slow frames  2');
+
+    await tester.pumpWidget(const SizedBox());
+    tester.binding.platformDispatcher.onReportTimings?.call([timing(30)]);
+    expect(tester.takeException(), isNull);
   });
 }

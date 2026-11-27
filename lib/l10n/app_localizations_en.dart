@@ -3979,6 +3979,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get latencyStatsLiveJumps => 'Jumps to live';
 
   @override
+  String get latencyStatsSlowFrames => 'Slow frames';
+
+  @override
   String get latencyAutoOff => 'off';
 
   @override

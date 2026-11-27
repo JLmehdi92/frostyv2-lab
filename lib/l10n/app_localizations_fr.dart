@@ -4040,6 +4040,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get latencyStatsLiveJumps => 'Retours au direct';
 
   @override
+  String get latencyStatsSlowFrames => 'Images lentes';
+
+  @override
   String get latencyAutoOff => 'désactivée';
 
   @override

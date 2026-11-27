@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/latency_controller.dart';
 import 'package:onset/screens/channel/video/latency_stats.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
+import 'package:onset/screens/channel/video/slow_frames.dart';
 import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:onset/theme.dart';
 
@@ -14,13 +18,47 @@ import 'package:onset/theme.dart';
 ///
 /// Shown above the video (outside the auto-hiding overlay) while
 /// [IvsVideoStore.statsVisible] is true.
-class IvsStatsPanel extends StatelessWidget {
+class IvsStatsPanel extends StatefulWidget {
   const IvsStatsPanel({super.key, required this.store});
 
   final IvsVideoStore store;
 
   @override
+  State<IvsStatsPanel> createState() => _IvsStatsPanelState();
+}
+
+class _IvsStatsPanelState extends State<IvsStatsPanel> {
+  final _slowFrames = SlowFrames();
+  var _slowCount = 0;
+  late final Timer _expiry;
+
+  @override
+  void initState() {
+    super.initState();
+    SchedulerBinding.instance.addTimingsCallback(_onTimings);
+    _expiry = Timer.periodic(const Duration(seconds: 1), (_) => _refresh());
+  }
+
+  @override
+  void dispose() {
+    _expiry.cancel();
+    SchedulerBinding.instance.removeTimingsCallback(_onTimings);
+    super.dispose();
+  }
+
+  void _onTimings(List<FrameTiming> timings) {
+    _slowFrames.add(timings.map((t) => t.buildDuration + t.rasterDuration));
+    _refresh();
+  }
+
+  void _refresh() {
+    final count = _slowFrames.count;
+    if (count != _slowCount && mounted) setState(() => _slowCount = count);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final store = widget.store;
     // Light on black 60 %, 10.5 sp tabular figures,
     // the labels at 66 %.
     const textColor = OnsetTokens.textPrimaryDark;
@@ -119,6 +157,7 @@ class IvsStatsPanel extends StatelessWidget {
                 (l.latencyStatsStartup, ms(store.startupMs)),
                 (l.latencyStatsRebuffers, '${store.rebufferCount}'),
                 (l.latencyStatsLiveJumps, '${store.liveJumps}'),
+                (l.latencyStatsSlowFrames, '$_slowCount'),
               ];
 
               return Column(

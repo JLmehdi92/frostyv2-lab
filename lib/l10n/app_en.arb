@@ -5119,6 +5119,10 @@
   "@latencyStatsLiveJumps": {
     "description": "Stats panel: the row of how many times the player jumped back to live."
   },
+  "latencyStatsSlowFrames": "Slow frames",
+  "@latencyStatsSlowFrames": {
+    "description": "Stats panel: the row of how many app frames took longer than 16 ms to build and draw over the last 10 seconds."
+  },
   "latencyAutoOff": "off",
   "@latencyAutoOff": {
     "description": "Stats panel, Auto latency row: off for this stream (« désactivée » agrees with « latence »). Lower case."
