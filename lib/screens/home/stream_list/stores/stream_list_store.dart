@@ -463,7 +463,10 @@ abstract class ListStoreBase with Store {
         _labeledIds = labeled.asObservable();
         _showLabeled = false;
       } else {
-        _allStreams.addAll(newStreams.data);
+        final known = {for (final stream in _allStreams) stream.userId};
+        _allStreams.addAll(
+          newStreams.data.where((stream) => known.add(stream.userId)),
+        );
         _labeledIds.addAll(labeled);
       }
       _streamsCursor = newStreams.pagination['cursor'];

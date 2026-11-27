@@ -97,6 +97,7 @@ abstract class ClipsFeedStoreBase with Store {
         position = 0;
         _endedOnError = false;
         _leftAt = null;
+        _cursor = null;
         _add(page);
       });
     } catch (e) {
@@ -143,11 +144,17 @@ abstract class ClipsFeedStoreBase with Store {
 
   void _add(ClipFeedPage page) {
     final known = {for (final clip in _clips) clip.slug};
+    final before = _clips.length;
     for (final clip in page.items) {
       if (_clips.length >= maxClips) break;
       if (known.add(clip.slug)) _clips.add(clip);
     }
+    final previous = _cursor;
     _cursor = page.cursor;
-    _hasMore = page.hasMore && _clips.length < maxClips;
+    _hasMore =
+        page.hasMore &&
+        _clips.length > before &&
+        page.cursor != previous &&
+        _clips.length < maxClips;
   }
 }

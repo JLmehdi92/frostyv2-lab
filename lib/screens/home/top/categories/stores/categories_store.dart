@@ -61,7 +61,10 @@ abstract class CategoriesStoreBase with Store {
       if (_categoriesCursor == null) {
         _categories = result.data.asObservable();
       } else {
-        _categories.addAll(result.data);
+        final known = {for (final category in _categories) category.id};
+        _categories.addAll(
+          result.data.where((category) => known.add(category.id)),
+        );
       }
       _categoriesCursor = result.pagination?['cursor'];
 

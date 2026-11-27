@@ -59,6 +59,64 @@ void main() {
     expect(store.hasMore, isFalse);
   });
 
+  test(
+    'a page that adds nothing ends the feed instead of asking again',
+    () async {
+      when(() => service.getTopClips(language: '')).thenAnswer(
+        (_) async => ClipFeedPage(items: [clip('a')], cursor: 'MQ=='),
+      );
+      when(() => service.getTopClips(cursor: 'MQ==', language: '')).thenAnswer(
+        (_) async => ClipFeedPage(items: [clip('a')], cursor: 'Mg=='),
+      );
+      final store = make();
+
+      await store.load();
+      await store.loadMore();
+      await store.loadMore();
+
+      expect(store.clips.map((c) => c.slug), ['a']);
+      expect(store.hasMore, isFalse);
+      verify(() => service.getTopClips(cursor: 'MQ==', language: '')).called(1);
+    },
+  );
+
+  test(
+    'loading again compares with the first page, not the old cursor',
+    () async {
+      var calls = 0;
+      when(() => service.getTopClips(language: '')).thenAnswer((_) async {
+        calls++;
+        return calls == 1
+            ? const ClipFeedPage(items: [], cursor: 'MQ==')
+            : ClipFeedPage(items: [clip('a')], cursor: 'MQ==');
+      });
+      final store = make();
+
+      await store.load();
+      expect(store.hasMore, isFalse);
+      await store.load();
+
+      expect(store.clips.map((c) => c.slug), ['a']);
+      expect(store.hasMore, isTrue);
+    },
+  );
+
+  test('a page that points back to itself ends the feed', () async {
+    when(
+      () => service.getTopClips(language: ''),
+    ).thenAnswer((_) async => ClipFeedPage(items: [clip('a')], cursor: 'MQ=='));
+    when(
+      () => service.getTopClips(cursor: 'MQ==', language: ''),
+    ).thenAnswer((_) async => ClipFeedPage(items: [clip('b')], cursor: 'MQ=='));
+    final store = make();
+
+    await store.load();
+    await store.loadMore();
+
+    expect(store.clips.map((c) => c.slug), ['a', 'b']);
+    expect(store.hasMore, isFalse);
+  });
+
   test('a failing next page ends the feed quietly, once', () async {
     when(
       () => service.getTopClips(language: ''),

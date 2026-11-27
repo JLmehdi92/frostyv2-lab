@@ -103,13 +103,30 @@ void main() {
     final store = build(ListType.top);
     await settle();
     await store.getStreams();
-    expect(store.allStreams.map((s) => s.userId), ['all', 'all']);
+    verify(() => api.getTopStreams(cursor: 'next')).called(1);
+    expect(store.allStreams.map((s) => s.userId), ['all']);
 
     settings.streamLanguage = 'de';
     await settle();
 
     verify(() => api.getTopStreams(language: 'de')).called(1);
     expect(store.allStreams.map((s) => s.userId), ['de']);
+    store.dispose();
+  });
+
+  test('a stream a later page repeats is listed once', () async {
+    when(
+      () => api.getTopStreams(
+        cursor: 'next',
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer((_) async => StreamsTwitch([stream('all'), stream('b')], {}));
+    final store = build(ListType.top);
+    await settle();
+    await store.getStreams();
+
+    expect(store.allStreams.map((s) => s.userId), ['all', 'b']);
+    expect(store.hasMore, isFalse);
     store.dispose();
   });
 

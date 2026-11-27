@@ -70,13 +70,17 @@ abstract class NotificationCenterStoreBase with Store {
         return;
       }
       final known = {for (final n in notifications) n.id};
-      notifications.addAll(
-        page.notifications.where((n) => !known.contains(n.id)),
-      );
+      final added = page.notifications.where((n) => known.add(n.id)).toList();
+      notifications.addAll(added);
       if (notifications.length > maxNotifications) {
         notifications.removeRange(maxNotifications, notifications.length);
       }
-      _cursor = notifications.length >= maxNotifications ? null : page.cursor;
+      _cursor =
+          notifications.length >= maxNotifications ||
+              page.cursor == cursor ||
+              added.isEmpty
+          ? null
+          : page.cursor;
     });
   }
 

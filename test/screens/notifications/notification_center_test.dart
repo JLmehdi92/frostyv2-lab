@@ -59,6 +59,32 @@ void main() {
       expect(store.unreadCount, 0);
     });
 
+    test('a page that adds nothing ends the paging', () async {
+      final store = NotificationCenterStore(
+        fetch: (cursor) async => cursor == null
+            ? OnsiteNotificationPage(notifications: [_n('a')], cursor: 'one')
+            : OnsiteNotificationPage(notifications: [_n('a')], cursor: 'two'),
+        markRead: (_) async => ViewerActionOutcome.done,
+      );
+      await store.refresh();
+      await store.loadMore();
+      expect(store.notifications.map((n) => n.id), ['a']);
+      expect(store.hasMore, isFalse);
+    });
+
+    test('a page that points back to itself ends the paging', () async {
+      final store = NotificationCenterStore(
+        fetch: (cursor) async => OnsiteNotificationPage(
+          notifications: [_n(cursor ?? 'a')],
+          cursor: 'same',
+        ),
+        markRead: (_) async => ViewerActionOutcome.done,
+      );
+      await store.refresh();
+      await store.loadMore();
+      expect(store.hasMore, isFalse);
+    });
+
     test('a refused mark keeps them unread; a failure says so', () async {
       final store = NotificationCenterStore(
         fetch: (_) async => null,
@@ -69,16 +95,12 @@ void main() {
       expect(store.markAllReadLocally(), isEmpty);
 
       final unread = NotificationCenterStore(
-        fetch: (_) async =>
-            OnsiteNotificationPage(notifications: [_n('a')]),
+        fetch: (_) async => OnsiteNotificationPage(notifications: [_n('a')]),
         markRead: (_) async => ViewerActionOutcome.integrityRefused,
       );
       await unread.refresh();
       final ids = unread.markAllReadLocally();
-      expect(
-        await unread.sendRead(ids),
-        ViewerActionOutcome.integrityRefused,
-      );
+      expect(await unread.sendRead(ids), ViewerActionOutcome.integrityRefused);
       expect(unread.unreadCount, 1);
     });
   });
@@ -130,6 +152,36 @@ void main() {
     expect(find.byKey(NotificationCenterScreen.markAllKey), findsNothing);
   });
 
+  testWidgets('a short first page loads the next without a scroll', (
+    tester,
+  ) async {
+    final cursors = <String?>[];
+    final store = NotificationCenterStore(
+      fetch: (cursor) async {
+        cursors.add(cursor);
+        return cursor == null
+            ? OnsiteNotificationPage(notifications: [_n('a')], cursor: 'next')
+            : OnsiteNotificationPage(notifications: [_n('b')]);
+      },
+      markRead: (_) async => ViewerActionOutcome.done,
+    );
+    await pumpLocalized(
+      tester,
+      NotificationCenterScreen(
+        store: store,
+        onOpenChannel: (_) {},
+        now: () => DateTime.utc(2026, 11, 8, 21),
+      ),
+      locale: en,
+    );
+    await tester.pumpAndSettle();
+
+    expect(cursors, [null, 'next']);
+    expect(store.hasMore, isFalse);
+    expect(find.byType(NotificationCenterRow), findsNWidgets(2));
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
   testWidgets('a failure offers to try again', (tester) async {
     final store = NotificationCenterStore(
       fetch: (_) async => null,
@@ -141,7 +193,10 @@ void main() {
       locale: en,
     );
     await tester.pumpAndSettle();
-    expect(find.text('Couldn’t load your Twitch notifications.'), findsOneWidget);
+    expect(
+      find.text('Couldn’t load your Twitch notifications.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('the entry hides without a Twitch web session', (tester) async {
@@ -220,7 +275,10 @@ void main() {
       locale: en,
     );
     await tester.pumpAndSettle();
-    expect(find.textContaining('Couldn’t load your Twitch notification'), findsOneWidget);
+    expect(
+      find.textContaining('Couldn’t load your Twitch notification'),
+      findsOneWidget,
+    );
     expect(find.byKey(TwitchNotificationSettingsGroup.editKey), findsOneWidget);
   });
 }

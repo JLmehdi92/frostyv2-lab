@@ -220,6 +220,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   itemCount: notifications.length + (store.hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index >= notifications.length) {
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => unawaited(store.loadMore()),
+                      );
                       return const Padding(
                         padding: EdgeInsets.all(16),
                         child: Center(
