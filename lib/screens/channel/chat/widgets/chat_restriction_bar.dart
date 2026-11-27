@@ -44,7 +44,7 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
   @override
   void didUpdateWidget(ChatRestrictionBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _sync();
+    if (oldWidget.restriction?.until != widget.restriction?.until) _sync();
   }
 
   void _sync() {

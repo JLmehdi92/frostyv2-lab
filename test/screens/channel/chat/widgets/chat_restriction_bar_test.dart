@@ -35,6 +35,27 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets('a parent rebuild keeps the countdown on its beat', (
+    tester,
+  ) async {
+    final until = now.add(const Duration(seconds: 65));
+    await pump(
+      tester,
+      ChatRestriction(ChatRestrictionKind.timedOut, until: until),
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    await pump(
+      tester,
+      ChatRestriction(ChatRestrictionKind.timedOut, until: until),
+    );
+    expect(find.text('You’re timed out · 1:05'), findsOneWidget);
+
+    now = now.add(const Duration(seconds: 1));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('You’re timed out · 1:04'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('room modes stay out of this line', (tester) async {
     await pump(
       tester,
