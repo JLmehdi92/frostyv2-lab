@@ -31,7 +31,8 @@ class _GoToTimeDialogState extends State<GoToTimeDialog> {
 
   Duration? get _target {
     final parsed = parseGoToTime(_field.text);
-    if (parsed == null || parsed > widget.length) return null;
+    if (parsed == null) return null;
+    if (widget.length > Duration.zero && parsed > widget.length) return null;
     return parsed;
   }
 
@@ -65,6 +66,7 @@ class _GoToTimeDialogState extends State<GoToTimeDialog> {
             hint: formatVodTime(widget.position),
             keyboardType: TextInputType.datetime,
             onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => _go(),
           ),
           if (invalid)
             Text(
