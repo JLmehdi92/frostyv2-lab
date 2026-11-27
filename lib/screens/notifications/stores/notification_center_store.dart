@@ -16,6 +16,8 @@ abstract class NotificationCenterStoreBase with Store {
 
   static const maxNotifications = 300;
 
+  static const maxEmptyPages = 3;
+
   final notifications = ObservableList<OnsiteNotification>();
 
   @readonly
@@ -31,6 +33,8 @@ abstract class NotificationCenterStoreBase with Store {
   String? _cursor;
 
   var _epoch = 0;
+
+  var _emptyPages = 0;
 
   @computed
   int get unreadCount => notifications.where((n) => !n.isRead).length;
@@ -52,6 +56,7 @@ abstract class NotificationCenterStoreBase with Store {
         ..clear()
         ..addAll(page.notifications);
       _cursor = page.cursor;
+      _emptyPages = 0;
     });
   }
 
@@ -63,6 +68,7 @@ abstract class NotificationCenterStoreBase with Store {
     _loading = true;
     final page = await fetch(cursor);
     if (epoch != _epoch) return;
+    var again = false;
     runInAction(() {
       _loading = false;
       if (page == null) {
@@ -75,13 +81,16 @@ abstract class NotificationCenterStoreBase with Store {
       if (notifications.length > maxNotifications) {
         notifications.removeRange(maxNotifications, notifications.length);
       }
+      _emptyPages = added.isEmpty ? _emptyPages + 1 : 0;
       _cursor =
           notifications.length >= maxNotifications ||
               page.cursor == cursor ||
-              added.isEmpty
+              _emptyPages >= maxEmptyPages
           ? null
           : page.cursor;
+      again = added.isEmpty && _cursor != null;
     });
+    if (again) await loadMore();
   }
 
   @action

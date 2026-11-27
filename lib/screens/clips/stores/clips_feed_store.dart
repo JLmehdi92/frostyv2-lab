@@ -62,6 +62,10 @@ abstract class ClipsFeedStoreBase with Store {
   @readonly
   var _hasMore = false;
 
+  var _emptyPages = 0;
+
+  static const maxEmptyPages = 3;
+
   /// What failed when the first page could not be had (null when it
   /// could); the screen says it could not load.
   @readonly
@@ -80,6 +84,7 @@ abstract class ClipsFeedStoreBase with Store {
     position = 0;
     _cursor = null;
     _hasMore = false;
+    _emptyPages = 0;
     _endedOnError = false;
     _leftAt = null;
   }
@@ -98,6 +103,7 @@ abstract class ClipsFeedStoreBase with Store {
         _endedOnError = false;
         _leftAt = null;
         _cursor = null;
+        _emptyPages = 0;
         _add(page);
       });
     } catch (e) {
@@ -116,12 +122,13 @@ abstract class ClipsFeedStoreBase with Store {
     final cursor = _cursor;
     if (!_hasMore || cursor == null || _loading || _loadingMore) return;
     _loadingMore = true;
+    var again = false;
     try {
       final page = await clipService.getTopClips(
         cursor: cursor,
         language: language,
       );
-      runInAction(() => _add(page));
+      runInAction(() => again = !_add(page) && _hasMore);
     } catch (e) {
       debugPrint('Clips feed paging failed: ${e.runtimeType}');
       runInAction(() {
@@ -131,6 +138,7 @@ abstract class ClipsFeedStoreBase with Store {
     } finally {
       runInAction(() => _loadingMore = false);
     }
+    if (again) await loadMore();
   }
 
   /// "Try again" at the end of a feed a failed page ended: that page again.
@@ -142,19 +150,22 @@ abstract class ClipsFeedStoreBase with Store {
     await loadMore();
   }
 
-  void _add(ClipFeedPage page) {
+  bool _add(ClipFeedPage page) {
     final known = {for (final clip in _clips) clip.slug};
     final before = _clips.length;
     for (final clip in page.items) {
       if (_clips.length >= maxClips) break;
       if (known.add(clip.slug)) _clips.add(clip);
     }
+    final added = _clips.length > before;
+    _emptyPages = added ? 0 : _emptyPages + 1;
     final previous = _cursor;
     _cursor = page.cursor;
     _hasMore =
         page.hasMore &&
-        _clips.length > before &&
+        _emptyPages < maxEmptyPages &&
         page.cursor != previous &&
         _clips.length < maxClips;
+    return added;
   }
 }

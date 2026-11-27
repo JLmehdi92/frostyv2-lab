@@ -59,26 +59,53 @@ void main() {
     expect(store.hasMore, isFalse);
   });
 
-  test(
-    'a page that adds nothing ends the feed instead of asking again',
-    () async {
-      when(() => service.getTopClips(language: '')).thenAnswer(
-        (_) async => ClipFeedPage(items: [clip('a')], cursor: 'MQ=='),
-      );
-      when(() => service.getTopClips(cursor: 'MQ==', language: '')).thenAnswer(
-        (_) async => ClipFeedPage(items: [clip('a')], cursor: 'Mg=='),
-      );
-      final store = make();
+  test('pages that add nothing end the feed after three in a row', () async {
+    when(
+      () => service.getTopClips(language: ''),
+    ).thenAnswer((_) async => ClipFeedPage(items: [clip('a')], cursor: 'c0'));
+    var pages = 0;
+    when(
+      () => service.getTopClips(
+        cursor: any(named: 'cursor'),
+        language: '',
+      ),
+    ).thenAnswer((invocation) async {
+      if (invocation.namedArguments[#cursor] == null) {
+        return ClipFeedPage(items: [clip('a')], cursor: 'c0');
+      }
+      pages++;
+      return ClipFeedPage(items: [clip('a')], cursor: 'c$pages');
+    });
+    final store = make();
 
-      await store.load();
-      await store.loadMore();
-      await store.loadMore();
+    await store.load();
+    await store.loadMore();
+    await store.loadMore();
 
-      expect(store.clips.map((c) => c.slug), ['a']);
-      expect(store.hasMore, isFalse);
-      verify(() => service.getTopClips(cursor: 'MQ==', language: '')).called(1);
-    },
-  );
+    expect(store.clips.map((c) => c.slug), ['a']);
+    expect(store.hasMore, isFalse);
+    expect(store.endedOnError, isFalse);
+    expect(pages, ClipsFeedStoreBase.maxEmptyPages);
+  });
+
+  test('a page of clips already shown moves on to the next one', () async {
+    when(
+      () => service.getTopClips(language: ''),
+    ).thenAnswer((_) async => ClipFeedPage(items: [clip('a')], cursor: 'c0'));
+    when(
+      () => service.getTopClips(cursor: 'c0', language: ''),
+    ).thenAnswer((_) async => ClipFeedPage(items: [clip('a')], cursor: 'c1'));
+    when(
+      () => service.getTopClips(cursor: 'c1', language: ''),
+    ).thenAnswer((_) async => ClipFeedPage(items: [clip('b')], cursor: 'c2'));
+    final store = make();
+
+    await store.load();
+    await store.loadMore();
+
+    expect(store.clips.map((c) => c.slug), ['a', 'b']);
+    expect(store.hasMore, isTrue);
+  });
 
   test(
     'loading again compares with the first page, not the old cursor',
@@ -93,7 +120,6 @@ void main() {
       final store = make();
 
       await store.load();
-      expect(store.hasMore, isFalse);
       await store.load();
 
       expect(store.clips.map((c) => c.slug), ['a']);

@@ -59,17 +59,53 @@ void main() {
       expect(store.unreadCount, 0);
     });
 
-    test('a page that adds nothing ends the paging', () async {
+    test(
+      'pages that add nothing end the paging after three in a row',
+      () async {
+        var pages = 0;
+        final store = NotificationCenterStore(
+          fetch: (cursor) async {
+            if (cursor == null) {
+              return OnsiteNotificationPage(
+                notifications: [_n('a')],
+                cursor: 'c0',
+              );
+            }
+            pages++;
+            return OnsiteNotificationPage(
+              notifications: [_n('a')],
+              cursor: 'c$pages',
+            );
+          },
+          markRead: (_) async => ViewerActionOutcome.done,
+        );
+        await store.refresh();
+        await store.loadMore();
+        expect(store.notifications.map((n) => n.id), ['a']);
+        expect(store.hasMore, isFalse);
+        expect(pages, NotificationCenterStoreBase.maxEmptyPages);
+      },
+    );
+
+    test('a page of known notifications moves on to the next one', () async {
       final store = NotificationCenterStore(
-        fetch: (cursor) async => cursor == null
-            ? OnsiteNotificationPage(notifications: [_n('a')], cursor: 'one')
-            : OnsiteNotificationPage(notifications: [_n('a')], cursor: 'two'),
+        fetch: (cursor) async => switch (cursor) {
+          null => OnsiteNotificationPage(
+            notifications: [_n('a')],
+            cursor: 'c0',
+          ),
+          'c0' => OnsiteNotificationPage(
+            notifications: [_n('a')],
+            cursor: 'c1',
+          ),
+          _ => OnsiteNotificationPage(notifications: [_n('b')], cursor: 'c2'),
+        },
         markRead: (_) async => ViewerActionOutcome.done,
       );
       await store.refresh();
       await store.loadMore();
-      expect(store.notifications.map((n) => n.id), ['a']);
-      expect(store.hasMore, isFalse);
+      expect(store.notifications.map((n) => n.id), ['a', 'b']);
+      expect(store.hasMore, isTrue);
     });
 
     test('a page that points back to itself ends the paging', () async {
