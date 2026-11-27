@@ -397,7 +397,9 @@ class _VideoChatState extends State<VideoChat>
     );
     setState(() => _freePreview = preview);
     final tier = await store.freePreviewTier();
-    if (tier != null && identical(_freePreview, preview)) preview.tier = tier;
+    if (tier != null && mounted && identical(_freePreview, preview)) {
+      preview.tier = tier;
+    }
   }
 
   var _landscape = false;
