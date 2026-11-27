@@ -13,6 +13,7 @@ import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/widgets/motion/haptics.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
@@ -327,6 +328,7 @@ class RecommendedChannelTile extends StatelessWidget {
                         imageUrl: url,
                         width: avatar,
                         height: avatar,
+                        memCacheWidth: decodeSize(context, avatar),
                         fit: BoxFit.cover,
                       ),
                       null => InitialAvatar(name: name, size: avatar),
@@ -422,28 +424,23 @@ class _SimilarChannelsSheetState extends State<SimilarChannelsSheet> {
             for (final channel in _channels ?? const <RecommendedChannel>[])
               if (!hidden.containsKey(channel.userId)) channel,
           ];
-          return ListView(
-            shrinkWrap: true,
-            primary: false,
-            padding: const EdgeInsets.only(bottom: 16),
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
-                child: Semantics(
-                  header: true,
-                  child: Text(
-                    l.recommendationsSimilarTitle(name: widget.name),
-                    style: SheetText.subtitle.copyWith(color: colors.text),
-                  ),
-                ),
+          final header = Padding(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+            child: Semantics(
+              header: true,
+              child: Text(
+                l.recommendationsSimilarTitle(name: widget.name),
+                style: SheetText.subtitle.copyWith(color: colors.text),
               ),
-              if (_loading)
-                const Padding(
+            ),
+          );
+          final status = _loading
+              ? const Padding(
                   padding: EdgeInsets.all(24),
                   child: Center(child: CircularProgressIndicator.adaptive()),
                 )
-              else if (channels.isEmpty)
-                Padding(
+              : channels.isEmpty
+              ? Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Text(
                     l.recommendationsEmpty,
@@ -452,9 +449,15 @@ class _SimilarChannelsSheetState extends State<SimilarChannelsSheet> {
                     ),
                   ),
                 )
-              else
-                for (final channel in channels) _row(context, channel),
-            ],
+              : null;
+          return ListView.builder(
+            shrinkWrap: true,
+            primary: false,
+            padding: const EdgeInsets.only(bottom: 16),
+            itemCount: 1 + (status == null ? channels.length : 1),
+            itemBuilder: (context, index) => index == 0
+                ? header
+                : status ?? _row(context, channels[index - 1]),
           );
         },
       ),
@@ -486,6 +489,7 @@ class _SimilarChannelsSheetState extends State<SimilarChannelsSheet> {
                     imageUrl: url,
                     width: 40,
                     height: 40,
+                    memCacheWidth: decodeSize(context, 40),
                     fit: BoxFit.cover,
                   ),
                   null => InitialAvatar(name: name, size: 40),

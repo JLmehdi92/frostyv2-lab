@@ -8,6 +8,7 @@ import 'package:onset/models/profile_edit.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/utils/image_size.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
@@ -286,30 +287,31 @@ class _ClipCommentsSheetState extends State<ClipCommentsSheet> {
               ),
       );
     }
-    return ListView(
+    final footer = _cursor != null || _failed;
+    return ListView.builder(
       shrinkWrap: true,
       primary: false,
       padding: EdgeInsets.zero,
-      children: [
-        for (final comment in _comments) _row(comment, l, colors),
-        if (_cursor != null || _failed)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: _loading
-                ? const Center(
-                    child: SizedBox.square(
-                      dimension: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  )
-                : SheetButton(
-                    key: ClipCommentsSheet.moreKey,
-                    label: _failed ? l.commonRetry : l.clipCommentsMore,
-                    tone: SheetButtonTone.text,
-                    onPressed: () => unawaited(_loadPage(_cursor)),
+      itemCount: _comments.length + (footer ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index < _comments.length) return _row(_comments[index], l, colors);
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: _loading
+              ? const Center(
+                  child: SizedBox.square(
+                    dimension: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-          ),
-      ],
+                )
+              : SheetButton(
+                  key: ClipCommentsSheet.moreKey,
+                  label: _failed ? l.commonRetry : l.clipCommentsMore,
+                  tone: SheetButtonTone.text,
+                  onPressed: () => unawaited(_loadPage(_cursor)),
+                ),
+        );
+      },
     );
   }
 
@@ -336,6 +338,7 @@ class _ClipCommentsSheetState extends State<ClipCommentsSheet> {
                     imageUrl: avatarUrl,
                     width: 32,
                     height: 32,
+                    memCacheWidth: decodeSize(context, 32),
                     fit: BoxFit.cover,
                     placeholder: (_, _) => avatar,
                     errorWidget: (_, _, _) => avatar,

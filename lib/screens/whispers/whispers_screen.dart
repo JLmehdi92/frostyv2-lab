@@ -740,24 +740,32 @@ class _WhispersListState extends State<WhispersList> {
           );
         }
         final shownArchived = _showArchived ? archived : <WhisperThread>[];
-        return ListView(
+        final toggle = archived.isNotEmpty ? 1 : 0;
+        return ListView.builder(
           padding: EdgeInsets.only(
             top: padding.top + (widget.rounded ? 0 : 6),
             bottom: padding.bottom + 24,
             left: padding.left,
             right: padding.right,
           ),
-          children: [
-            note,
-            for (final thread in threads) _row(context, thread),
-            if (archived.isNotEmpty)
-              _ArchivedToggle(
+          itemCount: 1 + threads.length + toggle + shownArchived.length,
+          itemBuilder: (context, index) {
+            if (index == 0) return note;
+            final rest = index - 1 - threads.length;
+            if (rest < 0) {
+              final thread = threads[index - 1];
+              return Observer(builder: (context) => _row(context, thread));
+            }
+            if (rest < toggle) {
+              return _ArchivedToggle(
                 count: archived.length,
                 expanded: _showArchived,
                 onTap: () => setState(() => _showArchived = !_showArchived),
-              ),
-            for (final thread in shownArchived) _row(context, thread),
-          ],
+              );
+            }
+            final thread = shownArchived[rest - toggle];
+            return Observer(builder: (context) => _row(context, thread));
+          },
         );
       },
     );
