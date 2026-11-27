@@ -47,6 +47,14 @@ mixin _$ChatStore on ChatStoreBase, Store {
         () => super.matchingEmotes,
         name: 'ChatStoreBase.matchingEmotes',
       )).value;
+  Computed<List<(String, Emote)>>? _$_emoteSearchIndexComputed;
+
+  @override
+  List<(String, Emote)> get _emoteSearchIndex =>
+      (_$_emoteSearchIndexComputed ??= Computed<List<(String, Emote)>>(
+        () => super._emoteSearchIndex,
+        name: 'ChatStoreBase._emoteSearchIndex',
+      )).value;
   Computed<List<String>>? _$matchingChattersComputed;
 
   @override

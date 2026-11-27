@@ -62,7 +62,7 @@ class ChatStore = ChatStoreBase with _$ChatStore;
 
 abstract class ChatStoreBase with Store {
   /// The total maximum amount of messages in chat.
-  static const _messageLimit = 5000;
+  static final _messageLimit = isLowRamDevice() ? 3000 : 5000;
 
   /// The maximum ammount of messages to render when autoscroll is enabled.
   static const _renderMessageLimit = 100;
@@ -1020,12 +1020,21 @@ abstract class ChatStoreBase with Store {
     if (searchTerm.isEmpty) return const [];
 
     return [
+      for (final (name, emote) in _emoteSearchIndex)
+        if (name.contains(searchTerm)) emote,
+    ];
+  }
+
+  @computed
+  List<(String, Emote)> get _emoteSearchIndex => [
+    for (final emote in [
       ...assetsStore.userEmoteToObject.values,
       ...assetsStore.bttvEmotes,
       ...assetsStore.ffzEmotes,
       ...assetsStore.sevenTVEmotes,
-    ].where((emote) => emote.name.toLowerCase().contains(searchTerm)).toList();
-  }
+    ])
+      (emote.name.toLowerCase(), emote),
+  ];
 
   /// Chatters matching the current mention autocomplete search term.
   @computed
