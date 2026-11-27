@@ -28,23 +28,29 @@ class SettledBlur extends StatefulWidget {
 
 class _SettledBlurState extends State<SettledBlur> {
   Animation<double>? _animation;
+  var _covered = false;
   var _settled = true;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final animation = ModalRoute.of(context)?.animation;
-    if (animation == _animation) return;
-    _animation?.removeStatusListener(_onStatus);
-    _animation = animation?..addStatusListener(_onStatus);
-    _settled = _isSettled(animation?.status);
+    final route = ModalRoute.of(context);
+    _covered = route != null && !route.isCurrent;
+    final animation = route?.animation;
+    if (animation != _animation) {
+      _animation?.removeStatusListener(_onStatus);
+      _animation = animation?..addStatusListener(_onStatus);
+    }
+    _settled = _isSettled();
   }
 
-  static bool _isSettled(AnimationStatus? status) =>
-      status == null || status == AnimationStatus.completed;
+  bool _isSettled() {
+    final status = _animation?.status;
+    return !_covered && (status == null || status == AnimationStatus.completed);
+  }
 
-  void _onStatus(AnimationStatus status) {
-    final settled = _isSettled(status);
+  void _onStatus(AnimationStatus _) {
+    final settled = _isSettled();
     if (settled != _settled && mounted) setState(() => _settled = settled);
   }
 

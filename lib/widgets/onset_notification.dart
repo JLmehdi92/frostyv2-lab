@@ -59,6 +59,7 @@ class OnsetNotification extends StatelessWidget {
             gradientDirection: showGradient
                 ? GradientDirection.up
                 : GradientDirection.none,
+            onlyWhenSettled: true,
             padding: padding,
             child: row,
           );

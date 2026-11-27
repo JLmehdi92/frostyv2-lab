@@ -577,6 +577,7 @@ class ChatBottomBar extends StatelessWidget {
               )
             : BlurredContainer(
                 gradientDirection: GradientDirection.down,
+                onlyWhenSettled: true,
                 padding: EdgeInsets.only(
                   bottom: needsBottomPadding
                       ? MediaQuery.paddingOf(context).bottom

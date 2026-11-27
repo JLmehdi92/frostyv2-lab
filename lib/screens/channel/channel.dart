@@ -1765,6 +1765,7 @@ class _VideoChatState extends State<VideoChat>
             ],
             flexibleSpace: BlurredContainer(
               gradientDirection: GradientDirection.up,
+              onlyWhenSettled: true,
               child: const SizedBox.expand(),
             ),
           );
