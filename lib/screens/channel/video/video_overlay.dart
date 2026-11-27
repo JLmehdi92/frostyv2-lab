@@ -687,87 +687,94 @@ class VideoOverlay extends StatelessWidget {
             // One scrollable list holds the qualities and the IVS
             // measurement entries so the sheet never overflows in landscape.
             Flexible(
-              child: Observer(
-                builder: (context) => ListView(
-                  shrinkWrap: true,
-                  primary: false,
-                  padding: const EdgeInsets.only(bottom: 18),
-                  children: [
-                    ...videoStore.availableStreamQualities.map((quality) {
-                      final selected = videoStore.streamQuality == quality;
-                      final bitrate = switch (videoStore) {
-                        final IvsVideoStore ivs => ivs.qualityLadder.bitrateOf(
-                          quality,
-                        ),
-                        _ => null,
-                      };
-                      return Semantics(
-                        selected: selected,
-                        inMutuallyExclusiveGroup: true,
-                        child: SheetRow(
-                          label: qualityLabel(quality, context.l10n),
-                          detail: bitrate == null
-                              ? null
-                              : formatBitrate(bitrate, context.l10n),
-                          minHeight: 46,
-                          trailing: AnimatedOpacity(
-                            opacity: selected ? 1 : 0,
-                            duration: const Duration(milliseconds: 160),
-                            // A selected check is one of the four states
-                            // the accent is reserved for.
-                            child: SheetGlyph(
-                              SheetGlyphKind.check,
-                              strokeWidth: 2.4,
-                              color: accent,
-                            ),
-                          ),
-                          onTap: () {
-                            videoStore.setStreamQuality(quality);
-                            SharedPreferences.getInstance().then(
-                              (prefs) => prefs.setString(
-                                'last_stream_quality',
-                                quality,
+              child: ListView(
+                shrinkWrap: true,
+                primary: false,
+                padding: const EdgeInsets.only(bottom: 18),
+                children: [
+                  Observer(
+                    builder: (context) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ...videoStore.availableStreamQualities.map((quality) {
+                          final selected = videoStore.streamQuality == quality;
+                          final bitrate = switch (videoStore) {
+                            final IvsVideoStore ivs =>
+                              ivs.qualityLadder.bitrateOf(quality),
+                            _ => null,
+                          };
+                          return Semantics(
+                            selected: selected,
+                            inMutuallyExclusiveGroup: true,
+                            child: SheetRow(
+                              label: qualityLabel(quality, context.l10n),
+                              detail: bitrate == null
+                                  ? null
+                                  : formatBitrate(bitrate, context.l10n),
+                              minHeight: 46,
+                              trailing: AnimatedOpacity(
+                                opacity: selected ? 1 : 0,
+                                duration: const Duration(milliseconds: 160),
+                                // A selected check is one of the four states
+                                // the accent is reserved for.
+                                child: SheetGlyph(
+                                  SheetGlyphKind.check,
+                                  strokeWidth: 2.4,
+                                  color: accent,
+                                ),
                               ),
-                            );
-                            Navigator.pop(context);
-                          },
-                        ),
-                      );
-                    }),
-                    if (videoStore case final IvsVideoStore ivs)
-                      for (final quality
-                          in ivs.qualityLadder.unavailableBesides(
-                            ivs.availableStreamQualities,
-                          ))
-                        SheetRow(
-                          label: qualityLabel(quality.name, context.l10n),
-                          detail: unavailableQualityDetail(
-                            quality,
-                            context.l10n,
-                          ),
-                          minHeight: 46,
-                        ),
-                    if (videoStore case final IvsVideoStore ivs) ...[
-                      SheetSectionLabel(
-                        context.l10n.playerVolume,
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                              onTap: () {
+                                videoStore.setStreamQuality(quality);
+                                SharedPreferences.getInstance().then(
+                                  (prefs) => prefs.setString(
+                                    'last_stream_quality',
+                                    quality,
+                                  ),
+                                );
+                                Navigator.pop(context);
+                              },
+                            ),
+                          );
+                        }),
+                        if (videoStore case final IvsVideoStore ivs)
+                          for (final quality
+                              in ivs.qualityLadder.unavailableBesides(
+                                ivs.availableStreamQualities,
+                              ))
+                            SheetRow(
+                              label: qualityLabel(quality.name, context.l10n),
+                              detail: unavailableQualityDetail(
+                                quality,
+                                context.l10n,
+                              ),
+                              minHeight: 46,
+                            ),
+                      ],
+                    ),
+                  ),
+                  if (videoStore case final IvsVideoStore ivs) ...[
+                    SheetSectionLabel(
+                      context.l10n.playerVolume,
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                    ),
+                    // Own Observer so dragging the slider does not rebuild
+                    // the whole quality list.
+                    Observer(
+                      builder: (context) => VolumeRow(
+                        muted: ivs.muted,
+                        volume: ivs.volume,
+                        onToggleMute: ivs.toggleMute,
+                        onVolumeChanged: ivs.setVolume,
                       ),
-                      // Own Observer so dragging the slider does not rebuild
-                      // the whole quality list.
-                      Observer(
-                        builder: (context) => VolumeRow(
-                          muted: ivs.muted,
-                          volume: ivs.volume,
-                          onToggleMute: ivs.toggleMute,
-                          onVolumeChanged: ivs.setVolume,
-                        ),
-                      ),
-                      CaptionMenu(captions: ivs.captions),
-                      SheetSectionLabel(
-                        context.l10n.livePlayerMeasurement,
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-                      ),
-                      Semantics(
+                    ),
+                    CaptionMenu(captions: ivs.captions),
+                    SheetSectionLabel(
+                      context.l10n.livePlayerMeasurement,
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                    ),
+                    Observer(
+                      builder: (context) => Semantics(
                         toggled: ivs.statsVisible,
                         child: SheetRow(
                           glyph: SheetGlyphKind.poll,
@@ -786,25 +793,25 @@ class VideoOverlay extends StatelessWidget {
                           },
                         ),
                       ),
-                      SheetRow(
-                        glyph: SheetGlyphKind.refresh,
-                        label: context.l10n.livePlayerResetStats,
-                        detail: context.l10n.livePlayerResetStatsDetail,
-                        onTap: () {
-                          ivs.resetStats();
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
-                    if (Platform.isAndroid)
-                      ..._playbackRows(context, videoStore, screenContext),
+                    ),
                     SheetRow(
-                      glyph: SheetGlyphKind.share,
-                      label: context.l10n.livePlayerShareChannel,
-                      onTap: () => _share(context),
+                      glyph: SheetGlyphKind.refresh,
+                      label: context.l10n.livePlayerResetStats,
+                      detail: context.l10n.livePlayerResetStatsDetail,
+                      onTap: () {
+                        ivs.resetStats();
+                        Navigator.pop(context);
+                      },
                     ),
                   ],
-                ),
+                  if (Platform.isAndroid)
+                    ..._playbackRows(context, videoStore, screenContext),
+                  SheetRow(
+                    glyph: SheetGlyphKind.share,
+                    label: context.l10n.livePlayerShareChannel,
+                    onTap: () => _share(context),
+                  ),
+                ],
               ),
             ),
           ],
@@ -822,43 +829,50 @@ List<Widget> _playbackRows(
 ) {
   final l = context.l10n;
   final settings = videoStore.settingsStore;
-  final floatingIsNew = settings.isNewFeature(NewFeature.floatingPlayer.name);
   return [
     SheetSectionLabel(
       l.livePlayerPlayback,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
     ),
     if (videoStore case final IvsVideoStore ivs)
-      SheetRow(
-        key: const ValueKey('pop-out'),
-        leading: const Icon(Icons.open_in_new_rounded, size: 22),
-        label: l.popOutButton,
-        trailing: floatingIsNew ? const NewFeaturePill() : null,
-        onTap: () {
-          settings.markFeatureSeen(NewFeature.floatingPlayer.name);
-          Navigator.pop(context);
-          unawaited(popOutLive(screenContext, ivs));
-        },
+      Observer(
+        builder: (context) => SheetRow(
+          key: const ValueKey('pop-out'),
+          leading: const Icon(Icons.open_in_new_rounded, size: 22),
+          label: l.popOutButton,
+          trailing: settings.isNewFeature(NewFeature.floatingPlayer.name)
+              ? const NewFeaturePill()
+              : null,
+          onTap: () {
+            settings.markFeatureSeen(NewFeature.floatingPlayer.name);
+            Navigator.pop(context);
+            unawaited(popOutLive(screenContext, ivs));
+          },
+        ),
       ),
-    SheetRow(
-      label: l.settingsAutoPip,
-      trailing: OnsetSwitch(
-        value: settings.autoPictureInPicture,
-        semanticsLabel: l.settingsAutoPip,
-        onChanged: (on) => settings.autoPictureInPicture = on,
+    Observer(
+      builder: (context) => SheetRow(
+        label: l.settingsAutoPip,
+        trailing: OnsetSwitch(
+          value: settings.autoPictureInPicture,
+          semanticsLabel: l.settingsAutoPip,
+          onChanged: (on) => settings.autoPictureInPicture = on,
+        ),
+        onTap: () =>
+            settings.autoPictureInPicture = !settings.autoPictureInPicture,
       ),
-      onTap: () =>
-          settings.autoPictureInPicture = !settings.autoPictureInPicture,
     ),
     if (videoStore is IvsVideoStore)
-      SheetRow(
-        label: l.settingsBackgroundAudio,
-        trailing: OnsetSwitch(
-          value: settings.backgroundAudio,
-          semanticsLabel: l.settingsBackgroundAudio,
-          onChanged: (on) => settings.backgroundAudio = on,
+      Observer(
+        builder: (context) => SheetRow(
+          label: l.settingsBackgroundAudio,
+          trailing: OnsetSwitch(
+            value: settings.backgroundAudio,
+            semanticsLabel: l.settingsBackgroundAudio,
+            onChanged: (on) => settings.backgroundAudio = on,
+          ),
+          onTap: () => settings.backgroundAudio = !settings.backgroundAudio,
         ),
-        onTap: () => settings.backgroundAudio = !settings.backgroundAudio,
       ),
   ];
 }
