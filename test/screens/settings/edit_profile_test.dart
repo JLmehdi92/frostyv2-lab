@@ -369,6 +369,43 @@ void main() {
     );
   });
 
+  testWidgets('a refresh that fails after an upload keeps the profile', (
+    tester,
+  ) async {
+    final base = profileActions(
+      Calls(),
+      picked: ProfileImagePick(
+        ProfileImageFile(
+          bytes: Uint8List.fromList([1]),
+          format: ProfileImageFormat.png,
+        ),
+      ),
+    );
+    var reads = 0;
+    final actions = EditProfileActions(
+      profile: () async => ++reads == 1 ? profileFixture : null,
+      renameStatus: base.renameStatus,
+      socialLinks: () async => reads == 1 ? const [linkFixture] : null,
+      availability: base.availability,
+      setDisplayName: base.setDisplayName,
+      setDescription: base.setDescription,
+      changeUsername: base.changeUsername,
+      addLink: base.addLink,
+      updateLink: base.updateLink,
+      deleteLink: base.deleteLink,
+      pickImage: base.pickImage,
+      uploadImage: base.uploadImage,
+    );
+    await pumpEditProfile(tester, actions);
+    await tester.scrollUntilVisible(find.byKey(EditProfile.avatarKey), 100);
+    await tester.tap(find.byKey(EditProfile.avatarKey));
+    await tester.pumpAndSettle();
+
+    expect(reads, 2);
+    expect(find.byKey(EditProfile.avatarKey), findsOneWidget);
+    expect(find.text('YouTube'), findsOneWidget);
+  });
+
   testWidgets('an unusable image uploads nothing and says why', (tester) async {
     final calls = Calls();
     await pumpEditProfile(

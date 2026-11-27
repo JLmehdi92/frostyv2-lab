@@ -184,7 +184,7 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Future<void> _load() async {
-    final profile = await _actions.profile();
+    final profile = await _actions.profile() ?? _profile;
     if (!mounted) return;
     setState(() {
       _profile = profile;
@@ -197,8 +197,8 @@ class _EditProfileState extends State<EditProfile> {
     ]);
     if (!mounted) return;
     setState(() {
-      _links = results[0] as List<SocialLink>?;
-      _renameStatus = results[1] as LoginRenameStatus?;
+      _links = results[0] as List<SocialLink>? ?? _links;
+      _renameStatus = results[1] as LoginRenameStatus? ?? _renameStatus;
       _loading = false;
     });
   }
