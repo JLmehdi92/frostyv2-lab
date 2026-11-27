@@ -5,10 +5,13 @@ import 'package:onset/screens/channel/video/latency_stats.dart';
 /// Normalises a quality name so names saved by any engine compare equal
 /// (e.g. the web player's `1080p60 (source)` and IVS's `1080p60`).
 String normalizeQualityName(String name) => name
-    .replaceAll(RegExp(r'\s*\(.*?\)'), '')
+    .replaceAll(_qualityParenthesis, '')
     .trim()
     .toLowerCase()
-    .replaceAll(RegExp(r'\s+'), '_');
+    .replaceAll(_qualitySpaces, '_');
+
+final _qualityParenthesis = RegExp(r'\s*\(.*?\)');
+final _qualitySpaces = RegExp(r'\s+');
 
 /// Twitch's name for the sound-only rendition.
 const kAudioOnlyQuality = 'audio_only';
@@ -71,9 +74,11 @@ bool isQualityDownSwitch(String from, String to) {
   return b.$1 < a.$1 || (b.$1 == a.$1 && b.$2 < a.$2);
 }
 
+final _qualityHeight = RegExp(r'(\d+)p(\d+)?');
+
 (int, int)? _qualityRank(String name) {
   if (normalizeQualityName(name) == kAudioOnlyQuality) return (0, 0);
-  final match = RegExp(r'(\d+)p(\d+)?').firstMatch(name);
+  final match = _qualityHeight.firstMatch(name);
   if (match == null) return null;
   return (int.parse(match.group(1)!), int.parse(match.group(2) ?? '30'));
 }

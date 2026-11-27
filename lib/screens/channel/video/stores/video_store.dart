@@ -25,6 +25,8 @@ part 'video_store.g.dart';
 
 class VideoStore = VideoStoreBase with _$VideoStore implements PlayerController;
 
+final _nonNumeric = RegExp(r'[^0-9.]');
+
 abstract class VideoStoreBase
     with Store
     implements WebPagePlayer, StreamInfoStatus, StreamPushTarget {
@@ -79,10 +81,7 @@ abstract class VideoStoreBase
             if (!settingsStore.autoSyncChatDelay) return;
 
             // Parse latency from abbreviated format: "5s" -> 5.0
-            final numericPart = receivedLatency.replaceAll(
-              RegExp(r'[^0-9.]'),
-              '',
-            );
+            final numericPart = receivedLatency.replaceAll(_nonNumeric, '');
             final latencyAsDouble = double.tryParse(numericPart);
 
             if (latencyAsDouble != null) {
@@ -500,7 +499,7 @@ $kTwitchWebGateShownJs
           // value (e.g. from showLatency tracking), apply it immediately instead
           // of waiting for the next tracker cycle (up to 60s).
           if (autoSync && _latency != null) {
-            final numericPart = _latency!.replaceAll(RegExp(r'[^0-9.]'), '');
+            final numericPart = _latency!.replaceAll(_nonNumeric, '');
             final latencyAsDouble = double.tryParse(numericPart);
             if (latencyAsDouble != null) {
               settingsStore.syncedChatDelay = latencyAsDouble;

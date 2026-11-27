@@ -696,16 +696,17 @@ const _englishMonths = [
   'December',
 ];
 
+final _englishDay = RegExp(r'^([A-Z][a-z]+) (\d{1,2}), (\d{4})$');
+final _frenchDay = RegExp(
+  '^(1er|\\d{1,2})$_dateSpace(\\p{L}+)$_dateSpace(\\d{4})\$',
+  unicode: true,
+);
+
 /// The day a version's [date] names ("October 29, 2026", "29 octobre
 /// 2026"), or null when it does not read as one.
 DateTime? releaseDay(String date) {
-  final english = RegExp(
-    r'^([A-Z][a-z]+) (\d{1,2}), (\d{4})$',
-  ).firstMatch(date);
-  final french = RegExp(
-    '^(1er|\\d{1,2})$_dateSpace(\\p{L}+)$_dateSpace(\\d{4})\$',
-    unicode: true,
-  ).firstMatch(_composed(date));
+  final english = _englishDay.firstMatch(date);
+  final french = _frenchDay.firstMatch(_composed(date));
   final (int? day, int month, int? year) = switch ((english, french)) {
     (final m?, _) => (
       int.tryParse(m[2]!),
@@ -731,12 +732,15 @@ DateTime? releaseDay(String date) {
 String _composed(String text) {
   if (!text.contains(_combining)) return text;
   return text.replaceAllMapped(
-    RegExp('([aeiouyAEIOUYcC])([\u0300\u0301\u0302\u0308\u0327])'),
+    _decomposed,
     (match) => _composedLetters[match[0]] ?? match[0]!,
   );
 }
 
 final _combining = RegExp('[\u0300\u0301\u0302\u0308\u0327]');
+final _decomposed = RegExp(
+  '([aeiouyAEIOUYcC])([\u0300\u0301\u0302\u0308\u0327])',
+);
 
 /// The letters French writes with an accent, decomposed to composed.
 const _composedLetters = {
@@ -770,11 +774,14 @@ const _composedLetters = {
   'C\u0327': 'Ç',
 };
 
+final _lineBreak = RegExp(r'\r?\n');
+final _headingMarks = RegExp(r'^#+\s*');
+
 /// Reads the release notes' Markdown (assets/release-notes.md): versions,
 /// their dates, sections, points, rules; anything else stays a paragraph.
 List<ReleaseNotesBlock> parseReleaseNotes(String markdown) {
   final blocks = <ReleaseNotesBlock>[];
-  final lines = _composed(markdown).split(RegExp(r'\r?\n'));
+  final lines = _composed(markdown).split(_lineBreak);
   for (var i = 0; i < lines.length; i++) {
     final raw = lines[i];
     final line = raw.trim();
@@ -819,7 +826,7 @@ List<ReleaseNotesBlock> parseReleaseNotes(String markdown) {
               ),
       );
     } else {
-      blocks.add(ReleaseParagraph(line.replaceFirst(RegExp(r'^#+\s*'), '')));
+      blocks.add(ReleaseParagraph(line.replaceFirst(_headingMarks, '')));
     }
   }
   return blocks;
