@@ -139,6 +139,7 @@ class HermesClient {
     try {
       final channel = _connect(url);
       _channel = channel;
+      channel.ready.ignore();
 
       _socketSubscription = channel.stream.listen(
         _onFrame,
@@ -416,7 +417,7 @@ class HermesClient {
     // that Hermes drops would come back in lockstep.
     final base = min(
       _maxBackoff.inMilliseconds,
-      500 * pow(2, _reconnectAttempts).toInt(),
+      500 * pow(2, min(_reconnectAttempts, 7)).toInt(),
     );
     final delay = Duration(
       milliseconds: base ~/ 2 + _random.nextInt(base ~/ 2 + 1),

@@ -19,6 +19,11 @@ class _FakeSocket implements WebSocketChannel {
   @override
   WebSocketSink get sink => _sink;
 
+  Future<void> readyFuture = Future.value();
+
+  @override
+  Future<void> get ready => readyFuture;
+
   bool get closed => _sink.closed;
 
   /// What the client sent, decoded.
@@ -395,6 +400,24 @@ void main() {
       });
     });
 
+    test('an hour and more offline keeps trying, a minute apart at most', () {
+      fakeAsync((async) {
+        unawaited(client.subscribe('goals.1'));
+        async.flushMicrotasks();
+        for (var attempt = 0; attempt < 80; attempt++) {
+          final before = sockets.length;
+          sockets.last.hangUp();
+          async.flushMicrotasks();
+          async.elapse(const Duration(seconds: 60));
+          expect(
+            sockets.length,
+            greaterThan(before),
+            reason: 'attempt $attempt',
+          );
+        }
+      });
+    });
+
     test('a reconnect frame moves without charging the backoff', () {
       fakeAsync((async) {
         unawaited(client.subscribe('goals.1'));
@@ -643,6 +666,21 @@ void main() {
     await client.resume();
     expect(sockets, hasLength(2));
     expect(client.isConnected, isTrue);
+  });
+
+  test('a socket that cannot connect reports nothing to the zone', () async {
+    final failing = HermesClient(
+      connect: (_) {
+        final socket = _FakeSocket()
+          ..readyFuture = Future.error(Exception('offline'));
+        sockets.add(socket);
+        return socket;
+      },
+    );
+    addTearDown(failing.dispose);
+    await failing.subscribe('goals.1');
+    await pumpEventQueue();
+    expect(sockets, hasLength(1));
   });
 
   test('resuming without topics opens nothing', () async {
