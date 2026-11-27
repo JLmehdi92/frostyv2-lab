@@ -8,6 +8,7 @@ import 'package:onset/apis/twitch_stream_service.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/screens/channel/double_tap.dart';
 import 'package:onset/screens/channel/landscape_chat_cycle.dart';
 import 'package:onset/screens/channel/tablet_video_column.dart';
 import 'package:onset/screens/channel/video/ivs_recovery.dart';
@@ -67,31 +68,57 @@ const _chatKey = ValueKey('chat');
 /// player under the chat in full screen, beside it otherwise, a tablet's
 /// video column with its info area unless the double tap opened the side
 /// column. The double tap and the overlay's own buttons are the real ones.
+class _TogglingPlayer extends FakePlayer {
+  _TogglingPlayer({super.settings, super.stream});
+
+  @override
+  void handleVideoTap() {
+    super.handleVideoTap();
+    overlay = !overlayVisible;
+  }
+}
+
 class _Screen extends StatelessWidget {
   const _Screen({
     required this.cycle,
     required this.player,
     required this.chat,
     required this.playerKey,
+    required this.taps,
   });
 
   final LandscapeChatCycle cycle;
   final PlayerController player;
   final ChatStore chat;
   final GlobalKey playerKey;
+  final VideoTaps taps;
 
   @override
   Widget build(BuildContext context) {
     final settings = player.settingsStore;
     final gestures = GestureDetector(
-      onDoubleTap: context.isLandscape ? cycle.next : null,
-      onTap: player.handleVideoTap,
-      child: ColoredBox(
-        color: Colors.transparent,
-        child: VideoOverlay(
-          videoStore: player,
-          chatStore: chat,
-          settingsStore: settings,
+      onTapUp: (details) {
+        if (context.isLandscape) {
+          taps.tap(details.globalPosition);
+        } else {
+          player.handleVideoTap();
+        }
+      },
+      child: Observer(
+        builder: (context) => AnimatedOpacity(
+          opacity: player.overlayVisible ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: ColoredBox(
+            color: Colors.transparent,
+            child: IgnorePointer(
+              ignoring: !player.overlayVisible,
+              child: VideoOverlay(
+                videoStore: player,
+                chatStore: chat,
+                settingsStore: settings,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -376,6 +403,11 @@ void main() {
       final controller =
           player?.call(settings) ??
           FakePlayer(settings: settings, stream: fakeStream());
+      final taps = VideoTaps(
+        onSingle: controller.handleVideoTap,
+        onDouble: cycle.next,
+      );
+      addTearDown(taps.cancel);
       const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
       await tester.pumpWidget(
         Provider<TwitchApi>.value(
@@ -387,6 +419,7 @@ void main() {
               player: controller,
               chat: chat,
               playerKey: GlobalKey(),
+              taps: taps,
             ),
           ),
         ),
@@ -409,11 +442,10 @@ void main() {
       await tester.pump();
     }
 
-    /// A button over the video: it answers once the double tap has given
-    /// up (the video's double tap waits for a second tap first).
+    /// A button over the video: it answers at once, the video's double tap
+    /// never holds it back.
     Future<void> press(WidgetTester tester, String tooltip) async {
       await tester.tap(find.byTooltip(tooltip));
-      await tester.pump(kDoubleTapTimeout);
       await tester.pump();
     }
 
@@ -573,6 +605,66 @@ void main() {
         await done(tester);
       },
     );
+
+    Future<(LandscapeChatCycle, FakePlayer)> pumpToggling(
+      WidgetTester tester, {
+      required bool shown,
+    }) async {
+      late FakePlayer player;
+      final (cycle, _) = await pump(
+        tester,
+        const Size(1600, 1066),
+        player: (settings) =>
+            player = _TogglingPlayer(settings: settings, stream: fakeStream())
+              ..overlay = shown,
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      return (cycle, player);
+    }
+
+    testWidgets('a single tap toggles the controls once the window is over', (
+      tester,
+    ) async {
+      final (_, player) = await pumpToggling(tester, shown: false);
+
+      await tester.tapAt(const Offset(300, 300));
+      await tester.pump();
+      expect(player.overlayVisible, isFalse);
+
+      await tester.pump(kDoubleTapTimeout);
+      expect(player.overlayVisible, isTrue);
+      expect(player.calls.where((c) => c == 'tap'), hasLength(1));
+      await done(tester);
+    });
+
+    testWidgets('a double tap on play/pause cycles the chat, nothing else', (
+      tester,
+    ) async {
+      final (cycle, player) = await pumpToggling(tester, shown: false);
+      final centre = tester.getCenter(find.byTooltip('Pause'));
+
+      await tester.tapAt(centre);
+      await tester.pump(const Duration(milliseconds: 90));
+      await tester.tapAt(centre);
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(cycle.plainSide, isTrue);
+      expect(player.overlayVisible, isFalse);
+      expect(player.calls, isNot(contains('pausePlay')));
+      expect(player.calls, isNot(contains('tap')));
+      await done(tester);
+    });
+
+    testWidgets('a button over the video answers at once', (tester) async {
+      final (_, player) = await pumpToggling(tester, shown: true);
+
+      await tester.tap(find.byTooltip('Pause'));
+      await tester.pump();
+
+      expect(player.calls, ['pausePlay']);
+      expect(player.overlayVisible, isTrue);
+      await done(tester);
+    });
 
     testWidgets('phone: the side column it always had', (tester) async {
       final (cycle, settings) = await pump(tester, const Size(800, 360));

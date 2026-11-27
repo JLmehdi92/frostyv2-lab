@@ -47,6 +47,7 @@ import 'package:onset/screens/channel/community_highlights/raid_departure.dart';
 import 'package:onset/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/raid_heading_overlay.dart';
+import 'package:onset/screens/channel/double_tap.dart';
 import 'package:onset/screens/channel/followed_channels_drawer.dart';
 import 'package:onset/screens/channel/goals/creator_goal_banner.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
@@ -265,6 +266,11 @@ class _VideoChatState extends State<VideoChat>
   /// the side column on screen is the one it opened (full screen beside
   /// the chat: no info area under a tablet's video).
   late final _chatCycle = LandscapeChatCycle(_chatTabsStore.settingsStore);
+
+  late final _videoTaps = VideoTaps(
+    onSingle: () => _videoStore.handleVideoTap(),
+    onDouble: _cycleLandscapeChatMode,
+  );
 
   /// Where the mature-content warning stands. Pending until it has read
   /// the labels: the stream plays, but it may not leave the screen yet.
@@ -802,6 +808,7 @@ class _VideoChatState extends State<VideoChat>
   void initState() {
     super.initState();
     _alive.add(this);
+    _pinching.addListener(_cancelVideoTapOnPinch);
     _hideVideoForChatOnlyStart();
 
     // Build the player first — this adopts the live player back from the mini
@@ -1429,6 +1436,10 @@ class _VideoChatState extends State<VideoChat>
   /// Convenience getter for the currently active chat store.
   ChatStore get _chatStore => _chatTabsStore.activeChatStore;
 
+  void _cancelVideoTapOnPinch() {
+    if (_pinching.value) _videoTaps.cancel();
+  }
+
   /// Cycles the landscape chat display the way the Twitch app does on a
   /// double-tap of the video: chat overlay → side column → hidden → overlay.
   void _cycleLandscapeChatMode() {
@@ -1468,15 +1479,18 @@ class _VideoChatState extends State<VideoChat>
 
     final gestures = GestureDetector(
       onLongPress: _videoStore.handleToggleOverlay,
-      onDoubleTap: context.isLandscape ? _cycleLandscapeChatMode : null,
-      onTap: () {
+      onTapUp: (details) {
         // The end of a pinch is not a tap.
         if (_pinching.value) return;
         if (_chatStore.assetsStore.showEmoteMenu) {
+          _videoTaps.cancel();
           _chatStore.assetsStore.showEmoteMenu = false;
         } else {
           if (_chatStore.textFieldFocusNode.hasFocus) {
+            _videoTaps.cancel();
             _chatStore.unfocusInput();
+          } else if (context.isLandscape) {
+            _videoTaps.tap(details.globalPosition);
           } else {
             _videoStore.handleVideoTap();
           }
@@ -2244,6 +2258,7 @@ class _VideoChatState extends State<VideoChat>
 
   @override
   void dispose() {
+    _videoTaps.cancel();
     _restoreVideoAfterChatOnlyStart();
     // Remove observer for app lifecycle events
     WidgetsBinding.instance.removeObserver(this);
