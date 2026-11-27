@@ -110,6 +110,10 @@ bool isIPad() {
   return _isIPad;
 }
 
+var _lowRam = false;
+
+bool isLowRamDevice() => _lowRam;
+
 Future<void> initUtils() async {
   // Determine whether the device is an iPad or not.
   if (Platform.isIOS) {
@@ -117,6 +121,14 @@ Future<void> initUtils() async {
     final info = await deviceInfo.iosInfo;
     if (info.model.toLowerCase().contains('ipad')) {
       _isIPad = true;
+    }
+  }
+  if (Platform.isAndroid) {
+    try {
+      final info = await DeviceInfoPlugin().androidInfo;
+      _lowRam = info.isLowRamDevice || info.physicalRamSize <= 3072;
+    } catch (e) {
+      debugPrint('Device memory unknown: ${e.runtimeType}');
     }
   }
 }

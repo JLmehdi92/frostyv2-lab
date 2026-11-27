@@ -122,6 +122,9 @@ void main() async {
     SharedPreferences.getInstance(),
     initUtils(),
   ).wait;
+  if (isLowRamDevice()) {
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20;
+  }
 
   final firstRun = prefs.getBool('first_run') ?? true;
 
