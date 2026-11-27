@@ -47,4 +47,39 @@ void main() {
     expect(pushes.names, [CategoryStreams.routeName]);
     semantics.dispose();
   });
+
+  testWidgets('a long name fits a narrow screen at a large text size', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(320, 568)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      const MediaQuery(
+        data: MediaQueryData(
+          size: Size(320, 568),
+          textScaler: TextScaler.linear(2),
+        ),
+        child: MaterialApp(
+          home: Scaffold(
+            body: StreamInfoBar(
+              displayName: 'AVeryLongTwitchNameHere25',
+              isOffline: true,
+              offlineChannelInfo: Channel(
+                broadcasterId: '42',
+                broadcasterLogin: 'averylongtwitchnamehere25',
+                broadcasterName: 'AVeryLongTwitchNameHere25',
+                broadcasterLanguage: 'en',
+                title: 'Endgames',
+                gameId: '743',
+                gameName: 'Chess',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

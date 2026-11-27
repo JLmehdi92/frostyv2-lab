@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/channel_leaderboards.dart';
 import 'package:onset/models/community_goal.dart';
@@ -8,6 +9,7 @@ import 'package:onset/screens/channel/chat/widgets/community_sheet.dart';
 
 import '../../../../fixtures/community_goal_payloads.dart';
 import '../../../../fixtures/community_gql_payloads.dart';
+import '../../../../helpers/l10n.dart';
 
 void main() {
   late int seeAll;
@@ -19,9 +21,10 @@ void main() {
     List<CommunityGoal>? challenges = const [],
     ChannelLeaderboards? boards,
     List<CreatorGoal> creatorGoals = const [],
+    Size size = const Size(800, 1600),
   }) async {
     tester.view
-      ..physicalSize = const Size(800, 1600)
+      ..physicalSize = size
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
@@ -82,5 +85,41 @@ void main() {
     expect(find.text('Couldn’t load this section.'), findsNWidgets(2));
     expect(find.text('Nothing here right now.'), findsOneWidget);
     expect(find.byKey(CommunitySheet.seeAllKey), findsNothing);
+  });
+
+  testWidgets('a supporter row fits a small phone at double text size', (
+    tester,
+  ) async {
+    await tester.runAsync(loadInter);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pump(
+      tester,
+      boards: ChannelLeaderboards.tryParse(leaderboardsResponse),
+      size: const Size(320, 568),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('at normal text size the score sits at the end and the name '
+      'takes the rest', (tester) async {
+    await tester.runAsync(loadInter);
+    await pump(
+      tester,
+      boards: ChannelLeaderboards.tryParse(leaderboardsResponse),
+      size: const Size(360, 640),
+    );
+    final score = find.text('1,100 Bits cheered');
+    final name = find.text('cheer_three');
+    final row = find.ancestor(of: score, matching: find.byType(Row)).first;
+    expect(tester.getRect(score).right, tester.getRect(row).right);
+    expect(tester.getRect(name).right + 10, tester.getRect(score).left);
+    final paragraph = tester.renderObject<RenderParagraph>(
+      find.descendant(of: name, matching: find.byType(RichText)),
+    );
+    expect(
+      paragraph.getMaxIntrinsicWidth(double.infinity),
+      lessThanOrEqualTo(paragraph.size.width),
+    );
   });
 }

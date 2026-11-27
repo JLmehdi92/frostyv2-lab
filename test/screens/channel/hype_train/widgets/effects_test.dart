@@ -9,6 +9,8 @@ import 'package:onset/screens/channel/hype_train/widgets/effects/rainbow_sweep.d
 import 'package:onset/screens/channel/hype_train/widgets/effects/rocket_launch.dart';
 import 'package:onset/screens/channel/hype_train/widgets/effects/trophy_burst.dart';
 
+import '../../../../helpers/l10n.dart';
+
 const _duration = Duration(milliseconds: 1600);
 
 Future<void> pumpEffect(WidgetTester tester, Widget effect) =>
@@ -321,5 +323,24 @@ void main() {
       expect(tester.takeException(), isNull, reason: '$effect');
       expect(tester.binding.transientCallbackCount, 0, reason: '$effect');
     }
+  });
+
+  testWidgets('an avatar initial keeps to its circle at large text sizes', (
+    tester,
+  ) async {
+    await tester.runAsync(loadInter);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Center(
+          child: HtAvatar(
+            user: HtUser(id: '1', login: 'alpha', displayName: 'Alpha'),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('A'), findsOneWidget);
+    expect(clippedTexts(tester), isEmpty);
   });
 }

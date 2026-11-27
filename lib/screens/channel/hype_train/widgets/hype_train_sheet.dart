@@ -805,30 +805,40 @@ class _PinataDetailsState extends State<PinataDetails> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: HtDims.marginHalf,
             children: [
-              Row(
-                spacing: 8,
-                children: [
-                  Icon(
-                    Icons.celebration_rounded,
-                    size: 22,
-                    color: neutrals.textAlt2,
-                  ),
-                  Expanded(
-                    child: Semantics(
-                      header: true,
-                      child: Text(
-                        l.pinataTitle,
-                        style: HtType.bodySemibold.copyWith(
-                          color: neutrals.textAlt2,
+              LayoutBuilder(
+                builder: (context, constraints) => Row(
+                  spacing: 8,
+                  children: [
+                    Icon(
+                      Icons.celebration_rounded,
+                      size: 22,
+                      color: neutrals.textAlt2,
+                    ),
+                    Expanded(
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          l.pinataTitle,
+                          style: HtType.bodySemibold.copyWith(
+                            color: neutrals.textAlt2,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Text(
-                    l.pinataStage(stage: pinata.stage),
-                    style: HtType.bodySmall.copyWith(color: neutrals.textAlt),
-                  ),
-                ],
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth / 2,
+                      ),
+                      child: Text(
+                        l.pinataStage(stage: pinata.stage),
+                        textAlign: TextAlign.end,
+                        style: HtType.bodySmall.copyWith(
+                          color: neutrals.textAlt,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Text(l.pinataBody, style: body),
               Text(

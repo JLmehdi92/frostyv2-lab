@@ -879,53 +879,56 @@ class _CommandTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = SheetColors.of(context);
-    return Semantics(
-      button: true,
-      label: '/$name, $detail',
-      onTap: onTap,
-      excludeSemantics: true,
-      child: Material(
-        color: colors.raised,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: colors.ring,
-            width: OnsetTokens.hairlineWidth,
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.6,
+      child: Semantics(
+        button: true,
+        label: '/$name, $detail',
+        onTap: onTap,
+        excludeSemantics: true,
+        child: Material(
+          color: colors.raised,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: colors.ring,
+              width: OnsetTokens.hairlineWidth,
+            ),
           ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Container(
-            // Taller with large text, within the row's 56 dp.
-            constraints: const BoxConstraints(minHeight: 44),
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 1,
-              children: [
-                Text(
-                  '/$name',
-                  style: TextStyle(
-                    fontFamily: OnsetTokens.bodyFamily,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: colors.text,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Container(
+              // Taller with large text, within the row's 56 dp.
+              constraints: const BoxConstraints(minHeight: 44),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 1,
+                children: [
+                  Text(
+                    '/$name',
+                    style: TextStyle(
+                      fontFamily: OnsetTokens.bodyFamily,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: colors.text,
+                    ),
                   ),
-                ),
-                Text(
-                  detail,
-                  maxLines: 1,
-                  style: TextStyle(
-                    fontFamily: OnsetTokens.bodyFamily,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: colors.secondary,
+                  Text(
+                    detail,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontFamily: OnsetTokens.bodyFamily,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: colors.secondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

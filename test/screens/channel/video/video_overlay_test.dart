@@ -13,6 +13,7 @@ import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 
 import '../../../helpers/fake_player.dart';
+import '../../../helpers/l10n.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -283,6 +284,26 @@ void main() {
       expect(find.byTooltip('Back'), findsOneWidget);
       expect(find.byTooltip('Refresh'), findsOneWidget);
     }
+    await done(tester);
+  });
+
+  testWidgets('the live stats fit a small phone at double text size', (
+    tester,
+  ) async {
+    await tester.runAsync(loadInter);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final player = FakePlayer(
+      settings: SettingsStore.fromJson({}),
+      stream: fakeStream(),
+    );
+    await pump(
+      tester,
+      player,
+      screen: const Size(320, 568),
+      video: const Size(320, 180),
+    );
+    expect(tester.takeException(), isNull);
     await done(tester);
   });
 

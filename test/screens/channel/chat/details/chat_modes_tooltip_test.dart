@@ -4,6 +4,8 @@ import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/details/chat_modes.dart';
 import 'package:onset/theme.dart';
 
+import '../../../../helpers/l10n.dart';
+
 void main() {
   Future<void> pump(WidgetTester tester, ROOMSTATE state) => tester.pumpWidget(
     MaterialApp(
@@ -62,5 +64,15 @@ void main() {
         reason: message,
       );
     }
+  });
+
+  testWidgets('a pill grows with large text instead of cutting it', (
+    tester,
+  ) async {
+    await tester.runAsync(loadInter);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pump(tester, const ROOMSTATE(slowMode: '30'));
+    expect(clippedTexts(tester), isEmpty);
   });
 }

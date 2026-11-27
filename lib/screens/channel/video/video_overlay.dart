@@ -1195,27 +1195,30 @@ class _LiveStats extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTapViewers,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 4,
-          children: [
-            if (!large)
-              const PlayerGlyph(
-                PlayerGlyphKind.eye,
-                color: _Over.text,
-                size: 14,
-                shadow: true,
-              ),
-            Semantics(
-              label: context.l10n.streamViewers(count: viewers),
-              child: ExcludeSemantics(
-                child: RollingNumber(
-                  NumberFormat().format(viewers),
-                  style: style,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 4,
+            children: [
+              if (!large)
+                const PlayerGlyph(
+                  PlayerGlyphKind.eye,
+                  color: _Over.text,
+                  size: 14,
+                  shadow: true,
+                ),
+              Semantics(
+                label: context.l10n.streamViewers(count: viewers),
+                child: ExcludeSemantics(
+                  child: RollingNumber(
+                    NumberFormat().format(viewers),
+                    style: style,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

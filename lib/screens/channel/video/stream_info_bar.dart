@@ -169,35 +169,49 @@ class StreamInfoBar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Top row: Streamer name + stream title
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  spacing: 4,
-                  children: [
-                    Tooltip(
-                      message: streamerName,
-                      triggerMode: tooltipTriggerMode,
-                      child: Text(
-                        streamerName,
-                        style: _getBaseTextStyle(context, 14, FontWeight.w600),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (streamTitle.isNotEmpty) ...[
-                      Flexible(
+                LayoutBuilder(
+                  builder: (context, constraints) => Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    spacing: 4,
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: streamTitle.isEmpty
+                              ? constraints.maxWidth
+                              : constraints.maxWidth - 4,
+                        ),
                         child: Tooltip(
-                          message: streamTitle,
+                          message: streamerName,
                           triggerMode: tooltipTriggerMode,
                           child: Text(
-                            streamTitle,
-                            style: _getSecondaryTextStyle(context, 14),
+                            streamerName,
+                            style: _getBaseTextStyle(
+                              context,
+                              14,
+                              FontWeight.w600,
+                            ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
                         ),
                       ),
+                      if (streamTitle.isNotEmpty) ...[
+                        Flexible(
+                          child: Tooltip(
+                            message: streamTitle,
+                            triggerMode: tooltipTriggerMode,
+                            child: Text(
+                              streamTitle,
+                              style: _getSecondaryTextStyle(context, 14),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
                 // Bottom row: Live indicator, uptime, viewer count, game name or Offline text
                 if (isOffline ||

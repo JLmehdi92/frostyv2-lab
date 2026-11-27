@@ -62,7 +62,7 @@ class _UserCardModPillsState extends State<UserCardModPills> {
           children: [
             for (final pill in pills)
               Container(
-                height: widget.dense ? 24 : 26,
+                constraints: BoxConstraints(minHeight: widget.dense ? 24 : 26),
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: ShapeDecoration(
                   color: colors.dangerTint,

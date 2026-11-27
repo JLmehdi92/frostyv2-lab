@@ -7,6 +7,8 @@ import 'package:onset/screens/channel/chat/widgets/chat_warning_dialog.dart';
 import 'package:onset/utils/link_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../helpers/l10n.dart';
+
 void main() {
   var now = DateTime.utc(2026, 10, 13, 20);
 
@@ -53,6 +55,21 @@ void main() {
     now = now.add(const Duration(seconds: 1));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('You’re timed out · 1:04'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('the countdown stays whole at double text size', (tester) async {
+    await tester.runAsync(loadInter);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pump(
+      tester,
+      ChatRestriction(
+        ChatRestrictionKind.timedOut,
+        until: now.add(const Duration(seconds: 65)),
+      ),
+    );
+    expect(clippedTexts(tester), isEmpty);
     await tester.pumpWidget(const SizedBox());
   });
 

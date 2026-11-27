@@ -218,40 +218,50 @@ class _CommunitySheetState extends State<CommunitySheet> {
                 for (final entry in boards.boards[kind]!.take(
                   CommunitySheet.topShown,
                 ))
-                  Row(
-                    spacing: 10,
-                    children: [
-                      SizedBox(
-                        width: 24,
-                        child: Text(
-                          '${entry.rank}',
-                          style: SheetText.body.copyWith(
-                            color: SheetColors.accentOf(context),
-                            fontWeight: FontWeight.w700,
+                  LayoutBuilder(
+                    builder: (context, constraints) => Row(
+                      spacing: 10,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          child: Text(
+                            '${entry.rank}',
+                            style: SheetText.body.copyWith(
+                              color: SheetColors.accentOf(context),
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          entry.displayName,
-                          overflow: TextOverflow.ellipsis,
-                          style: SheetText.body.copyWith(color: colors.text),
+                        Expanded(
+                          child: Text(
+                            entry.displayName,
+                            overflow: TextOverflow.ellipsis,
+                            style: SheetText.body.copyWith(color: colors.text),
+                          ),
                         ),
-                      ),
-                      Text(
-                        switch (kind) {
-                          LeaderboardKind.cheers => l.leaderboardsBits(
-                            count: entry.score,
-                            amount: number.format(entry.score),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: constraints.maxWidth / 2,
                           ),
-                          LeaderboardKind.gifts => l.leaderboardsGifts(
-                            count: entry.score,
-                            amount: number.format(entry.score),
+                          child: Text(
+                            switch (kind) {
+                              LeaderboardKind.cheers => l.leaderboardsBits(
+                                count: entry.score,
+                                amount: number.format(entry.score),
+                              ),
+                              LeaderboardKind.gifts => l.leaderboardsGifts(
+                                count: entry.score,
+                                amount: number.format(entry.score),
+                              ),
+                            },
+                            textAlign: TextAlign.end,
+                            style: SheetText.body.copyWith(
+                              color: colors.secondary,
+                            ),
                           ),
-                        },
-                        style: SheetText.body.copyWith(color: colors.secondary),
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
               ],
             if (widget.onSeeAllSupporters != null)

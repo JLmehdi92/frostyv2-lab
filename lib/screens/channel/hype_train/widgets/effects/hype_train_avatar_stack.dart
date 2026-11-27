@@ -32,6 +32,7 @@ class HtAvatar extends StatelessWidget {
                     user.displayName.isEmpty
                         ? '?'
                         : user.displayName.characters.first.toUpperCase(),
+                    textScaler: TextScaler.noScaling,
                     style: TextStyle(
                       fontSize: size * 0.45,
                       fontWeight: FontWeight.w700,

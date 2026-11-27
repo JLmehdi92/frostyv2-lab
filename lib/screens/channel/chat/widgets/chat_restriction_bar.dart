@@ -112,29 +112,36 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
         child: SizedBox(
           key: ChatRestrictionBar.lineKey,
           height: kRestrictionBarHeight,
-          child: Row(
-            spacing: 7,
-            children: [
-              SheetGlyph(_glyph(restriction.kind), size: 16, color: color),
-              Expanded(
-                child: Text(
-                  restriction.describe(left, context.l10n),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: OnsetTokens.bodyFamily,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.6,
+            child: Row(
+              spacing: 7,
+              children: [
+                SheetGlyph(_glyph(restriction.kind), size: 16, color: color),
+                Expanded(
+                  child: Text(
+                    restriction.describe(left, context.l10n),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: OnsetTokens.bodyFamily,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
-              ),
-              if (helpUrl != null)
-                SheetGlyph(SheetGlyphKind.external, size: 14, color: color)
-              else if (onAcknowledge != null || onAppeal != null)
-                SheetGlyph(SheetGlyphKind.chevronRight, size: 14, color: color),
-            ],
+                if (helpUrl != null)
+                  SheetGlyph(SheetGlyphKind.external, size: 14, color: color)
+                else if (onAcknowledge != null || onAppeal != null)
+                  SheetGlyph(
+                    SheetGlyphKind.chevronRight,
+                    size: 14,
+                    color: color,
+                  ),
+              ],
+            ),
           ),
         ),
       ),

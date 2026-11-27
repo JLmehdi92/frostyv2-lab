@@ -104,11 +104,16 @@ class _AnnounceSheetState extends State<AnnounceSheet>
                         shape: BoxShape.circle,
                       ),
                     ),
-                    SheetChoicePill(
-                      label: l.modToolsAnnounceColorName(color: color.name),
-                      selected: _color == color,
-                      large: true,
-                      onSelected: () => setState(() => _color = color),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: SheetChoicePill(
+                          label: l.modToolsAnnounceColorName(color: color.name),
+                          selected: _color == color,
+                          large: true,
+                          onSelected: () => setState(() => _color = color),
+                        ),
+                      ),
                     ),
                   ],
                 ),

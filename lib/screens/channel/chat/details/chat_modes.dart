@@ -131,7 +131,7 @@ class _ModePill extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SheetColors.of(context);
     return Container(
-      height: 30,
+      constraints: const BoxConstraints(minHeight: 30),
       padding: const EdgeInsets.symmetric(horizontal: 11),
       decoration: ShapeDecoration(
         color: colors.raised,

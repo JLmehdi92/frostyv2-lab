@@ -191,6 +191,38 @@ void main() {
     );
   });
 
+  testWidgets('the announcement colors fit a small phone at double text size', (
+    tester,
+  ) async {
+    final h = await modToolsHarness();
+    await pumpLocalized(
+      tester,
+      sheetHost(AnnounceSheet(chatStore: h.chat)),
+      size: const Size(320, 568),
+      textScale: 2,
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(clippedTexts(tester), isEmpty);
+  });
+
+  testWidgets('a user card pill grows with large text instead of cutting it', (
+    tester,
+  ) async {
+    final h = await modToolsHarness();
+    h.tools.noteClearChat('33', 600);
+    await pumpLocalized(
+      tester,
+      sheetHost(UserCardModPills(tools: h.tools, userId: '33')),
+      locale: en,
+      size: const Size(320, 568),
+      textScale: 2,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Timed out'), findsOneWidget);
+    expect(clippedTexts(tester), isEmpty);
+  });
+
   testWidgets('a poll in progress can be ended', (tester) async {
     final h = await modToolsHarness(broadcaster: true);
     stubModLists(h.api, h.mod);

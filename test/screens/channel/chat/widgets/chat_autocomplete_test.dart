@@ -10,6 +10,7 @@ import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../helpers/chat_message_harness.dart';
+import '../../../../helpers/l10n.dart';
 import '../../../../helpers/live_curves.dart';
 
 class MockAuthStore extends Mock implements AuthStore {}
@@ -68,6 +69,7 @@ void main() {
     WidgetTester tester, {
     Brightness brightness = Brightness.dark,
     bool reduceMotion = false,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -82,6 +84,7 @@ void main() {
             data: MediaQueryData(
               size: const Size(390, 844),
               disableAnimations: reduceMotion,
+              textScaler: TextScaler.linear(textScale),
             ),
             child: Scaffold(
               body: Align(
@@ -177,6 +180,16 @@ void main() {
     await tester.tap(find.text('/me'));
     expect(text.text, '/me ');
     expect(text.selection.baseOffset, 4);
+  });
+
+  testWidgets('a command fits its row at double text size', (tester) async {
+    await tester.runAsync(loadInter);
+    when(() => chat.matchingCommands).thenReturn(const [
+      ChatCommandInfo('me', required: [ChatCommandArg.message]),
+    ]);
+    await pump(tester, textScale: 2);
+    expect(tester.takeException(), isNull);
+    expect(find.text('/me'), findsOneWidget);
   });
 
   testWidgets('a mention replaces the word being typed', (tester) async {
