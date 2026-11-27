@@ -2073,10 +2073,18 @@ class USERSTATE {
 /// ignoring case: "al" is not mentioned by "really".
 bool mentionsUser(String message, String login) {
   if (login.isEmpty) return false;
-  return RegExp(
-    '(?:^|[^a-z0-9_])@?${RegExp.escape(login.toLowerCase())}(?![a-z0-9_])',
-  ).hasMatch(message.toLowerCase());
+  final pattern = _mentionPattern?.login == login
+      ? _mentionPattern!.pattern
+      : (_mentionPattern = (
+          login: login,
+          pattern: RegExp(
+            '(?:^|[^a-z0-9_])@?${RegExp.escape(login.toLowerCase())}(?![a-z0-9_])',
+          ),
+        )).pattern;
+  return pattern.hasMatch(message.toLowerCase());
 }
+
+({String login, RegExp pattern})? _mentionPattern;
 
 /// The possible types of Twitch IRC commands.
 enum Command {
