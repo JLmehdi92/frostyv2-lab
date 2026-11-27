@@ -143,7 +143,7 @@ class VideoChat extends StatefulWidget {
     final name = login.toLowerCase();
     for (final state in _VideoChatState._alive.reversed) {
       if (state.widget.userLogin.toLowerCase() != name) continue;
-      final route = ModalRoute.of(state.context);
+      final route = state._route;
       if (route != null && route.isActive) return route;
     }
     return null;
@@ -157,6 +157,7 @@ class _VideoChatState extends State<VideoChat>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final _videoKey = GlobalKey();
   final _chatKey = GlobalKey();
+  ModalRoute<dynamic>? _route;
 
   /// Real-time channel events: celebrations, creator goals and channel
   /// points (the hype train has its own store below).
@@ -556,7 +557,7 @@ class _VideoChatState extends State<VideoChat>
   /// close; a page on top (a VOD, settings) keeps the viewer where they are.
   bool _canLeaveWithRaid() {
     if (!mounted || _videoStore.isInPipMode) return false;
-    final route = ModalRoute.of(context);
+    final route = _route;
     if (route == null || !route.isActive) return false;
     if (!route.isCurrent) {
       Navigator.of(context).popUntil((r) => r == route || r is! PopupRoute);
@@ -1029,7 +1030,7 @@ class _VideoChatState extends State<VideoChat>
   /// state after this one set it: set it again once that one is gone.
   void _reassertAfterReplaced() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+      if (!mounted || _route?.isCurrent != true) return;
       _reassertScreenState();
     });
   }
@@ -1077,7 +1078,7 @@ class _VideoChatState extends State<VideoChat>
   }
 
   bool get _canSwitchToBroadcast =>
-      ModalRoute.of(context)?.isCurrent == true &&
+      _route?.isCurrent == true &&
       !_videoStore.isInPipMode &&
       _videoStore.settingsStore.showVideo &&
       WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
@@ -1389,7 +1390,7 @@ class _VideoChatState extends State<VideoChat>
   void _showGoalReached(CreatorGoal goal) {
     if (!mounted) return;
     final presentation = goalReachedPresentation(
-      routeCurrent: ModalRoute.of(context)?.isCurrent ?? false,
+      routeCurrent: _route?.isCurrent ?? false,
       resumed:
           WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
       pip: _videoStore.isInPipMode,
@@ -2232,6 +2233,13 @@ class _VideoChatState extends State<VideoChat>
       ),
     );
 
+    final routedVideoChat = Builder(
+      builder: (context) {
+        _route = ModalRoute.of(context);
+        return celebratedVideoChat;
+      },
+    );
+
     // If on Android, use PiPSwitcher to enable PiP functionality.
     if (Platform.isAndroid) {
       return PipWidget(
@@ -2251,11 +2259,11 @@ class _VideoChatState extends State<VideoChat>
           if (store is IvsVideoStore) store.onPipExited();
         },
         pipChild: player,
-        child: celebratedVideoChat,
+        child: routedVideoChat,
       );
     }
 
-    return celebratedVideoChat;
+    return routedVideoChat;
   }
 
   @override

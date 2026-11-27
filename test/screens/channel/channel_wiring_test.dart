@@ -197,6 +197,14 @@ void main() {
     expect(code, contains('_chatCycle.dispose();'));
   });
 
+  test('opening a sheet never rebuilds the whole screen', () {
+    expect(count('ModalRoute.of('), 1);
+    expect(
+      code,
+      contains('Builder(builder:(context){_route=ModalRoute.of(context);'),
+    );
+  });
+
   test('the PiP swipe redraws only the video, never the whole screen', () {
     final start = code.indexOf('void_handlePipDragStart(');
     final end = code.indexOf('void_scheduleSystemUiModeSync(');
