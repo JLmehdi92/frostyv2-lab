@@ -24,4 +24,20 @@ void main() {
     );
     expect(find.byType(Text), findsOneWidget);
   });
+
+  testWidgets('the ticking time sits in its own repaint layer', (tester) async {
+    final start = DateTime.now().subtract(const Duration(hours: 2));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: Uptime(startTime: start.toIso8601String())),
+      ),
+    );
+    expect(
+      find.descendant(
+        of: find.byType(Uptime),
+        matching: find.byType(RepaintBoundary),
+      ),
+      findsOneWidget,
+    );
+  });
 }

@@ -37,15 +37,17 @@ class _UptimeState extends State<Uptime> {
   Widget build(BuildContext context) {
     final start = DateTime.tryParse(widget.startTime);
     if (start == null) return const SizedBox.shrink();
-    return Text(
-      _timerService.currentTime.difference(start).toString().split('.')[0],
-      // The duration ticks every second: without fixed-width figures the
-      // digits dance, so tabular figures are the default for every caller.
-      style: context.onsetText.metadata.merge(widget.style).copyWith(
-        fontFeatures: [const FontFeature.tabularFigures()],
+    return RepaintBoundary(
+      child: Text(
+        _timerService.currentTime.difference(start).toString().split('.')[0],
+        // The duration ticks every second: without fixed-width figures the
+        // digits dance, so tabular figures are the default for every caller.
+        style: context.onsetText.metadata
+            .merge(widget.style)
+            .copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
+        maxLines: widget.overflow == null ? null : 1,
+        overflow: widget.overflow,
       ),
-      maxLines: widget.overflow == null ? null : 1,
-      overflow: widget.overflow,
     );
   }
 
