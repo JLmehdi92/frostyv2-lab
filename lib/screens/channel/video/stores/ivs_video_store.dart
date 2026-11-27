@@ -155,7 +155,7 @@ abstract class IvsVideoStoreBase
   late final Future<void> ready;
 
   Timer? _overlayTimer;
-  int? _lastLatencySecond;
+  double? _lastChatDelay;
 
   @readonly
   List<String> _availableStreamQualities = [];
@@ -862,7 +862,7 @@ abstract class IvsVideoStoreBase
     }
     if (epoch != _recoveryEpoch) return;
     _hasPlayed = false;
-    _lastLatencySecond = null;
+    _lastChatDelay = null;
     // Every load starts at the live edge, at 1.0x.
     _liveEdge.onLoad();
     if (playerConfig.autoLatency) {
@@ -1004,17 +1004,11 @@ abstract class IvsVideoStoreBase
         // Paused, the latency grows a second a second while the picture
         // stands still: chat keeps the delay of the last moment played.
         if (!_isPlaying) break;
-        // The chat delay keeps moving in whole seconds only, exactly as before,
-        // so the delayed chat queue is not rebuilt on every tick. With auto
-        // latency holding the stream near a half second, it also waits for
-        // the latency to be clearly nearer another second.
-        final seconds = playerConfig.autoLatency
-            ? chatDelaySecondsWithHysteresis(ms, _lastLatencySecond)
-            : chatDelaySecondsFromLatency(ms);
-        if (seconds == _lastLatencySecond) break;
-        _lastLatencySecond = seconds;
+        final delay = chatDelayWithHysteresis(ms, _lastChatDelay);
+        if (delay == _lastChatDelay) break;
+        _lastChatDelay = delay;
         if (settingsStore.autoSyncChatDelay) {
-          settingsStore.syncedChatDelay = seconds.toDouble();
+          settingsStore.syncedChatDelay = delay;
         }
         break;
       case 'rebuffering':
@@ -1612,7 +1606,7 @@ abstract class IvsVideoStoreBase
     _holdAutoLatency(AutoLatencyReason.reconnecting);
     _latency = null;
     _latencyMs = null;
-    _lastLatencySecond = null;
+    _lastChatDelay = null;
     _isPlaying = false;
     _hasPlayed = false;
     _retryTimer?.cancel();

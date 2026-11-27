@@ -327,6 +327,8 @@
   "settingsDelayAndLatency": "Délai et latence",
   "settingsSyncDelay": "Synchroniser le délai des messages avec la latence",
   "settingsSyncDelayDetail": "Retient chaque message le temps du retard de la vidéo sur le direct, pour que le chat corresponde à ce que vous voyez. Vos propres messages s’affichent immédiatement.",
+  "settingsChatDelayMargin": "Marge du chat",
+  "settingsChatDelayMarginDetail": "Retient le chat un peu plus longtemps que le retard de la vidéo, pour que les messages n’arrivent jamais avant le moment qu’ils commentent.",
   "settingsMessageDelay": "Délai des messages",
   "settingsMessageDelayValue": "{seconds, plural, one{{seconds}\u00a0seconde} other{{seconds}\u00a0secondes}}",
   "settingsMessageDelayDetail": "Ajoute un délai avant l’affichage de chaque message dans le chat.",

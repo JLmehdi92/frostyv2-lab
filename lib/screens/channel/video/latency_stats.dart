@@ -22,22 +22,12 @@ String displayLatency(String latency, AppLocalizations l) {
 
 final _seconds = RegExp(r'^(\d+(?:\.\d+)?)s$');
 
-/// Whole-second chat delay derived from the measured stream latency.
-///
-/// The chat delay sync only ever moves in whole seconds so the delayed chat
-/// queue is not rebuilt on every latency tick.
-int chatDelaySecondsFromLatency(int ms) => (ms / 1000).clamp(0, 60).round();
+double chatDelayFromLatency(int ms) => (ms / 100).round().clamp(0, 600) / 10;
 
-/// [chatDelaySecondsFromLatency] that keeps [current] until the latency is
-/// clearly nearer another whole second ([marginMs] past the half second).
-///
-/// Auto latency holds a stream around its target, which can sit near a half
-/// second (Ultra aims at 1.3 s and lets it wander to 1.7 s): plain rounding
-/// would then move the chat delay between two seconds on every swing.
-int chatDelaySecondsWithHysteresis(int ms, int? current, {int marginMs = 150}) {
-  final rounded = chatDelaySecondsFromLatency(ms);
+double chatDelayWithHysteresis(int ms, double? current, {int marginMs = 250}) {
+  final rounded = chatDelayFromLatency(ms);
   if (current == null || rounded == current) return rounded;
-  return (ms - current * 1000).abs() >= 500 + marginMs ? rounded : current;
+  return (ms - current * 1000).abs() >= marginMs ? rounded : current;
 }
 
 /// Formats a bitrate in bits per second in [l]'s language ("4.2 Mbps",

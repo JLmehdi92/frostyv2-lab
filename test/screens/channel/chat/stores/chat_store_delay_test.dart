@@ -87,6 +87,30 @@ void main() {
     });
   });
 
+  test('a synced delay of 300 ms plus a 0.5 s margin holds chat 800 ms', () {
+    fakeAsync((async) {
+      settings
+        ..autoSyncChatDelay = true
+        ..syncedChatDelay = 0.3
+        ..chatDelayMargin = 0.5;
+      final store = createStore();
+      async.flushMicrotasks();
+      final irc = sockets.single;
+
+      irc.receive(_privmsg);
+      async.elapse(const Duration(milliseconds: 790));
+      store.addMessages();
+      expect(chatLines(store), isEmpty, reason: 'still held at 790 ms');
+
+      async.elapse(const Duration(milliseconds: 10));
+      store.addMessages();
+      expect(chatLines(store), hasLength(1));
+
+      store.dispose();
+      async.elapse(const Duration(seconds: 30));
+    });
+  });
+
   test('bypass lines leave a shared frame, held lines stay held', () {
     final split = ChatStoreBase.splitDelayedIrc(
       'PING :tmi.twitch.tv\r\n$_privmsg\r\n:tmi.twitch.tv RECONNECT\r\n',

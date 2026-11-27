@@ -487,6 +487,7 @@ abstract class _SettingsStoreBase with Store {
   /// streamer never show before the question (see [chatSyncDefaultApplied]).
   static const defaultAutoSyncChatDelay = true;
   static const defaultChatDelay = 0.0;
+  static const defaultChatDelayMargin = 0.5;
 
   // Alert defaults
   static const defaultHighlightFirstTimeChatter = true;
@@ -652,6 +653,10 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var chatDelay = defaultChatDelay;
 
+  @JsonKey(defaultValue: defaultChatDelayMargin)
+  @observable
+  var chatDelayMargin = defaultChatDelayMargin;
+
   @JsonKey(includeFromJson: false, includeToJson: false)
   @observable
   var syncedChatDelay = defaultChatDelay;
@@ -670,8 +675,9 @@ abstract class _SettingsStoreBase with Store {
   }
 
   @computed
-  double get effectiveChatDelay =>
-      autoSyncChatDelay ? syncedChatDelay : chatDelay;
+  double get effectiveChatDelay => autoSyncChatDelay
+      ? (syncedChatDelay > 0 ? syncedChatDelay + chatDelayMargin : 0.0)
+      : chatDelay;
 
   // Alert options
   @JsonKey(defaultValue: defaultHighlightFirstTimeChatter)
@@ -946,6 +952,7 @@ abstract class _SettingsStoreBase with Store {
 
     autoSyncChatDelay = defaultAutoSyncChatDelay;
     chatDelay = defaultChatDelay;
+    chatDelayMargin = defaultChatDelayMargin;
     syncedChatDelay = defaultChatDelay;
 
     highlightFirstTimeChatter = defaultHighlightFirstTimeChatter;

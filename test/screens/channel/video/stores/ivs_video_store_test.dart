@@ -340,40 +340,43 @@ void main() {
       expect(store.latencyMs, 1500);
     });
 
-    test('auto-synced chat delay only changes on whole seconds', () async {
-      settingsStore
-        ..autoSyncChatDelay = true
-        ..autoLatency = false;
-      store = await createStore();
-      await native.emit({'type': 'state', 'state': 'PLAYING'});
+    test(
+      'auto-synced chat delay follows latency in tenths of a second',
+      () async {
+        settingsStore
+          ..autoSyncChatDelay = true
+          ..autoLatency = false;
+        store = await createStore();
+        await native.emit({'type': 'state', 'state': 'PLAYING'});
 
-      final synced = <double>[];
-      final dispose = reaction(
-        (_) => settingsStore.syncedChatDelay,
-        synced.add,
-      );
+        final synced = <double>[];
+        final dispose = reaction(
+          (_) => settingsStore.syncedChatDelay,
+          synced.add,
+        );
 
-      for (final ms in [2400, 2600, 2700, 3400, 3600, 70000]) {
-        await native.emit({'type': 'latency', 'ms': ms});
-      }
-      dispose();
+        for (final ms in [300, 330, 2400, 2440, 2600, 2700, 70000]) {
+          await native.emit({'type': 'latency', 'ms': ms});
+        }
+        dispose();
 
-      expect(synced, [2.0, 3.0, 4.0, 60.0]);
-      expect(settingsStore.syncedChatDelay, 60.0);
-    });
+        expect(synced, [0.3, 2.4, 2.7, 60.0]);
+        expect(settingsStore.syncedChatDelay, 60.0);
+      },
+    );
 
     test('the chat delay stays put while the stream is paused', () async {
       settingsStore.autoSyncChatDelay = true;
       store = await createStore();
       await native.emit({'type': 'state', 'state': 'PLAYING'});
       await native.emit({'type': 'latency', 'ms': 2400});
-      expect(settingsStore.syncedChatDelay, 2.0);
+      expect(settingsStore.syncedChatDelay, 2.4);
 
       // Paused, the native latency keeps growing by a second a second.
       await native.emit({'type': 'state', 'state': 'IDLE'});
       await native.emit({'type': 'latency', 'ms': 30000});
 
-      expect(settingsStore.syncedChatDelay, 2.0);
+      expect(settingsStore.syncedChatDelay, 2.4);
       expect(store.latencyMs, 30000, reason: 'still shown on the badge');
     });
 
@@ -382,7 +385,7 @@ void main() {
       store = await createStore();
       await native.emit({'type': 'state', 'state': 'PLAYING'});
       await native.emit({'type': 'latency', 'ms': 3200});
-      expect(settingsStore.syncedChatDelay, 3.0);
+      expect(settingsStore.syncedChatDelay, 3.2);
       when(
         () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
       ).thenThrow(const NotFoundException('offline'));
@@ -1001,7 +1004,7 @@ void main() {
       expect(fallback.active, isFalse);
     });
 
-    test('the chat delay does not flap around half a second', () async {
+    test('the chat delay does not flap while the latency wanders', () async {
       settingsStore.autoSyncChatDelay = true;
       store = await playing();
 
@@ -1016,8 +1019,7 @@ void main() {
       }
       dispose();
 
-      // 1 s until the latency is clearly nearer 2 s, then 1 s again.
-      expect(synced, [1.0, 2.0, 1.0]);
+      expect(synced, [1.4, 2.2, 1.3]);
     });
   });
 

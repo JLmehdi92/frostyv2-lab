@@ -1553,6 +1553,14 @@
   "@settingsSyncDelayDetail": {
     "description": "Settings › Chat › Delay and latency: what the sync switch does."
   },
+  "settingsChatDelayMargin": "Chat margin",
+  "@settingsChatDelayMargin": {
+    "description": "Settings › Chat › Delay and latency: the slider adding extra delay on top of the synced delay (when sync is on)."
+  },
+  "settingsChatDelayMarginDetail": "Holds chat this much longer than the video is behind live, so messages never arrive before the moment they react to.",
+  "@settingsChatDelayMarginDetail": {
+    "description": "Settings › Chat › Delay and latency: what the chat margin slider does."
+  },
   "settingsMessageDelay": "Message delay",
   "@settingsMessageDelay": {
     "description": "Settings › Chat › Delay and latency: the manual delay slider (when sync is off)."

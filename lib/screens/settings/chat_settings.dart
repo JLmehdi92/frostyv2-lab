@@ -237,6 +237,23 @@ class _ChatSettingsState extends State<ChatSettings> {
                   onChanged: (newValue) =>
                       settingsStore.autoSyncChatDelay = newValue,
                 ),
+                if (settingsStore.autoSyncChatDelay)
+                  Observer(
+                    builder: (_) => SettingsListSlider(
+                      title: l.settingsChatDelayMargin,
+                      trailing: l.latencySeconds(
+                        value: localDecimal(
+                          settingsStore.chatDelayMargin.toStringAsFixed(1),
+                        ),
+                      ),
+                      subtitle: l.settingsChatDelayMarginDetail,
+                      value: settingsStore.chatDelayMargin,
+                      max: 3.0,
+                      divisions: 6,
+                      onChanged: (newValue) =>
+                          settingsStore.chatDelayMargin = newValue,
+                    ),
+                  ),
                 if (!settingsStore.autoSyncChatDelay)
                   Observer(
                     builder: (_) => SettingsListSlider(

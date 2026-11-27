@@ -1221,6 +1221,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Retient chaque message le temps du retard de la vidéo sur le direct, pour que le chat corresponde à ce que vous voyez. Vos propres messages s’affichent immédiatement.';
 
   @override
+  String get settingsChatDelayMargin => 'Marge du chat';
+
+  @override
+  String get settingsChatDelayMarginDetail =>
+      'Retient le chat un peu plus longtemps que le retard de la vidéo, pour que les messages n’arrivent jamais avant le moment qu’ils commentent.';
+
+  @override
   String get settingsMessageDelay => 'Délai des messages';
 
   @override

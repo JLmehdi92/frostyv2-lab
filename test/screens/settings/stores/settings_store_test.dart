@@ -777,6 +777,28 @@ void main() {
       });
     });
 
+    test('chat delay margin defaults to half a second and persists', () {
+      final store = SettingsStore.fromJson({});
+      expect(store.chatDelayMargin, 0.5);
+
+      store.chatDelayMargin = 1.5;
+      final restored = SettingsStore.fromJson(store.toJson());
+      expect(restored.chatDelayMargin, 1.5);
+    });
+
+    test('effectiveChatDelay adds the margin to the synced delay', () {
+      final store = SettingsStore.fromJson({})
+        ..autoSyncChatDelay = true
+        ..syncedChatDelay = 0.3
+        ..chatDelayMargin = 0.5;
+
+      expect(store.effectiveChatDelay, closeTo(0.8, 1e-9));
+
+      store.autoSyncChatDelay = false;
+      store.chatDelay = 4.0;
+      expect(store.effectiveChatDelay, 4.0);
+    });
+
     test('effectiveChatDelay uses synced value only during auto sync', () {
       final store = SettingsStore.fromJson({})..autoSyncChatDelay = false;
 
@@ -787,7 +809,7 @@ void main() {
 
       store.autoSyncChatDelay = true;
 
-      expect(store.effectiveChatDelay, 9.0);
+      expect(store.effectiveChatDelay, 9.5);
     });
   });
 

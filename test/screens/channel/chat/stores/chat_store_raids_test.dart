@@ -165,10 +165,7 @@ void main() {
       // Observed, as the chat list does: a write outside an action asserts.
       final observe = autorun((_) => store.messageBuffer.length);
       store.addLocalNotice('Celebration: Rain');
-      // The delay drops under a second: nothing releases the held lines
-      // until the next chat line, from the socket listener (not an
-      // action).
-      settings.chatDelay = 0.5;
+      settings.chatDelay = 0;
       sockets.single.receive(raidNotice);
       async.flushMicrotasks();
       expect(

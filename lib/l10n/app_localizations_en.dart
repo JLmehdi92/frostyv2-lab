@@ -1199,6 +1199,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Holds each message for as long as the video is behind live, so chat matches what you see. Your own messages show right away.';
 
   @override
+  String get settingsChatDelayMargin => 'Chat margin';
+
+  @override
+  String get settingsChatDelayMarginDetail =>
+      'Holds chat this much longer than the video is behind live, so messages never arrive before the moment they react to.';
+
+  @override
   String get settingsMessageDelay => 'Message delay';
 
   @override

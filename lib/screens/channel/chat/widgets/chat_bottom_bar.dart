@@ -493,11 +493,11 @@ class ChatBottomBar extends StatelessWidget {
                                             ? l.chatInChannelDelayed(
                                                 name: channelDisplayName!,
                                                 seconds: effectiveChatDelay
-                                                    .toInt(),
+                                                    .ceil(),
                                               )
                                             : l.chatDelayed(
                                                 seconds: effectiveChatDelay
-                                                    .toInt(),
+                                                    .ceil(),
                                               )
                                       : channelDisplayName != null
                                       ? l.chatInChannel(

@@ -17,36 +17,45 @@ void main() {
     });
   });
 
-  group('chatDelaySecondsFromLatency', () {
-    test('rounds to whole seconds like the previous implementation', () {
-      expect(chatDelaySecondsFromLatency(0), 0);
-      expect(chatDelaySecondsFromLatency(2400), 2);
-      expect(chatDelaySecondsFromLatency(2500), 3);
+  group('chatDelayFromLatency', () {
+    test('rounds to tenths of a second', () {
+      expect(chatDelayFromLatency(0), 0.0);
+      expect(chatDelayFromLatency(300), 0.3);
+      expect(chatDelayFromLatency(2349), 2.3);
+      expect(chatDelayFromLatency(2350), 2.4);
     });
 
     test('clamps to 60 seconds', () {
-      expect(chatDelaySecondsFromLatency(61000), 60);
-      expect(chatDelaySecondsFromLatency(-100), 0);
+      expect(chatDelayFromLatency(61000), 60.0);
+      expect(chatDelayFromLatency(-100), 0.0);
     });
   });
 
-  group('chatDelaySecondsWithHysteresis', () {
+  group('chatDelayWithHysteresis', () {
     test('rounds when there is no delay yet', () {
-      expect(chatDelaySecondsWithHysteresis(1600, null), 2);
-      expect(chatDelaySecondsWithHysteresis(1400, null), 1);
+      expect(chatDelayWithHysteresis(300, null), 0.3);
+      expect(chatDelayWithHysteresis(1640, null), 1.6);
     });
 
-    test('keeps the delay within 0.65 s of it', () {
-      expect(chatDelaySecondsWithHysteresis(1600, 1), 1);
-      expect(chatDelaySecondsWithHysteresis(1649, 1), 1);
-      expect(chatDelaySecondsWithHysteresis(1360, 2), 2);
+    test('keeps the delay within 0.25 s of it', () {
+      expect(chatDelayWithHysteresis(1700, 1.5), 1.5);
+      expect(chatDelayWithHysteresis(1749, 1.5), 1.5);
+      expect(chatDelayWithHysteresis(1260, 1.5), 1.5);
     });
 
-    test('moves once the latency is clearly nearer another second', () {
-      expect(chatDelaySecondsWithHysteresis(1650, 1), 2);
-      expect(chatDelaySecondsWithHysteresis(1350, 2), 1);
-      expect(chatDelaySecondsWithHysteresis(4200, 1), 4);
-      expect(chatDelaySecondsWithHysteresis(70000, 4), 60);
+    test('stays put while the latency wanders around it', () {
+      double? delay;
+      for (final ms in [1500, 1600, 1400, 1700, 1300, 1550, 1450]) {
+        delay = chatDelayWithHysteresis(ms, delay);
+      }
+      expect(delay, 1.5);
+    });
+
+    test('moves once the latency is clearly away from it', () {
+      expect(chatDelayWithHysteresis(1750, 1.5), 1.8);
+      expect(chatDelayWithHysteresis(1250, 1.5), 1.3);
+      expect(chatDelayWithHysteresis(4200, 1.0), 4.2);
+      expect(chatDelayWithHysteresis(70000, 4.0), 60.0);
     });
   });
 

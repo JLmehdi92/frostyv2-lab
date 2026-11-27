@@ -176,6 +176,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..increaseChatContrast = json['increaseChatContrast'] as bool? ?? false
   ..autoSyncChatDelay = json['autoSyncChatDelay'] as bool? ?? true
   ..chatDelay = (json['chatDelay'] as num?)?.toDouble() ?? 0.0
+  ..chatDelayMargin = (json['chatDelayMargin'] as num?)?.toDouble() ?? 0.5
   ..chatSyncDefaultApplied = json['chatSyncDefaultApplied'] as bool? ?? false
   ..highlightFirstTimeChatter =
       json['highlightFirstTimeChatter'] as bool? ?? true
@@ -350,6 +351,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'increaseChatContrast': instance.increaseChatContrast,
   'autoSyncChatDelay': instance.autoSyncChatDelay,
   'chatDelay': instance.chatDelay,
+  'chatDelayMargin': instance.chatDelayMargin,
   'chatSyncDefaultApplied': instance.chatSyncDefaultApplied,
   'highlightFirstTimeChatter': instance.highlightFirstTimeChatter,
   'showUserNotices': instance.showUserNotices,
@@ -1822,6 +1824,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$chatDelayMarginAtom = Atom(
+    name: '_SettingsStoreBase.chatDelayMargin',
+    context: context,
+  );
+
+  @override
+  double get chatDelayMargin {
+    _$chatDelayMarginAtom.reportRead();
+    return super.chatDelayMargin;
+  }
+
+  @override
+  set chatDelayMargin(double value) {
+    _$chatDelayMarginAtom.reportWrite(value, super.chatDelayMargin, () {
+      super.chatDelayMargin = value;
+    });
+  }
+
   late final _$syncedChatDelayAtom = Atom(
     name: '_SettingsStoreBase.syncedChatDelay',
     context: context,
@@ -3116,6 +3136,7 @@ readableNameColors: ${readableNameColors},
 increaseChatContrast: ${increaseChatContrast},
 autoSyncChatDelay: ${autoSyncChatDelay},
 chatDelay: ${chatDelay},
+chatDelayMargin: ${chatDelayMargin},
 syncedChatDelay: ${syncedChatDelay},
 highlightFirstTimeChatter: ${highlightFirstTimeChatter},
 showUserNotices: ${showUserNotices},

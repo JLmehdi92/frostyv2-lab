@@ -112,9 +112,11 @@ abstract class ChatStoreBase with Store {
     return parts.length >= 2 && parts[1] == 'RECONNECT';
   }
 
-  int get _chatDelaySeconds => settings.effectiveChatDelay.toInt();
+  Duration get _chatDelay =>
+      Duration(milliseconds: (settings.effectiveChatDelay * 1000).round());
 
-  bool get _hasActiveChatDelay => settings.showVideo && _chatDelaySeconds > 0;
+  bool get _hasActiveChatDelay =>
+      settings.showVideo && _chatDelay > Duration.zero;
 
   final TwitchApi twitchApi;
 
@@ -1203,7 +1205,8 @@ abstract class ChatStoreBase with Store {
         } else if (settings.autoSyncChatDelay &&
             settings.showVideo &&
             chatDelay > 0 &&
-            !_chatDelaySyncCompleted) {
+            !_chatDelaySyncCompleted &&
+            _chatDelayCountdownTimer == null) {
           _startChatDelayCountdown();
         }
       }),
@@ -1267,7 +1270,7 @@ abstract class ChatStoreBase with Store {
   /// video latency, which shrinks when the player catches up.
   void _flushDueDelayedCallbacks() {
     final now = clock.now();
-    final delay = Duration(seconds: _chatDelaySeconds);
+    final delay = _chatDelay;
     _pendingChatCallbacks.flushDue(now, delay);
     _pendingSevenTVCallbacks.flushDue(now, delay);
     _pendingBttvCallbacks.flushDue(now, delay);
@@ -2283,7 +2286,7 @@ abstract class ChatStoreBase with Store {
       messageBuffer.clear();
     }
 
-    var remainingSeconds = _chatDelaySeconds;
+    var remainingSeconds = (_chatDelay.inMilliseconds / 1000).ceil();
 
     // Create and store reference to the countdown message
     _countdownMessage = IRCMessage.createNotice(

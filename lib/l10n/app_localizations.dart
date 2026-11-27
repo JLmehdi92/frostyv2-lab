@@ -2072,6 +2072,18 @@ abstract class AppLocalizations {
   /// **'Holds each message for as long as the video is behind live, so chat matches what you see. Your own messages show right away.'**
   String get settingsSyncDelayDetail;
 
+  /// Settings › Chat › Delay and latency: the slider adding extra delay on top of the synced delay (when sync is on).
+  ///
+  /// In en, this message translates to:
+  /// **'Chat margin'**
+  String get settingsChatDelayMargin;
+
+  /// Settings › Chat › Delay and latency: what the chat margin slider does.
+  ///
+  /// In en, this message translates to:
+  /// **'Holds chat this much longer than the video is behind live, so messages never arrive before the moment they react to.'**
+  String get settingsChatDelayMarginDetail;
+
   /// Settings › Chat › Delay and latency: the manual delay slider (when sync is off).
   ///
   /// In en, this message translates to:
