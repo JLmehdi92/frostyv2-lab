@@ -53,6 +53,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
   final _scrollController = ScrollController();
 
   Timer? _debounce;
+  var _searchEpoch = 0;
   bool _isLoading = false;
 
   /// The last search failed.
@@ -78,6 +79,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
   void _onSearchChanged(String query) {
     // Cancel any existing debounce
     _debounce?.cancel();
+    final epoch = ++_searchEpoch;
 
     if (query.isEmpty) {
       setState(() {
@@ -97,7 +99,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
     _debounce = Timer(const Duration(milliseconds: 300), () async {
       try {
         final channels = await widget.twitchApi.searchChannels(query: query);
-        if (mounted) {
+        if (mounted && epoch == _searchEpoch) {
           setState(() {
             _results = channels;
             _isLoading = false;
@@ -105,7 +107,7 @@ class _AddChatSheetState extends State<AddChatSheet> {
           });
         }
       } catch (e) {
-        if (mounted) {
+        if (mounted && epoch == _searchEpoch) {
           setState(() {
             _results = [];
             _isLoading = false;
