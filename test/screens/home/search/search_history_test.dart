@@ -23,6 +23,16 @@ void main() {
     });
   });
 
+  test('a store closed before its history loads starts nothing', () async {
+    final store = SearchStore(
+      authStore: MockAuthStore(),
+      twitchApi: MockTwitchApi(),
+    )..dispose();
+    await pumpEventQueue();
+
+    expect(store.searchHistory, isEmpty);
+  });
+
   test('one past search can be removed and stays removed', () async {
     final store = SearchStore(
       authStore: MockAuthStore(),

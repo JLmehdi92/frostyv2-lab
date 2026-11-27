@@ -146,6 +146,7 @@ abstract class SearchStoreBase with Store {
   Future<void> init() async {
     // Retrieve the instance that will allow us to retrieve local search history.
     final prefs = await SharedPreferences.getInstance();
+    if (_disposed) return;
 
     // Retrieve the search history from local storage. If it doesn't exist, use an empty list.
     _searchHistory =
@@ -258,7 +259,10 @@ abstract class SearchStoreBase with Store {
     return await twitchApi.getChannel(userId: user.id);
   }
 
+  var _disposed = false;
+
   void dispose() {
+    _disposed = true;
     _disposeReaction?.call();
     _debounceTimer?.cancel();
     _suggestTimer?.cancel();
