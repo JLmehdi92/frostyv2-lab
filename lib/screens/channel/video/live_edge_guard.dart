@@ -102,7 +102,11 @@ class LiveEdgeGuard {
 
   /// Records one latency sample; true when the player should jump to the
   /// live edge now.
-  bool onSample(int latencyMs, {required bool playing}) {
+  bool onSample(
+    int latencyMs, {
+    required bool playing,
+    bool catchingUp = false,
+  }) {
     final now = _now();
     final last = _lastSampleAt;
     _lastSampleAt = now;
@@ -125,7 +129,7 @@ class LiveEdgeGuard {
     final expedited = _expedited;
     _expedited = false;
 
-    if (latencyMs <= thresholdMs) {
+    if (latencyMs <= thresholdMs || catchingUp) {
       _overSince = null;
       return false;
     }

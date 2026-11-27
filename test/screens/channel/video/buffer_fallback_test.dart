@@ -10,6 +10,10 @@ void main() {
     fallback = BufferFallback(now: () => now);
   });
 
+  test('the fallback holds ten minutes', () {
+    expect(BufferFallback.holdFor, const Duration(minutes: 10));
+  });
+
   test('one stall is not enough', () {
     expect(fallback.onUltraRebuffer(), isFalse);
     expect(fallback.active, isFalse);

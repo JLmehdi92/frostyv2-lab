@@ -23,7 +23,7 @@ class BufferFallback {
 
   /// How long the next streams use Standard: long enough for a bad network
   /// spell, short enough that a good one gets Ultra back the same evening.
-  static const holdFor = Duration(minutes: 30);
+  static const holdFor = Duration(minutes: 10);
 
   final DateTime Function() _now;
   final _recent = <DateTime>[];

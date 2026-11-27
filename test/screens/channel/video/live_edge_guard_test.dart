@@ -52,6 +52,20 @@ void main() {
     );
   });
 
+  test(
+    'never jumps while auto latency catches up, as before once it stops',
+    () {
+      guard.onLoad();
+      feed(repeat(2300, 20));
+      for (var i = 0; i < 30; i++) {
+        now = now.add(const Duration(seconds: 1));
+        expect(guard.onSample(6000, playing: true, catchingUp: true), isFalse);
+      }
+
+      expect(feed(repeat(6000, 11)), [11]);
+    },
+  );
+
   test('does nothing while settling after a load', () {
     guard.onLoad();
     // A slow start well behind live: the speed-up is still catching up.

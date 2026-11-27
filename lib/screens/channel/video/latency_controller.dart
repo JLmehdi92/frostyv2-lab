@@ -27,7 +27,9 @@ enum AutoLatencyPhase {
   /// Close enough to live: plays at 1.0x.
   steady,
 
-  /// Plays at [LatencyController.catchUpRate] to get back to the target.
+  /// Plays at [LatencyController.catchUpRate], or
+  /// [LatencyController.fastCatchUpRate] when far behind, to get back to the
+  /// target.
   catchingUp,
 }
 
@@ -125,15 +127,16 @@ class AutoLatencyStatus {
 /// drains buffer above the low-latency buffer target, at 1.03x, and that
 /// target grows after stalls (a 1 s rebuffer penalty, up to the ceiling) and
 /// never shrinks back. A stream that settled 2.2 s behind after a network
-/// burst therefore stays there. Playing at [catchUpRate] drains that buffer
-/// over a few seconds instead, invisibly: the picture never stops and the
+/// burst therefore stays there. Playing at [catchUpRate] (or
+/// [fastCatchUpRate] when far behind) drains that buffer over a few seconds
+/// instead, invisibly: the picture never stops and the
 /// audio keeps its pitch (the SDK sets the rate through `PlaybackParams`
 /// speed, like its own catch-up).
 ///
 /// The controller is deliberately timid:
 /// - it only acts once the connection has been calm for a while (no stall,
 ///   no gap in the latency ticks, a buffer reading) — a few seconds after a
-///   load, longer after a stall;
+///   load, longer after a stall unless it is [farBehindMs] behind;
 /// - it starts [startAboveMs] above the target and stops [stopAboveMs] above
 ///   it, on the median of the last [smoothing] samples, so it cannot
 ///   oscillate on noise;
@@ -141,7 +144,7 @@ class AutoLatencyStatus {
 ///   of the delay is the network's and playing faster would only stall;
 /// - any stall stops it at once; a stall (or an ABR switch) during or right
 ///   after a catch-up is a strike that raises the target, and after
-///   [maxStrikes] it stops for the stream;
+///   [maxStrikes] it stops until a strike decays ([strikeDecay]);
 /// - it never acts while held (paused, ad, reconnecting, a missing reading)
 ///   and never above [maxLiveRate]; picture-in-picture and the mini player
 ///   are not holds: the rate is invisible there too, and every check keeps
@@ -152,7 +155,7 @@ class AutoLatencyStatus {
 /// (it would reset any other rate). Where the catch-up does not run for long
 /// (stopped after stalls, a stream without low latency) a timid drain takes
 /// the SDK's place: [drainRate] only when the latency is [drainAboveMs] past
-/// the target with buffer above the floor, never after a stall in the last
+/// the base [targetMs] with buffer above the floor, never after a stall in the last
 /// [calmAfterStall], never after the player refused or did not keep a rate,
 /// and never during an ad (the SDK leaves its own speed-up alone during ads
 /// too: `MediaPlayer::checkBufferSpeedUp` skips while its ad flag is set).
@@ -203,6 +206,12 @@ class LatencyController {
   /// The highest rate the native live player accepts (it clamps to it too).
   static const maxLiveRate = 1.1;
 
+  static const fastCatchUpRate = maxLiveRate;
+
+  static const fastAboveMs = 800;
+
+  static const fastStopAboveMs = 400;
+
   /// Starts once the latency is this far above the target...
   static const startAboveMs = 400;
 
@@ -220,6 +229,8 @@ class LatencyController {
   /// Calm needed after a stall: the connection has to prove itself.
   static const calmAfterStall = Duration(seconds: 25);
 
+  static const farBehindMs = 1500;
+
   /// A tick gap longer than this (app in the background, player recreated)
   /// means the calm has to be seen again.
   static const maxSampleGap = Duration(seconds: 3);
@@ -227,10 +238,10 @@ class LatencyController {
   /// Minimum time at 1.0x between two catch-ups...
   static const restCooldown = Duration(seconds: 5);
 
-  /// ...and minimum length of one (unless the buffer floor, a stall or a
+  /// ...and minimum time at one rate (unless the buffer floor, a stall or a
   /// hold ends it), so the rate never flaps: at most one change every five
   /// seconds. Overshooting the stop threshold by the end of it costs at most
-  /// 0.25 s of buffer, which the floor still guards.
+  /// 0.5 s of buffer (at [fastCatchUpRate]), which the floor still guards.
   static const minCatchUp = Duration(seconds: 5);
 
   /// A stall or quality switch this soon after a catch-up counts against it.
@@ -241,6 +252,8 @@ class LatencyController {
 
   /// Strikes after which the controller stops for the stream.
   static const maxStrikes = 3;
+
+  static const strikeDecay = Duration(seconds: 60);
 
   /// Samples whose median the decisions use.
   static const smoothing = 5;
@@ -254,10 +267,10 @@ class LatencyController {
 
   /// The drain starts once the latency is this far above the target, with
   /// buffer above the floor...
-  static const drainAboveMs = 1500;
+  static const drainAboveMs = 1000;
 
   /// ...and stops once it is within this of it, or at the floor.
-  static const drainStopAboveMs = 1000;
+  static const drainStopAboveMs = 600;
 
   /// The floor of a stream without low latency: the IVS normal-latency
   /// minimum buffer (2.0 s in the SDK schema).
@@ -289,6 +302,7 @@ class LatencyController {
   DateTime? _catchUpStart;
   DateTime? _adUntil;
   var _strikes = 0;
+  var _stallFree = Duration.zero;
   var _notHeld = 0;
   var _stopped = false;
   AutoLatencyReason? _stopReason;
@@ -335,6 +349,7 @@ class LatencyController {
   /// The viewer refreshed the stream: forget the strikes and try again.
   void reset() {
     _strikes = 0;
+    _stallFree = Duration.zero;
     _stopped = false;
     _stopReason = null;
     _drainable = false;
@@ -346,6 +361,7 @@ class LatencyController {
   void onStall() {
     if (!enabled) return;
     _lastStallAt = _now();
+    _stallFree = Duration.zero;
     if (_stopped) {
       _toNormalRate();
       _clearCalm();
@@ -439,6 +455,11 @@ class LatencyController {
       return _rate;
     }
 
+    if (last != null && lowLatency != false) {
+      final played = now.difference(last);
+      if (played <= maxSampleGap) _decayStrikes(played);
+    }
+
     if (_stopped) {
       if (!_drainable) return _rate;
       return _drain(
@@ -454,24 +475,32 @@ class LatencyController {
 
     _push(_latencies, latencyMs);
     _push(_buffers, bufferMs!);
-    final calmSince = _calmSince ??= now;
-    final calm = now.difference(calmSince);
-    if (calm < _requiredCalm) {
-      _toNormalRate();
-      _calmLeftSeconds = (_requiredCalm - calm).inSeconds;
-      _setPhase(AutoLatencyPhase.settling);
-      return _rate;
-    }
-
     final latency = _median(_latencies);
     final buffer = _median(_buffers);
     final target = effectiveTargetMs;
+    final calmSince = _calmSince ??= now;
+    final calm = now.difference(calmSince);
+    final required = latency >= target + farBehindMs
+        ? startSettle
+        : _requiredCalm;
+    if (calm < required) {
+      _toNormalRate();
+      _calmLeftSeconds = (required - calm).inSeconds;
+      _setPhase(AutoLatencyPhase.settling);
+      return _rate;
+    }
+    _requiredCalm = startSettle;
+
     if (_rate > 1) {
       if (_rateNotKept(nativeRate)) return _rate;
       final ran = now.difference(_catchUpStart ?? now) >= minCatchUp;
       if ((ran && latency <= target + stopAboveMs) || buffer <= bufferFloorMs) {
         _toNormalRate();
         _setPhase(AutoLatencyPhase.steady);
+      } else if (ran && latency > target + fastAboveMs) {
+        _setCatchUpRate(fastCatchUpRate);
+      } else if (ran && latency <= target + fastStopAboveMs) {
+        _setCatchUpRate(catchUpRate);
       }
       return _rate;
     }
@@ -481,7 +510,7 @@ class LatencyController {
     if (rested &&
         latency > target + startAboveMs &&
         buffer >= bufferFloorMs + bufferHeadroomMs) {
-      _rate = catchUpRate;
+      _rate = latency > target + fastAboveMs ? fastCatchUpRate : catchUpRate;
       _catchUpStart = now;
       _notHeld = 0;
       _setPhase(AutoLatencyPhase.catchingUp);
@@ -524,7 +553,7 @@ class LatencyController {
     final latency = _median(_latencies);
     final buffer = _median(_buffers);
     final floor = lowLatency ? bufferFloorMs : normalLatencyFloorMs;
-    final target = effectiveTargetMs;
+    final target = targetMs;
     if (_rate > 1) {
       if (_rateNotKept(nativeRate)) return _rate;
       if (buffer <= floor ||
@@ -562,7 +591,8 @@ class LatencyController {
 
   bool get _active => enabled && !_stopped;
 
-  /// A catch-up at [catchUpRate] runs, or ended within [strikeWindow]. The
+  /// A catch-up at [catchUpRate] or [fastCatchUpRate] runs, or ended within
+  /// [strikeWindow]. The
   /// drain is not one: it has its own stall guard, and its stalls are never
   /// strikes.
   bool get _recentCatchUp {
@@ -577,6 +607,29 @@ class LatencyController {
     if (_strikes >= maxStrikes) {
       _stop(AutoLatencyReason.stallsAfterCatchUp, drainable: true);
     }
+  }
+
+  void _decayStrikes(Duration played) {
+    if (_strikes == 0) return;
+    _stallFree += played;
+    if (_stallFree < strikeDecay) return;
+    _stallFree = Duration.zero;
+    _strikes--;
+    if (_stopped && _stopReason == AutoLatencyReason.stallsAfterCatchUp) {
+      _stopped = false;
+      _stopReason = null;
+      _stopRate = null;
+      _drainable = false;
+      _restartCalm(startSettle);
+      _setPhase(AutoLatencyPhase.settling);
+    }
+  }
+
+  void _setCatchUpRate(double rate) {
+    if (_rate == rate) return;
+    _rate = rate;
+    _catchUpStart = _now();
+    _notHeld = 0;
   }
 
   void _holdFor(AutoLatencyReason reason) {
@@ -611,7 +664,7 @@ class LatencyController {
     reasonRate: _stopRate,
   );
 
-  bool get _catchingUp => _rate == catchUpRate;
+  bool get _catchingUp => _rate == catchUpRate || _rate == fastCatchUpRate;
 
   void _toNormalRate() {
     if (_catchingUp) _lastCatchUpEnd = _now();

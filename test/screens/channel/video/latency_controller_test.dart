@@ -48,11 +48,11 @@ void main() {
   group('calm connection', () {
     test('catches up once the start has been calm for a few seconds', () {
       // Joined 2.2 s behind with a full buffer: the start settle first.
-      final settling = feed(2200, 5);
+      final settling = feed(2000, 5);
       expect(settling, everyElement(1.0));
       expect(controller.status.phase, AutoLatencyPhase.settling);
 
-      final rates = feed(2200, 2);
+      final rates = feed(2000, 2);
       expect(rates.last, LatencyController.catchUpRate);
       expect(controller.status.phase, AutoLatencyPhase.catchingUp);
       expect(controller.status.rate, LatencyController.catchUpRate);
@@ -110,7 +110,7 @@ void main() {
       feed(3000, 1);
       expect(controller.rate, 1.0, reason: 'one spike is not a drift');
 
-      feed(2200, 8);
+      feed(2000, 8);
       expect(controller.rate, LatencyController.catchUpRate);
       feed(1300, 1);
       expect(
@@ -147,7 +147,7 @@ void main() {
 
   group('unstable connection', () {
     test('a stall stops the catch-up at once', () {
-      feed(2200, 8);
+      feed(2000, 8);
       expect(controller.rate, LatencyController.catchUpRate);
 
       controller.onStall();
@@ -156,22 +156,40 @@ void main() {
       expect(controller.status.phase, AutoLatencyPhase.settling);
     });
 
+    test('far behind after a stall, it waits only the short settle', () {
+      feed(1300, 10);
+      controller.onStall();
+
+      final rates = feed(5000, LatencyController.startSettle.inSeconds + 1);
+      expect(rates.last, LatencyController.fastCatchUpRate);
+    });
+
+    test('once a calm after a stall is over, the next calm is short', () {
+      feed(1300, 10);
+      controller.onStall();
+      feed(1300, LatencyController.calmAfterStall.inSeconds + 1);
+
+      feed(2000, 1, hold: AutoLatencyReason.paused);
+      expect(feed(2000, 5), everyElement(1.0));
+      expect(feed(2000, 2).last, LatencyController.catchUpRate);
+    });
+
     test('waits a longer calm after a stall', () {
       feed(1300, 10);
       controller.onStall();
 
-      final rates = feed(2200, LatencyController.calmAfterStall.inSeconds);
+      final rates = feed(2000, LatencyController.calmAfterStall.inSeconds);
       expect(rates, everyElement(1.0));
-      expect(feed(2200, 2).last, LatencyController.catchUpRate);
+      expect(feed(2000, 2).last, LatencyController.catchUpRate);
     });
 
     test('stops when the buffer reaches its floor', () {
-      feed(2200, 8);
+      feed(2000, 8);
       expect(controller.rate, LatencyController.catchUpRate);
 
       // The latency is still high but the buffer is gone: the rest of the
       // delay is the network's, playing faster would only stall.
-      feed(2200, 5, bufferMs: 600);
+      feed(2000, 5, bufferMs: 600);
 
       expect(controller.rate, 1.0);
     });
@@ -186,20 +204,20 @@ void main() {
     });
 
     test('a tick gap during a catch-up returns to 1.0x at once', () {
-      feed(2200, 8);
+      feed(2000, 8);
       expect(controller.rate, LatencyController.catchUpRate);
 
       now = now.add(const Duration(seconds: 10));
 
-      expect(feed(2200, 1), [1.0]);
+      expect(feed(2000, 1), [1.0]);
       expect(controller.status.phase, AutoLatencyPhase.settling);
     });
 
     test('a ticker gap means the calm has to be seen again', () {
-      feed(2200, 4);
+      feed(2000, 4);
       now = now.add(const Duration(seconds: 10));
-      expect(feed(2200, 5), everyElement(1.0));
-      expect(feed(2200, 2).last, LatencyController.catchUpRate);
+      expect(feed(2000, 5), everyElement(1.0));
+      expect(feed(2000, 2).last, LatencyController.catchUpRate);
     });
 
     test('backs off after stalls that follow a catch-up, then stops', () {
@@ -207,8 +225,8 @@ void main() {
         // Calm long enough, drifts, catches up, stalls.
         feed(3000, 30);
         expect(
-          controller.rate,
-          LatencyController.catchUpRate,
+          controller.status.phase,
+          AutoLatencyPhase.catchingUp,
           reason: 'strike $strike',
         );
         controller.onStall();
@@ -221,11 +239,14 @@ void main() {
       }
 
       expect(controller.status.phase, AutoLatencyPhase.stopped);
-      expect(feed(3000, 60), everyElement(1.0));
+      expect(
+        feed(3000, 59),
+        everyElement(lessThanOrEqualTo(LatencyController.drainRate)),
+      );
     });
 
     test('a stall long after a catch-up is not its fault', () {
-      feed(2200, 8);
+      feed(2000, 8);
       feed(1300, 10);
       expect(controller.rate, 1.0);
 
@@ -236,19 +257,19 @@ void main() {
     });
 
     test('a stall after the viewer paused a catch-up is not its fault', () {
-      feed(2200, 8);
+      feed(2000, 8);
       expect(controller.rate, LatencyController.catchUpRate);
 
       // Resuming a pause often rebuffers: that is the pause, not the rate.
       controller.hold(AutoLatencyReason.paused);
-      feed(2200, 2);
+      feed(2000, 2);
       controller.onStall();
 
       expect(controller.status.targetMs, 1300);
     });
 
     test('a quality change during a catch-up stops it', () {
-      feed(2200, 8);
+      feed(2000, 8);
       expect(controller.rate, LatencyController.catchUpRate);
 
       controller.onQualityChanged();
@@ -269,6 +290,145 @@ void main() {
     });
   });
 
+  group('strike decay', () {
+    void strike() {
+      feed(3000, 30);
+      expect(controller.rate, greaterThan(1));
+      controller.onStall();
+    }
+
+    test('a strike decays after a minute of calm playing', () {
+      strike();
+      expect(controller.status.targetMs, 1800);
+
+      feed(1800, LatencyController.strikeDecay.inSeconds - 1);
+      expect(controller.status.targetMs, 1800);
+
+      feed(1800, 1);
+      expect(controller.status.targetMs, 1300);
+    });
+
+    test('two strikes clear in about two minutes', () {
+      strike();
+      strike();
+      expect(controller.status.targetMs, 2300);
+
+      feed(2300, LatencyController.strikeDecay.inSeconds);
+      expect(controller.status.targetMs, 1800);
+      feed(1800, LatencyController.strikeDecay.inSeconds);
+      expect(controller.status.targetMs, 1300);
+    });
+
+    test('a stall restarts the decay clock', () {
+      strike();
+      feed(1800, 50);
+      controller.onStall();
+
+      feed(1800, LatencyController.strikeDecay.inSeconds - 1);
+      expect(controller.status.targetMs, 1800);
+      feed(1800, 1);
+      expect(controller.status.targetMs, 1300);
+    });
+
+    test('time paused or between ticks does not count', () {
+      strike();
+      feed(1800, 50, hold: AutoLatencyReason.paused);
+      now = now.add(const Duration(minutes: 5));
+      feed(1800, LatencyController.strikeDecay.inSeconds);
+      expect(controller.status.targetMs, 1800);
+      feed(1800, 1);
+      expect(controller.status.targetMs, 1300);
+    });
+
+    test('a strike-out catches up again once a strike decayed', () {
+      for (var i = 0; i < LatencyController.maxStrikes; i++) {
+        strike();
+      }
+      expect(controller.status.phase, AutoLatencyPhase.stopped);
+
+      feed(2800, LatencyController.strikeDecay.inSeconds);
+      expect(controller.status.phase, isNot(AutoLatencyPhase.stopped));
+      expect(controller.status.targetMs, 2300);
+
+      feed(3000, 8);
+      expect(controller.status.phase, AutoLatencyPhase.catchingUp);
+      expect(controller.rate, greaterThan(1));
+    });
+
+    test('a stop for the rate stays stopped through the decay', () {
+      strike();
+      feed(1800, 30);
+      controller.onRateRejected();
+
+      feed(1800, LatencyController.strikeDecay.inSeconds * 3);
+      expect(controller.status.phase, AutoLatencyPhase.stopped);
+      expect(controller.status.reason, AutoLatencyReason.rateRefused);
+    });
+
+    test('a manual refresh still clears every strike', () {
+      strike();
+      strike();
+      controller
+        ..reset()
+        ..onLoad();
+      expect(controller.status.targetMs, 1300);
+    });
+  });
+
+  group('two-speed catch-up', () {
+    test('far behind it catches up at the top rate', () {
+      feed(3000, 8);
+      expect(controller.rate, LatencyController.fastCatchUpRate);
+      expect(LatencyController.fastCatchUpRate, LatencyController.maxLiveRate);
+      expect(controller.status.phase, AutoLatencyPhase.catchingUp);
+    });
+
+    test('a smaller drift catches up at the gentle rate', () {
+      feed(2000, 8);
+      expect(controller.rate, LatencyController.catchUpRate);
+    });
+
+    test('goes up above target + 0.8 s and back down at target + 0.4 s', () {
+      feed(2000, 8);
+      expect(controller.rate, LatencyController.catchUpRate);
+
+      feed(2200, 5);
+      expect(controller.rate, LatencyController.fastCatchUpRate);
+
+      feed(1800, 5);
+      expect(
+        controller.rate,
+        LatencyController.fastCatchUpRate,
+        reason: 'between the two thresholds it keeps its speed',
+      );
+
+      feed(1700, 5);
+      expect(controller.rate, LatencyController.catchUpRate);
+
+      feed(1400, 5);
+      expect(controller.rate, 1.0);
+      expect(controller.status.phase, AutoLatencyPhase.steady);
+    });
+
+    test('a speed change is not taken for a rate not kept', () {
+      feed(2000, 8, nativeRate: LatencyController.catchUpRate);
+      feed(2300, 4, nativeRate: LatencyController.catchUpRate);
+      expect(controller.rate, LatencyController.fastCatchUpRate);
+
+      feed(2300, 2, nativeRate: LatencyController.catchUpRate);
+      feed(2300, 5, nativeRate: LatencyController.fastCatchUpRate);
+
+      expect(controller.status.phase, AutoLatencyPhase.catchingUp);
+    });
+
+    test('a stall at the top rate is a strike too', () {
+      feed(3000, 8);
+      expect(controller.rate, LatencyController.fastCatchUpRate);
+      controller.onStall();
+      expect(controller.status.targetMs, 1800);
+    });
+  });
+
   group('holds', () {
     for (final reason in [
       AutoLatencyReason.paused,
@@ -283,22 +443,22 @@ void main() {
     }
 
     test('a hold during a catch-up drops back to 1.0x at once', () {
-      feed(2200, 8);
+      feed(2000, 8);
       expect(controller.rate, LatencyController.catchUpRate);
 
-      expect(feed(2200, 1, hold: AutoLatencyReason.paused), [1.0]);
+      expect(feed(2000, 1, hold: AutoLatencyReason.paused), [1.0]);
     });
 
     test('hold() drops back to 1.0x without a sample', () {
-      feed(2200, 8);
+      feed(2000, 8);
       controller.hold(AutoLatencyReason.paused);
       expect(controller.rate, 1.0);
     });
 
     test('after a hold the calm starts over', () {
-      feed(2200, 8, hold: AutoLatencyReason.paused);
-      expect(feed(2200, 5), everyElement(1.0));
-      expect(feed(2200, 2).last, LatencyController.catchUpRate);
+      feed(2000, 8, hold: AutoLatencyReason.paused);
+      expect(feed(2000, 5), everyElement(1.0));
+      expect(feed(2000, 2).last, LatencyController.catchUpRate);
     });
 
     test('never corrects during an ad', () {
@@ -328,7 +488,7 @@ void main() {
     });
 
     test('stops for good when the player refuses the rate', () {
-      feed(2200, 8);
+      feed(2000, 8);
       controller.onRateRejected();
 
       expect(controller.rate, 1.0);
@@ -337,24 +497,24 @@ void main() {
     });
 
     test('stops when the player does not keep the rate', () {
-      feed(2200, 8);
+      feed(2000, 8);
       expect(controller.rate, LatencyController.catchUpRate);
 
       // Something (the SDK's own catch-up) puts the rate back at 1.0x.
-      feed(2200, LatencyController.rateNotHeldTicks, nativeRate: 1.0);
+      feed(2000, LatencyController.rateNotHeldTicks, nativeRate: 1.0);
 
       expect(controller.status.phase, AutoLatencyPhase.stopped);
       expect(controller.rate, 1.0);
     });
 
     test('a manual refresh tries again', () {
-      feed(2200, 8);
+      feed(2000, 8);
       controller
         ..onRateRejected()
         ..reset()
         ..onLoad();
 
-      expect(feed(2200, 8).last, LatencyController.catchUpRate);
+      expect(feed(2000, 8).last, LatencyController.catchUpRate);
     });
 
     test('a new load keeps the back-off but restarts the settle', () {
@@ -384,12 +544,23 @@ void main() {
     test('after giving up, drains at 1.03× only when clearly behind', () {
       strikeOut();
 
-      expect(feed(4200, 40), everyElement(1.0), reason: 'not clearly high');
+      expect(feed(2300, 40), everyElement(1.0), reason: 'not clearly high');
       final rates = feed(6000, 10);
 
       expect(rates.last, LatencyController.drainRate);
       expect(controller.status.phase, AutoLatencyPhase.draining);
       expect(controller.status.reason, AutoLatencyReason.stallsAfterCatchUp);
+    });
+
+    test('drains from the base target + 1 s down to it + 0.6 s', () {
+      strikeOut();
+      expect(controller.status.targetMs, 2800);
+
+      expect(feed(2300, 30), everyElement(1.0));
+      expect(feed(2400, 5).last, LatencyController.drainRate);
+      expect(feed(2000, 5).last, LatencyController.drainRate);
+      expect(feed(1900, 5).last, 1.0);
+      expect(controller.status.phase, AutoLatencyPhase.stopped);
     });
 
     test('the drain stops at the buffer floor and goes back to stopped', () {
@@ -496,7 +667,7 @@ void main() {
 
   group('lost ticks', () {
     test('a tick without a latency drops back to 1.0x and holds', () {
-      feed(2200, 8);
+      feed(2000, 8);
       expect(controller.rate, LatencyController.catchUpRate);
 
       now = now.add(const Duration(seconds: 1));
@@ -508,7 +679,7 @@ void main() {
     });
 
     test('the watchdog ends a catch-up whose ticks stopped', () {
-      feed(2200, 8);
+      feed(2000, 8);
       now = now.add(LatencyController.maxSampleGap);
       expect(controller.checkTicks(), isFalse, reason: 'not late yet');
       expect(controller.rate, LatencyController.catchUpRate);
@@ -537,7 +708,7 @@ void main() {
     });
 
     test('the store can stop it with a reason', () {
-      feed(2200, 8);
+      feed(2000, 8);
       controller.stop(AutoLatencyReason.stuckFast, rate: 1.05);
 
       expect(controller.rate, 1.0);
