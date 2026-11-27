@@ -107,9 +107,8 @@ class ReleaseVersionPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SettingsColors.of(context);
     return Container(
-      height: 24,
+      constraints: const BoxConstraints(minHeight: 24),
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: latest ? SettingsColors.accentOf(context) : colors.tile,
         borderRadius: BorderRadius.circular(OnsetTokens.radiusPill),
@@ -120,15 +119,19 @@ class ReleaseVersionPill extends StatelessWidget {
                 width: OnsetTokens.hairlineWidth,
               ),
       ),
-      child: Text(
-        label,
-        maxLines: 1,
-        style: _inter(
-          12,
-          weight: latest ? FontWeight.w800 : FontWeight.w700,
-          spacing: -0.12,
-          tabular: true,
-          color: latest ? SettingsColors.onAccentOf(context) : colors.text,
+      child: Align(
+        widthFactor: 1,
+        heightFactor: 1,
+        child: Text(
+          label,
+          maxLines: 1,
+          style: _inter(
+            12,
+            weight: latest ? FontWeight.w800 : FontWeight.w700,
+            spacing: -0.12,
+            tabular: true,
+            color: latest ? SettingsColors.onAccentOf(context) : colors.text,
+          ),
         ),
       ),
     );

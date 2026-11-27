@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/playback_access_token.dart';
 import 'package:onset/screens/channel/video/free_preview.dart';
 
@@ -173,6 +174,43 @@ void main() {
       expect(find.byKey(FreePreviewLayer.bannerKey), findsNothing);
       controller.dispose();
     });
+
+    for (final tier in SubscriberTier.values) {
+      testWidgets(
+        'the banner fits a 320 dp player at text ×1.5, ${tier.name}',
+        (tester) async {
+          final now = DateTime(2026, 11, 9, 12);
+          final controller = FreePreviewController(
+            endsAt: now.add(const Duration(minutes: 2, seconds: 5)),
+            clock: () => now,
+          )..tier = tier;
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: SizedBox(
+                width: 320,
+                height: 180,
+                child: FreePreviewLayer(
+                  controller: controller,
+                  name: 'Streamer',
+                  login: 'streamer',
+                  onUseWebPlayer: () {},
+                ),
+              ),
+            ),
+            size: const Size(320, 568),
+            textScale: 1.5,
+          );
+          expect(tester.takeException(), isNull);
+          await tester.tap(
+            find.byTooltip(lookupAppLocalizations(fr).freePreviewHide),
+          );
+          await tester.pumpAndSettle();
+          expect(find.byKey(FreePreviewLayer.bannerKey), findsNothing);
+          controller.dispose();
+        },
+      );
+    }
 
     testWidgets('when it ends, Subscribe and the web player are offered', (
       tester,

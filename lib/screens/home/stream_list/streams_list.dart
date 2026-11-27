@@ -1500,21 +1500,23 @@ class NewVideosBadge extends StatelessWidget {
       label: context.l10n.followedVideosNew(count: count),
       excludeSemantics: true,
       child: Container(
-        constraints: const BoxConstraints(minWidth: 22),
-        height: 22,
+        constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
         padding: const EdgeInsets.symmetric(horizontal: 7),
-        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: accent,
           borderRadius: BorderRadius.circular(11),
         ),
-        child: Text(
-          count > 99 ? '99+' : '$count',
-          style: OnsetType.tabular(
-            const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: OnsetTokens.backgroundDark,
+        child: Align(
+          widthFactor: 1,
+          heightFactor: 1,
+          child: Text(
+            count > 99 ? '99+' : '$count',
+            style: OnsetType.tabular(
+              const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: OnsetTokens.backgroundDark,
+              ),
             ),
           ),
         ),

@@ -886,12 +886,13 @@ class SheetChoicePill extends StatelessWidget {
                   onSelected!();
                 },
           child: Container(
-            height: large ? 36 : 30,
+            constraints: BoxConstraints(minHeight: large ? 36 : 30),
             padding: EdgeInsets.symmetric(horizontal: large ? 14 : 12),
             // Centred, yet as wide as its label: the container's own
             // alignment would stretch the pill across a Wrap's whole row.
             child: Align(
               widthFactor: 1,
+              heightFactor: 1,
               child: Text(
                 label,
                 maxLines: 1,
@@ -1014,6 +1015,7 @@ class SheetTextField extends StatelessWidget {
     this.keyboardType,
     this.inputFormatters,
     this.onChanged,
+    this.onSubmitted,
     this.counter = false,
     this.hint,
     this.textStyle,
@@ -1033,6 +1035,7 @@ class SheetTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
 
   /// "n / max" under the field.
   final bool counter;
@@ -1058,6 +1061,7 @@ class SheetTextField extends StatelessWidget {
         ...?inputFormatters,
       ],
       onChanged: onChanged,
+      onSubmitted: onSubmitted,
       maxLines: maxLines,
       minLines: 1,
       cursorColor: accent,

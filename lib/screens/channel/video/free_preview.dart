@@ -154,7 +154,7 @@ class _FreePreviewBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(10, 44, 10, 0),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 340),

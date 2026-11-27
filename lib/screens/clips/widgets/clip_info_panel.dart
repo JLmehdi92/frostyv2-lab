@@ -318,9 +318,8 @@ class ClipOriginPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
     return Container(
-      height: 26,
+      constraints: const BoxConstraints(minHeight: 26),
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      alignment: Alignment.center,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(13),
         border: Border.all(
@@ -328,13 +327,17 @@ class ClipOriginPill extends StatelessWidget {
           width: OnsetTokens.hairlineWidth,
         ),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontFamily: OnsetTokens.bodyFamily,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: colors.secondary,
+      child: Align(
+        widthFactor: 1,
+        heightFactor: 1,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: OnsetTokens.bodyFamily,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: colors.secondary,
+          ),
         ),
       ),
     );

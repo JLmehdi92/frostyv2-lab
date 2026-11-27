@@ -114,29 +114,39 @@ class _UpNextCard extends StatelessWidget {
                     child: Row(
                       spacing: 8,
                       children: [
-                        Text(
-                          l.vodUpNext.toUpperCase(),
-                          style: const TextStyle(
-                            fontFamily: OnsetTokens.bodyFamily,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.54,
-                            color: _secondary,
+                        Expanded(
+                          child: Row(
+                            spacing: 8,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  l.vodUpNext.toUpperCase(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontFamily: OnsetTokens.bodyFamily,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.54,
+                                    color: _secondary,
+                                  ),
+                                ),
+                              ),
+                              if (counting)
+                                Text(
+                                  l.vodUpNextSeconds(count: secondsLeft),
+                                  style: OnsetType.tabular(
+                                    const TextStyle(
+                                      fontFamily: OnsetTokens.bodyFamily,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: _text,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                        if (counting)
-                          Text(
-                            l.vodUpNextSeconds(count: secondsLeft),
-                            style: OnsetType.tabular(
-                              const TextStyle(
-                                fontFamily: OnsetTokens.bodyFamily,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: _text,
-                              ),
-                            ),
-                          ),
-                        const Spacer(),
                         TextButton(
                           onPressed: onCancel,
                           style: TextButton.styleFrom(

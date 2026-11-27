@@ -6,6 +6,8 @@ import 'package:onset/utils/modal_bottom_sheet.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
+import '../../helpers/l10n.dart';
+
 void main() {
   Future<BuildContext> pump(
     WidgetTester tester, {
@@ -397,6 +399,68 @@ void main() {
       rows.add(box.localToGlobal(Offset.zero).dy);
     }
     expect(rows, hasLength(1), reason: 'the pills sit side by side');
+  });
+
+  testWidgets('a choice pill grows with large text instead of cutting it', (
+    tester,
+  ) async {
+    await tester.runAsync(loadInter);
+    for (final large in [false, true]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: Scaffold(
+              body: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SheetChoicePill(
+                      label: 'Channel',
+                      selected: false,
+                      large: large,
+                      onSelected: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      final pill = tester.getSize(find.byType(SheetChoicePill)).height;
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.text('Channel'),
+      );
+      final text = paragraph.getMaxIntrinsicHeight(paragraph.size.width);
+      expect(paragraph.size.height, text, reason: 'large: $large');
+      expect(pill, greaterThanOrEqualTo(text), reason: 'large: $large');
+      expect(pill, greaterThanOrEqualTo(large ? 36 : 30));
+    }
+  });
+
+  testWidgets('a choice pill keeps its height in a taller row', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              height: 80,
+              child: Row(
+                children: [
+                  SheetChoicePill(
+                    label: 'Channel',
+                    selected: false,
+                    onSelected: () {},
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.getSize(find.byType(SheetChoicePill)).height, 30);
   });
 
   testWidgets('a choice pill says when it is selected', (tester) async {
