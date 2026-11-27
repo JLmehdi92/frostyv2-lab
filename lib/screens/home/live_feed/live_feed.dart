@@ -1356,25 +1356,39 @@ class _LiveFeedFollowButtonState extends State<LiveFeedFollowButton> {
     unawaited(_loadState());
   }
 
+  @override
+  void didUpdateWidget(LiveFeedFollowButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.stream.userId == widget.stream.userId) return;
+    _following = null;
+    unawaited(_loadState());
+  }
+
   Future<void> _loadState() async {
     final actions = FollowFlow.actionsOf(context);
-    if (actions == null || widget.stream.userId.isEmpty) return;
-    final following = await actions.followsChannel(widget.stream.userId);
-    if (mounted) setState(() => _following = following);
+    final id = widget.stream.userId;
+    if (actions == null || id.isEmpty) return;
+    final following = await actions.followsChannel(id);
+    if (mounted && widget.stream.userId == id) {
+      setState(() => _following = following);
+    }
   }
 
   String get _name =>
       getReadableName(widget.stream.userName, widget.stream.userLogin);
 
   Future<void> _onPressed() async {
+    final id = widget.stream.userId;
     await FollowFlow.toggle(
       context,
       target: FollowTarget.channel,
-      id: widget.stream.userId,
+      id: id,
       name: _name,
       following: _following,
       onChanged: (now) {
-        if (mounted) setState(() => _following = now);
+        if (mounted && widget.stream.userId == id) {
+          setState(() => _following = now);
+        }
       },
     );
   }

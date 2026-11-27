@@ -65,6 +65,52 @@ void main() {
     expect(find.byKey(const ValueKey('web')), findsNothing);
   });
 
+  testWidgets('another channel on the same page reads its own state', (
+    tester,
+  ) async {
+    const other = StreamTwitch(
+      '2000',
+      'other',
+      'Other',
+      '509658',
+      'Just Chatting',
+      'title',
+      10,
+      '2026-11-09T00:00:00Z',
+      '',
+    );
+    when(
+      () => actions.followsChannel(_stream.userId),
+    ).thenAnswer((_) async => true);
+    when(
+      () => actions.followsChannel(other.userId),
+    ).thenAnswer((_) async => false);
+    final shown = ValueNotifier(_stream);
+    addTearDown(shown.dispose);
+    await pumpLocalized(
+      tester,
+      Scaffold(
+        body: Center(
+          child: ValueListenableBuilder(
+            valueListenable: shown,
+            builder: (context, stream, _) =>
+                LiveFeedFollowButton(stream: stream),
+          ),
+        ),
+      ),
+      locale: en,
+      wrap: (app) => Provider<FollowActions?>.value(value: actions, child: app),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Following'), findsOneWidget);
+
+    shown.value = other;
+    await tester.pumpAndSettle();
+
+    verify(() => actions.followsChannel(other.userId)).called(1);
+    expect(find.text('Follow'), findsOneWidget);
+  });
+
   testWidgets('unfollowing from the feed asks first', (tester) async {
     when(() => actions.followsChannel(any())).thenAnswer((_) async => true);
     when(
