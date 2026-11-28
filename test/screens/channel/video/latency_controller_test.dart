@@ -161,7 +161,7 @@ void main() {
       controller.onStall();
 
       final rates = feed(5000, LatencyController.startSettle.inSeconds + 1);
-      expect(rates.last, LatencyController.fastCatchUpRate);
+      expect(rates.last, LatencyController.catchUpRate);
     });
 
     test('once a calm after a stall is over, the next calm is short', () {
@@ -375,55 +375,40 @@ void main() {
     });
   });
 
-  group('two-speed catch-up', () {
-    test('far behind it catches up at the top rate', () {
-      feed(3000, 8);
-      expect(controller.rate, LatencyController.fastCatchUpRate);
-      expect(LatencyController.fastCatchUpRate, LatencyController.maxLiveRate);
-      expect(controller.status.phase, AutoLatencyPhase.catchingUp);
-    });
+  group('one-speed catch-up', () {
+    test('far behind it never goes above the catch-up rate', () {
+      final rates = <double>[
+        ...feed(5000, 8, bufferMs: 6000),
+        for (var ms = 5000; ms > 1300; ms -= 50)
+          ...feed(ms, 1, bufferMs: 6000),
+        ...feed(1300, 5, bufferMs: 6000),
+      ];
 
-    test('a smaller drift catches up at the gentle rate', () {
-      feed(2000, 8);
-      expect(controller.rate, LatencyController.catchUpRate);
-    });
-
-    test('goes up above target + 0.8 s and back down at target + 0.4 s', () {
-      feed(2000, 8);
-      expect(controller.rate, LatencyController.catchUpRate);
-
-      feed(2200, 5);
-      expect(controller.rate, LatencyController.fastCatchUpRate);
-
-      feed(1800, 5);
+      final fast = rates.where((r) => r > 1.0).toSet();
+      expect(fast, {LatencyController.catchUpRate});
       expect(
-        controller.rate,
-        LatencyController.fastCatchUpRate,
-        reason: 'between the two thresholds it keeps its speed',
+        rates,
+        everyElement(lessThanOrEqualTo(LatencyController.catchUpRate)),
       );
-
-      feed(1700, 5);
-      expect(controller.rate, LatencyController.catchUpRate);
-
-      feed(1400, 5);
-      expect(controller.rate, 1.0);
+      final start = rates.indexWhere((r) => r > 1.0);
+      final end = rates.indexWhere((r) => r == 1.0, start);
+      expect(start, greaterThanOrEqualTo(0));
+      expect(end, greaterThan(start));
+      expect(
+        rates.sublist(start, end),
+        everyElement(LatencyController.catchUpRate),
+      );
       expect(controller.status.phase, AutoLatencyPhase.steady);
     });
 
-    test('a speed change is not taken for a rate not kept', () {
-      feed(2000, 8, nativeRate: LatencyController.catchUpRate);
-      feed(2300, 4, nativeRate: LatencyController.catchUpRate);
-      expect(controller.rate, LatencyController.fastCatchUpRate);
-
-      feed(2300, 2, nativeRate: LatencyController.catchUpRate);
-      feed(2300, 5, nativeRate: LatencyController.fastCatchUpRate);
-
-      expect(controller.status.phase, AutoLatencyPhase.catchingUp);
+    test('a smaller drift catches up at the same rate', () {
+      feed(2000, 8);
+      expect(controller.rate, LatencyController.catchUpRate);
     });
 
-    test('a stall at the top rate is a strike too', () {
+    test('a stall during a far catch-up is a strike too', () {
       feed(3000, 8);
-      expect(controller.rate, LatencyController.fastCatchUpRate);
+      expect(controller.rate, LatencyController.catchUpRate);
       controller.onStall();
       expect(controller.status.targetMs, 1800);
     });

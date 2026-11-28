@@ -791,14 +791,18 @@ void main() {
       expect(native.callsNamed('load'), isEmpty, reason: 'never a reload');
     });
 
-    test('a long stall is caught up at 1.1x, never reloaded', () async {
+    test('a long stall is caught up at 1.05x, never reloaded', () async {
       store = await playing();
       await tick(1300, 20);
 
       await native.emit({'type': 'rebuffering'});
       await tick(5800, 40, bufferMs: 4800);
 
-      expect(rates(), contains(LatencyController.fastCatchUpRate));
+      expect(rates(), contains(LatencyController.catchUpRate));
+      expect(
+        rates(),
+        everyElement(lessThanOrEqualTo(LatencyController.catchUpRate)),
+      );
       expect(store.liveJumps, 0);
       expect(native.callsNamed('load'), isEmpty, reason: 'never a reload');
     });
@@ -814,21 +818,15 @@ void main() {
       expect(store.liveJumps, 1);
     });
 
-    test('switches between the two catch-up rates', () async {
+    test('keeps one catch-up rate when the drift grows', () async {
       store = await playing();
       await tick(2000, 8);
       expect(rates(), [LatencyController.catchUpRate]);
 
-      await tick(2300, 4, rate: LatencyController.catchUpRate);
-      expect(rates(), [
-        LatencyController.catchUpRate,
-        LatencyController.fastCatchUpRate,
-      ]);
-
-      await tick(2300, 2, rate: LatencyController.catchUpRate);
-      await tick(2300, 3, rate: LatencyController.fastCatchUpRate);
+      await tick(2300, 6, rate: LatencyController.catchUpRate);
+      expect(rates(), [LatencyController.catchUpRate]);
       expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
-      expect(store.autoLatencyStatus?.rate, LatencyController.fastCatchUpRate);
+      expect(store.autoLatencyStatus?.rate, LatencyController.catchUpRate);
     });
 
     group('a quality switch', () {
