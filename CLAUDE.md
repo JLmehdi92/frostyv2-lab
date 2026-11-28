@@ -60,6 +60,13 @@ flutter build apk --debug --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY
 - Twitch `CLIENT_ID` and `TOKEN_PROXY_URL` are NOT in the repo (build-time only) — supply them via `--dart-define`.
 - **No Twitch client secret is ever in the app**: logged-out viewers get an app token from the token proxy, a Cloudflare Worker (`tool/token_proxy/`, setup in its README) holding the secret of a second Twitch application nobody logs in to, used with that application's client id. The login application needs no secret at all. Never add one back as a `--dart-define` (`test/guards/no_client_secret_test.dart` fails if anything reads one).
 
+## Two repositories: lab and public release
+
+- **`JLmehdi92/frostyv2-lab`** is the workshop: all coding, fixes and experiments happen here (commits with `[skip ci]`, the in-app update workflow `onset-update.yml` builds from here).
+- **`JLmehdi92/onset`** is the clean public original, pushed in the owner's name. Its history is NOT shared with the lab: each release is ONE commit `onset X.Y.Z: <summary>` authored `JLmehdi92 <145269358+JLmehdi92@users.noreply.github.com>`, no AI co-author lines, on top of its own history.
+- A release copies the lab tree **without** `.claude/`, `AGENTS.md`, `CLAUDE.md` and `desktop/`, after a secret scan. Only when everything is perfect, and only on the owner's go.
+- onsetapp.app is already indexed in Google Search Console (done by the owner); this session has no Search Console access, so SEO work relies on live search results, never invented numbers.
+
 ## Definition of done (per change)
 
 1. `flutter analyze` clean, `flutter test` green.
