@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ONSET — Twitch, live. Not almost live.</title>
-<meta name="description" content="ONSET is a free, open-source Twitch client for Android with a low-latency native player and full chat, including 7TV, BTTV, and FFZ emotes.">
+<title>ONSET: low-latency Twitch client for Android, open source</title>
+<meta name="description" content="Free, open-source Twitch client for Android. A native low-latency player shows the real delay live, with full 7TV, BTTV and FFZ chat.">
 <link rel="canonical" href="https://onsetapp.app/">
 <link rel="alternate" hreflang="en" href="https://onsetapp.app/">
 <link rel="alternate" hreflang="fr" href="https://onsetapp.app/fr/">
@@ -14,8 +14,8 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ONSET">
 <meta property="og:url" content="https://onsetapp.app/">
-<meta property="og:title" content="ONSET — Twitch, live. Not almost live.">
-<meta property="og:description" content="A free, open-source Twitch client for Android with a low-latency native player and full chat, including 7TV, BTTV, and FFZ emotes.">
+<meta property="og:title" content="ONSET: low-latency Twitch client for Android, open source">
+<meta property="og:description" content="Free, open-source Twitch client for Android. A native low-latency player shows the real delay live, with full 7TV, BTTV and FFZ chat.">
 <meta property="og:image" content="https://onsetapp.app/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -23,10 +23,12 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="fr_FR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ONSET — Twitch, live. Not almost live.">
-<meta name="twitter:description" content="A free, open-source Twitch client for Android with a low-latency native player and full chat, including 7TV, BTTV, and FFZ emotes.">
+<meta name="twitter:title" content="ONSET: low-latency Twitch client for Android, open source">
+<meta name="twitter:description" content="Free, open-source Twitch client for Android. A native low-latency player shows the real delay live, with full 7TV, BTTV and FFZ chat.">
 <meta name="twitter:image" content="https://onsetapp.app/assets/og.png">
 <meta name="twitter:image:alt" content="ONSET app icon and the headline: Twitch, live. Not almost live.">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "ONSET", "url": "https://onsetapp.app/", "description": "A free, open-source Twitch client for Android with a low-latency native player that shows the measured delay, and full chat with 7TV, BTTV, and FFZ emotes.", "inLanguage": "en", "applicationCategory": "MultimediaApplication", "operatingSystem": "Android 7.0 or later", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "downloadUrl": "https://github.com/JLmehdi92/onset/releases/latest/download/onset-arm64.apk", "image": "https://onsetapp.app/assets/icon-512.png", "license": "https://www.gnu.org/licenses/agpl-3.0.html", "sameAs": ["https://github.com/JLmehdi92/onset"], "isBasedOn": "https://github.com/tommyxchow/frosty"}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is ONSET free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. ONSET is free to download and use, and it is open source under the AGPL-3.0-or-later license."}}, {"@type": "Question", "name": "Is it an official Twitch app?", "acceptedAnswer": {"@type": "Answer", "text": "No. ONSET is an independent project. It is not affiliated with, endorsed by, or sponsored by Twitch."}}, {"@type": "Question", "name": "Why is Twitch behind live on my phone?", "acceptedAnswer": {"@type": "Answer", "text": "An embedded web player keeps a long buffer, so the picture trails the broadcast by several seconds. ONSET plays live channels in the Amazon IVS player instead, built on the same video technology as Twitch, and catches up when playback falls behind. The delay depends on the stream and your network, and ONSET shows it in the player."}}, {"@type": "Question", "name": "How is ONSET different from other third-party Twitch apps?", "acceptedAnswer": {"@type": "Answer", "text": "Its native player stays near the live edge and shows the measured latency, and the chat can follow that delay so messages line up with the picture. Twitch's web player stays one setting away and takes over on its own if the native player fails. Like Frosty, the client it is based on, ONSET is open source."}}, {"@type": "Question", "name": "Do I need a Twitch account?", "acceptedAnswer": {"@type": "Answer", "text": "No. You can browse and watch while logged out. To chat or see the channels you follow, log in on Twitch's own login page; ONSET never sees your password."}}, {"@type": "Question", "name": "Does ONSET collect my data?", "acceptedAnswer": {"@type": "Answer", "text": "Not by default. ONSET has no account system of its own, and crash reports and analytics stay off unless you turn them on. No ads, no data sold. To work, the app talks to Twitch, the emote services, and a few other services; the privacy policy lists exactly what each one receives."}}, {"@type": "Question", "name": "How do I install the APK?", "acceptedAnswer": {"@type": "Answer", "text": "Download the APK. Open the downloaded file. If Android asks, allow your browser (or file manager) to install unknown apps. Tap Install, then open ONSET. After that, ONSET offers updates inside the app."}}, {"@type": "Question", "name": "Is there an iPhone version?", "acceptedAnswer": {"@type": "Answer", "text": "Not yet. Subscribe to the iPhone waitlist on GitHub to hear when it is ready."}}, {"@type": "Question", "name": "What do I need to run it?", "acceptedAnswer": {"@type": "Answer", "text": "An Android phone or tablet with a 64-bit ARM (arm64) processor, running Android 7.0 or later."}}]}</script>
 <link rel="icon" href="/favicon.ico" sizes="32x32 48x48">
 <link rel="icon" href="/assets/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -109,7 +111,7 @@
 
       <div class="hero-copy">
         <h1 class="h1" id="hero-title"><span class="ln"><span class="li">Twitch, <span class="hl">live.</span></span></span><span class="ln"><span class="li">Not almost live.</span></span></h1>
-        <p class="sub">ONSET is a free, independent, open-source Twitch client for Android with a low-latency native player and full chat, including 7TV, BTTV, and FFZ emotes.</p>
+        <p class="sub">ONSET is a free, independent, open-source Twitch client for Android with a low-latency native player and full chat, including 7TV, BTTV, and FFZ emotes. The player shows the measured delay to the broadcaster, live.</p>
         <div class="stores">
           <a class="store store-a" href="https://github.com/JLmehdi92/ONSET/releases/latest/download/onset-arm64.apk">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5v12"></path><path d="M7 11l5 5 5-5"></path><path d="M4.5 20.5h15"></path></svg>
@@ -308,6 +310,14 @@
           <details class="faq-item">
             <summary>Is it an official Twitch app?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
             <p class="faq-a">No. ONSET is an independent project. It is not affiliated with, endorsed by, or sponsored by Twitch.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Why is Twitch behind live on my phone?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
+            <p class="faq-a">An embedded web player keeps a long buffer, so the picture trails the broadcast by several seconds. ONSET plays live channels in the Amazon IVS player instead, built on the same video technology as Twitch, and catches up when playback falls behind. The delay depends on the stream and your network, and ONSET shows it in the player.</p>
+          </details>
+          <details class="faq-item">
+            <summary>How is ONSET different from other third-party Twitch apps?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
+            <p class="faq-a">Its native player stays near the live edge and shows the measured latency, and the chat can follow that delay so messages line up with the picture. Twitch's web player stays one setting away and takes over on its own if the native player fails. Like Frosty, the client it is based on, ONSET is open source.</p>
           </details>
           <details class="faq-item">
             <summary>Do I need a Twitch account?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>

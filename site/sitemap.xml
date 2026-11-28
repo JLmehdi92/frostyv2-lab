@@ -1,21 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://onsetapp.app/</loc>
+    <lastmod>2026-11-28</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://onsetapp.app/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://onsetapp.app/fr/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://onsetapp.app/"/>
   </url>
   <url>
     <loc>https://onsetapp.app/fr/</loc>
+    <lastmod>2026-11-28</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://onsetapp.app/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://onsetapp.app/fr/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://onsetapp.app/"/>
   </url>
   <url>
     <loc>https://onsetapp.app/privacy</loc>
+    <lastmod>2026-11-28</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://onsetapp.app/privacy"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://onsetapp.app/fr/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://onsetapp.app/privacy"/>
   </url>
   <url>
     <loc>https://onsetapp.app/fr/privacy</loc>
+    <lastmod>2026-11-28</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://onsetapp.app/privacy"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://onsetapp.app/fr/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://onsetapp.app/privacy"/>
   </url>
   <url>
     <loc>https://onsetapp.app/legal</loc>
+    <lastmod>2026-11-28</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://onsetapp.app/legal"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://onsetapp.app/fr/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://onsetapp.app/legal"/>
   </url>
   <url>
     <loc>https://onsetapp.app/fr/mentions-legales</loc>
+    <lastmod>2026-11-28</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://onsetapp.app/legal"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://onsetapp.app/fr/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://onsetapp.app/legal"/>
   </url>
 </urlset>

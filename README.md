@@ -10,6 +10,12 @@
 <p><strong>A Twitch client for Android, close to the live edge.</strong><br>
 A native low-latency player and a full-featured chat.</p>
 
+<p>ONSET is a free, open-source (AGPL-3.0-or-later) third-party Twitch app for
+Android phones and tablets. Live channels play in the Amazon IVS player instead
+of the embedded Twitch web player, the measured delay to the broadcaster shows
+in the player, and the chat comes with 7TV, BTTV and FFZ emotes. It shows no ads of its own and has no
+account system of its own. Website: <a href="https://onsetapp.app/">onsetapp.app</a>.</p>
+
 <p>
   <img alt="Flutter 3.38.4" src="https://img.shields.io/badge/Flutter-3.38.4-C8FF3D?style=flat-square&labelColor=0A0A0A&logo=flutter&logoColor=white">
   <img alt="Platform: Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-C8FF3D?style=flat-square&labelColor=0A0A0A&logo=android&logoColor=white">
