@@ -1,5 +1,34 @@
 <!-- ONSET release notes: one "## v1.2.0" entry per version, newest first, its date on the next line. -->
 
+## v1.2.0
+
+November 28, 2026
+
+Live video stays closer to live, chat lines up with the stream more precisely, and the app runs smoother.
+
+### New
+
+- **Chat margin** in `Settings › Chat`: hold chat a little longer than the video is behind live, so messages never arrive before the moment they react to.
+- [Android] The video stats now count slow frames.
+
+### Improvements
+
+- [Android] After the video stalls, the delay now returns to its target on its own.
+- [Android] The sound no longer cuts out while the video catches up with live.
+- Chat is now synced to the stream to the tenth of a second.
+- Player buttons respond instantly in landscape.
+- The player settings sheet opens without stutter.
+- The blurred glass effect pauses while a sheet or page covers it, saving work.
+- Images use less memory and load faster, especially on phones with little memory.
+- Smoother scrolling in chat, whispers, and profiles.
+
+### Fixes
+
+- Lists no longer stop loading or repeat channels when Twitch sends duplicate pages.
+- A profile stays on screen when reloading it fails.
+- Live channel updates keep reconnecting after a long loss of connection.
+- Rows, pills, and banners fit on small phones with large text.
+
 ## v1.1.0
 
 November 1, 2026

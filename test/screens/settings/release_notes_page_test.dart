@@ -216,8 +216,8 @@ void main() {
       final bundled = File('assets/release-notes.md').readAsStringSync();
       await open(tester, size: size, notes: bundled);
       expect(tester.takeException(), isNull);
-      expect(find.text('ONSET 1.1.0'), findsOneWidget);
-      expect(find.text('1 new · 2 improvements · 1 fix'), findsWidgets);
+      expect(find.text('ONSET 1.2.0'), findsOneWidget);
+      expect(find.text('2 new · 8 improvements · 4 fixes'), findsWidgets);
       // The 1.0.0 entry stays reachable below the newest one.
       expect(find.text('v1.0.0', skipOffstage: false), findsWidgets);
     });

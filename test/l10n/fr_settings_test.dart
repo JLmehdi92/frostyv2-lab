@@ -438,10 +438,10 @@ void main() {
           );
           // The bundled French notes, read in French: on a tablet, the
           // version list's date short, never cut.
-          expect(find.text('1er novembre 2026'), findsWidgets);
+          expect(find.text('28 novembre 2026'), findsWidgets);
           if (size.shortestSide >= 600) {
             final date = tester.renderObject<RenderParagraph>(
-              find.text('29 oct. 2026'),
+              find.text('28 nov. 2026'),
             );
             expect(date.didExceedMaxLines, isFalse);
           }
