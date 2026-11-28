@@ -1516,14 +1516,17 @@ class _VideoChatState extends State<VideoChat>
             return videoOverlay;
           }
 
+          final visible = _videoStore.overlayVisible;
           return AnimatedOpacity(
-            opacity: _videoStore.overlayVisible ? 1.0 : 0.0,
+            opacity: visible ? 1.0 : 0.0,
             curve: Curves.ease,
             duration: const Duration(milliseconds: 200),
             child: ColoredBox(
               color: Colors.transparent,
-              child: IgnorePointer(
-                ignoring: !_videoStore.overlayVisible,
+              child: ValueListenableBuilder(
+                valueListenable: _videoTaps.open,
+                builder: (context, tapOpen, child) =>
+                    IgnorePointer(ignoring: !visible || tapOpen, child: child),
                 child: videoOverlay,
               ),
             ),
@@ -2269,7 +2272,7 @@ class _VideoChatState extends State<VideoChat>
 
   @override
   void dispose() {
-    _videoTaps.cancel();
+    _videoTaps.dispose();
     _restoreVideoAfterChatOnlyStart();
     // Remove observer for app lifecycle events
     WidgetsBinding.instance.removeObserver(this);

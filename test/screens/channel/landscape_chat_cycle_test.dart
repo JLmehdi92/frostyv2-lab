@@ -110,8 +110,12 @@ class _Screen extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           child: ColoredBox(
             color: Colors.transparent,
-            child: IgnorePointer(
-              ignoring: !player.overlayVisible,
+            child: ValueListenableBuilder(
+              valueListenable: taps.open,
+              builder: (context, tapOpen, child) => IgnorePointer(
+                ignoring: !player.overlayVisible || tapOpen,
+                child: child,
+              ),
               child: VideoOverlay(
                 videoStore: player,
                 chatStore: chat,
@@ -575,11 +579,12 @@ void main() {
         }
         expect(ivs.streamInfo, isNotNull);
 
+        final shownBefore = ivs.overlayVisible;
         await doubleTap(tester);
         expect(find.byKey(_infoKey), findsNothing);
         expect(videoRect(tester), const Rect.fromLTWH(0, 0, 1280, 1066));
 
-        // Shown with the controls: the double tap's taps never toggled them.
+        expect(ivs.overlayVisible, !shownBefore);
         if (!ivs.overlayVisible) {
           ivs.handleVideoTap();
           await tester.pump();
@@ -622,36 +627,84 @@ void main() {
       return (cycle, player);
     }
 
-    testWidgets('a single tap toggles the controls once the window is over', (
+    testWidgets('a single tap shows the controls at once', (tester) async {
+      final (cycle, player) = await pumpToggling(tester, shown: false);
+
+      await tester.tapAt(const Offset(300, 300));
+      await tester.pump();
+      expect(player.overlayVisible, isTrue);
+      expect(find.byTooltip('Pause'), findsOneWidget);
+      expect(player.calls.where((c) => c == 'tap'), hasLength(1));
+
+      await tester.pump(kDoubleTapTimeout);
+      expect(player.overlayVisible, isTrue);
+      expect(player.calls.where((c) => c == 'tap'), hasLength(1));
+      expect(cycle.plainSide, isFalse);
+      await done(tester);
+    });
+
+    testWidgets('a single tap hides the controls at once', (tester) async {
+      final (_, player) = await pumpToggling(tester, shown: true);
+
+      await tester.tapAt(const Offset(300, 300));
+      await tester.pump();
+      expect(player.overlayVisible, isFalse);
+      expect(player.calls, ['tap']);
+      await done(tester);
+    });
+
+    testWidgets(
+      'a double tap away from the buttons cycles the chat, the first tap '
+      'having shown the controls',
+      (tester) async {
+        final (cycle, player) = await pumpToggling(tester, shown: false);
+
+        await tester.tapAt(const Offset(300, 300));
+        await tester.pump();
+        expect(player.overlayVisible, isTrue);
+        await tester.pump(const Duration(milliseconds: 90));
+        await tester.tapAt(const Offset(300, 300));
+        await tester.pump();
+
+        expect(cycle.plainSide, isTrue);
+        expect(player.overlayVisible, isTrue);
+        expect(player.calls, ['tap']);
+        await tester.pump(const Duration(seconds: 1));
+        expect(player.overlayVisible, isTrue);
+        expect(player.calls, ['tap']);
+        await done(tester);
+      },
+    );
+
+    testWidgets(
+      'a double tap over play/pause cycles the chat and never pauses',
+      (tester) async {
+        final (cycle, player) = await pumpToggling(tester, shown: false);
+        final centre = tester.getCenter(find.byTooltip('Pause'));
+
+        await tester.tapAt(centre);
+        await tester.pump(const Duration(milliseconds: 90));
+        await tester.tapAt(centre);
+        await tester.pump(const Duration(seconds: 1));
+
+        expect(cycle.plainSide, isTrue);
+        expect(player.overlayVisible, isTrue);
+        expect(player.calls, ['tap']);
+        await done(tester);
+      },
+    );
+
+    testWidgets('the buttons answer once the double tap window is over', (
       tester,
     ) async {
       final (_, player) = await pumpToggling(tester, shown: false);
 
       await tester.tapAt(const Offset(300, 300));
-      await tester.pump();
-      expect(player.overlayVisible, isFalse);
-
       await tester.pump(kDoubleTapTimeout);
-      expect(player.overlayVisible, isTrue);
-      expect(player.calls.where((c) => c == 'tap'), hasLength(1));
-      await done(tester);
-    });
+      await tester.tap(find.byTooltip('Pause'));
+      await tester.pump();
 
-    testWidgets('a double tap on play/pause cycles the chat, nothing else', (
-      tester,
-    ) async {
-      final (cycle, player) = await pumpToggling(tester, shown: false);
-      final centre = tester.getCenter(find.byTooltip('Pause'));
-
-      await tester.tapAt(centre);
-      await tester.pump(const Duration(milliseconds: 90));
-      await tester.tapAt(centre);
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(cycle.plainSide, isTrue);
-      expect(player.overlayVisible, isFalse);
-      expect(player.calls, isNot(contains('pausePlay')));
-      expect(player.calls, isNot(contains('tap')));
+      expect(player.calls, ['tap', 'pausePlay']);
       await done(tester);
     });
 

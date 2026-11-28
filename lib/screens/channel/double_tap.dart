@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 
 class VideoTaps {
@@ -8,31 +9,36 @@ class VideoTaps {
   final void Function() onSingle;
   final void Function() onDouble;
 
-  Timer? _pending;
+  final open = ValueNotifier(false);
+
+  Timer? _window;
   Offset? _position;
 
   void tap(Offset position) {
     final previous = _position;
-    if (_pending?.isActive ?? false) {
-      cancel();
-      if (previous != null &&
-          (position - previous).distance <= kDoubleTapSlop) {
-        onDouble();
-        return;
-      }
-      onSingle();
+    final wasOpen = _window?.isActive ?? false;
+    cancel();
+    if (wasOpen &&
+        previous != null &&
+        (position - previous).distance <= kDoubleTapSlop) {
+      onDouble();
+      return;
     }
     _position = position;
-    _pending = Timer(kDoubleTapTimeout, () {
-      _pending = null;
-      _position = null;
-      onSingle();
-    });
+    _window = Timer(kDoubleTapTimeout, cancel);
+    open.value = true;
+    onSingle();
   }
 
   void cancel() {
-    _pending?.cancel();
-    _pending = null;
+    _window?.cancel();
+    _window = null;
     _position = null;
+    open.value = false;
+  }
+
+  void dispose() {
+    _window?.cancel();
+    open.dispose();
   }
 }
